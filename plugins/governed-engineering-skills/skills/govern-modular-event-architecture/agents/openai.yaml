@@ -1,0 +1,7 @@
+interface:
+  display_name: "Modular Event Architecture"
+  short_description: "Design boundaries first; enforce types and state with AST."
+  default_prompt: "Use $govern-modular-event-architecture to pass the pre-code boundary, type, and state ownership gates before implementing and AST-validating the change."
+
+policy:
+  allow_implicit_invocation: true

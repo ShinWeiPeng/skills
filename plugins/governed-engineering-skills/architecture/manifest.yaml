@@ -1,0 +1,476 @@
+standard_version: 2.0.2
+schema_version: 2.0.2
+project:
+  name: Governed Engineering Skills
+  documentation_language: en
+source_sets:
+- id: plugin-production
+  classification: production
+  include:
+  - skills/**
+  - scripts
+  - scripts/**
+  - .codex-plugin
+  - .codex-plugin/**
+  - vendor-lock.json
+  exclude:
+  - skills/**/tests/**
+  - skills/**/architecture/generated/**
+  - skills/**/__pycache__/**
+  purpose: Govern the installed skill prompts, routing contracts, classifier, plugin
+    manifest, and vendor synchronization.
+  provenance: Human-maintained integration and pinned vendored snapshots.
+- id: plugin-development
+  classification: development
+  include:
+  - tests/**
+  - tools/**
+  - skills/**/tests/**
+  exclude: []
+  purpose: Keep validation fixtures and development tooling outside formal product
+    sources.
+  provenance: Integration and vendored skill test tooling.
+- id: plugin-derived-docs
+  classification: derived-documentation
+  include:
+  - architecture/generated/**
+  - skills/**/architecture/generated/**
+  exclude: []
+  purpose: Keep deterministic architecture views outside formal product sources.
+  provenance: Architecture renderers.
+- id: plugin-build-output
+  classification: build-output
+  include:
+  - build/**
+  - .cache/**
+  - '**/__pycache__/**'
+  exclude: []
+  purpose: Exclude generated runtime and validation caches.
+  provenance: Python and local build tools.
+modules:
+- id: guided_workflow_router
+  level: L0
+  role: composition
+  implementation_status: implemented
+  paths:
+  - skills/ask-matt
+  parent: null
+  depends_on:
+  - risk_routing_domain
+  - delivery_workflow_domain
+  - governance_workflow_domain
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Present the user-invoked engineering map and coordinate risk, delivery,
+      and governance domains.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Never execute human-only skills on the user's behalf.
+    - Never route standalone learning-note or HackMD work.
+  entrypoints:
+  - path: skills/ask-matt/SKILL.md
+    symbol: ask-matt
+    kind: skill
+  public_symbols:
+  - path: skills/ask-matt/SKILL.md
+    symbol: ask-matt
+    kind: skill
+- id: risk_routing_domain
+  level: L1
+  role: domain
+  implementation_status: implemented
+  paths:
+  - skills/engineering-risk-routing
+  parent: guided_workflow_router
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Own engineering risk classes, gate selection, fail-closed behavior, and
+      resume targets.
+    input_ports:
+    - risk-routing.classify
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Higher hard-trigger risk always takes precedence.
+    - Missing required capabilities or evidence cannot be downgraded.
+  entrypoints:
+  - path: skills/engineering-risk-routing/scripts/classify_risk.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: skills/engineering-risk-routing/scripts/classify_risk.py
+    symbol: classify
+    kind: function
+- id: delivery_workflow_domain
+  level: L1
+  role: domain
+  implementation_status: implemented
+  paths:
+  - skills/diagnosing-bugs
+  - skills/grill-with-docs
+  - skills/triage
+  - skills/improve-codebase-architecture
+  - skills/setup-matt-pocock-skills
+  - skills/tdd
+  - skills/to-spec
+  - skills/to-tickets
+  - skills/wayfinder
+  - skills/implement
+  - skills/prototype
+  - skills/research
+  - skills/domain-modeling
+  - skills/codebase-design
+  - skills/code-review
+  - skills/resolving-merge-conflicts
+  - skills/grill-me
+  - skills/grilling
+  - skills/handoff
+  - skills/teach
+  - skills/writing-great-skills
+  parent: guided_workflow_router
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Move an engineering idea or defect through planning, implementation,
+      and review without bypassing required gates.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Mutation and commits require task and repository authorization.
+  entrypoints:
+  - path: skills/implement/SKILL.md
+    symbol: implement
+    kind: skill
+  public_symbols:
+  - path: skills/implement/SKILL.md
+    symbol: implement
+    kind: skill
+- id: governance_workflow_domain
+  level: L1
+  role: domain
+  implementation_status: implemented
+  paths:
+  - skills/clarify-improvement-proposals
+  - skills/explain-code-flow
+  - skills/govern-modular-event-architecture
+  - skills/validate-on-device
+  parent: guided_workflow_router
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Enforce decision completeness, architecture ownership, evidence-backed
+      explanation, and bounded runtime validation.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Codex never approves its own ADR or Algorithm Design Record.
+  entrypoints:
+  - path: skills/govern-modular-event-architecture/SKILL.md
+    symbol: govern-modular-event-architecture
+    kind: skill
+  public_symbols:
+  - path: skills/govern-modular-event-architecture/SKILL.md
+    symbol: govern-modular-event-architecture
+    kind: skill
+- id: codex_plugin_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - .codex-plugin
+  parent: null
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Bind the integrated skill directory to Codex plugin discovery.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - The manifest discovers exactly one flat skills root.
+  entrypoints:
+  - path: .codex-plugin/plugin.json
+    symbol: governed-engineering-skills
+    kind: manifest
+  public_symbols:
+  - path: .codex-plugin/plugin.json
+    symbol: governed-engineering-skills
+    kind: manifest
+- id: local_install_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - scripts/install-local.ps1
+  parent: null
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Register the repo-local marketplace through the supported Codex CLI
+      command and open the governed plugin's Codex Desktop installation page.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Register the repo-local marketplace in the current user's Codex
+        configuration.
+    - description: Open the governed plugin detail page in Codex Desktop for the
+        user-confirmed Install action.
+    errors: []
+    invariants:
+    - Resolve repository and plugin paths relative to the installer location.
+    - Resolve Codex from PATH or the stable per-user Codex Desktop runtime directory.
+    - Never prompt for paths, parameters, or confirmations.
+    - Never assume that the Codex CLI supports plugin add or plugin list commands.
+    - Never report that the plugin is installed before the user confirms Install in
+      Codex Desktop.
+    - Stop when marketplace registration or the Desktop install-page launch fails.
+  entrypoints:
+  - path: scripts/install-local.ps1
+    symbol: install-local
+    kind: script
+  public_symbols:
+  - path: scripts/install-local.ps1
+    symbol: install-local
+    kind: script
+- id: vendor_sync_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - scripts/vendor_sync.py
+  parent: null
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Hash vendored skills, refresh unmodified snapshots, and fail closed on
+      overlay drift.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Refresh vendored files only when the caller explicitly selects
+        refresh.
+    errors: []
+    invariants:
+    - Never overwrite a drifted integration overlay.
+  entrypoints:
+  - path: scripts/vendor_sync.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: scripts/vendor_sync.py
+    symbol: main
+    kind: function
+- id: integration_validation_technical
+  level: L3+
+  role: technical
+  implementation_status: implemented
+  paths:
+  - scripts/validate_integration.py
+  parent: null
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Validate plugin inventory, skill metadata, path portability, and learning-note
+      isolation.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Validation must not mutate the plugin or user configuration.
+  entrypoints:
+  - path: scripts/validate_integration.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: scripts/validate_integration.py
+    symbol: main
+    kind: function
+ports:
+- id: risk-routing.classify
+  owner: risk_routing_domain
+  direction: input
+  kind: query
+  contract: skills/engineering-risk-routing/references/routing-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Classify one engineering task and select required gates.
+    data: Task text, optional entry skill, available capabilities, and passed gate
+      evidence.
+    timing: sync
+    immediate_rejections: []
+  symbols:
+  - classify
+events: []
+types:
+- id: routing-decision
+  owner: risk_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/routing-contract.schema.json
+    symbol: RoutingDecision
+    kind: interface
+  visibility: cross-module
+  semantic_kind: query
+  description: Deterministic classification and workflow-resume result.
+  lifetime: One routing evaluation.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references: []
+  fields:
+  - name: task_class
+    type: string
+    role: domain-value
+    meaning: Classified engineering task family.
+  - name: matched_hard_triggers
+    type: string-array
+    role: policy
+    meaning: Ordered matched trigger evidence.
+  - name: risk_class
+    type: nullable-string
+    role: policy
+    meaning: R0 through R3 or null when outside the router.
+  - name: required_gates
+    type: string-array
+    role: policy
+    meaning: Gates that must pass before the workflow resumes.
+  - name: next_skill
+    type: nullable-string
+    role: contract-control
+    meaning: Next skill selected by the route.
+  - name: status
+    type: string
+    role: contract-control
+    meaning: PASS or BLOCKED.
+  - name: return_to_flow
+    type: nullable-string
+    role: contract-control
+    meaning: Workflow target after gates pass.
+- id: gate-result
+  owner: risk_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/routing-contract.schema.json
+    symbol: GateResult
+    kind: interface
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Evidence-bearing result for one required gate.
+  lifetime: One governed workflow and its handoffs.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references: []
+  fields:
+  - name: gate
+    type: string
+    role: domain-identity
+    meaning: Skill or validation gate identity.
+  - name: status
+    type: string
+    role: contract-control
+    meaning: PASS or BLOCKED.
+  - name: evidence
+    type: string-array
+    role: metadata
+    meaning: References to reproducible evidence.
+  - name: resume_target
+    type: nullable-string
+    role: contract-control
+    meaning: Workflow target after the gate.
+type_exclusions: []
+state_objects: []
+boundary_mappings: []
+flows:
+- id: governed-engineering-route
+  owner: guided_workflow_router
+  description: Classify an engineering request before selecting its first workflow
+    step.
+  trigger:
+    kind: command
+    ref: risk-routing.classify
+    description: The user asks ask-matt or enters a governed engineering skill.
+  steps:
+  - id: governed-engineering-route.classify
+    order: 1
+    module: risk_routing_domain
+    action: Match ordered hard triggers and produce a RoutingDecision.
+    receives:
+    - risk-routing.classify
+    emits: []
+    state_changes: []
+    side_effects: []
+  success:
+    result: A PASS decision selects the next skill or identifies an out-of-scope standalone
+      request.
+    events: []
+  errors: []
+adr_exceptions: []
+c_analyzer:
+  ast:
+    status: not-applicable
+    rationale: The governed integration contains prompts, JSON contracts, and Python
+      tooling but no production C or C++ translation units.
+  functional_boundary:
+    status: not-applicable
+    rationale: The plugin has no C or C++ framework boundary.
+    forbidden_includes: []
+    forbidden_symbols: []
+  forbidden_public_includes: []
+  forbidden_public_symbols: []
+  forbidden_source_symbols: []
+workloads:
+- id: governed-routing-workload
+  flow: governed-engineering-route
+  steps:
+  - governed-engineering-route.classify
+  timing_class: best-effort
+  activation:
+    kind: command
+  data:
+    volume: one engineering task
+  budgets: []
+execution_profiles: []
+execution_units: []
+execution_mappings: []
+execution_channels: []
+data_access_profiles: []
+microarchitecture_profiles: []
+platform_variants: []

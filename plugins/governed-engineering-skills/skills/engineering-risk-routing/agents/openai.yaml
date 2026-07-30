@@ -1,0 +1,4 @@
+interface:
+  display_name: "Engineering Risk Routing"
+  short_description: "Classify engineering risk and enforce required gates."
+  default_prompt: "Use $engineering-risk-routing to classify this engineering task, identify hard triggers, and return the required governance gates and resume target."
