@@ -1,6 +1,6 @@
 {
   "name": "governed-engineering-skills",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.2",
   "description": "Risk-routed engineering workflows combining Matt Pocock's promoted skills with architecture and runtime governance.",
   "author": {
     "name": "Hugo Peng"
@@ -12,7 +12,10 @@
     "longDescription": "A Codex-only local integration of Matt Pocock's engineering workflow with proposal, architecture, code-flow, and runtime-evidence governance.",
     "developerName": "Hugo Peng",
     "category": "Developer Tools",
-    "capabilities": ["Interactive", "Write"],
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
     "defaultPrompt": [
       "Use $ask-matt to route this engineering task.",
       "Classify this change with $engineering-risk-routing."
