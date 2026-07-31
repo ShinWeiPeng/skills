@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = PLUGIN_ROOT.parents[1]
 MODULE_PATH = PLUGIN_ROOT / "scripts" / "version_governance.py"
 SPEC = importlib.util.spec_from_file_location("version_governance", MODULE_PATH)
 assert SPEC and SPEC.loader
@@ -344,6 +345,22 @@ class RepositoryPolicyTests(unittest.TestCase):
             (root / ".changeset" / "applied" / "0.2.0" / "test-change.md").is_file()
         )
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
+
+class ReleaseWorkflowContractTests(unittest.TestCase):
+    def test_version_step_provides_github_token_to_changesets(self) -> None:
+        workflow = (
+            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
+        ).read_text(encoding="utf-8")
+        step_marker = "      - name: Prepare root and plugin version files"
+        self.assertIn(step_marker, workflow)
+        _, _, workflow_after_marker = workflow.partition(step_marker)
+        version_step, _, _ = workflow_after_marker.partition("\n      - name:")
+
+        self.assertIn(
+            "\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}",
+            version_step,
+        )
 
 
 if __name__ == "__main__":
