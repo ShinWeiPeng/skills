@@ -69,6 +69,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Prepare Changesets base branch
+        if: github.event_name == 'pull_request'
+        run: git branch --track main origin/main
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

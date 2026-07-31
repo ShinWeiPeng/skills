@@ -348,7 +348,7 @@ class RepositoryPolicyTests(unittest.TestCase):
 
 
 class ReleaseWorkflowContractTests(unittest.TestCase):
-    def test_changesets_validation_checkout_fetches_full_history(self) -> None:
+    def _release_tooling_job(self) -> str:
         workflow = (
             REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
         ).read_text(encoding="utf-8")
@@ -356,6 +356,10 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn(job_marker, workflow)
         _, _, workflow_after_job_marker = workflow.partition(job_marker)
         release_tooling_job, _, _ = workflow_after_job_marker.partition("\n  release:")
+        return release_tooling_job
+
+    def test_changesets_validation_checkout_fetches_full_history(self) -> None:
+        release_tooling_job = self._release_tooling_job()
         checkout_marker = "      - name: Checkout"
         self.assertIn(checkout_marker, release_tooling_job)
         _, _, workflow_after_checkout_marker = release_tooling_job.partition(
@@ -368,6 +372,16 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn(
             "\n        with:\n          fetch-depth: 0",
             checkout_step,
+        )
+
+    def test_changesets_validation_materializes_main_for_pull_requests(self) -> None:
+        release_tooling_job = self._release_tooling_job()
+
+        self.assertIn(
+            "\n      - name: Prepare Changesets base branch"
+            "\n        if: github.event_name == 'pull_request'"
+            "\n        run: git branch --track main origin/main",
+            release_tooling_job,
         )
 
     def test_version_step_provides_github_token_to_changesets(self) -> None:
