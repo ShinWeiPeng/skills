@@ -90,6 +90,7 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Validate root Changesets release plan
+        if: github.event_name != 'pull_request' || github.head_ref != 'changeset-release/main'
         run: npx changeset status
 
       - name: Validate isolated plugin release metadata
