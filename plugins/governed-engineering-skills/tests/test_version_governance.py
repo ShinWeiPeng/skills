@@ -384,6 +384,29 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             release_tooling_job,
         )
 
+    def test_version_pull_request_skips_pending_changeset_validation(self) -> None:
+        release_tooling_job = self._release_tooling_job()
+        step_marker = "      - name: Validate root Changesets release plan"
+        self.assertIn(step_marker, release_tooling_job)
+        _, _, workflow_after_marker = release_tooling_job.partition(step_marker)
+        validation_step, _, _ = workflow_after_marker.partition("\n      - name:")
+
+        self.assertIn(
+            "\n        if: github.event_name != 'pull_request'"
+            " || github.head_ref != 'changeset-release/main'",
+            validation_step,
+        )
+
+    def test_governed_plugin_text_files_checkout_with_lf(self) -> None:
+        attributes_path = REPOSITORY_ROOT / ".gitattributes"
+        self.assertTrue(attributes_path.is_file())
+        attributes = attributes_path.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "plugins/governed-engineering-skills/** text=auto eol=lf",
+            attributes.splitlines(),
+        )
+
     def test_version_step_provides_github_token_to_changesets(self) -> None:
         workflow = (
             REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
