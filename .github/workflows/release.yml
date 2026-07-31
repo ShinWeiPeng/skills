@@ -66,6 +66,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Changesets base branch
+        if: github.event_name == 'pull_request'
+        run: git branch --track main origin/main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -120,6 +126,8 @@ jobs:
 
       - name: Prepare root and plugin version files
         id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           npm run version
