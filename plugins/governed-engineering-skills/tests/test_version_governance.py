@@ -348,6 +348,28 @@ class RepositoryPolicyTests(unittest.TestCase):
 
 
 class ReleaseWorkflowContractTests(unittest.TestCase):
+    def test_changesets_validation_checkout_fetches_full_history(self) -> None:
+        workflow = (
+            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
+        ).read_text(encoding="utf-8")
+        job_marker = "  release-tooling-validation:"
+        self.assertIn(job_marker, workflow)
+        _, _, workflow_after_job_marker = workflow.partition(job_marker)
+        release_tooling_job, _, _ = workflow_after_job_marker.partition("\n  release:")
+        checkout_marker = "      - name: Checkout"
+        self.assertIn(checkout_marker, release_tooling_job)
+        _, _, workflow_after_checkout_marker = release_tooling_job.partition(
+            checkout_marker
+        )
+        checkout_step, _, _ = workflow_after_checkout_marker.partition(
+            "\n      - name:"
+        )
+
+        self.assertIn(
+            "\n        with:\n          fetch-depth: 0",
+            checkout_step,
+        )
+
     def test_version_step_provides_github_token_to_changesets(self) -> None:
         workflow = (
             REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
