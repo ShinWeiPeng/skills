@@ -40,6 +40,17 @@ class ValidationWorkflowSkillTests(unittest.TestCase):
             self.assertIn(phrase, text)
         self.assertIn("screen product features for algorithm decisions", metadata)
 
+    def test_realtime_scheduling_is_discussed_before_implementation(self) -> None:
+        text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for phrase in (
+            "references/realtime-scheduling-analysis.md",
+            "every hard/soft real-time workload",
+            "scheduler-compatible provisional analysis",
+            "human-readable Markdown study report",
+            "RTOS alone does not trigger RMA",
+        ):
+            self.assertIn(phrase, text)
+
 
 if __name__ == "__main__":
     unittest.main()

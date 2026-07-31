@@ -19,6 +19,10 @@ Apply this reference when a change needs physical-device evidence, operating-sys
 - Permit structured-log fallback only when declared and observable. Preserve requested provider, actual provider, and fallback reason.
 - For bare-metal or platforms without a native provider, use bounded structured events and O(1) statistics.
 - Bind runtime evidence to the accepted Execution Profile and manifest hash. Cache or branch claims require hardware counters or a declared equivalent; wall-clock timing alone cannot prove the claimed mechanism.
+- Use each Execution Profile's `assurance_scope` to bound the claim. Functional
+  compatibility evidence cannot satisfy performance or real-time acceptance.
+  Record validation-tool OS/Python metadata outside the governed target profile.
+- For a final hard/soft real-time profile, measure or conservatively bound every scheduling-analysis input selected by `references/realtime-scheduling-analysis.md`: Task execution demand, blocking, release jitter, scheduler/interrupt overhead, Queue/notification latency, and cross-core copy cost. Re-run final analysis from those inputs. Soft workloads additionally require percentile and deadline-miss-rate SLO evidence; a trace without matching analysis and SLO binding is not acceptance.
 - Preserve the portable/as-is baseline and compare cycles, instructions, cache/branch misses, latency, throughput, memory, binary size, and power applicable to the decision.
 
 ## High-frequency instrumentation

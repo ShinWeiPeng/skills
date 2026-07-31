@@ -1,0 +1,15 @@
+{
+  "bump": "minor",
+  "target_stage": "beta",
+  "risk": "high",
+  "changesets": [
+    "explain-code-flow-contract"
+  ],
+  "summary": {
+    "Fixed": [
+      "Require deterministic reading-level routing and complete Level 1 Flow guidance for code-understanding requests."
+    ]
+  },
+  "approval": null,
+  "validation_evidence": []
+}

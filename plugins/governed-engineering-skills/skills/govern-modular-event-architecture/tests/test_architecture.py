@@ -77,10 +77,21 @@ def valid_manifest(*, c_ast: bool = False) -> dict:
     feature["description"]["output_ports"] = ["feature.io"]
     feature["description"]["emitted_events"] = ["feature.completed"]
     manifest = {
-        "standard_version": "2.0.2",
-        "schema_version": "2.0.2",
+        "standard_version": "2.1.0",
+        "schema_version": "2.1.0",
         "project": {"name": "fixture", "documentation_language": "en"},
         "modules": [app, feature, adapter],
+        "composition_roots": [
+            {
+                "id": "fixture-release",
+                "module": "app",
+                "path": "src/app/app.c",
+                "symbol": "app_init",
+                "purpose": "Compose the fixture release application.",
+                "source_set": "formal-program",
+                "kind": "release",
+            }
+        ],
         "source_sets": [
             {
                 "id": "formal-program",
@@ -264,6 +275,10 @@ def valid_manifest(*, c_ast: bool = False) -> dict:
             "forbidden_public_symbols": ["GPIO_TypeDef"],
             "forbidden_source_symbols": [],
         },
+        "python_analyzer": {
+            "status": "not-applicable",
+            "rationale": "The fixture contains governed C source only.",
+        },
         "workloads": [
             {
                 "id": "feature-workload",
@@ -279,6 +294,7 @@ def valid_manifest(*, c_ast: bool = False) -> dict:
             {
                 "id": "fixture-profile",
                 "status": "legacy-review",
+                "assurance_scope": ["functional-compatibility"],
                 "target": {
                     "platform": "test",
                     "cpu": "test",
@@ -329,7 +345,238 @@ def valid_manifest(*, c_ast: bool = False) -> dict:
                 "release": False,
             }
         ],
+        "realtime_scheduling_studies": [],
+        "validation_profiles": [
+            {
+                "id": "fixture-host-validation",
+                "applicability": "not-applicable",
+                "rationale": "The fixture has no runtime acceptance claim.",
+            }
+        ],
     }
+    return manifest
+
+
+def realtime_design_manifest() -> dict:
+    manifest = valid_manifest()
+    manifest["project"]["documentation_language"] = "zh-TW"
+    manifest["workloads"][0].update(
+        {
+            "timing_class": "hard-real-time",
+            "activation": {"kind": "periodic", "period_ns": 10_000_000},
+            "budgets": [
+                {
+                    "metric": "deadline",
+                    "operator": "<=",
+                    "threshold": 10_000_000,
+                    "unit": "ns",
+                    "method": "RTA",
+                },
+                {
+                    "metric": "deadline-miss-count",
+                    "operator": "==",
+                    "threshold": 0,
+                    "unit": "count",
+                    "method": "runtime-evidence",
+                },
+            ],
+            "tier1_analysis": {
+                "working_set": "Bounded fixture state.",
+                "memory_traffic": "Bounded fixture transfers.",
+                "branch_predictability": "Deterministic fixture paths.",
+                "simd_dependencies": "None.",
+                "parallelism": "Partitioned tasks.",
+                "blocking_bounds": "Priority-ceiling bound.",
+            },
+        }
+    )
+
+    def candidate(profile_id: str) -> dict:
+        return {
+            "id": profile_id,
+            "status": "proposed",
+            "assurance_scope": ["functional-compatibility", "real-time"],
+            "execution_model": "bare-metal",
+            "analysis_phase": "provisional",
+            "target": {
+                "platform": "fixture-board",
+                "cpu": "fixture-cpu",
+                "runtime": "fixture-rtos",
+                "compiler": "fixture-compiler",
+                "cache_topology": {"kind": "fixture"},
+                "scheduler_capabilities": ["fixed-priority", "core-affinity"],
+            },
+            "scheduler": {
+                "model": "partitioned-fixed-priority",
+                "priority_assignment": "rate-monotonic",
+                "preemption": "fully-preemptive",
+                "migration": "forbidden",
+                "core_count": 2,
+                "priority_higher_value_wins": True,
+                "timer_resolution_ns": 1_000,
+                "resource_access_protocol": "priority-ceiling",
+            },
+            "overheads": {
+                "context_switch_ns": 10_000,
+                "dispatch_ns": 5_000,
+                "preemption_ns": 10_000,
+                "timer_interrupt_ns": 5_000,
+            },
+        }
+
+    def unit(
+        unit_id: str,
+        profile_id: str,
+        mapping_id: str,
+        *,
+        core: int,
+        period_ns: int,
+        budget_ns: int,
+        priority: int,
+    ) -> dict:
+        return {
+            "id": unit_id,
+            "profile": profile_id,
+            "kind": "dedicated-task",
+            "priority": priority,
+            "affinity": [core],
+            "concurrency": 1,
+            "resources": {"stack": "bounded"},
+            "blocking": "priority-ceiling",
+            "allocation": "static",
+            "realtime_task": {
+                "core": core,
+                "activation": {"kind": "periodic", "period_ns": period_ns},
+                "relative_deadline_ns": period_ns,
+                "release_jitter_ns": 0,
+                "blocking_ns": 0,
+                "demand_components": [
+                    {"mapping": mapping_id, "budget_ns": budget_ns}
+                ],
+            },
+        }
+
+    def mapping(
+        mapping_id: str, profile_id: str, unit_id: str, wcet: str
+    ) -> dict:
+        return {
+            "id": mapping_id,
+            "profile": profile_id,
+            "workload": "feature-workload",
+            "steps": ["feature-flow.step-1"],
+            "units": [unit_id],
+            "serialization": "one job",
+            "reentrant": False,
+            "activation": "periodic",
+            "wcet": wcet,
+        }
+
+    manifest["execution_profiles"] = [candidate("candidate-a"), candidate("candidate-b")]
+    manifest["execution_units"] = [
+        unit(
+            "candidate-a-task",
+            "candidate-a",
+            "candidate-a-map",
+            core=0,
+            period_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
+        ),
+        unit(
+            "candidate-b-fast",
+            "candidate-b",
+            "candidate-b-fast-map",
+            core=0,
+            period_ns=5_000_000,
+            budget_ns=400_000,
+            priority=1,
+        ),
+        unit(
+            "candidate-b-slow",
+            "candidate-b",
+            "candidate-b-slow-map",
+            core=1,
+            period_ns=10_000_000,
+            budget_ns=500_000,
+            priority=1,
+        ),
+    ]
+    manifest["execution_mappings"] = [
+        mapping("candidate-a-map", "candidate-a", "candidate-a-task", "1 ms"),
+        mapping("candidate-b-fast-map", "candidate-b", "candidate-b-fast", "0.4 ms"),
+        mapping("candidate-b-slow-map", "candidate-b", "candidate-b-slow", "0.5 ms"),
+    ]
+    manifest["execution_channels"] = [
+        {
+            "id": "candidate-b-handoff",
+            "profile": "candidate-b",
+            "from_unit": "candidate-b-fast",
+            "to_unit": "candidate-b-slow",
+            "contract_refs": ["feature.completed"],
+            "capacity": 1,
+            "ordering": "FIFO",
+            "copy_policy": "copy",
+            "timeout_ms": 0,
+            "overload": "fail-safe",
+            "realtime_timing": {
+                "cross_core": True,
+                "notification_latency_ns": 50_000,
+                "release_jitter_ns": 20_000,
+                "copy_cost_ns": 20_000,
+                "cpu_cost_accounting": [
+                    {"unit": "candidate-b-fast", "cost_ns": 10_000},
+                    {"unit": "candidate-b-slow", "cost_ns": 10_000},
+                ],
+            },
+        }
+    ]
+    manifest["platform_variants"] = []
+    manifest["realtime_scheduling_studies"] = [
+        {
+            "id": "feature-task-study",
+            "analysis_method": "rate-monotonic-rta",
+            "objective": "Select a schedulable task count, rate, and core allocation.",
+            "requirements": [
+                "Meet the feature Flow deadline.",
+                "Account for RTOS and cross-core overhead.",
+            ],
+            "assumptions": [
+                "Tasks use partitioned fixed-priority scheduling.",
+                "Provisional WCET values are conservative budgets.",
+            ],
+            "analysis_phase": "provisional",
+            "workload_refs": ["feature-workload"],
+            "flow_refs": ["feature-flow"],
+            "candidate_profiles": ["candidate-a", "candidate-b"],
+            "selected_profile": "candidate-a",
+            "candidate_outcomes": {"candidate-b": "pass"},
+            "rejection_reasons": {},
+            "selection_rationale": "Candidate A uses fewer tasks and avoids cross-core transfer while meeting RTA.",
+            "selection_approval": {
+                "approved_by": "Fixture Owner",
+                "approval_date": "2026-07-30",
+                "approval_reference": "fixture-review-1",
+            },
+            "flow_chains": [
+                {
+                    "id": "candidate-a-flow",
+                    "profile": "candidate-a",
+                    "flow": "feature-flow",
+                    "ordered_units": ["candidate-a-task"],
+                    "ordered_channels": [],
+                    "deadline_ns": 10_000_000,
+                },
+                {
+                    "id": "candidate-b-flow",
+                    "profile": "candidate-b",
+                    "flow": "feature-flow",
+                    "ordered_units": ["candidate-b-fast", "candidate-b-slow"],
+                    "ordered_channels": ["candidate-b-handoff"],
+                    "deadline_ns": 10_000_000,
+                },
+            ],
+        }
+    ]
     return manifest
 
 
@@ -410,6 +657,304 @@ class SchemaV2Tests(unittest.TestCase):
         diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
         self.assertEqual(2, exit_code(diagnostics))
         self.assertTrue(any(item.rule_id == "VER002" for item in diagnostics))
+
+    def test_schema_2_0_2_is_rejected_after_realtime_contract_upgrade(self) -> None:
+        manifest = valid_manifest()
+        manifest["standard_version"] = "2.0.2"
+        manifest["schema_version"] = "2.0.2"
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertEqual(2, exit_code(diagnostics))
+        self.assertTrue(any(item.rule_id == "VER002" for item in diagnostics))
+
+    def test_hard_realtime_bare_metal_profile_triggers_and_passes_study(self) -> None:
+        diagnostics = validate_manifest(
+            realtime_design_manifest(), Path("architecture/manifest.yaml")
+        )
+        self.assertEqual(0, exit_code(diagnostics), diagnostics)
+
+    def test_best_effort_rtos_profile_does_not_require_study(self) -> None:
+        manifest = valid_manifest()
+        manifest["execution_profiles"][0]["execution_model"] = "rtos"
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertEqual(0, exit_code(diagnostics), diagnostics)
+        self.assertFalse(
+            any(item.rule_id.startswith("SCHED") for item in diagnostics),
+            diagnostics,
+        )
+
+    def test_realtime_profile_requires_explicit_execution_environment(self) -> None:
+        manifest = realtime_design_manifest()
+        manifest["execution_profiles"][0].pop("execution_model")
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertTrue(
+            any(item.rule_id == "SCHED005" for item in diagnostics),
+            diagnostics,
+        )
+
+    def test_realtime_study_requires_distinct_candidates_and_human_selection(self) -> None:
+        manifest = realtime_design_manifest()
+        study = manifest["realtime_scheduling_studies"][0]
+        study["candidate_profiles"] = ["candidate-a", "candidate-a"]
+        study["selected_profile"] = "candidate-a"
+        study["selection_approval"]["approved_by"] = "Codex"
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        rules = {item.rule_id for item in diagnostics}
+        self.assertIn("SCHED041", rules)
+        self.assertIn("SCHED046", rules)
+
+    def test_selected_hard_realtime_candidate_must_pass_rta(self) -> None:
+        manifest = realtime_design_manifest()
+        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = 100_000
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        rules = {item.rule_id for item in diagnostics}
+        self.assertIn("SCHED061", rules)
+        self.assertIn("SCHED062", rules)
+        self.assertEqual(1, exit_code(diagnostics))
+
+    def test_selected_hard_realtime_deadline_miss_cannot_be_baselined(self) -> None:
+        manifest = realtime_design_manifest()
+        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = 100_000
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest_path = root / "architecture" / "manifest.yaml"
+            manifest_path.parent.mkdir()
+            baseline_path = root / "architecture" / "baseline.yaml"
+            baseline_path.write_text(
+                yaml.safe_dump(
+                    {
+                        "schema_version": "2.1.0",
+                        "violations": [
+                            {"rule_id": "SCHED061", "location": "candidate-a"}
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            diagnostics = validate_manifest(
+                manifest, manifest_path, baseline_path=baseline_path
+            )
+        misses = [item for item in diagnostics if item.rule_id == "SCHED061"]
+        self.assertTrue(misses)
+        self.assertTrue(all(item.disposition == "active" for item in misses))
+
+    def test_final_accepted_realtime_profile_requires_runtime_evidence(self) -> None:
+        manifest = realtime_design_manifest()
+        profile = manifest["execution_profiles"][0]
+        profile["status"] = "accepted"
+        profile["analysis_phase"] = "final"
+        profile["approval"] = {
+            "approved_by": "Fixture Owner",
+            "approval_date": "2026-07-30",
+            "approval_reference": "fixture-final-review",
+        }
+        study = manifest["realtime_scheduling_studies"][0]
+        study["analysis_phase"] = "final"
+        study["final_approval"] = copy.deepcopy(profile["approval"])
+        for unit in manifest["execution_units"]:
+            if unit["profile"] != "candidate-a":
+                continue
+            for component in unit["realtime_task"]["demand_components"]:
+                component.update(
+                    {
+                        "final_ns": component["budget_ns"],
+                        "basis": "measured",
+                        "evidence_path": "validation/wcet.json",
+                        "evidence_sha256": "a" * 64,
+                    }
+                )
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertTrue(any(item.rule_id == "SCHED013" for item in diagnostics))
+
+    def test_unsupported_scheduling_method_is_blocked(self) -> None:
+        for method in (
+            "earliest-deadline-first",
+            "cyclic-executive",
+            "unknown-method",
+        ):
+            with self.subTest(method=method):
+                manifest = realtime_design_manifest()
+                manifest["realtime_scheduling_studies"][0][
+                    "analysis_method"
+                ] = method
+                diagnostics = validate_manifest(
+                    manifest, Path("architecture/manifest.yaml")
+                )
+                rules = {item.rule_id for item in diagnostics}
+                self.assertIn("SCHED060", rules)
+                self.assertIn("SCHED062", rules)
+                self.assertEqual(2, exit_code(diagnostics))
+
+    def test_soft_rta_risk_requires_plan_and_human_risk_acceptance(self) -> None:
+        manifest = realtime_design_manifest()
+        workload = manifest["workloads"][0]
+        workload["timing_class"] = "soft-real-time"
+        workload["budgets"] = [
+            {
+                "metric": "latency-p99",
+                "operator": "<=",
+                "threshold": 10_000_000,
+                "unit": "ns",
+                "method": "percentile",
+            },
+            {
+                "metric": "deadline-miss-rate",
+                "operator": "<=",
+                "threshold": 0.001,
+                "unit": "ratio",
+                "method": "runtime-evidence",
+            },
+        ]
+        manifest["execution_units"][0]["realtime_task"][
+            "relative_deadline_ns"
+        ] = 100_000
+
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        rules = {item.rule_id for item in diagnostics}
+        self.assertIn("SCHED063", rules)
+        self.assertNotIn("SCHED061", rules)
+        self.assertNotIn("SCHED062", rules)
+
+        manifest["realtime_scheduling_studies"][0]["soft_acceptance_plans"] = [
+            {
+                "workload": "feature-workload",
+                "validation_plan_path": "validation/soft-slo-plan.md",
+                "evidence_format": "JSON percentile and miss-rate summary",
+                "risk_approval": {
+                    "approved_by": "Fixture Owner",
+                    "approval_date": "2026-07-30",
+                    "approval_reference": "fixture-soft-risk-review",
+                },
+            }
+        ]
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertEqual(0, exit_code(diagnostics), diagnostics)
+
+    def test_final_soft_profile_requires_bound_passing_slo_evidence(self) -> None:
+        manifest = realtime_design_manifest()
+        workload = manifest["workloads"][0]
+        workload["timing_class"] = "soft-real-time"
+        workload["budgets"] = [
+            {
+                "metric": "latency-p99",
+                "operator": "<=",
+                "threshold": 10_000_000,
+                "unit": "ns",
+                "method": "percentile",
+            },
+            {
+                "metric": "deadline-miss-rate",
+                "operator": "<=",
+                "threshold": 0.001,
+                "unit": "ratio",
+                "method": "runtime-evidence",
+            },
+        ]
+        approval = {
+            "approved_by": "Fixture Owner",
+            "approval_date": "2026-07-30",
+            "approval_reference": "fixture-final-review",
+        }
+        for profile in manifest["execution_profiles"]:
+            profile["analysis_phase"] = "final"
+        selected = manifest["execution_profiles"][0]
+        selected["status"] = "accepted"
+        selected["approval"] = copy.deepcopy(approval)
+        selected["runtime_evidence"] = [
+            {
+                "path": "validation/runtime-summary.json",
+                "sha256": "a" * 64,
+                "profile_id": "candidate-a",
+                "manifest_sha256": "b" * 64,
+            }
+        ]
+        for unit in manifest["execution_units"]:
+            for component in unit["realtime_task"]["demand_components"]:
+                component.update(
+                    {
+                        "final_ns": component["budget_ns"],
+                        "basis": "measured",
+                        "evidence_path": "validation/wcet.json",
+                        "evidence_sha256": "c" * 64,
+                    }
+                )
+        study = manifest["realtime_scheduling_studies"][0]
+        study["analysis_phase"] = "final"
+        study["final_approval"] = copy.deepcopy(approval)
+        study["soft_acceptance_plans"] = [
+            {
+                "workload": "feature-workload",
+                "validation_plan_path": "validation/soft-slo-plan.md",
+                "evidence_format": "JSON percentile and miss-rate summary",
+                "risk_approval": {
+                    "approved_by": "Fixture Owner",
+                    "approval_date": "2026-07-30",
+                    "approval_reference": "fixture-soft-risk-review",
+                },
+            }
+        ]
+
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertTrue(
+            any(item.rule_id == "SCHED064" for item in diagnostics),
+            diagnostics,
+        )
+
+        study["soft_slo_results"] = [
+            {
+                "workload": "feature-workload",
+                "verdict": "pass",
+                "evidence_path": "validation/soft-slo-result.json",
+                "evidence_sha256": "d" * 64,
+                "profile_id": "candidate-a",
+                "manifest_sha256": "b" * 64,
+            }
+        ]
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertEqual(0, exit_code(diagnostics), diagnostics)
+
+    def test_obsolete_rtos_specific_fields_are_configuration_blocked(self) -> None:
+        manifest = realtime_design_manifest()
+        manifest["rtos_design_studies"] = manifest.pop(
+            "realtime_scheduling_studies"
+        )
+        manifest["execution_profiles"][0]["overheads"]["timer_isr_ns"] = 1
+        manifest["execution_units"][0]["rtos"] = {}
+        manifest["execution_units"][0]["rtos_isr"] = {}
+        manifest["execution_channels"][0]["rtos_timing"] = {}
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        obsolete = [item for item in diagnostics if item.rule_id == "SCHED000"]
+        self.assertTrue(obsolete, diagnostics)
+        self.assertTrue(all(item.configuration for item in obsolete))
+        locations = {item.location for item in obsolete}
+        self.assertTrue(
+            {
+                "rtos_design_studies",
+                "candidate-a.overheads.timer_isr_ns",
+                "candidate-a-task.rtos",
+                "candidate-a-task.rtos_isr",
+                "candidate-b-handoff.rtos_timing",
+            }.issubset(locations),
+            locations,
+        )
+
+    def test_every_realtime_workload_profile_pair_has_exactly_one_study(self) -> None:
+        manifest = realtime_design_manifest()
+        manifest["realtime_scheduling_studies"] = []
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertTrue(
+            any(item.rule_id == "SCHED070" for item in diagnostics),
+            diagnostics,
+        )
+
+        manifest = realtime_design_manifest()
+        duplicate = copy.deepcopy(manifest["realtime_scheduling_studies"][0])
+        duplicate["id"] = "duplicate-feature-task-study"
+        manifest["realtime_scheduling_studies"].append(duplicate)
+        diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
+        self.assertTrue(
+            any(item.rule_id == "SCHED070" for item in diagnostics),
+            diagnostics,
+        )
 
     def test_source_set_overlap_and_nonproduction_declaration_are_blocking(self) -> None:
         manifest = valid_manifest()
@@ -1445,6 +1990,164 @@ class CAnalyzerV2Tests(unittest.TestCase):
 
 
 class ToolingTests(unittest.TestCase):
+    def test_realtime_study_markdown_is_human_readable_and_deterministic(self) -> None:
+        manifest = realtime_design_manifest()
+        documents = render_documents(manifest)
+        path = Path("generated/realtime-study-feature-task-study.md")
+        self.assertIn(path, documents)
+        report = documents[path]
+        for expected in (
+            "候選方案比較",
+            "排程器相容性",
+            "每核心 RM 排序",
+            "ISR 干擾模型",
+            "Task RTA",
+            "WCET 上界證據",
+            "Queue／Notification 與跨核心成本",
+            "端到端 Flow",
+            "Runtime 證據綁定",
+            "design-budget",
+            "方案核准人",
+            "100 Hz",
+            "candidate-a",
+            "candidate-b",
+        ):
+            self.assertIn(expected, report)
+        self.assertIn(
+            "generated/realtime-study-feature-task-study.md",
+            documents[Path("ARCHITECTURE.md")],
+        )
+        self.assertIn(
+            "realtime-study-feature-task-study.md",
+            documents[Path("generated/execution-candidate-a.md")],
+        )
+        self.assertEqual(documents, render_documents(copy.deepcopy(manifest)))
+
+    def test_soft_realtime_report_contains_risk_and_slo_plan(self) -> None:
+        manifest = realtime_design_manifest()
+        manifest["workloads"][0]["timing_class"] = "soft-real-time"
+        manifest["workloads"][0]["budgets"] = [
+            {
+                "metric": "latency-p99",
+                "operator": "<=",
+                "threshold": 10_000_000,
+                "unit": "ns",
+                "method": "percentile",
+            },
+            {
+                "metric": "deadline-miss-rate",
+                "operator": "<=",
+                "threshold": 0.001,
+                "unit": "ratio",
+                "method": "runtime-evidence",
+            },
+        ]
+        manifest["execution_units"][0]["realtime_task"][
+            "relative_deadline_ns"
+        ] = 100_000
+        manifest["realtime_scheduling_studies"][0]["soft_acceptance_plans"] = [
+            {
+                "workload": "feature-workload",
+                "validation_plan_path": "validation/soft-slo-plan.md",
+                "evidence_format": "JSON percentile and miss-rate summary",
+                "risk_approval": {
+                    "approved_by": "Fixture Owner",
+                    "approval_date": "2026-07-30",
+                    "approval_reference": "fixture-soft-risk-review",
+                },
+            }
+        ]
+        report = render_documents(manifest)[
+            Path("generated/realtime-study-feature-task-study.md")
+        ]
+        for expected in (
+            "`soft-real-time`",
+            "`rate-monotonic-rta`",
+            "排程器相容性",
+            "`SOFT_RISK`",
+            "Soft SLO 驗證計畫",
+            "validation/soft-slo-plan.md",
+            "fixture-soft-risk-review",
+        ):
+            self.assertIn(expected, report)
+
+    def test_realtime_study_markdown_participates_in_stale_checks(self) -> None:
+        manifest = realtime_design_manifest()
+        with tempfile.TemporaryDirectory() as directory:
+            architecture = Path(directory) / "architecture"
+            architecture.mkdir()
+            manifest_path = architecture / "manifest.yaml"
+            manifest_path.write_text(
+                yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+            )
+            documents = render_documents(manifest)
+            for relative, content in documents.items():
+                destination = architecture / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(content, encoding="utf-8")
+            report_path = (
+                architecture
+                / "generated"
+                / "realtime-study-feature-task-study.md"
+            )
+            report_path.write_text(
+                report_path.read_text(encoding="utf-8") + "\nmanual edit\n",
+                encoding="utf-8",
+            )
+            diagnostics = compare_documents(manifest, manifest_path)
+        self.assertTrue(
+            any(
+                rule == "DOC002"
+                and location == "generated/realtime-study-feature-task-study.md"
+                for rule, location, _ in diagnostics
+            )
+        )
+
+    def test_realtime_study_markdown_missing_and_obsolete_files_are_detected(self) -> None:
+        manifest = realtime_design_manifest()
+        with tempfile.TemporaryDirectory() as directory:
+            architecture = Path(directory) / "architecture"
+            architecture.mkdir()
+            manifest_path = architecture / "manifest.yaml"
+            manifest_path.write_text(
+                yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+            )
+            documents = render_documents(manifest)
+            for relative, content in documents.items():
+                destination = architecture / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(content, encoding="utf-8")
+            expected_report = (
+                architecture
+                / "generated"
+                / "realtime-study-feature-task-study.md"
+            )
+            expected_report.unlink()
+            obsolete_report = (
+                architecture / "generated" / "realtime-study-obsolete.md"
+            )
+            obsolete_report.write_text(
+                "<!-- GENERATED BY govern-modular-event-architecture; DO NOT EDIT -->\n",
+                encoding="utf-8",
+            )
+            diagnostics = compare_documents(manifest, manifest_path)
+        self.assertIn(
+            (
+                "DOC001",
+                "generated/realtime-study-feature-task-study.md",
+                "generated architecture document is missing",
+            ),
+            diagnostics,
+        )
+        self.assertIn(
+            (
+                "DOC003",
+                "generated/realtime-study-obsolete.md",
+                "obsolete generated architecture document exists",
+            ),
+            diagnostics,
+        )
+
     def test_bootstrap_installs_only_schema_v2_tools(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1457,11 +2160,19 @@ class ToolingTests(unittest.TestCase):
             written = bootstrap(project, spec)
             names = {path.name for path in written}
             self.assertIn("schema_v2.py", names)
+            self.assertIn("realtime_analysis.py", names)
             self.assertIn("type_catalog.py", names)
             self.assertIn("state_catalog.py", names)
             self.assertIn("source_sets.py", names)
             self.assertIn("boundary_catalog.py", names)
             self.assertIn("ast_analyzer.py", names)
+            self.assertIn("architecture_cli.py", names)
+            self.assertIn("python_analyzer.py", names)
+            self.assertIn("governance_adoption.py", names)
+            self.assertIn("adoption.yaml", names)
+            self.assertIn("baseline.yaml", names)
+            self.assertIn("adoption-readiness.md", names)
+            self.assertIn("adoption-readiness.json", names)
             self.assertIn("requirements.txt", names)
             self.assertIn(
                 "libclang==18.1.1",
@@ -1478,7 +2189,10 @@ class ToolingTests(unittest.TestCase):
             checker = subprocess.run(
                 [
                     sys.executable,
-                    str(project / "tools" / "architecture" / "check.py"),
+                    str(project / "tools" / "architecture" / "architecture_cli.py"),
+                    "gate",
+                    "--phase",
+                    "design",
                     "--manifest",
                     str(manifest_path),
                 ],
@@ -1488,21 +2202,58 @@ class ToolingTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(0, checker.returncode, checker.stdout + checker.stderr)
-            analyzer = subprocess.run(
+            old_command = subprocess.run(
                 [
                     sys.executable,
                     str(project / "tools" / "architecture" / "c_analyzer.py"),
-                    "--manifest",
-                    str(manifest_path),
-                    "--project-root",
-                    str(project),
+                    "--help",
                 ],
                 cwd=project,
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            self.assertEqual(0, analyzer.returncode, analyzer.stdout + analyzer.stderr)
+            self.assertNotEqual(0, old_command.returncode)
+            self.assertIn("architecture_cli.py", old_command.stderr)
+
+    def test_bootstrap_realtime_project_uses_single_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            spec = root / "spec.yaml"
+            spec.write_text(
+                yaml.safe_dump(realtime_design_manifest(), sort_keys=False),
+                encoding="utf-8",
+            )
+            project = root / "project"
+            bootstrap(project, spec)
+            report = (
+                project
+                / "architecture"
+                / "generated"
+                / "realtime-study-feature-task-study.md"
+            )
+            self.assertTrue(report.is_file())
+            for command in (
+                [
+                    sys.executable,
+                    str(project / "tools" / "architecture" / "architecture_cli.py"),
+                    "gate",
+                    "--phase",
+                    "design",
+                    "--manifest",
+                    str(project / "architecture" / "manifest.yaml"),
+                ],
+            ):
+                result = subprocess.run(
+                    command,
+                    cwd=project,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(
+                    0, result.returncode, result.stdout + result.stderr
+                )
 
     def test_generated_views_match_skill_manifest(self) -> None:
         manifest_path = SKILL_ROOT / "architecture" / "manifest.yaml"

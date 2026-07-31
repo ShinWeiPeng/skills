@@ -1,5 +1,5 @@
-standard_version: 2.0.2
-schema_version: 2.0.2
+standard_version: 2.1.0
+schema_version: 2.1.0
 project:
   name: govern-modular-event-architecture
   documentation_language: en
@@ -47,17 +47,15 @@ modules:
   role: composition
   implementation_status: implemented
   paths:
-  - scripts
+  - scripts/architecture_cli.py
+  - scripts/bootstrap_project.py
   parent: null
   depends_on:
-  - manifest_validation
-  - description_rendering
-  - project_bootstrap
-  - c_source_analysis
+  - governance_engine
   implements_ports: []
   description:
-    purpose: Compose the schema 2.0.2 architecture checker, renderer, bootstrap, and
-      source-analysis commands.
+    purpose: Provide the single public schema 2.1.0 governance CLI and compose its
+      checker, renderer, bootstrap, adoption, and source-analysis modules.
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -66,16 +64,17 @@ modules:
     - description: Select and invoke one bounded architecture tooling command.
     errors: []
     invariants:
-    - Tool commands accept only schema 2.0.2 and preserve every inherited governance rule.
+    - architecture_cli.py is the only supported command-line entry.
+    - Internal scripts cannot be invoked as legacy public commands.
   entrypoints:
-  - path: scripts/check_architecture.py
+  - path: scripts/architecture_cli.py
     symbol: main
     kind: function
   public_symbols:
-  - path: scripts/check_architecture.py
+  - path: scripts/architecture_cli.py
     symbol: main
     kind: function
-- id: manifest_validation
+- id: governance_engine
   level: L1
   role: domain
   implementation_status: implemented
@@ -86,12 +85,19 @@ modules:
   - scripts/type_catalog.py
   - scripts/state_catalog.py
   - scripts/boundary_catalog.py
+  - scripts/source_sets.py
+  - scripts/render_architecture.py
+  - scripts/governance_adoption.py
+  - scripts/c_analyzer.py
+  - scripts/ast_analyzer.py
+  - scripts/python_analyzer.py
   parent: architecture_tooling
-  depends_on: []
+  depends_on:
+  - realtime_schedulability_analysis
   implements_ports: []
   description:
-    purpose: Validate schema 2.0.2 logical, description, source-set, type, state, boundary,
-      execution, data-access, and microarchitecture contracts.
+    purpose: Validate schema 2.1.0, source conformance, temporary debt, deterministic
+      views, and workload-driven scheduling through one deep governance module.
     input_ports:
     - manifest_validation.check
     output_ports:
@@ -99,100 +105,33 @@ modules:
     emitted_events:
     - manifest_validation.completed
     owned_state: []
-    side_effects: []
+    side_effects:
+    - description: Write marker-owned generated documents only when requested by the single CLI.
     errors: []
     invariants:
-    - Schema 2.0.2 retains every 1.0 through 2.0.1 governance requirement.
-    - Every governed named type has one catalog owner and source declaration.
-    - AI identities cannot approve accepted governance records.
+    - Empty baseline never implies verified source conformance.
+    - Python and C/C++ source evidence fail closed.
+    - Release requires zero temporary baseline entries.
   entrypoints:
   - path: scripts/check_architecture.py
-    symbol: main
+    symbol: validate_manifest
     kind: function
   public_symbols:
   - path: scripts/check_architecture.py
     symbol: validate_manifest
     kind: function
-  - path: scripts/check_architecture.py
-    symbol: main
-    kind: function
-- id: description_rendering
-  level: L1
-  role: domain
+- id: realtime_schedulability_analysis
+  level: L2
+  role: component
   implementation_status: implemented
   paths:
-  - scripts/render_architecture.py
-  parent: architecture_tooling
+  - scripts/realtime_analysis.py
+  parent: governance_engine
   depends_on: []
   implements_ports: []
   description:
-    purpose: Render deterministic System, Parent, Flow, and Execution Profile views.
-    input_ports: []
-    output_ports: []
-    emitted_events: []
-    owned_state: []
-    side_effects:
-    - description: Write only marker-owned generated Markdown when explicitly requested.
-    errors: []
-    invariants:
-    - Manual documents are never overwritten.
-  entrypoints:
-  - path: scripts/render_architecture.py
-    symbol: main
-    kind: function
-  public_symbols:
-  - path: scripts/render_architecture.py
-    symbol: render_documents
-    kind: function
-  - path: scripts/render_architecture.py
-    symbol: main
-    kind: function
-- id: project_bootstrap
-  level: L1
-  role: domain
-  implementation_status: implemented
-  paths:
-  - scripts/bootstrap_project.py
-  parent: architecture_tooling
-  depends_on: []
-  implements_ports: []
-  description:
-    purpose: Install versioned governance tools and generated views into a confirmed
-      target project.
-    input_ports: []
-    output_ports: []
-    emitted_events: []
-    owned_state: []
-    side_effects:
-    - description: Create governance files only when none of the target paths already
-        exists.
-    errors: []
-    invariants:
-    - Existing governance files are never overwritten.
-  entrypoints:
-  - path: scripts/bootstrap_project.py
-    symbol: main
-    kind: function
-  public_symbols:
-  - path: scripts/bootstrap_project.py
-    symbol: bootstrap
-    kind: function
-  - path: scripts/bootstrap_project.py
-    symbol: main
-    kind: function
-- id: c_source_analysis
-  level: L1
-  role: domain
-  implementation_status: implemented
-  paths:
-  - scripts/c_analyzer.py
-  - scripts/ast_analyzer.py
-  parent: architecture_tooling
-  depends_on: []
-  implements_ports: []
-  description:
-    purpose: Analyze C and C++ dependencies, named types, runtime-state authority,
-      and functional-to-technology boundaries using fail-closed AST evidence.
+    purpose: Compute partitioned Rate Monotonic priority order, per-core response
+      times, candidate fingerprints, and conservative end-to-end Flow bounds.
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -200,21 +139,28 @@ modules:
     side_effects: []
     errors: []
     invariants:
-    - Analysis remains read-only.
+    - Every calculation uses integer nanoseconds and deterministic tie-breaking.
+    - Missing bounds or non-convergent fixed points are BLOCKED rather than guessed.
+    - Utilization is an early screen and never replaces RTA.
   entrypoints:
-  - path: scripts/c_analyzer.py
-    symbol: main
+  - path: scripts/realtime_analysis.py
+    symbol: analyze_realtime_profile
     kind: function
   public_symbols:
-  - path: scripts/c_analyzer.py
-    symbol: analyze
+  - path: scripts/realtime_analysis.py
+    symbol: analyze_realtime_profile
     kind: function
-  - path: scripts/c_analyzer.py
-    symbol: main
-    kind: function
+composition_roots:
+- id: governance-cli-release
+  module: architecture_tooling
+  path: scripts/architecture_cli.py
+  symbol: main
+  purpose: Dispatch every supported governance command through one complete public entry.
+  source_set: formal-skill-source
+  kind: release
 ports:
 - id: manifest_validation.check
-  owner: manifest_validation
+  owner: governance_engine
   direction: input
   kind: command
   contract: scripts/check_architecture.py
@@ -230,7 +176,7 @@ ports:
   symbols:
   - validate_manifest
 - id: manifest_validation.output
-  owner: manifest_validation
+  owner: governance_engine
   direction: output
   kind: event
   contract: scripts/check_architecture.py
@@ -244,7 +190,7 @@ ports:
   - validate_manifest
 events:
 - id: manifest_validation.completed
-  owner: manifest_validation
+  owner: governance_engine
   output_port: manifest_validation.output
   delivery: at-most-once
   envelope:
@@ -272,7 +218,7 @@ events:
     - architecture_tooling
 types:
 - id: diagnostic
-  owner: manifest_validation
+  owner: governance_engine
   language: python
   declaration:
     path: scripts/check_architecture.py
@@ -284,11 +230,10 @@ types:
   lifetime: One checker invocation or serialized evidence result.
   mutability: shared-mutable
   mutation_authority:
-  - manifest_validation
-  - c_source_analysis
+  - governance_engine
   consumers:
-  - manifest_validation
-  - c_source_analysis
+  - architecture_tooling
+  - governance_engine
   references: []
   fields:
   - name: rule_id
@@ -316,7 +261,7 @@ types:
     role: policy
     meaning: Active, baseline, or accepted ADR disposition.
 - id: manifest-error
-  owner: manifest_validation
+  owner: governance_engine
   language: python
   declaration:
     path: scripts/check_architecture.py
@@ -329,35 +274,44 @@ types:
   mutability: immutable
   mutation_authority: []
   consumers:
-  - manifest_validation
-  - c_source_analysis
+  - architecture_tooling
+  - governance_engine
   references: []
   fields: []
-- id: subscriber-failure
-  owner: architecture_tooling
+- id: ast-evidence
+  owner: governance_engine
   language: python
   declaration:
-    path: scripts/fanout_reference.py
-    symbol: SubscriberFailure
+    path: scripts/ast_analyzer.py
+    symbol: AstEvidence
     kind: class
   visibility: private
   semantic_kind: private-helper
-  description: Reference fan-out helper result used by the skill tests.
-  lifetime: One reference fan-out invocation.
-  mutability: immutable
-  mutation_authority: []
+  description: Mutable accumulator for one bounded libclang analysis invocation.
+  lifetime: One C/C++ analyzer invocation.
+  mutability: owner-mutable
+  mutation_authority:
+  - governance_engine
   consumers:
-  - architecture_tooling
+  - governance_engine
   references: []
   fields:
-  - name: subscriber
+  - name: mode
     type: str
     role: metadata
-    meaning: Subscriber identity.
-  - name: error
-    type: str
-    role: domain-value
-    meaning: Captured callback error.
+    meaning: Active AST evidence mode.
+  - name: covered_files
+    type: set[Path]
+    role: metadata
+    meaning: Governed files covered by successful AST parses.
+  - name: includes
+    type: list[tuple[Path, Path, int]]
+    role: metadata
+    meaning: Project include edges with source lines.
+  - name: catalog_only_generated_state
+    type: list[dict[str, str]]
+    role: metadata
+    meaning: Generator-owned mutable state reported without formal catalog migration.
 type_exclusions: []
 state_objects: []
 boundary_mappings: []
@@ -372,7 +326,7 @@ flows:
   steps:
   - id: validate-architecture.step-1
     order: 1
-    module: manifest_validation
+    module: governance_engine
     action: Parse the pinned schema and evaluate architecture, execution-efficiency,
       baseline, and ADR rules.
     receives:
@@ -399,6 +353,9 @@ c_analyzer:
   forbidden_public_includes: []
   forbidden_public_symbols: []
   forbidden_source_symbols: []
+python_analyzer:
+  status: required
+  rationale: The governed host-side implementation is Python and requires complete AST evidence.
 workloads:
 - id: validation-request
   flow: validate-architecture
@@ -412,7 +369,9 @@ workloads:
   budgets: []
 execution_profiles:
 - id: cross-platform-cli
-  status: legacy-review
+  status: proposed
+  assurance_scope:
+  - functional-compatibility
   target:
     platform: runtime-selected
     cpu: runtime-selected
@@ -455,3 +414,8 @@ platform_variants:
   microarchitecture_profiles: []
   parameters: {}
   release: false
+realtime_scheduling_studies: []
+validation_profiles:
+- id: host-tool-validation
+  applicability: not-applicable
+  rationale: This change validates host-side static tooling and makes no hardware, target-runtime, performance, or real-time acceptance claim.

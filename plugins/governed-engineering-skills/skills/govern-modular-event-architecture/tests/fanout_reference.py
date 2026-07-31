@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Executable reference for the required fan-out failure-isolation behavior."""
+"""Development-only reference for fan-out failure-isolation tests."""
 
 from __future__ import annotations
 
@@ -22,4 +22,3 @@ def publish_all(event: Any, subscribers: Iterable[Callable[[Any], None]]) -> lis
         except Exception as exc:  # Subscriber boundaries intentionally isolate failures.
             failures.append(SubscriberFailure(index, exc))
     return failures
-

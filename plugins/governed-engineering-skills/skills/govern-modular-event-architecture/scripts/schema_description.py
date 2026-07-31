@@ -23,7 +23,7 @@ from check_architecture import (
 
 
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
-C_SUFFIXES = {".c", ".h", ".cc", ".cpp", ".hh", ".hpp"}
+C_SUFFIXES = {".c", ".h", ".cc", ".cpp", ".hh", ".hpp", ".py"}
 PROTECTED_RULES = {
     "ADR001",
     "ADR002",

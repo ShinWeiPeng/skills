@@ -1,12 +1,12 @@
 # Architecture manifest schema
 
-## Schema 2.0.2 cumulative contract
+## Schema 2.1.0 cumulative contract
 
-Pin `standard_version: "2.0.2"` and `schema_version: "2.0.2"`. Schema 2.0.2 retains every requirement from 1.0 through 2.0.1 and adds explicit logical source classification and generated-production boundaries.
+Pin `standard_version: "2.1.0"` and `schema_version: "2.1.0"`. Schema 2.1.0 retains every requirement from 1.0 through 2.0.2 and adds workload-driven real-time scheduling studies and generated human-readable reports.
 
-The checker accepts only schema 2.0.2 manifests. It does not migrate or infer source intent from earlier input.
+The checker accepts only schema 2.1.0 manifests. It does not migrate or infer source intent, Task activation, timing bounds, or schedulability assumptions from earlier input.
 
-Schema 2.0.2 retains stable `id` values on Flow steps plus these top-level lists:
+Schema 2.1.0 retains stable `id` values on Flow steps plus these top-level lists:
 
 ```yaml
 workloads: []
@@ -17,7 +17,19 @@ execution_channels: []
 data_access_profiles: []
 microarchitecture_profiles: []
 platform_variants: []
+realtime_scheduling_studies: []
+composition_roots: []
+validation_profiles: []
 ```
+
+Every project declares exactly one release composition root with an L0 composition
+owner, production source set, implementation path, public symbol, and purpose.
+Validation/test roots are separate entries and cannot substitute for release
+composition. Applicable language analyzers verify the declared symbols.
+
+Every Execution Profile declares a unique non-empty `assurance_scope` drawn from
+`functional-compatibility`, `performance`, and `real-time`. Tool-host OS and
+Python versions are adoption evidence, never Execution Profile target values.
 
 Workloads reference one Flow and its stable step IDs, declare `timing_class`, `activation`, semantic `data`, and quantitative `budgets`. Hard-real-time workloads additionally require `tier1_analysis` entries for working set, memory traffic, branch predictability, SIMD dependencies, parallelism, and blocking bounds.
 
@@ -27,20 +39,120 @@ Data Access Profiles declare element size, layout, active working set, stride, r
 
 Platform Variants bind profile-owned Unit/Data/Microarchitecture IDs and fixed parameters. A release variant may reference only an accepted profile.
 
-`architecture/manifest.yaml` is the machine-readable and human-description source of truth. Schema 2.0.2 generates navigation, Type Ownership, State Ownership, and Mapping documents from it; do not maintain duplicate descriptions in generated Markdown.
+Hard/soft workload mappings trigger a scheduling study. The execution model
+may be `rtos`, `bare-metal`, or `os`; scheduler compatibility selects the
+analysis method. The installed `rate-monotonic-rta` method requires the
+configuration below:
+
+```yaml
+execution_profiles:
+  - id: control-candidate-a
+    status: proposed
+    execution_model: bare-metal
+    analysis_phase: provisional
+    target: {platform: board-a, cpu: cpu-a, runtime: rtos-a, compiler: cc-a}
+    scheduler:
+      model: partitioned-fixed-priority
+      priority_assignment: rate-monotonic
+      preemption: fully-preemptive
+      migration: forbidden
+      core_count: 2
+      priority_higher_value_wins: true
+      timer_resolution_ns: 1000
+      resource_access_protocol: priority-ceiling
+    overheads:
+      context_switch_ns: 1000
+      dispatch_ns: 500
+      preemption_ns: 1000
+      timer_interrupt_ns: 500
+
+execution_units:
+  - id: control-task
+    profile: control-candidate-a
+    kind: dedicated-task
+    priority: 10
+    affinity: [0]
+    concurrency: 1
+    resources: {stack: bounded}
+    blocking: priority-ceiling
+    allocation: static
+    realtime_task:
+      core: 0
+      activation: {kind: periodic, period_ns: 10000000}
+      relative_deadline_ns: 10000000
+      release_jitter_ns: 0
+      blocking_ns: 1000
+      demand_components:
+        - mapping: control-map
+          budget_ns: 1000000
+
+realtime_scheduling_studies:
+  - id: control-task-study
+    analysis_method: rate-monotonic-rta
+    objective: Select the Task count, rates, and core allocation.
+    requirements: [Meet the control Flow deadline.]
+    assumptions: [WCET budgets are conservative.]
+    analysis_phase: provisional
+    workload_refs: [control-workload]
+    flow_refs: [control-flow]
+    candidate_profiles: [control-candidate-a, control-candidate-b]
+    selected_profile: control-candidate-a
+    candidate_outcomes: {control-candidate-b: rejected}
+    rejection_reasons:
+      control-candidate-b: Cross-core latency adds no product value.
+    selection_rationale: Candidate A passes RTA with less communication.
+    selection_approval:
+      approved_by: Human owner
+      approval_date: 2026-07-30
+      approval_reference: design-review-42
+    flow_chains:
+      - id: candidate-a-control-chain
+        profile: control-candidate-a
+        flow: control-flow
+        ordered_units: [control-task]
+        ordered_channels: []
+        deadline_ns: 10000000
+```
+
+Periodic Tasks use `period_ns`; sporadic Tasks use
+`minimum_interarrival_ns`; Servers use `server_type`, `budget_ns`, and
+`replenishment_period_ns`. Final demand components replace budget authority
+with `final_ns`, `basis: measured|static-analysis`, `evidence_path`, and
+`evidence_sha256`.
+
+`interrupt` units are not Tasks. They declare `interrupt_interference` with `core`,
+`wcet_ns`, `minimum_interarrival_ns`, and `release_jitter_ns`; the analyzer
+charges them as higher-priority interference on their assigned core.
+
+Analyzed Channels add `realtime_timing` with `cross_core`,
+`notification_latency_ns`, `release_jitter_ns`, `copy_cost_ns`, and exact
+`cpu_cost_accounting` rows. The checker recomputes RM ordering, RTA, and Flow
+bounds; stored verdicts are not trusted.
+
+Soft workloads retain percentile and deadline-miss-rate budgets. A provisional
+selected candidate with `SOFT_RISK` requires `soft_acceptance_plans` with a
+validation-plan path, evidence format, and non-AI risk approval. Final accepted
+profiles require `soft_slo_results` with `verdict: pass`, evidence path/hash,
+and selected profile/manifest hash binding.
+
+Every study generates
+`architecture/generated/realtime-study-<study-id>.md`. The report is a read-only
+review projection and participates in exact stale-document checking.
+
+`architecture/manifest.yaml` is the machine-readable and human-description source of truth. Schema 2.1.0 generates navigation, Type Ownership, State Ownership, Mapping, execution, and real-time scheduling documents from it; do not maintain duplicate descriptions in generated Markdown.
 
 ## Version policy
 
-- Only schema 2.0.2 input is supported.
+- Only schema 2.1.0 input is supported.
 - Standard and schema versions advance together.
-- An earlier project requires a new human-owned source-set and as-is inventory. Never infer source intent, type/state ownership, authority, or mapping and never silently generate a 2.0.2 manifest.
+- An earlier project requires a new human-owned source-set and as-is inventory. Never infer source intent, type/state ownership, authority, mapping, Task activation, or timing bounds and never silently generate a 2.1.0 manifest.
 - Internal validation layers preserve 1.0 through 2.0.1 rules but are not public schema entry points.
 
 ## Top level
 
 ```yaml
-standard_version: "2.0.2"
-schema_version: "2.0.2"
+standard_version: "2.1.0"
+schema_version: "2.1.0"
 project:
   name: "example"
   documentation_language: "zh-TW"
@@ -90,7 +202,7 @@ Schema 2.0.1 input is rejected. There is no automatic migration because source i
 
 ## Module description
 
-Schema 2.0.2 retains the 1.1 module description contract. Each module requires `implementation_status: planned|implemented`, `paths`, `entrypoints`, `public_symbols`, and this explicit description shape:
+Schema 2.1.0 retains the 1.1 module description contract. Each module requires `implementation_status: planned|implemented`, `paths`, `entrypoints`, `public_symbols`, and this explicit description shape:
 
 ```yaml
 description:
@@ -260,8 +372,35 @@ The checker rejects an accepted exception approved by `GPT`, `Codex`, `AI`, or a
 
 ## Baseline
 
-The baseline schema version must match the manifest. It contains exact known violations as `(rule_id, location)` pairs. Do not add a baseline entry for new or touched code. In CI, pass the target branch baseline as `--previous-baseline`; rule `BAS004` blocks growth while allowing entries to be removed.
+The baseline schema version must match the manifest. Each exact `(rule_id,
+location)` temporary deferral also requires rationale, non-AI approver, approval
+date/reference, captured revision, review date, and removal condition. Do not add
+a baseline entry for new or touched code. `BAS004` blocks growth, `BAS005`
+rejects stale entries, expired approvals are blocked, and Release rejects every
+non-empty temporary baseline. Permanent exceptions belong only in accepted ADRs.
+
+`architecture/adoption.yaml` separately declares project stage, applicable
+language analyzers, runtime-validation applicability/rationale, and tool-host
+compatibility metadata. It is not a source of PASS claims. The single CLI
+computes analyzer and readiness verdicts and deterministically generates
+`generated/adoption-readiness.md` and `.json`.
+
+## Public tooling interface
+
+Schema 2.1.0 exposes only `architecture_cli.py`:
+
+```powershell
+python tools\architecture\architecture_cli.py gate --phase design
+python tools\architecture\architecture_cli.py gate --phase development
+python tools\architecture\architecture_cli.py gate --phase release
+python tools\architecture\architecture_cli.py render
+python tools\architecture\architecture_cli.py bootstrap --project-root <root> --spec <spec>
+```
+
+Checker, renderer, bootstrap, Python analyzer, and C/C++ analyzer files are
+internal modules. Direct invocation is rejected so a partial check cannot be
+reported as a complete governance PASS.
 
 ## Inherited requirements
 
-The sections above use the current 2.0.2 shape. All rules from 1.0 through 2.0.1 remain blocking. Version 2.0.2 adds formal-source classification and generated boundaries and removes no inherited governance.
+The sections above use the current 2.1.0 shape. All rules from 1.0 through 2.0.2 remain blocking. Version 2.1.0 adds workload-driven real-time scheduling studies and generated human-readable reports and removes no inherited governance.

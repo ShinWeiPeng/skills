@@ -16,7 +16,7 @@ Classify before an engineering workflow performs mutation. Keep this skill model
    python scripts/classify_risk.py --prompt "<task>" --entry-skill "<entry>"
    ```
 
-   Omit `--entry-skill` when routing from `ask-matt`. Add `--passed-gate <skill>` for every gate with valid PASS evidence. Add `--available-skill <skill>` only when capability discovery has produced an explicit set; once supplied, missing required gates fail closed. Use `--governance-status missing` when an R2/R3 existing project has no supported manifest; the result remains BLOCKED until its as-is inventory and baseline exist.
+   Omit `--entry-skill` when routing from `ask-matt`. Add `--passed-gate <skill>` for every gate with valid PASS evidence. Add `--available-skill <skill>` only when capability discovery has produced an explicit set; once supplied, missing required gates fail closed. Use `--governance-status missing` when an R2/R3 existing project has no supported manifest; the result remains BLOCKED until its as-is inventory is complete and discovered violations are remediated or individually deferred by a non-AI developer.
 
 3. Return the classifier JSON without weakening or reordering it:
 
@@ -36,7 +36,7 @@ Classify before an engineering workflow performs mutation. Keep this skill model
 - `R3 Runtime-critical` outranks `R2 Governed`, which outranks `R1 Standard`, which outranks `R0 Knowledge`.
 - Any hard trigger wins over a lower aggregate impression; there is no score that can cancel it.
 - A pure learning-note/HackMD request is outside this engineering router. A mixed request is classified only on its engineering work; note production remains a separate user request.
-- An existing project that needs governance but lacks a supported manifest must first establish an as-is inventory and baseline.
+- An existing project that needs governance but lacks a supported manifest must first establish an as-is inventory and remediate discovered violations. A temporary baseline is allowed only for exact human-approved deferrals and must be empty for Release.
 
 ## Contracts
 

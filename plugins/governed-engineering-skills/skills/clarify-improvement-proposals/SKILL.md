@@ -60,13 +60,14 @@ When the proposal creates a software project; adds, splits, merges, or reorganiz
 4. Describe the expected manifest diff without writing it in Plan mode.
 5. Add a `Description Views impact` subsection covering changed module, Port, Event, source path, entrypoint, public-symbol, System/Parent page, and L0/L1 Flow descriptions. State which generated pages are expected to change.
 6. Identify required ADRs. Keep them proposed until the user explicitly approves them; never let Codex approve its own exception.
-7. Add the generic architecture checker, deterministic renderer `--check`, and applicable language analyzers to the validation matrix.
+7. Add the single `architecture_cli.py gate` entry, deterministic generated-view comparison, adoption readiness, and every applicable language analyzer to the validation matrix. Do not present partial internal-script results as a complete governance PASS.
 8. Add an `Algorithm impact` section listing each product feature's screening result, owning module, required `ALG-####` record, evidence status, and whether the algorithm changes public architecture contracts.
 9. Add an `Execution efficiency impact` section for schema 1.2 projects. Identify affected Workloads, Execution Profiles/Units/Mappings/Channels, Data Access Profiles, Microarchitecture Profiles, and platform variants. Never equate Modules with Tasks.
 10. Require human confirmation of platform, CPU, runtime, compiler, cache topology, and scheduler capabilities before accepting execution or microarchitecture decisions. Treat missing confirmation as unresolved/`BLOCKED`.
 11. Require Tier 1 analysis for hard-real-time workloads. Tier 2 layout, tiling, branch, SIMD, PGO, LTO, scheduling, or fixed tuning changes require a portable/as-is baseline, representative candidate benchmarks, and full-Flow non-regression criteria.
+12. For every hard/soft real-time workload, read the governance skill's `references/realtime-scheduling-analysis.md` before finalizing Task count, activation rate, priority, core allocation, Queue/notification, synchronization, scheduler method, deadline, or soft SLO decisions. Require at least two structurally different candidates, scheduler-compatible provisional analysis, a generated human-readable Markdown study report, and explicit non-AI selection before implementation. RTOS alone does not trigger RMA; timing class triggers the study and scheduler compatibility selects the method.
 
-For an existing project without governance files, propose an as-is inventory and baseline before enforcing the desired architecture. For a new project, propose confirmed bootstrap inputs and generated governance artifacts.
+For an existing project without governance files, propose an as-is inventory followed by remediation of every discovered violation. A baseline is not the default migration result: include one only for exact items a non-AI developer explicitly chooses to defer, with a review date and removal condition. Release requires the temporary baseline to be empty. For a new project, propose confirmed bootstrap inputs and generated governance artifacts.
 
 ## Render the final proposal
 

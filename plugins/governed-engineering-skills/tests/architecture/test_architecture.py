@@ -11,15 +11,19 @@ class ArchitectureSmokeTest(unittest.TestCase):
     def test_manifest_passes(self):
         command = [
             sys.executable,
-            str(PROJECT_ROOT / "tools" / "architecture" / "check.py"),
+            str(PROJECT_ROOT / "tools" / "architecture" / "architecture_cli.py"),
+            "gate",
+            "--phase",
+            "release",
             "--manifest",
             str(PROJECT_ROOT / "architecture" / "manifest.yaml"),
+            "--adoption",
+            str(PROJECT_ROOT / "architecture" / "adoption.yaml"),
+            "--baseline",
+            str(PROJECT_ROOT / "architecture" / "baseline.yaml"),
             "--format",
             "text",
         ]
-        baseline = PROJECT_ROOT / "architecture" / "baseline.yaml"
-        if baseline.exists():
-            command.extend(["--baseline", str(baseline)])
         result = subprocess.run(command, cwd=PROJECT_ROOT, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 

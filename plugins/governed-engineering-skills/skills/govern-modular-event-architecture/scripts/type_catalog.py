@@ -1,4 +1,4 @@
-"""Validate schema 2.0.2 named-type ownership and semantic boundaries."""
+"""Validate schema 2.1.0 named-type ownership and semantic boundaries."""
 
 from __future__ import annotations
 

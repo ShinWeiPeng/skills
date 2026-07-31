@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import sys
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -262,7 +263,7 @@ def _functional_boundary(
                 "CTOOL004",
                 "MUST",
                 "c_analyzer.functional_boundary",
-                "schema 2.0.2 requires a functional-boundary mapping",
+                "schema 2.1.0 requires a functional-boundary mapping",
                 True,
             )
         )
@@ -492,7 +493,7 @@ def _compare_type_catalog(
                     "CTYPE001",
                     "MUST",
                     f"{key[0]}:{key[1]}",
-                    "named C/C++ type is missing from the schema 2.0.2 catalog",
+                    "named C/C++ type is missing from the schema 2.1.0 catalog",
                 )
             )
             continue
@@ -777,7 +778,7 @@ def analyze(
     forbidden_includes = [str(item) for item in config.get("forbidden_public_includes", [])]
     forbidden_symbols = [str(item) for item in config.get("forbidden_public_symbols", [])]
     for module_id, module in modules.items():
-        if manifest.get("schema_version") == "2.0.2":
+        if manifest.get("schema_version") == "2.1.0":
             status = module.get("implementation_status")
             severity = "MUST" if status == "implemented" else "SHOULD"
             for module_path in module.get("paths", []):
@@ -814,7 +815,7 @@ def analyze(
         if module.get("level") not in {"L0", "L1", "L2"}:
             continue
         public_patterns = list(module.get("public_headers", []))
-        if manifest.get("schema_version") == "2.0.2":
+        if manifest.get("schema_version") == "2.1.0":
             public_patterns.extend(
                 str(entry.get("path"))
                 for entry in module.get("public_symbols", [])
@@ -871,4 +872,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    print(
+        "ERROR: direct legacy CLI removed; use architecture_cli.py gate instead.",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)

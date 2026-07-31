@@ -1,0 +1,11 @@
+{
+  "name": "governed-engineering-skills",
+  "version": "0.2.0-beta.1",
+  "private": true,
+  "description": "Version metadata for the governed Codex engineering plugin.",
+  "scripts": {
+    "version:check": "python scripts/version_governance.py check",
+    "version:fingerprint": "python scripts/version_governance.py fingerprint",
+    "version:tag": "python scripts/version_governance.py tag --write"
+  }
+}

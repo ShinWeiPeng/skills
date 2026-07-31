@@ -3,7 +3,7 @@
 ## Metadata
 
 - Status: proposed
-- Owner module: `c_source_analysis`
+- Owner module: `governance_engine`
 - Product feature: C/C++ architecture evidence classification
 - Flow IDs: `validate-architecture`
 - Related ADRs: `ADR-0003`
@@ -17,7 +17,7 @@ Build declaration, reference, state-access, and pointer-escape evidence from the
 
 ## Inputs, outputs, units, ranges, and data-quality assumptions
 
-Inputs are a schema 2.0.2 manifest, explicit logical source sets, project root, complete production `compile_commands.json`, target triple, and governed source files. Output is a stable diagnostic list plus AST coverage and catalog-only generated-state evidence.
+Inputs are a schema 2.1.0 manifest, explicit logical source sets, project root, complete production `compile_commands.json`, target triple, and governed source files. Output is a stable diagnostic list plus AST coverage and catalog-only generated-state evidence.
 
 ## Constraints and quantitative acceptance thresholds
 
@@ -47,7 +47,7 @@ Use pinned libclang AST traversal as the required source of ownership evidence. 
 
 ## Parameters, calibration, versioning, and compatibility
 
-The implementation pins `libclang==18.1.1`. Schema 2.0.1 input is not migrated or reinterpreted; projects opt in by pinning 2.0.2 and supplying human-confirmed source sets, catalogs, and AST configuration.
+The implementation pins `libclang==18.1.1`. Earlier schema input is not migrated or reinterpreted; projects opt in by pinning 2.1.0 and supplying human-confirmed source sets, catalogs, AST configuration, and applicable RTOS timing inputs.
 
 ## Time and space complexity and resource budgets
 

@@ -10,6 +10,13 @@ Optimize useful work per unit of CPU, memory, bandwidth, and energy while preser
 4. Compare Execution Unit, Channel, data-layout, and microarchitecture candidates. Do not use Task count or average CPU utilization as a proxy for efficiency.
 5. Require human approval metadata before a profile becomes `accepted`. Release variants reference only accepted profiles.
 
+For every hard/soft real-time workload, also apply
+[workload-driven scheduling analysis](realtime-scheduling-analysis.md). Task
+count, activation rate, priority, scheduler method, and core allocation are
+pre-code design decisions: compare at least two candidates, generate the
+human-readable study report, and obtain human selection. Use RMA/RTA only for a
+compatible RM fixed-priority scheduler.
+
 ## Optimization tiers
 
 ### Tier 0: safe defaults
@@ -21,6 +28,13 @@ Do not treat AoS/SoA conversion, cache-line padding, power-of-two buffers, branc
 ### Tier 1: design cost analysis
 
 Every hard-real-time workload records working-set/reuse-distance, memory traffic/arithmetic intensity, branch frequency and predictability, SIMD/data dependencies, Amdahl/parallelism/false sharing, and allocation/locking/queue/blocking bounds.
+
+Every hard/soft real-time workload additionally records periodic, sporadic, or
+Server activation; WCET source; deadline; release jitter; blocking; scheduler
+and interrupt overheads; Queue/notification cost; core assignment; and
+end-to-end Flow chains. Missing or average-only interference bounds are
+`BLOCKED`. Hard misses fail; soft misses become `SOFT_RISK` and require an SLO
+plan plus final percentile/miss-rate evidence.
 
 Soft-real-time and best-effort workloads enter Tier 1 only when a prototype misses a declared budget or evidence identifies cache, branch, stall, bandwidth, allocation, or synchronization risk.
 

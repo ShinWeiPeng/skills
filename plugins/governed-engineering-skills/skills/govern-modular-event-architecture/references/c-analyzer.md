@@ -1,6 +1,9 @@
 # C/C++ analyzer
 
-Run `c_analyzer.py` after the generic pre-code checker for projects containing C or C++. Schema 2.0.2 requires AST evidence; lexical scans are supplemental and cannot establish an ownership PASS.
+The single `architecture_cli.py gate` dispatches the internal C/C++ analyzer
+when the manifest requires it. Direct `c_analyzer.py` invocation is unsupported.
+Schema 2.1.0 requires AST evidence; lexical scans are supplemental and cannot
+establish an ownership PASS.
 
 ## Inputs
 
@@ -8,7 +11,7 @@ Run `c_analyzer.py` after the generic pre-code checker for projects containing C
 - project-local `.c`, `.h`, `.cc`, `.cpp`, `.hpp`, and `.hh` files under declared module paths
 - complete `compile_commands.json`, target triple, and every governed translation unit
 - pinned `libclang==18.1.1`
-- required schema 2.0.2 `source_sets`, `types`, `state_objects`, `type_exclusions`, `boundary_mappings`, `c_analyzer.ast`, and `c_analyzer.functional_boundary`
+- required schema 2.1.0 `source_sets`, `types`, `state_objects`, `type_exclusions`, `boundary_mappings`, `c_analyzer.ast`, and `c_analyzer.functional_boundary`
 - optional manifest `c_analyzer.forbidden_public_includes`, `forbidden_public_symbols`, and `forbidden_source_symbols`
 
 ## Checks

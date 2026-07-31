@@ -7,33 +7,21 @@
 ```mermaid
 flowchart TD
     n_architecture_tooling["architecture_tooling (L0)"]
-    n_manifest_validation["manifest_validation (L1)"]
-    n_description_rendering["description_rendering (L1)"]
-    n_project_bootstrap["project_bootstrap (L1)"]
-    n_c_source_analysis["c_source_analysis (L1)"]
-    n_architecture_tooling -.->|depends| n_manifest_validation
-    n_architecture_tooling -.->|depends| n_description_rendering
-    n_architecture_tooling -.->|depends| n_project_bootstrap
-    n_architecture_tooling -.->|depends| n_c_source_analysis
-    n_architecture_tooling -->|owns| n_manifest_validation
-    n_architecture_tooling -->|owns| n_description_rendering
-    n_architecture_tooling -->|owns| n_project_bootstrap
-    n_architecture_tooling -->|owns| n_c_source_analysis
+    n_governance_engine["governance_engine (L1)"]
+    n_architecture_tooling -.->|depends| n_governance_engine
+    n_architecture_tooling -->|owns| n_governance_engine
 ```
 
 ## Modules
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `architecture_tooling` | L0 | composition | `-` | implemented | Compose the schema 2.0.2 architecture checker, renderer, bootstrap, and source-analysis commands. |
-| `manifest_validation` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.0.2 logical, description, source-set, type, state, boundary, execution, data-access, and microarchitecture contracts. |
-| `description_rendering` | L1 | domain | `architecture_tooling` | implemented | Render deterministic System, Parent, Flow, and Execution Profile views. |
-| `project_bootstrap` | L1 | domain | `architecture_tooling` | implemented | Install versioned governance tools and generated views into a confirmed target project. |
-| `c_source_analysis` | L1 | domain | `architecture_tooling` | implemented | Analyze C and C++ dependencies, named types, runtime-state authority, and functional-to-technology boundaries using fail-closed AST evidence. |
+| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, and source-analysis modules. |
+| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
 
 ### `architecture_tooling`
 
-- **Purpose:** Compose the schema 2.0.2 architecture checker, renderer, bootstrap, and source-analysis commands.
+- **Purpose:** Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, and source-analysis modules.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -42,90 +30,45 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** Select and invoke one bounded architecture tooling command. (`-`)
 - **Errors:** None
-- **Invariants:** Tool commands accept only schema 2.0.2 and preserve every inherited governance rule.
-- **Entrypoints:** [`main`](../../scripts/check_architecture.py) (function)
-- **Public Symbols:** [`main`](../../scripts/check_architecture.py) (function)
+- **Invariants:** architecture_cli.py is the only supported command-line entry.; Internal scripts cannot be invoked as legacy public commands.
+- **Entrypoints:** [`main`](../../scripts/architecture_cli.py) (function)
+- **Public Symbols:** [`main`](../../scripts/architecture_cli.py) (function)
 
-### `manifest_validation`
+### `governance_engine`
 
-- **Purpose:** Validate schema 2.0.2 logical, description, source-set, type, state, boundary, execution, data-access, and microarchitecture contracts.
+- **Purpose:** Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
 - **Parent:** `architecture_tooling`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `manifest_validation.check`
 - **Output Ports:** `manifest_validation.output`
 - **Emitted Events:** `manifest_validation.completed`
 - **Owned State:** None
-- **Side Effects:** None
+- **Side Effects:** Write marker-owned generated documents only when requested by the single CLI. (`-`)
 - **Errors:** None
-- **Invariants:** Schema 2.0.2 retains every 1.0 through 2.0.1 governance requirement.; Every governed named type has one catalog owner and source declaration.; AI identities cannot approve accepted governance records.
-- **Entrypoints:** [`main`](../../scripts/check_architecture.py) (function)
-- **Public Symbols:** [`validate_manifest`](../../scripts/check_architecture.py) (function)<br>[`main`](../../scripts/check_architecture.py) (function)
-
-### `description_rendering`
-
-- **Purpose:** Render deterministic System, Parent, Flow, and Execution Profile views.
-- **Parent:** `architecture_tooling`
-- **Implementation Status:** `implemented`
-- **Input Ports:** None
-- **Output Ports:** None
-- **Emitted Events:** None
-- **Owned State:** None
-- **Side Effects:** Write only marker-owned generated Markdown when explicitly requested. (`-`)
-- **Errors:** None
-- **Invariants:** Manual documents are never overwritten.
-- **Entrypoints:** [`main`](../../scripts/render_architecture.py) (function)
-- **Public Symbols:** [`render_documents`](../../scripts/render_architecture.py) (function)<br>[`main`](../../scripts/render_architecture.py) (function)
-
-### `project_bootstrap`
-
-- **Purpose:** Install versioned governance tools and generated views into a confirmed target project.
-- **Parent:** `architecture_tooling`
-- **Implementation Status:** `implemented`
-- **Input Ports:** None
-- **Output Ports:** None
-- **Emitted Events:** None
-- **Owned State:** None
-- **Side Effects:** Create governance files only when none of the target paths already exists. (`-`)
-- **Errors:** None
-- **Invariants:** Existing governance files are never overwritten.
-- **Entrypoints:** [`main`](../../scripts/bootstrap_project.py) (function)
-- **Public Symbols:** [`bootstrap`](../../scripts/bootstrap_project.py) (function)<br>[`main`](../../scripts/bootstrap_project.py) (function)
-
-### `c_source_analysis`
-
-- **Purpose:** Analyze C and C++ dependencies, named types, runtime-state authority, and functional-to-technology boundaries using fail-closed AST evidence.
-- **Parent:** `architecture_tooling`
-- **Implementation Status:** `implemented`
-- **Input Ports:** None
-- **Output Ports:** None
-- **Emitted Events:** None
-- **Owned State:** None
-- **Side Effects:** None
-- **Errors:** None
-- **Invariants:** Analysis remains read-only.
-- **Entrypoints:** [`main`](../../scripts/c_analyzer.py) (function)
-- **Public Symbols:** [`analyze`](../../scripts/c_analyzer.py) (function)<br>[`main`](../../scripts/c_analyzer.py) (function)
+- **Invariants:** Empty baseline never implies verified source conformance.; Python and C/C++ source evidence fail closed.; Release requires zero temporary baseline entries.
+- **Entrypoints:** [`validate_manifest`](../../scripts/check_architecture.py) (function)
+- **Public Symbols:** [`validate_manifest`](../../scripts/check_architecture.py) (function)
 
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
-| `manifest_validation.check` | `manifest_validation` | input | command | sync | Submit one version-pinned manifest validation request.: Manifest path, optional baselines, output format, and generated-view check flag. | `validate_manifest` |
-| `manifest_validation.output` | `manifest_validation` | output | event | sync | Publish the deterministic diagnostic result.: Rule ID, severity, location, message, disposition, and final exit classification. | `validate_manifest` |
+| `manifest_validation.check` | `governance_engine` | input | command | sync | Submit one version-pinned manifest validation request.: Manifest path, optional baselines, output format, and generated-view check flag. | `validate_manifest` |
+| `manifest_validation.output` | `governance_engine` | output | event | sync | Publish the deterministic diagnostic result.: Rule ID, severity, location, message, disposition, and final exit classification. | `validate_manifest` |
 
 ## Event Contracts
 
 | ID | Owner | Delivery | Emitted when | Purpose | Consumers |
 |---|---|---|---|---|---|
-| `manifest_validation.completed` | `manifest_validation` | at-most-once | Validation and optional generated-view comparison have completed. | Report that one manifest validation request has a complete diagnostic set. | `architecture_tooling` |
+| `manifest_validation.completed` | `governance_engine` | at-most-once | Validation and optional generated-view comparison have completed. | Report that one manifest validation request has a complete diagnostic set. | `architecture_tooling` |
 
 ## Type Catalog
 
 | ID | Owner | Declaration | Visibility | Semantic kind | Consumers | References |
 |---|---|---|---|---|---|---|
-| `diagnostic` | `manifest_validation` | `Diagnostic` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `manifest_validation`, `c_source_analysis` | None |
-| `manifest-error` | `manifest_validation` | `ManifestError` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `manifest_validation`, `c_source_analysis` | None |
-| `subscriber-failure` | `architecture_tooling` | `SubscriberFailure` (class, `scripts/fanout_reference.py`) | private | private-helper | `architecture_tooling` | None |
+| `diagnostic` | `governance_engine` | `Diagnostic` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine` | None |
+| `manifest-error` | `governance_engine` | `ManifestError` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine` | None |
+| `ast-evidence` | `governance_engine` | `AstEvidence` (class, `scripts/ast_analyzer.py`) | private | private-helper | `governance_engine` | None |
 
 ## State Ownership
 
@@ -148,17 +91,17 @@ Validate one manifest and return deterministic diagnostics.
 ```mermaid
 sequenceDiagram
     participant n_architecture_tooling as architecture_tooling
-    participant n_manifest_validation as manifest_validation
-    n_architecture_tooling->>+n_manifest_validation: Parse the pinned schema and evaluate architecture, execution-efficiency, baseline, and ADR rules.
-    Note right of n_manifest_validation: manifest_validation.completed
-    n_manifest_validation-->>-n_architecture_tooling: step 1
+    participant n_governance_engine as governance_engine
+    n_architecture_tooling->>+n_governance_engine: Parse the pinned schema and evaluate architecture, execution-efficiency, baseline, and ADR rules.
+    Note right of n_governance_engine: manifest_validation.completed
+    n_governance_engine-->>-n_architecture_tooling: step 1
 ```
 
 #### Ordered Steps
 
 | # | Module | Action | Receives | Emits | State changes | Side effects |
 |---|---|---|---|---|---|---|
-| 1 | `manifest_validation` | Parse the pinned schema and evaluate architecture, execution-efficiency, baseline, and ADR rules. | `manifest_validation.check` | `manifest_validation.completed` | None | None |
+| 1 | `governance_engine` | Parse the pinned schema and evaluate architecture, execution-efficiency, baseline, and ADR rules. | `manifest_validation.check` | `manifest_validation.completed` | None | None |
 
 - **Success:** Diagnostics and an exit classification are returned.
 

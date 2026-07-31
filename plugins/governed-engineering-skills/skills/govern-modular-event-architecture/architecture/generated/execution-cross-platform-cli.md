@@ -2,7 +2,7 @@
 
 # Execution profile `cross-platform-cli`
 
-- **Status:** `legacy-review`
+- **Status:** `proposed`
 - **Platform:** `runtime-selected`
 - **CPU:** `runtime-selected`
 - **Runtime:** `Python 3.11+`

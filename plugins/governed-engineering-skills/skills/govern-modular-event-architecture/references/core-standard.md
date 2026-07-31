@@ -32,7 +32,7 @@ L0 owns composition, orchestration, and sibling mapping; it MUST NOT own a child
 
 ## Named-type ownership
 
-1. Every governed production named type MUST have exactly one semantic owner Module and one source declaration in the schema 2.0.2 Type Catalog.
+1. Every governed production named type MUST have exactly one semantic owner Module and one source declaration in the schema 2.1.0 Type Catalog.
 2. Classify logical source sets before inventorying structs, unions, enums, classes, typedefs, aliases, interfaces, protocols, DTOs, schemas, and named function-pointer types. Fully catalog only `production`; keep `generated-production` behind a declared L3+ generator boundary.
 3. Classify every field as domain identity/value, contract control, policy, configuration, runtime state, adapter binding, framework handle, wire/storage representation, or metadata.
 4. L0-L2 public types MUST NOT expose adapter bindings, framework handles, wire representations, or storage representations.
@@ -77,7 +77,7 @@ Architecture is designed before implementation. Do not write structs, getters, s
 
 Modules describe responsibility and dependency direction. Execution Units describe when and where work runs. The relationship is many-to-many: a Module may participate in multiple ISR, Task, Thread, Event Loop, or Worker contexts, and one Execution Unit may run stages from multiple Modules. A one-Module/one-Task mapping is never inferred.
 
-Schema 2.0.2 retains the schema 1.2 requirement for human-confirmed platform profiles before accepting execution, cache, branch, SIMD, or compiler decisions. See `execution-efficiency.md`.
+Schema 2.1.0 retains the schema 1.2 requirement for human-confirmed platform profiles before accepting execution, cache, branch, SIMD, or compiler decisions. Every hard/soft real-time workload additionally requires a scheduler-compatible design study and generated report. Timing class triggers the study; RTOS use alone does not. See `execution-efficiency.md` and `realtime-scheduling-analysis.md`.
 
 ### New projects
 
@@ -85,7 +85,7 @@ In Plan mode, confirm system flows, modules, parents, public ports, events, deli
 
 ### Existing projects
 
-Describe the actual structure first. Store known MUST violations in `architecture/baseline.yaml`. New code and touched scope must comply immediately. A baseline entry suppresses only the exact rule and location; it cannot hide a new violation.
+Describe the actual structure first, then remediate every discovered MUST violation by default. A non-AI developer may temporarily defer one exact rule/location in `architecture/baseline.yaml` only with rationale, approval reference, captured revision, review date, and removal condition. New code and touched scope comply immediately; baseline growth is forbidden and Release requires zero temporary entries. A durable exception requires an accepted ADR.
 
 ### Every architecture-affecting change
 
@@ -97,6 +97,6 @@ Describe the actual structure first. Store known MUST violations in `architectur
 
 ## Description and navigation
 
-Schema 2.0.2 retains the schema 1.1 documentation requirements. Every module, port, event, and named type MUST carry the structured description and implementation links defined by the manifest schema. L0/L1 owners define end-to-end flows; private L2 algorithms do not become artificial flows.
+Schema 2.1.0 retains the schema 1.1 documentation requirements. Every module, port, event, and named type MUST carry the structured description and implementation links defined by the manifest schema. L0/L1 owners define end-to-end flows; private L2 algorithms do not become artificial flows.
 
 The manifest remains the single source. Generate System and Parent views after every architecture change and reject stale checked-in output. This is documentation metadata only: do not add a runtime description struct or expose it through the product ABI unless a separate product requirement explicitly asks for one.

@@ -7,6 +7,8 @@ import json
 import re
 from pathlib import Path
 
+from version_governance import validate_repository
+
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
@@ -59,6 +61,7 @@ def main() -> int:
         errors.append("plugin manifest name does not match folder")
     if manifest.get("skills") != "./skills/":
         errors.append("plugin manifest must discover ./skills/")
+    errors.extend(validate_repository(PLUGIN_ROOT, ci=True))
 
     user_absolute_path = re.compile(r"[A-Za-z]:[\\/]+Users[\\/]+[^\\/]+", re.IGNORECASE)
     for path in PLUGIN_ROOT.rglob("*"):
@@ -73,7 +76,10 @@ def main() -> int:
     if errors:
         print("\n".join(f"ERROR: {error}" for error in errors))
         return 1
-    print(f"PASS: {len(actual)} skills; HackMD isolated; no user-absolute paths")
+    print(
+        f"PASS: {len(actual)} skills; version metadata consistent; "
+        "HackMD isolated; no user-absolute paths"
+    )
     return 0
 
 

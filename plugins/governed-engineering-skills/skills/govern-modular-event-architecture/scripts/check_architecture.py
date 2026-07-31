@@ -18,8 +18,8 @@ except ImportError:  # pragma: no cover - exercised by deployment environments
     raise SystemExit(2)
 
 
-STANDARD_VERSION = "2.0.2"
-SCHEMA_VERSION = "2.0.2"
+STANDARD_VERSION = "2.1.0"
+SCHEMA_VERSION = "2.1.0"
 DESCRIPTION_STANDARD_VERSION = "1.1.0"
 DESCRIPTION_SCHEMA_VERSION = "1.1.0"
 LEGACY_STANDARD_VERSION = "1.0.0"
@@ -54,6 +54,13 @@ class Diagnostic:
 
 class ManifestError(Exception):
     pass
+
+
+def analyze_realtime_profile(*args: Any, **kwargs: Any) -> Any:
+    """Expose the manifest-validation-owned scheduling analysis seam."""
+    from realtime_analysis import analyze_realtime_profile as analyze
+
+    return analyze(*args, **kwargs)
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -512,4 +519,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    print(
+        "ERROR: direct legacy CLI removed; use architecture_cli.py gate instead.",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)

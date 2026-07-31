@@ -1,0 +1,15 @@
+schema_version: 2.1.0
+project_stage: existing
+applicable_analyzers:
+- python
+runtime_validation:
+  applicability: not-applicable
+  rationale: Plugin integration validation is host-side and makes no target-runtime claim.
+tool_host_evidence:
+  operating_systems:
+  - windows
+  - linux
+  python_versions:
+  - "3.11"
+  - "3.12"
+  - "3.13"

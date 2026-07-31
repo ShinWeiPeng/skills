@@ -2,35 +2,26 @@
 
 # govern-modular-event-architecture Architecture Guide
 
-- Standard: `2.0.2`
-- Schema: `2.0.2`
+- Standard: `2.1.0`
+- Schema: `2.1.0`
 
 ## System Overview
 
 ```mermaid
 flowchart TD
     n_architecture_tooling["architecture_tooling (L0)"]
-    n_manifest_validation["manifest_validation (L1)"]
-    n_description_rendering["description_rendering (L1)"]
-    n_project_bootstrap["project_bootstrap (L1)"]
-    n_c_source_analysis["c_source_analysis (L1)"]
-    n_architecture_tooling -.->|depends| n_manifest_validation
-    n_architecture_tooling -.->|depends| n_description_rendering
-    n_architecture_tooling -.->|depends| n_project_bootstrap
-    n_architecture_tooling -.->|depends| n_c_source_analysis
-    n_architecture_tooling -->|owns| n_manifest_validation
-    n_architecture_tooling -->|owns| n_description_rendering
-    n_architecture_tooling -->|owns| n_project_bootstrap
-    n_architecture_tooling -->|owns| n_c_source_analysis
+    n_governance_engine["governance_engine (L1)"]
+    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)"]
+    n_architecture_tooling -.->|depends| n_governance_engine
+    n_architecture_tooling -->|owns| n_governance_engine
+    n_governance_engine -.->|depends| n_realtime_schedulability_analysis
+    n_governance_engine -->|owns| n_realtime_schedulability_analysis
 ```
 
 ## Parent Views
 
-- [`architecture_tooling`](generated/architecture_tooling.md) — Compose the schema 2.0.2 architecture checker, renderer, bootstrap, and source-analysis commands.
-- [`manifest_validation`](generated/manifest_validation.md) — Validate schema 2.0.2 logical, description, source-set, type, state, boundary, execution, data-access, and microarchitecture contracts.
-- [`description_rendering`](generated/description_rendering.md) — Render deterministic System, Parent, Flow, and Execution Profile views.
-- [`project_bootstrap`](generated/project_bootstrap.md) — Install versioned governance tools and generated views into a confirmed target project.
-- [`c_source_analysis`](generated/c_source_analysis.md) — Analyze C and C++ dependencies, named types, runtime-state authority, and functional-to-technology boundaries using fail-closed AST evidence.
+- [`architecture_tooling`](generated/architecture_tooling.md) — Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, and source-analysis modules.
+- [`governance_engine`](generated/governance_engine.md) — Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
 
 ## End-to-End Flows
 
@@ -38,9 +29,9 @@ flowchart TD
 
 ## Type Catalog
 
-- `diagnostic` ??`manifest_validation` / `domain-value` / `cross-module`
-- `manifest-error` ??`manifest_validation` / `domain-value` / `cross-module`
-- `subscriber-failure` ??`architecture_tooling` / `private-helper` / `private`
+- `diagnostic` — `governance_engine` / `domain-value` / `cross-module`
+- `manifest-error` — `governance_engine` / `domain-value` / `cross-module`
+- `ast-evidence` — `governance_engine` / `private-helper` / `private`
 
 ## State Ownership
 
@@ -48,6 +39,13 @@ flowchart TD
 ## Cross-module Mapping
 
 
+## Adoption Readiness
+
+- [Human-readable readiness](generated/adoption-readiness.md)
+- [Machine-readable readiness](generated/adoption-readiness.json)
+
 ## Execution Profiles
 
-- [`cross-platform-cli`](generated/execution-cross-platform-cli.md) ??`legacy-review` / `runtime-selected`
+- [`cross-platform-cli`](generated/execution-cross-platform-cli.md) — `proposed` / `runtime-selected`
+
+## Real-time Scheduling Studies

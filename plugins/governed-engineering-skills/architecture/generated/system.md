@@ -12,12 +12,14 @@ flowchart TD
     n_local_install_adapter["local_install_adapter (L3+)"]
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)"]
     n_integration_validation_technical["integration_validation_technical (L3+)"]
+    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)"]
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
 ```
 
 ## Modules
@@ -32,6 +34,7 @@ flowchart TD
 | `local_install_adapter` | L3+ | adapter | `-` | implemented | Register the repo-local marketplace through the supported Codex CLI command and open the governed plugin's Codex Desktop installation page. |
 | `vendor_sync_adapter` | L3+ | adapter | `-` | implemented | Hash vendored skills, refresh unmodified snapshots, and fail closed on overlay drift. |
 | `integration_validation_technical` | L3+ | technical | `-` | implemented | Validate plugin inventory, skill metadata, path portability, and learning-note isolation. |
+| `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and promote the plugin through isolated SemVer prerelease stages without changing the root package release state. |
 
 ### `guided_workflow_router`
 
@@ -153,6 +156,21 @@ flowchart TD
 - **Entrypoints:** [`main`](../../scripts/validate_integration.py) (cli)
 - **Public Symbols:** [`main`](../../scripts/validate_integration.py) (function)
 
+### `plugin_release_governance_technical`
+
+- **Purpose:** Validate and promote the plugin through isolated SemVer prerelease stages without changing the root package release state.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** An explicitly selected promotion updates plugin version metadata, release evidence, and the plugin changelog. (`-`)
+- **Errors:** None
+- **Invariants:** Plugin package and Codex manifest versions remain identical.; Root Changesets prerelease state is never read or modified.; Local Codex cachebusters never become formal release versions.; Invalid transitions or incomplete evidence are rejected before any release file is modified.
+- **Entrypoints:** [`main`](../../scripts/version_governance.py) (cli)
+- **Public Symbols:** [`validate_repository`](../../scripts/version_governance.py) (function)
+
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
@@ -170,6 +188,20 @@ flowchart TD
 |---|---|---|---|---|---|---|
 | `routing-decision` | `risk_routing_domain` | `RoutingDecision` (interface, `skills/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | None |
 | `gate-result` | `risk_routing_domain` | `GateResult` (interface, `skills/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | domain-value | `guided_workflow_router` | None |
+| `governance-diagnostic` | `governance_workflow_domain` | `Diagnostic` (class, `skills/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `governance-manifest-error` | `governance_workflow_domain` | `ManifestError` (class, `skills/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `governance-ast-evidence` | `governance_workflow_domain` | `AstEvidence` (class, `skills/govern-modular-event-architecture/scripts/ast_analyzer.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `collection-input-port` | `governance_workflow_domain` | `CollectionInputPort` (class, `skills/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
+| `collection-output-port` | `governance_workflow_domain` | `CollectionOutputPort` (class, `skills/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
+| `transport-port` | `governance_workflow_domain` | `TransportPort` (class, `skills/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
+| `guided-session-input-port` | `governance_workflow_domain` | `GuidedSessionInputPort` (class, `skills/validate-on-device/scripts/vod/guided.py`) | module-public | port | `governance_workflow_domain` | None |
+| `guided-session-output-port` | `governance_workflow_domain` | `GuidedSessionOutputPort` (class, `skills/validate-on-device/scripts/vod/guided.py`) | module-public | port | `governance_workflow_domain` | None |
+| `runtime-verdict` | `governance_workflow_domain` | `Verdict` (class, `skills/validate-on-device/scripts/vod/model.py`) | module-public | domain-value | `governance_workflow_domain` | None |
+| `criterion-result` | `governance_workflow_domain` | `CriterionResult` (class, `skills/validate-on-device/scripts/vod/model.py`) | module-public | domain-value | `governance_workflow_domain` | `runtime-verdict` |
+| `verdict-input-port` | `governance_workflow_domain` | `VerdictInputPort` (class, `skills/validate-on-device/scripts/vod/model.py`) | module-public | port | `governance_workflow_domain` | None |
+| `verdict-output-port` | `governance_workflow_domain` | `VerdictOutputPort` (class, `skills/validate-on-device/scripts/vod/model.py`) | module-public | port | `governance_workflow_domain` | None |
+| `validation-profile-error` | `governance_workflow_domain` | `ProfileError` (class, `skills/validate-on-device/scripts/vod/profile.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `platform-transport-adapter` | `governance_workflow_domain` | `PlatformTransportAdapter` (class, `skills/validate-on-device/scripts/vod/providers.py`) | private | adapter-binding | `governance_workflow_domain` | `transport-port` |
 
 ## State Ownership
 

@@ -1,6 +1,6 @@
 ---
 name: explain-code-flow
-description: Guide developers through an unfamiliar codebase using governed System and L0/L1 Parent views, developer reading routes, task indexes, end-to-end flows, and progressively deeper code explanations. Use when introducing a project or main entry point; navigating architecture modules, ports, events, source paths, entrypoints, or public symbols; tracing hardware, API, UI, file, database, message, event, timer, or scheduler data; selecting a Parent or Flow ID; or explaining a module, class, function, method, call chain, state change, side effect, error path, or code region. Require supported formal architecture governance for project-wide System and Parent guidance, and coordinate with $govern-modular-event-architecture when it is missing, stale, invalid, or unsupported.
+description: Guide developers through existing code using governed System and L0/L1 Parent views, end-to-end Flows, and progressively deeper explanations. Use for every code-understanding request, including implicit questions such as what code does, how data reaches a driver or other sink, where state changes, or why a branch exists, even when the user does not say explain or trace. Route project or composition-root questions to Level 0, Parent or cross-module from-A-to-B behavior to Level 1, modules and symbols to Level 2, and code regions to Level 3. Keep implementation, debugging, and code-review skills primary when the user's goal is to change, diagnose, or review code. Require supported formal architecture governance for System and Parent guidance, and coordinate with $govern-modular-event-architecture when it is missing, stale, invalid, or unsupported.
 ---
 
 # Governed iterative code-flow guidance
@@ -8,6 +8,27 @@ description: Guide developers through an unfamiliar codebase using governed Syst
 Guide a developer from the governed architecture to the implementation, then expand only the selected scope. Default to Traditional Chinese, preserve identifiers and technical terms, and assume the reader can program but does not know the project.
 
 Treat `architecture/manifest.yaml` as the only editable architecture source of truth. Treat `architecture/ARCHITECTURE.md` and `architecture/generated/*.md` as derived views. Never create, edit, migrate, render, or approve governance artifacts under this skill; route that work to `$govern-modular-event-architecture`.
+
+## Route every code-understanding request
+
+Treat every request whose primary intent is to understand existing code as in scope, even when it is phrased as a factual question rather than an explicit request to explain, trace, introduce, or navigate. Keep follow-up questions about the same code or Flow in this skill and preserve their breadcrumb and coverage.
+
+Determine the primary intent before selecting the reading level:
+
+- Let the implementation or TDD workflow lead when the user asks to add, fix, refactor, or otherwise change code. Use this skill only as supporting explanation when implementation depends on understanding an existing Flow.
+- Let `$diagnosing-bugs` lead when the user asks why observed behavior is broken, failing, or slow. Use this skill only to establish the relevant code path.
+- Let `$code-review` lead when the user asks to review a change, commit, branch, or pull request. Use this skill only to explain architecture or code-flow context needed by the review.
+- Do not let an attached presentation, document, spreadsheet, diagram, or note replace the code-understanding deliverable. When code understanding remains the primary intent, treat the attachment as context and still produce the complete selected reading-level view; do not substitute an artifact-editing plan or a general summary unless the user also requests it.
+
+Use these routing examples as acceptance cases:
+
+| Request | Required routing |
+|---|---|
+| `講解專案內多關節路徑規劃到實際 driver 輸出` | Level 1 Flow |
+| `MJ_SetupTrajectory() 做什麼？` | Level 2 Module or symbol |
+| `第 120–145 行的 branch 為什麼 early return？` | Level 3 Code region |
+| `修正 MJ_SetupTrajectory() 的 bug` | Implementation or `$diagnosing-bugs` leads; this skill is supporting only |
+| `Review this PR` | `$code-review` leads; this skill is supporting only |
 
 ## Distinguish the two level systems
 
@@ -19,7 +40,7 @@ Never use architecture levels and reading levels interchangeably.
 | Reading level | Trigger | Result |
 |---|---|---|
 | Level 0 - System | Introduce the project, select the project root, or select `main` or another composition entry without explicitly requesting only that function | Produce the governed System view and developer navigation |
-| Level 1 - Parent or Flow | Select an L0/L1 Parent ID, a Flow ID, or one end-to-end behavior | Produce the selected Parent view or expand the selected Flow |
+| Level 1 - Parent or Flow | Select an L0/L1 Parent ID, a Flow ID, one end-to-end behavior, or a cross-module path from A to B | Produce the selected Parent view or expand the selected Flow |
 | Level 2 - Module or symbol | Select a module, class, function, method, entrypoint, or public symbol | Explain its contract, mechanism, callers, dependencies, and architecture role |
 | Level 3 - Code region | Select statements, branches, or a narrow implementation region | Explain control flow and data or state changes |
 
@@ -36,8 +57,8 @@ Before producing a System or Parent view:
 1. Locate `architecture/manifest.yaml` from the project root.
 2. Read both `standard_version` and `schema_version`.
 3. Match the pair against the supported capability matrix below.
-4. Invoke `$govern-modular-event-architecture`, read its required schema and Description View references, and run the project-local checker in non-mutating validation mode.
-5. Run the project-local deterministic renderer with `--check`. Require the checker and renderer to exit `0`; treat MUST violations, stale or missing generated views, and tool/configuration errors as blocking.
+4. Invoke `$govern-modular-event-architecture`, read its required schema and Description View references, and run `architecture_cli.py gate --phase development` in non-mutating validation mode.
+5. Require the single gate to exit `0`; it owns manifest validation, generated-view comparison, baseline reconciliation, adoption readiness, and applicable language analyzers. Treat MUST violations, stale or missing generated views, incomplete analyzer evidence, and tool/configuration errors as blocking.
 6. After governance validation passes, require `architecture/ARCHITECTURE.md`, `architecture/generated/system.md`, every renderer-owned L0/L1 Parent page, and every renderer-owned Execution page selected by the validated project to exist and be current. Let the governance checker and renderer own the expected-page inventory; do not independently reimplement that inventory from manifest fields.
 7. Read the validated generated System or Parent view as the formal architecture input. Do not reinterpret the complete manifest schema or independently regenerate a competing formal view in this skill.
 8. Verify implemented module paths, entrypoints, and public symbols against project-owned source. Run applicable governance language analyzers; C/C++ consistency requires complete AST evidence.
@@ -48,7 +69,7 @@ Do not claim a formal System or Parent view is ready unless every blocking check
 
 | Standard | Schema | Local code explanation | Formal System/Parent guidance |
 |---|---|---|---|
-| `2.0.2` | `2.0.2` | Supported | Supported after governance checker, deterministic renderer, generated-view, and applicable language-analyzer validation passes |
+| `2.1.0` | `2.1.0` | Supported | Supported after governance checker, deterministic renderer, generated-view, real-time scheduling study when applicable, and applicable language-analyzer validation passes |
 | Any other pair, including `1.x` | Any other pair | Supported only as source-level analysis with an architecture-context limitation | Block as unsupported by this explanation skill; do not conclude that the project itself is invalid |
 
 Reject mismatched Standard/Schema pairs. Do not guess the semantics of a newer schema, ignore unknown fields, or present best-effort output as a formal view.
@@ -59,8 +80,8 @@ Distinguish capability from project validity:
 
 - An absent, legacy, or unknown version is `explanation tool unsupported`; it is not evidence that the project itself is invalid.
 - A mismatched Standard/Schema pair is an invalid governance configuration.
-- A supported `2.0.2` project whose checker or renderer fails is invalid, stale, or blocked according to the reported diagnostic.
-- A supported `2.0.2` project whose governance validation passes but whose applicable language analyzer lacks complete evidence retains valid formal governance; label implementation consistency incomplete and do not claim source conformance.
+- A supported `2.1.0` project whose checker or renderer fails is invalid, stale, or blocked according to the reported diagnostic.
+- A supported `2.1.0` project whose applicable language analyzer lacks complete evidence is `BLOCKED` for formal System/Parent guidance. A manifest-only design PASS does not prove implemented source conformance.
 
 ### Route a blocked request through governance
 
@@ -154,7 +175,7 @@ Make every stage actionable. Link files and symbols, state why the order matters
 
 List every governed end-to-end Flow and any relevant coverage gap.
 
-For schema 2.0.2, include the inherited execution contract for each Flow: Workload IDs, timing class, Execution Profile/Unit/Channel boundaries, Data Access and Microarchitecture Profile links, and platform variant. Do not infer missing execution mappings from Module boundaries.
+For schema 2.1.0, include the inherited execution contract for each Flow: Workload IDs, timing class, Execution Profile/Unit/Channel boundaries, Data Access and Microarchitecture Profile links, and platform variant. For a hard/soft real-time workload, also route through its generated `realtime-study-<study-id>.md` candidate comparison, scheduler method, per-core ordering, Task/Flow RTA, hard failures, soft risks, SLO evidence state, and human approval. Do not infer missing execution mappings from Module boundaries.
 
 | Flow ID | Owner | Trigger | 主要路徑 | 成功結果 | Error branches | 程式錨點 | 可深入節點 |
 |---|---|---|---|---|---|---|---|
@@ -176,10 +197,10 @@ Derive tasks from external interfaces, public commands/events, owned Flows, conf
 
 Use:
 
-| 範圍 | 狀態 | 已檢查證據 | 缺口或限制 |
-|---|---|---|---|
+| 範圍 | Inspection coverage | Analyzer verdict | 已檢查證據 | 缺口或限制 |
+|---|---|---|---|---|
 
-Allowed states are `已分析`, `待分析`, and `無法確認`. Include manifest/source consistency, generated-view freshness, symbol verification, dynamic dispatch, configuration variants, and uninspected source areas. Do not call coverage complete while a relevant area remains unchecked.
+Inspection coverage states are `已檢視`, `未檢視`, and `無法檢視`. Analyzer verdicts are `PASS`, `FAIL`, `BLOCKED`, and `N/A`. Never translate `已檢視` into analyzer `PASS`. Include manifest/source consistency, generated-view freshness, symbol verification, dynamic dispatch, configuration variants, and uninspected source areas. Do not call coverage complete while a relevant area remains unchecked or analyzer evidence is blocked.
 
 ### 7. 架構與資料流風險
 
@@ -231,7 +252,7 @@ Preserve the governed Flow ID and show its project-to-Parent-to-Flow breadcrumb.
 4. success result and committed state;
 5. every declared error branch and handling outcome;
 6. timing, task/thread/interrupt/queue/callback boundaries;
-7. schema 2.0.2 inherited workload, execution-unit, channel, working-set, cache-sensitive layout, branch/SIMD, compiler, and platform-variant evidence when declared;
+7. schema 2.1.0 inherited workload, execution-unit, channel, real-time scheduling study, working-set, cache-sensitive layout, branch/SIMD, compiler, and platform-variant evidence when declared;
 8. implementation links and core function roles;
 9. risks and compact navigation.
 
@@ -282,9 +303,14 @@ Perform a final self-check and rewrite the response before returning if any appl
 - The developer reading guide uses exactly `階段｜閱讀目標｜檔案／符號｜為何現在讀｜閱讀重點｜完成判準｜下一站`.
 - The task index uses exactly `開發任務｜相關 Flow ID｜從哪裡開始｜關鍵檔案／符號｜設定／資料｜相關測試｜修改風險`.
 - A Level 1-3 response begins with one literal `正式架構脈絡` status and ends with the literal `精簡導覽` block.
+- A Level 1 Flow response identifies the reading level and project-to-Parent-to-Flow breadcrumb; owner, description, trigger, source data meaning, and entrypoint.
+- A Level 1 Flow response contains a Mermaid sequence diagram across participating modules and the exact ordered-step table `#｜Module｜Action｜Receives｜Emits｜State changes｜Side effects｜程式錨點`.
+- A Level 1 Flow response states the success result and committed state, every evidenced error branch and handling outcome, and labels unavailable branches as `待確認` instead of silently omitting them.
+- A Level 1 Flow response identifies timing and task/thread/interrupt/queue/callback boundaries, inherited execution evidence when declared, implementation links and core function roles, evidence-backed risks and uncertainties, and the compact navigation block.
+- A code-understanding response is not replaced by an artifact-editing plan or general summary merely because a presentation, document, spreadsheet, diagram, or note is attached.
 - A blocked System/Parent response reports `BLOCKED`, the observed version or missing artifact, and the governance next action; it does not emit any of the eight formal Level 0 sections.
 - An unsupported-version response identifies an explanation-tool capability limitation and does not claim that the project itself is invalid.
-- A supported 2.0.2 response distinguishes formal-governance validity from incomplete AST or symbol consistency evidence.
+- A supported 2.1.0 formal System/Parent response requires complete applicable AST and symbol evidence; incomplete evidence is `BLOCKED`.
 - Every file/symbol claim has a valid link or an explicit `待確認／symbol 未驗證` label.
 
 ## Save only on explicit request

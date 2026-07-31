@@ -4,16 +4,65 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  release:
-    name: Version
+  governance-validation:
+    name: Governance / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install pinned governance dependencies
+        run: python -m pip install -r plugins/governed-engineering-skills/skills/govern-modular-event-architecture/requirements-architecture.txt
+
+      - name: Run governance unit tests
+        run: python -m unittest discover -s plugins/governed-engineering-skills/skills/govern-modular-event-architecture/tests -p "test_*.py" -v
+
+      - name: Run plugin integration validation
+        run: python plugins/governed-engineering-skills/scripts/validate_integration.py
+
+      - name: Run plugin version-governance tests
+        run: python -m unittest discover -s plugins/governed-engineering-skills/tests -p "test_version_governance.py" -v
+
+      - name: Run skill release gate
+        run: >-
+          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          gate --phase release
+          --manifest plugins/governed-engineering-skills/skills/govern-modular-event-architecture/architecture/manifest.yaml
+          --adoption plugins/governed-engineering-skills/skills/govern-modular-event-architecture/architecture/adoption.yaml
+          --baseline plugins/governed-engineering-skills/skills/govern-modular-event-architecture/architecture/baseline.yaml
+
+      - name: Run plugin release gate
+        run: >-
+          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          gate --phase release
+          --manifest plugins/governed-engineering-skills/architecture/manifest.yaml
+          --adoption plugins/governed-engineering-skills/architecture/adoption.yaml
+          --baseline plugins/governed-engineering-skills/architecture/baseline.yaml
+
+  release-tooling-validation:
+    name: Release tooling / Changesets
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,15 +72,90 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install release dependencies
+        run: npm ci
+
+      - name: Audit release dependencies
+        run: npm audit --audit-level=high
+
+      - name: Validate root Changesets release plan
+        run: npx changeset status
+
+      - name: Validate isolated plugin release metadata
+        run: npm run check:plugin-version
+
+  release:
+    name: Version
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs:
+      - governance-validation
+      - release-tooling-validation
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Create Version Pull Request
-        uses: changesets/action@v1
-        with:
-          version: npx changeset version
-          publish: npx changeset tag
-          commit: "chore: version skills"
-          title: "chore: version skills"
+      - name: Prepare root and plugin version files
+        id: version
+        shell: bash
+        run: |
+          npm run version
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update the shared Version Pull Request
+        if: steps.version.outputs.changed == 'true'
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="changeset-release/main"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add -A
+          git commit -m "chore: version skills"
+          git push --force-with-lease origin "HEAD:$branch"
+          if gh pr view "$branch" --json url >/dev/null 2>&1; then
+            gh pr edit "$branch" \
+              --title "chore: version skills" \
+              --body "Automated root Changesets and governed plugin version update."
+          else
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "chore: version skills" \
+              --body "Automated root Changesets and governed plugin version update."
+          fi
+
+      - name: Tag unchanged released versions
+        if: steps.version.outputs.changed == 'false'
+        run: |
+          npm run tag
+          git push origin --tags

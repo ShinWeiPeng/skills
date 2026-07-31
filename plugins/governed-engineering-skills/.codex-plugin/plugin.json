@@ -1,6 +1,6 @@
 {
   "name": "governed-engineering-skills",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.1",
   "description": "Risk-routed engineering workflows combining Matt Pocock's promoted skills with architecture and runtime governance.",
   "author": {
     "name": "Hugo Peng"

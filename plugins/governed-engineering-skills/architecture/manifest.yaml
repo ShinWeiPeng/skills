@@ -1,5 +1,5 @@
-standard_version: 2.0.2
-schema_version: 2.0.2
+standard_version: 2.1.0
+schema_version: 2.1.0
 project:
   name: Governed Engineering Skills
   documentation_language: en
@@ -15,11 +15,21 @@ source_sets:
   - vendor-lock.json
   exclude:
   - skills/**/tests/**
+  - skills/**/tools/**
   - skills/**/architecture/generated/**
   - skills/**/__pycache__/**
   purpose: Govern the installed skill prompts, routing contracts, classifier, plugin
     manifest, and vendor synchronization.
   provenance: Human-maintained integration and pinned vendored snapshots.
+- id: generated-tool-mirrors
+  classification: generated-production
+  include:
+  - skills/**/tools/**
+  exclude: []
+  purpose: Distribute project-local mirrors generated from canonical skill tooling.
+  provenance: Bootstrap-owned copies of canonical skill scripts.
+  generator: governed bootstrap tool mirror
+  owner: integration_validation_technical
 - id: plugin-development
   classification: development
   include:
@@ -298,7 +308,8 @@ modules:
   paths:
   - scripts/validate_integration.py
   parent: null
-  depends_on: []
+  depends_on:
+  - plugin_release_governance_technical
   implements_ports: []
   public_headers: []
   description:
@@ -320,6 +331,49 @@ modules:
   - path: scripts/validate_integration.py
     symbol: main
     kind: function
+- id: plugin_release_governance_technical
+  level: L3+
+  role: technical
+  implementation_status: implemented
+  paths:
+  - scripts/version_governance.py
+  parent: null
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Validate and promote the plugin through isolated SemVer prerelease
+      stages without changing the root package release state.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: An explicitly selected promotion updates plugin version metadata,
+        release evidence, and the plugin changelog.
+    errors: []
+    invariants:
+    - Plugin package and Codex manifest versions remain identical.
+    - Root Changesets prerelease state is never read or modified.
+    - Local Codex cachebusters never become formal release versions.
+    - Invalid transitions or incomplete evidence are rejected before any release
+      file is modified.
+  entrypoints:
+  - path: scripts/version_governance.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: scripts/version_governance.py
+    symbol: validate_repository
+    kind: function
+composition_roots:
+- id: guided-workflow-release
+  module: guided_workflow_router
+  path: skills/ask-matt/SKILL.md
+  symbol: ask-matt
+  purpose: Compose the installed plugin's governed engineering workflow entry.
+  source_set: plugin-production
+  kind: release
 ports:
 - id: risk-routing.classify
   owner: risk_routing_domain
@@ -415,6 +469,188 @@ types:
     type: nullable-string
     role: contract-control
     meaning: Workflow target after the gate.
+- id: governance-diagnostic
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/check_architecture.py, symbol: Diagnostic, kind: class}
+  visibility: private
+  semantic_kind: private-helper
+  description: Internal architecture diagnostic.
+  lifetime: One governance invocation.
+  mutability: owner-mutable
+  mutation_authority: [governance_workflow_domain]
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: governance-manifest-error
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/check_architecture.py, symbol: ManifestError, kind: class}
+  visibility: private
+  semantic_kind: private-helper
+  description: Internal manifest loading failure.
+  lifetime: One failed governance invocation.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: governance-ast-evidence
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/ast_analyzer.py, symbol: AstEvidence, kind: class}
+  visibility: private
+  semantic_kind: private-helper
+  description: Internal C/C++ AST evidence accumulator.
+  lifetime: One analyzer invocation.
+  mutability: owner-mutable
+  mutation_authority: [governance_workflow_domain]
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: collection-input-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/execution.py, symbol: CollectionInputPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Runtime-evidence collection input contract.
+  lifetime: One validation composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: collection-output-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/execution.py, symbol: CollectionOutputPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Runtime-evidence collection output contract.
+  lifetime: One validation composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: transport-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/execution.py, symbol: TransportPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Runtime-evidence transport contract.
+  lifetime: One validation composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: guided-session-input-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/guided.py, symbol: GuidedSessionInputPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Guided validation-session input contract.
+  lifetime: One guided session.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: guided-session-output-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/guided.py, symbol: GuidedSessionOutputPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Guided validation-session output contract.
+  lifetime: One guided session.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: runtime-verdict
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/model.py, symbol: Verdict, kind: class}
+  visibility: module-public
+  semantic_kind: domain-value
+  description: Runtime validation verdict value.
+  lifetime: One criterion evaluation.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: criterion-result
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/model.py, symbol: CriterionResult, kind: class}
+  visibility: module-public
+  semantic_kind: domain-value
+  description: Evidence-bearing criterion result.
+  lifetime: One criterion evaluation.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: [runtime-verdict]
+  fields: []
+- id: verdict-input-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/model.py, symbol: VerdictInputPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Verdict-domain input contract.
+  lifetime: One validation composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: verdict-output-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/model.py, symbol: VerdictOutputPort, kind: class}
+  visibility: module-public
+  semantic_kind: port
+  description: Verdict-domain output contract.
+  lifetime: One validation composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: validation-profile-error
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/profile.py, symbol: ProfileError, kind: class}
+  visibility: private
+  semantic_kind: private-helper
+  description: Invalid runtime-validation profile failure.
+  lifetime: One failed profile load.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain]
+  references: []
+  fields: []
+- id: platform-transport-adapter
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/validate-on-device/scripts/vod/providers.py, symbol: PlatformTransportAdapter, kind: class}
+  visibility: private
+  semantic_kind: adapter-binding
+  description: Platform transport implementation selected by runtime validation.
+  lifetime: One validation composition.
+  mutability: owner-mutable
+  mutation_authority: [governance_workflow_domain]
+  consumers: [governance_workflow_domain]
+  references: [transport-port]
+  fields: []
 type_exclusions: []
 state_objects: []
 boundary_mappings: []
@@ -456,6 +692,9 @@ c_analyzer:
   forbidden_public_includes: []
   forbidden_public_symbols: []
   forbidden_source_symbols: []
+python_analyzer:
+  status: required
+  rationale: Production routing and integration tooling is implemented in Python and requires AST evidence.
 workloads:
 - id: governed-routing-workload
   flow: governed-engineering-route
@@ -474,3 +713,8 @@ execution_channels: []
 data_access_profiles: []
 microarchitecture_profiles: []
 platform_variants: []
+realtime_scheduling_studies: []
+validation_profiles:
+- id: plugin-host-validation
+  applicability: not-applicable
+  rationale: Plugin integration validation makes no hardware, target-runtime, performance, or real-time acceptance claim.

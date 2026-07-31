@@ -1,4 +1,4 @@
-"""Schema 2.0 type-governed architecture and execution validation."""
+"""Schema 2.1 type-governed architecture and execution validation."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ from type_catalog import validate_type_catalog
 from state_catalog import validate_state_catalog
 from boundary_catalog import validate_boundary_catalog
 from source_sets import validate_manifest_source_paths, validate_source_sets
+from realtime_analysis import analyze_realtime_profile
 
 
 TIMING_CLASSES = {"hard-real-time", "soft-real-time", "best-effort"}
@@ -35,6 +36,7 @@ PROFILE_STATUSES = {"legacy-review", "proposed", "accepted", "superseded"}
 UNIT_KINDS = {"interrupt", "event-loop", "dedicated-task", "worker-pool", "async-executor", "process"}
 OVERLOAD_POLICIES = {"reject", "backpressure", "drop", "coalesce", "degrade", "fail-safe"}
 OPTIMIZATION_TIERS = {"tier-0", "tier-1", "tier-2"}
+ASSURANCE_SCOPES = {"functional-compatibility", "performance", "real-time"}
 REQUIRED_TIER1_FIELDS = {
     "working_set",
     "memory_traffic",
@@ -181,7 +183,12 @@ def _apply_governance(
             _diag(diagnostics, "BAS000", str(previous_baseline_path), str(exc), configuration=True)
 
     for diagnostic in diagnostics:
-        if diagnostic.configuration or diagnostic.rule_id in PROTECTED_RULES or diagnostic.disposition != "active":
+        if (
+            diagnostic.configuration
+            or diagnostic.rule_id in PROTECTED_RULES
+            or diagnostic.rule_id.startswith("SCHED")
+            or diagnostic.disposition != "active"
+        ):
             continue
         if (diagnostic.rule_id, diagnostic.location) in baseline_entries:
             diagnostic.disposition = "baseline"
@@ -218,6 +225,9 @@ def validate_manifest_v2(
         "data_access_profiles",
         "microarchitecture_profiles",
         "platform_variants",
+        "realtime_scheduling_studies",
+        "validation_profiles",
+        "rtos_design_studies",
     ):
         projected.pop(field, None)
     projected.pop("types", None)
@@ -225,6 +235,8 @@ def validate_manifest_v2(
     projected.pop("state_objects", None)
     projected.pop("boundary_mappings", None)
     projected.pop("source_sets", None)
+    projected.pop("composition_roots", None)
+    projected.pop("python_analyzer", None)
     diagnostics.extend(
         validate_description_manifest(projected, manifest_path, check_docs=False)
     )
@@ -233,6 +245,136 @@ def validate_manifest_v2(
     diagnostics.extend(validate_boundary_catalog(data, manifest_path))
     diagnostics.extend(validate_source_sets(data))
     diagnostics.extend(validate_manifest_source_paths(data))
+    modules = {
+        str(item.get("id")): item
+        for item in data.get("modules", [])
+        if isinstance(item, dict) and _is_nonempty_string(item.get("id"))
+    }
+    source_sets = {
+        str(item.get("id")): item
+        for item in data.get("source_sets", [])
+        if isinstance(item, dict) and _is_nonempty_string(item.get("id"))
+    }
+    composition_roots = _index(
+        _list(
+            data.get("composition_roots"),
+            diagnostics,
+            "CMP001",
+            "composition_roots",
+        ),
+        diagnostics,
+        "CMP001",
+        "composition_roots",
+    )
+    if not composition_roots:
+        _diag(
+            diagnostics,
+            "CMP001",
+            "composition_roots",
+            "at least one composition root is required",
+            configuration=True,
+        )
+    release_roots = 0
+    for root_id, root in composition_roots.items():
+        module_id = root.get("module")
+        source_set_id = root.get("source_set")
+        path = str(root.get("path", "")).replace("\\", "/")
+        if root.get("kind") not in {"release", "validation", "test"}:
+            _diag(
+                diagnostics,
+                "CMP002",
+                f"{root_id}.kind",
+                "must be release, validation, or test",
+                configuration=True,
+            )
+        if root.get("kind") == "release":
+            release_roots += 1
+        if module_id not in modules or modules.get(module_id, {}).get("role") != "composition":
+            _diag(
+                diagnostics,
+                "CMP003",
+                f"{root_id}.module",
+                "composition root must be owned by an L0 composition module",
+            )
+        if source_set_id not in source_sets:
+            _diag(
+                diagnostics,
+                "CMP004",
+                f"{root_id}.source_set",
+                "composition root must reference a declared source set",
+                configuration=True,
+            )
+        elif (
+            root.get("kind") == "release"
+            and source_sets[source_set_id].get("classification") != "production"
+        ):
+            _diag(
+                diagnostics,
+                "CMP004",
+                f"{root_id}.source_set",
+                "release composition root must belong to production",
+            )
+        if not all(
+            _is_nonempty_string(root.get(field))
+            for field in ("path", "symbol", "purpose")
+        ):
+            _diag(
+                diagnostics,
+                "CMP005",
+                root_id,
+                "path, symbol, and purpose are required",
+                configuration=True,
+            )
+        module_paths = [
+            str(item).replace("\\", "/").rstrip("/")
+            for item in modules.get(str(module_id), {}).get("paths", [])
+        ]
+        if module_paths and not any(
+            path == prefix or path.startswith(prefix + "/")
+            for prefix in module_paths
+        ):
+            _diag(
+                diagnostics,
+                "CMP006",
+                f"{root_id}.path",
+                "composition root path must be owned by its declared module",
+            )
+    if release_roots != 1:
+        _diag(
+            diagnostics,
+            "CMP007",
+            "composition_roots",
+            "exactly one release composition root is required",
+            configuration=True,
+        )
+    python_config = data.get("python_analyzer")
+    if not isinstance(python_config, dict) or python_config.get("status") not in {
+        "required",
+        "not-applicable",
+    }:
+        _diag(
+            diagnostics,
+            "PYAST001",
+            "python_analyzer",
+            "must declare required or not-applicable",
+            configuration=True,
+        )
+    elif not _is_nonempty_string(python_config.get("rationale")):
+        _diag(
+            diagnostics,
+            "PYAST001",
+            "python_analyzer.rationale",
+            "analyzer applicability requires a rationale",
+            configuration=True,
+        )
+    if "rtos_design_studies" in data:
+        _diag(
+            diagnostics,
+            "SCHED000",
+            "rtos_design_studies",
+            "obsolete pre-release field; use realtime_scheduling_studies",
+            configuration=True,
+        )
 
     flows = {
         str(item.get("id")): item
@@ -245,7 +387,7 @@ def validate_manifest_v2(
             location = f"{flow_id}.steps[{index}]"
             step_id = step.get("id") if isinstance(step, dict) else None
             if not _is_nonempty_string(step_id) or not ID_PATTERN.fullmatch(str(step_id)):
-                _diag(diagnostics, "EXE001", f"{location}.id", "schema 2.0 requires a stable step ID", configuration=True)
+                _diag(diagnostics, "EXE001", f"{location}.id", "schema 2.1.0 requires a stable step ID", configuration=True)
             elif str(step_id) in step_ids:
                 _diag(diagnostics, "EXE002", f"{location}.id", f"duplicate flow step ID {step_id!r}", configuration=True)
             else:
@@ -259,6 +401,42 @@ def validate_manifest_v2(
     data_profiles = _index(_list(data.get("data_access_profiles"), diagnostics, "PERF001", "data_access_profiles"), diagnostics, "PERF001", "data_access_profiles")
     micro_profiles = _index(_list(data.get("microarchitecture_profiles"), diagnostics, "PERF002", "microarchitecture_profiles"), diagnostics, "PERF002", "microarchitecture_profiles")
     variants = _index(_list(data.get("platform_variants"), diagnostics, "EXE008", "platform_variants"), diagnostics, "EXE008", "platform_variants")
+    validation_profiles = _index(
+        _list(
+            data.get("validation_profiles"),
+            diagnostics,
+            "VAL003",
+            "validation_profiles",
+        ),
+        diagnostics,
+        "VAL003",
+        "validation_profiles",
+    )
+    studies = _index(
+        _list(
+            data.get("realtime_scheduling_studies"),
+            diagnostics,
+            "SCHED001",
+            "realtime_scheduling_studies",
+        ),
+        diagnostics,
+        "SCHED001",
+        "realtime_scheduling_studies",
+    )
+    realtime_workloads = {
+        workload_id
+        for workload_id, workload in workloads.items()
+        if workload.get("timing_class") in {"hard-real-time", "soft-real-time"}
+    }
+    realtime_pairs = {
+        (str(mapping.get("workload")), str(mapping.get("profile")))
+        for mapping in mappings.values()
+        if mapping.get("workload") in realtime_workloads
+        and mapping.get("profile") in profiles
+    }
+    realtime_profiles = {
+        profile_id for _, profile_id in realtime_pairs
+    }
 
     for workload_id, workload in workloads.items():
         flow_id = workload.get("flow")
@@ -303,6 +481,20 @@ def validate_manifest_v2(
         status = profile.get("status")
         if status not in PROFILE_STATUSES:
             _diag(diagnostics, "EXE020", f"{profile_id}.status", f"must be one of {sorted(PROFILE_STATUSES)}", configuration=True)
+        assurance_scope = profile.get("assurance_scope")
+        if (
+            not isinstance(assurance_scope, list)
+            or not assurance_scope
+            or any(item not in ASSURANCE_SCOPES for item in assurance_scope)
+            or len(set(assurance_scope)) != len(assurance_scope)
+        ):
+            _diag(
+                diagnostics,
+                "EXE027",
+                f"{profile_id}.assurance_scope",
+                f"must be a unique non-empty list from {sorted(ASSURANCE_SCOPES)}",
+                configuration=True,
+            )
         target = _mapping(profile.get("target"), diagnostics, "EXE021", f"{profile_id}.target")
         if status == "accepted":
             for field in REQUIRED_ACCEPTED_TARGET_FIELDS:
@@ -314,6 +506,70 @@ def validate_manifest_v2(
                 _diag(diagnostics, "EXE024", f"{profile_id}.target.scheduler_capabilities", "accepted profile requires scheduler capabilities")
             if not _valid_human_approval(profile.get("approval")):
                 _diag(diagnostics, "EXE025", f"{profile_id}.approval", "accepted profile requires non-AI human approval metadata")
+        if profile.get("execution_model") not in {
+            None,
+            "rtos",
+            "os",
+            "event-loop",
+            "bare-metal",
+        }:
+            _diag(
+                diagnostics,
+                "EXE026",
+                f"{profile_id}.execution_model",
+                "must be rtos, os, event-loop, or bare-metal",
+                configuration=True,
+            )
+        if profile_id in realtime_profiles and profile.get(
+            "execution_model"
+        ) not in {"rtos", "os", "bare-metal"}:
+            _diag(
+                diagnostics,
+                "SCHED005",
+                f"{profile_id}.execution_model",
+                "real-time profile must explicitly select rtos, os, or bare-metal",
+                configuration=True,
+            )
+        if profile_id in realtime_profiles and "real-time" not in (
+            assurance_scope if isinstance(assurance_scope, list) else []
+        ):
+            _diag(
+                diagnostics,
+                "SCHED006",
+                f"{profile_id}.assurance_scope",
+                "real-time workload mapping requires real-time assurance scope",
+            )
+        if isinstance(profile.get("overheads"), dict) and "timer_isr_ns" in profile[
+            "overheads"
+        ]:
+            _diag(
+                diagnostics,
+                "SCHED000",
+                f"{profile_id}.overheads.timer_isr_ns",
+                "obsolete pre-release field; use timer_interrupt_ns",
+                configuration=True,
+            )
+
+    for validation_id, validation_profile in validation_profiles.items():
+        if validation_profile.get("applicability") not in {
+            "required",
+            "not-applicable",
+        }:
+            _diag(
+                diagnostics,
+                "VAL003",
+                f"{validation_id}.applicability",
+                "must be required or not-applicable",
+                configuration=True,
+            )
+        if not _is_nonempty_string(validation_profile.get("rationale")):
+            _diag(
+                diagnostics,
+                "VAL003",
+                f"{validation_id}.rationale",
+                "validation applicability requires a rationale",
+                configuration=True,
+            )
 
     for unit_id, unit in units.items():
         profile_id = unit.get("profile")
@@ -326,6 +582,43 @@ def validate_manifest_v2(
         for field in ("priority", "affinity", "resources", "blocking", "allocation"):
             if field not in unit:
                 _diag(diagnostics, "EXE033", f"{unit_id}.{field}", "must be declared explicitly", configuration=True)
+        for obsolete in ("rtos", "rtos_isr"):
+            if obsolete in unit:
+                _diag(
+                    diagnostics,
+                    "SCHED000",
+                    f"{unit_id}.{obsolete}",
+                    "obsolete pre-release field; use realtime_task or interrupt_interference",
+                    configuration=True,
+                )
+        if profile_id in realtime_profiles:
+            if unit.get("kind") not in {"dedicated-task", "interrupt"}:
+                _diag(
+                    diagnostics,
+                    "SCHED020",
+                    unit_id,
+                    "rate-monotonic analysis requires dedicated-task or interrupt units",
+                )
+            if unit.get("kind") == "dedicated-task" and not isinstance(
+                unit.get("realtime_task"), dict
+            ):
+                _diag(
+                    diagnostics,
+                    "SCHED021",
+                    f"{unit_id}.realtime_task",
+                    "dedicated analyzed task requires a real-time task model",
+                    configuration=True,
+                )
+            if unit.get("kind") == "interrupt" and not isinstance(
+                unit.get("interrupt_interference"), dict
+            ):
+                _diag(
+                    diagnostics,
+                    "SCHED022",
+                    f"{unit_id}.interrupt_interference",
+                    "interrupt requires WCET, arrival, jitter, and core bounds",
+                    configuration=True,
+                )
 
     for mapping_id, mapping in mappings.items():
         profile_id = mapping.get("profile")
@@ -371,6 +664,387 @@ def validate_manifest_v2(
             _diag(diagnostics, "EXE057", f"{channel_id}.timeout_ms", "must be a non-negative number", configuration=True)
         if channel.get("overload") not in OVERLOAD_POLICIES:
             _diag(diagnostics, "EXE056", f"{channel_id}.overload", f"must be one of {sorted(OVERLOAD_POLICIES)}")
+        if "rtos_timing" in channel:
+            _diag(
+                diagnostics,
+                "SCHED000",
+                f"{channel_id}.rtos_timing",
+                "obsolete pre-release field; use realtime_timing",
+                configuration=True,
+            )
+        if profile_id in realtime_profiles and not isinstance(
+            channel.get("realtime_timing"), dict
+        ):
+            _diag(
+                diagnostics,
+                "SCHED030",
+                f"{channel_id}.realtime_timing",
+                "analyzed channel requires timing and CPU-cost accounting",
+                configuration=True,
+            )
+
+    for profile_id in realtime_profiles:
+        profile = profiles[profile_id]
+        if profile.get("analysis_phase") not in {"provisional", "final"}:
+            _diag(
+                diagnostics,
+                "SCHED010",
+                f"{profile_id}.analysis_phase",
+                "must be provisional or final",
+                configuration=True,
+            )
+        if profile.get("status") == "accepted" and profile.get(
+            "analysis_phase"
+        ) != "final":
+            _diag(
+                diagnostics,
+                "SCHED011",
+                profile_id,
+                "accepted real-time profile requires final analysis",
+            )
+
+    pair_coverage: dict[tuple[str, str], list[str]] = {}
+    for study_id, study in studies.items():
+        analysis_method = study.get("analysis_method")
+        if not _is_nonempty_string(analysis_method):
+            _diag(
+                diagnostics,
+                "SCHED040",
+                f"{study_id}.analysis_method",
+                "is required",
+                configuration=True,
+            )
+        candidate_profiles = _refs(
+            study.get("candidate_profiles"),
+            profiles,
+            diagnostics,
+            "SCHED040",
+            f"{study_id}.candidate_profiles",
+            required=True,
+        )
+        if len(candidate_profiles) < 2:
+            _diag(diagnostics, "SCHED041", f"{study_id}.candidate_profiles", "must contain at least two candidates", configuration=True)
+        if len(candidate_profiles) != len(set(candidate_profiles)):
+            _diag(diagnostics, "SCHED041", f"{study_id}.candidate_profiles", "must not contain duplicates", configuration=True)
+        selected_profile = study.get("selected_profile")
+        if selected_profile not in candidate_profiles:
+            _diag(diagnostics, "SCHED043", f"{study_id}.selected_profile", "must select exactly one candidate profile", configuration=True)
+        workload_refs = _refs(
+            study.get("workload_refs"),
+            workloads,
+            diagnostics,
+            "SCHED044",
+            f"{study_id}.workload_refs",
+            required=True,
+        )
+        if any(workload_id not in realtime_workloads for workload_id in workload_refs):
+            _diag(
+                diagnostics,
+                "SCHED044",
+                f"{study_id}.workload_refs",
+                "must contain only hard-real-time or soft-real-time workloads",
+            )
+        flow_refs = _refs(study.get("flow_refs"), flows, diagnostics, "SCHED044", f"{study_id}.flow_refs", required=True)
+        expected_flows = {
+            str(workloads[workload_id].get("flow"))
+            for workload_id in workload_refs
+            if workload_id in workloads
+        }
+        if set(flow_refs) != expected_flows:
+            _diag(
+                diagnostics,
+                "SCHED044",
+                f"{study_id}.flow_refs",
+                "must exactly match the Flows owned by workload_refs",
+            )
+        if not _is_nonempty_string(study.get("objective")):
+            _diag(diagnostics, "SCHED044", f"{study_id}.objective", "must state the scheduling objective")
+        for field in ("requirements", "assumptions"):
+            values = _nonempty_list(
+                study.get(field), diagnostics, "SCHED044", f"{study_id}.{field}"
+            )
+            for index, value in enumerate(values):
+                if not _is_nonempty_string(value):
+                    _diag(
+                        diagnostics,
+                        "SCHED044",
+                        f"{study_id}.{field}[{index}]",
+                        "must be a non-empty string",
+                        configuration=True,
+                    )
+        if not _is_nonempty_string(study.get("selection_rationale")):
+            _diag(diagnostics, "SCHED045", f"{study_id}.selection_rationale", "must explain task count, frequency, overhead, synchronization, jitter, and core tradeoffs")
+        if not _valid_human_approval(study.get("selection_approval")):
+            _diag(diagnostics, "SCHED046", f"{study_id}.selection_approval", "requires non-AI human selection approval")
+        study_phase = study.get("analysis_phase")
+        if study_phase not in {"provisional", "final"}:
+            _diag(diagnostics, "SCHED047", f"{study_id}.analysis_phase", "must be provisional or final", configuration=True)
+        flow_chains = _list(study.get("flow_chains"), diagnostics, "SCHED048", f"{study_id}.flow_chains")
+        if not isinstance(study.get("candidate_outcomes"), dict):
+            _diag(diagnostics, "SCHED048", f"{study_id}.candidate_outcomes", "must be a mapping", configuration=True)
+        if not isinstance(study.get("rejection_reasons"), dict):
+            _diag(diagnostics, "SCHED048", f"{study_id}.rejection_reasons", "must be a mapping", configuration=True)
+        chain_profiles = {
+            str(chain.get("profile"))
+            for chain in flow_chains
+            if isinstance(chain, dict)
+        }
+        for profile_id in candidate_profiles:
+            if profile_id not in chain_profiles:
+                _diag(diagnostics, "SCHED049", study_id, f"candidate {profile_id!r} requires at least one Flow chain")
+            mapped_workloads = {
+                str(mapping.get("workload"))
+                for mapping in mappings.values()
+                if mapping.get("profile") == profile_id
+            }
+            if not set(workload_refs).issubset(mapped_workloads):
+                _diag(
+                    diagnostics,
+                    "SCHED042",
+                    profile_id,
+                    "every candidate must map every study workload",
+                )
+            for workload_id in workload_refs:
+                if (workload_id, profile_id) in realtime_pairs:
+                    pair_coverage.setdefault((workload_id, profile_id), []).append(
+                        study_id
+                    )
+            candidate_chain_flows = {
+                str(chain.get("flow"))
+                for chain in flow_chains
+                if isinstance(chain, dict) and chain.get("profile") == profile_id
+            }
+            if not set(flow_refs).issubset(candidate_chain_flows):
+                _diag(
+                    diagnostics,
+                    "SCHED057",
+                    profile_id,
+                    "every governed Flow requires a chain for this candidate",
+                )
+            if profiles.get(profile_id, {}).get("analysis_phase") != study_phase:
+                _diag(diagnostics, "SCHED050", profile_id, "profile and scheduling-study analysis phases must match")
+
+        analysis_results: dict[str, dict[str, Any]] = {}
+        fingerprints: list[tuple[Any, ...]] = []
+        for profile_id in candidate_profiles:
+            if profile_id not in profiles:
+                continue
+            result = analyze_realtime_profile(
+                profiles[profile_id],
+                units,
+                mappings,
+                channels,
+                workloads,
+                flow_chains,
+                analysis_method=str(analysis_method),
+            )
+            analysis_results[profile_id] = result
+            fingerprints.append(result["fingerprint"])
+            for problem in result["problems"]:
+                _diag(diagnostics, "SCHED060", profile_id, problem, configuration=True)
+            if profile_id == selected_profile:
+                for failure in result["failures"]:
+                    _diag(diagnostics, "SCHED061", profile_id, failure)
+                if result["verdict"] != "PASS":
+                    _diag(diagnostics, "SCHED062", profile_id, "selected candidate must have a complete scheduling-analysis PASS")
+        if len(set(fingerprints)) != len(fingerprints):
+            _diag(diagnostics, "SCHED051", study_id, "candidate profiles must be structurally distinct")
+
+        soft_workload_refs = {
+            workload_id
+            for workload_id in workload_refs
+            if workloads.get(workload_id, {}).get("timing_class")
+            == "soft-real-time"
+        }
+        soft_plans = _list(
+            study.get("soft_acceptance_plans", []),
+            diagnostics,
+            "SCHED063",
+            f"{study_id}.soft_acceptance_plans",
+        )
+        planned_soft_workloads: set[str] = set()
+        for index, raw in enumerate(soft_plans):
+            plan = _mapping(
+                raw,
+                diagnostics,
+                "SCHED063",
+                f"{study_id}.soft_acceptance_plans[{index}]",
+            )
+            workload_id = plan.get("workload")
+            if workload_id not in soft_workload_refs:
+                _diag(
+                    diagnostics,
+                    "SCHED063",
+                    f"{study_id}.soft_acceptance_plans[{index}].workload",
+                    "must reference a soft-real-time study workload",
+                )
+            else:
+                planned_soft_workloads.add(str(workload_id))
+            for field in ("validation_plan_path", "evidence_format"):
+                if not _is_nonempty_string(plan.get(field)):
+                    _diag(
+                        diagnostics,
+                        "SCHED063",
+                        f"{study_id}.soft_acceptance_plans[{index}].{field}",
+                        "is required",
+                        configuration=True,
+                    )
+            if not _valid_human_approval(plan.get("risk_approval")):
+                _diag(
+                    diagnostics,
+                    "SCHED063",
+                    f"{study_id}.soft_acceptance_plans[{index}].risk_approval",
+                    "requires non-AI risk acceptance",
+                )
+        if not soft_workload_refs.issubset(planned_soft_workloads):
+            _diag(
+                diagnostics,
+                "SCHED063",
+                study_id,
+                "every soft-real-time workload requires an SLO validation plan and non-AI risk acceptance",
+            )
+
+        if selected_profile in profiles and profiles[selected_profile].get("status") == "accepted":
+            if study_phase != "final":
+                _diag(diagnostics, "SCHED052", study_id, "accepted selected profile requires final scheduling study")
+            if not _valid_human_approval(study.get("final_approval")):
+                _diag(diagnostics, "SCHED053", f"{study_id}.final_approval", "accepted selected profile requires final non-AI approval")
+            runtime_evidence = _nonempty_list(
+                profiles[selected_profile].get("runtime_evidence"),
+                diagnostics,
+                "SCHED013",
+                f"{selected_profile}.runtime_evidence",
+            )
+            for index, raw in enumerate(runtime_evidence):
+                evidence = _mapping(
+                    raw,
+                    diagnostics,
+                    "SCHED013",
+                    f"{selected_profile}.runtime_evidence[{index}]",
+                )
+                for field in ("path", "sha256", "profile_id", "manifest_sha256"):
+                    if not _is_nonempty_string(evidence.get(field)):
+                        _diag(
+                            diagnostics,
+                            "SCHED013",
+                            f"{selected_profile}.runtime_evidence[{index}].{field}",
+                            "is required",
+                            configuration=True,
+                        )
+                if evidence.get("profile_id") != selected_profile:
+                    _diag(
+                        diagnostics,
+                        "SCHED014",
+                        f"{selected_profile}.runtime_evidence[{index}].profile_id",
+                        "must bind the selected execution profile",
+                    )
+                for field in ("sha256", "manifest_sha256"):
+                    if _is_nonempty_string(evidence.get(field)) and not re.fullmatch(
+                        r"[0-9a-fA-F]{64}", str(evidence.get(field))
+                    ):
+                        _diag(
+                            diagnostics,
+                            "SCHED015",
+                            f"{selected_profile}.runtime_evidence[{index}].{field}",
+                            "must be a 64-character SHA-256",
+                            configuration=True,
+                        )
+
+            slo_results = _list(
+                study.get("soft_slo_results", []),
+                diagnostics,
+                "SCHED064",
+                f"{study_id}.soft_slo_results",
+            )
+            passing_slo_workloads: set[str] = set()
+            for index, raw in enumerate(slo_results):
+                slo = _mapping(
+                    raw,
+                    diagnostics,
+                    "SCHED064",
+                    f"{study_id}.soft_slo_results[{index}]",
+                )
+                workload_id = slo.get("workload")
+                if workload_id not in soft_workload_refs:
+                    _diag(
+                        diagnostics,
+                        "SCHED064",
+                        f"{study_id}.soft_slo_results[{index}].workload",
+                        "must reference a soft-real-time study workload",
+                    )
+                if slo.get("verdict") == "pass" and workload_id in soft_workload_refs:
+                    passing_slo_workloads.add(str(workload_id))
+                elif slo.get("verdict") != "pass":
+                    _diag(
+                        diagnostics,
+                        "SCHED064",
+                        f"{study_id}.soft_slo_results[{index}].verdict",
+                        "final soft SLO verdict must be pass",
+                    )
+                for field in (
+                    "evidence_path",
+                    "evidence_sha256",
+                    "profile_id",
+                    "manifest_sha256",
+                ):
+                    if not _is_nonempty_string(slo.get(field)):
+                        _diag(
+                            diagnostics,
+                            "SCHED064",
+                            f"{study_id}.soft_slo_results[{index}].{field}",
+                            "is required",
+                            configuration=True,
+                        )
+                if slo.get("profile_id") != selected_profile:
+                    _diag(
+                        diagnostics,
+                        "SCHED064",
+                        f"{study_id}.soft_slo_results[{index}].profile_id",
+                        "must bind the selected execution profile",
+                    )
+                for field in ("evidence_sha256", "manifest_sha256"):
+                    if _is_nonempty_string(slo.get(field)) and not re.fullmatch(
+                        r"[0-9a-fA-F]{64}", str(slo.get(field))
+                    ):
+                        _diag(
+                            diagnostics,
+                            "SCHED064",
+                            f"{study_id}.soft_slo_results[{index}].{field}",
+                            "must be a 64-character SHA-256",
+                            configuration=True,
+                        )
+            if passing_slo_workloads != soft_workload_refs:
+                _diag(
+                    diagnostics,
+                    "SCHED064",
+                    study_id,
+                    "accepted profile requires PASS SLO evidence for every soft workload",
+                )
+
+        for profile_id, result in analysis_results.items():
+            declared = study.get("candidate_outcomes", {}).get(profile_id) if isinstance(study.get("candidate_outcomes"), dict) else None
+            if profile_id != selected_profile and declared not in {"pass", "pass-with-soft-risk", "rejected"}:
+                _diag(diagnostics, "SCHED054", f"{study_id}.candidate_outcomes.{profile_id}", "unselected candidate outcome must be pass, pass-with-soft-risk, or rejected")
+            if declared == "pass" and (
+                result["verdict"] != "PASS" or result.get("soft_risks")
+            ):
+                _diag(diagnostics, "SCHED055", profile_id, "candidate declared pass but analysis did not pass without risk")
+            if declared == "pass-with-soft-risk" and (
+                result["verdict"] != "PASS" or not result.get("soft_risks")
+            ):
+                _diag(diagnostics, "SCHED055", profile_id, "candidate risk outcome does not match analysis")
+            if declared == "rejected" and not _is_nonempty_string(study.get("rejection_reasons", {}).get(profile_id) if isinstance(study.get("rejection_reasons"), dict) else None):
+                _diag(diagnostics, "SCHED056", f"{study_id}.rejection_reasons.{profile_id}", "rejected candidate requires a reason")
+
+    for pair in sorted(realtime_pairs):
+        coverage = pair_coverage.get(pair, [])
+        if len(coverage) != 1:
+            _diag(
+                diagnostics,
+                "SCHED070",
+                f"{pair[0]}:{pair[1]}",
+                "every real-time workload/profile mapping must belong to exactly one scheduling study",
+            )
 
     for data_id, profile in data_profiles.items():
         if profile.get("profile") not in profiles:

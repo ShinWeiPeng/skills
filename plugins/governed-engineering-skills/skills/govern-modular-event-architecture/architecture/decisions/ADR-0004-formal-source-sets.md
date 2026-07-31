@@ -1,6 +1,6 @@
 # ADR-0004: Formal source sets and generated-production boundaries
 
-- Status: proposed
+- Status: superseded by ADR-0005
 - Date: 2026-07-25
 - Approver: pending
 - Approval reference: pending
@@ -11,7 +11,7 @@ Schema 2.0.1 cataloged every declaration under module paths. Generated object-di
 
 ## Decision
 
-- Accept only schema 2.0.2.
+- Accept only schema 2.0.2 for this decision's historical scope; ADR-0005 advances the current contract to 2.1.0.
 - Require explicit logical source sets without renaming or moving physical directories.
 - Fully govern only `production`.
 - Parse `generated-production` as a declared L3+ generator boundary and report its mutable globals as catalog-only evidence.

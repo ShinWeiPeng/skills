@@ -1,4 +1,4 @@
-"""Project-local entrypoint for the skill's schema 2.0.2 architecture tests."""
+"""Project-local entrypoint for the skill's schema 2.1.0 architecture tests."""
 
 from __future__ import annotations
 

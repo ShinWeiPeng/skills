@@ -2,8 +2,8 @@
 
 # Governed Engineering Skills Architecture Guide
 
-- Standard: `2.0.2`
-- Schema: `2.0.2`
+- Standard: `2.1.0`
+- Schema: `2.1.0`
 
 ## System Overview
 
@@ -17,12 +17,14 @@ flowchart TD
     n_local_install_adapter["local_install_adapter (L3+)"]
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)"]
     n_integration_validation_technical["integration_validation_technical (L3+)"]
+    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)"]
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
 ```
 
 ## Parent Views
@@ -38,8 +40,22 @@ flowchart TD
 
 ## Type Catalog
 
-- `routing-decision` ??`risk_routing_domain` / `query` / `cross-module`
-- `gate-result` ??`risk_routing_domain` / `domain-value` / `cross-module`
+- `routing-decision` — `risk_routing_domain` / `query` / `cross-module`
+- `gate-result` — `risk_routing_domain` / `domain-value` / `cross-module`
+- `governance-diagnostic` — `governance_workflow_domain` / `private-helper` / `private`
+- `governance-manifest-error` — `governance_workflow_domain` / `private-helper` / `private`
+- `governance-ast-evidence` — `governance_workflow_domain` / `private-helper` / `private`
+- `collection-input-port` — `governance_workflow_domain` / `port` / `module-public`
+- `collection-output-port` — `governance_workflow_domain` / `port` / `module-public`
+- `transport-port` — `governance_workflow_domain` / `port` / `module-public`
+- `guided-session-input-port` — `governance_workflow_domain` / `port` / `module-public`
+- `guided-session-output-port` — `governance_workflow_domain` / `port` / `module-public`
+- `runtime-verdict` — `governance_workflow_domain` / `domain-value` / `module-public`
+- `criterion-result` — `governance_workflow_domain` / `domain-value` / `module-public`
+- `verdict-input-port` — `governance_workflow_domain` / `port` / `module-public`
+- `verdict-output-port` — `governance_workflow_domain` / `port` / `module-public`
+- `validation-profile-error` — `governance_workflow_domain` / `private-helper` / `private`
+- `platform-transport-adapter` — `governance_workflow_domain` / `adapter-binding` / `private`
 
 ## State Ownership
 
@@ -47,4 +63,12 @@ flowchart TD
 ## Cross-module Mapping
 
 
+## Adoption Readiness
+
+- [Human-readable readiness](generated/adoption-readiness.md)
+- [Machine-readable readiness](generated/adoption-readiness.json)
+
 ## Execution Profiles
+
+
+## Real-time Scheduling Studies
