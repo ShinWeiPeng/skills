@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.2.0-beta.2
+
+### Fixed
+
+- Require deterministic reading-level routing and complete Level 1 Flow guidance for code-understanding requests.
+
 ## 0.2.0-beta.1
 
 ### Breaking Changes
