@@ -1,1 +1,43 @@
-node_modules
+# Node.js dependencies and local package-manager caches
+node_modules/
+.npm/
+.pnpm-store/
+
+# Python bytecode and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python virtual environments
+.venv/
+venv/
+
+# Build, packaging, and coverage output
+build/
+dist/
+*.egg-info/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs, temporary files, and editor swap files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

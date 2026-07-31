@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0.0",
+  "matt_commit": "2ab9580",
+  "skills": [
+    {
+      "name": "ask-matt",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/ask-matt",
+      "source_sha256": "e13c68e505a522cdf00908890561efbacb4ecb79ebc0333db4b95f25bbf31e13",
+      "integrated_sha256": "60d0c30c81757988615fb3c3928b63397cf53070237605294e049c2b6f1ab27b",
+      "overlay": true
+    },
+    {
+      "name": "diagnosing-bugs",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/diagnosing-bugs",
+      "source_sha256": "3098440499d65036a30ae5ebec6fac90f3d53833472e582e32be50f90b459755",
+      "integrated_sha256": "a801704bdbc00f3e3a1ae44b5c2c3d599065b94a48265acd74f69f7f0e92be82",
+      "overlay": true
+    },
+    {
+      "name": "grill-with-docs",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/grill-with-docs",
+      "source_sha256": "fc8fbd85be9aed0a61f9410629bcc040f6620d09ffc1fc78b5e63a21bca9ad70",
+      "integrated_sha256": "9fbd947c5f0921f17ea247623203d741359f540128af295bff09b767cbf94088",
+      "overlay": true
+    },
+    {
+      "name": "triage",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/triage",
+      "source_sha256": "332934855ccbe0215edd859b5cf92e6e5731c2d51d2144a8bd9372c7caf951a6",
+      "integrated_sha256": "5071b6814de903823890dca3cf7ca4757e77fc5c7d49a9af4c513947962468d5",
+      "overlay": true
+    },
+    {
+      "name": "improve-codebase-architecture",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/improve-codebase-architecture",
+      "source_sha256": "9f3b34638376bc84370cd0f6fdc7dff09579c9ae91244ee64fea44cf618e7f86",
+      "integrated_sha256": "fc385efc01a15088089201a8dac1b207d7659141b9a5b48580fd26006665b704",
+      "overlay": true
+    },
+    {
+      "name": "setup-matt-pocock-skills",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/setup-matt-pocock-skills",
+      "source_sha256": "35a8a37254994e3ff50ff3308f1bb88d301a90a6e6638b9e674371e20cc7d365",
+      "integrated_sha256": "d21a66527983fa833582570bf4d20a98924d98ffeee0d4ef50b726887ac5af52",
+      "overlay": true
+    },
+    {
+      "name": "tdd",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/tdd",
+      "source_sha256": "9fc32d31fbec74e82d6b816e89f777f6d52953ba74d5a183cab85953ad73b160",
+      "integrated_sha256": "f2dbb4ea01024142cddd8bf50b70577d2f0015f845b528f931fd48059d8eb5eb",
+      "overlay": true
+    },
+    {
+      "name": "to-spec",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/to-spec",
+      "source_sha256": "cd37a7e35c3812350c9f5c7bcebac95b3925dcff6a3b0655b3aea87229c52447",
+      "integrated_sha256": "ee5bef800aa392118aa259b55067a1e3a8c5a87122ad9fc292987d2e6c18bd33",
+      "overlay": true
+    },
+    {
+      "name": "to-tickets",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/to-tickets",
+      "source_sha256": "dd67382350e43a7f0a6bba08123640e756e79c5d78658e81f4e6482e89786dbe",
+      "integrated_sha256": "a422d526300c32f63758679be0f3398e85dcaf1a5fe0cf4a7d15846a3c7f7d20",
+      "overlay": true
+    },
+    {
+      "name": "wayfinder",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/wayfinder",
+      "source_sha256": "670f2ebe0aa854d6f8cda2659c6415621cf46307dcf06b42b48e4ba4d1b60385",
+      "integrated_sha256": "a68623231b4ff1ce2f70df67738c34a4d4050e0f27bd8a9bb3c50c0613a672c3",
+      "overlay": true
+    },
+    {
+      "name": "implement",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/implement",
+      "source_sha256": "b49a049477c7eec7f8dd90745dbc3f27bf75617b832d5b5f33c55aab7638a12e",
+      "integrated_sha256": "673ee3d57d2ca568263a42cdbd299538301703e98eee012ec59903902dd6884b",
+      "overlay": true
+    },
+    {
+      "name": "prototype",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/prototype",
+      "source_sha256": "de363d558684c8601b1ee3af99aa80db67a9a4db61a2dde8c0c9d769d936d51d",
+      "integrated_sha256": "4ddf16b7b8b591573a92fc8af006e70cf798777d1653104535c037a3df452fd5",
+      "overlay": true
+    },
+    {
+      "name": "research",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/research",
+      "source_sha256": "fb6fc6446ea4dc9db6e7863b89b77a0b4b0f1beca4a08c23d0d319fe96cd08c8",
+      "integrated_sha256": "fb6fc6446ea4dc9db6e7863b89b77a0b4b0f1beca4a08c23d0d319fe96cd08c8",
+      "overlay": false
+    },
+    {
+      "name": "domain-modeling",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/domain-modeling",
+      "source_sha256": "5622194d032235c847b743c167cb42de137120ac2effd1937e2a71c5ed487d45",
+      "integrated_sha256": "bdece2c8f6bf8f1104f0215051351937f642abd2dfff547c1f38279b3e790f40",
+      "overlay": true
+    },
+    {
+      "name": "codebase-design",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/codebase-design",
+      "source_sha256": "4b46c5ee5f29310386ec35f5b34184aef8e23d1f6d9889a2ece8b8e429b7b880",
+      "integrated_sha256": "41468750835c482b0dcd140a04b183667804153e0f27482d9a9f49811738ec34",
+      "overlay": true
+    },
+    {
+      "name": "code-review",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/code-review",
+      "source_sha256": "146642733a3e0d59919450a7c012eb334b87fdf1859b7e879e631b4a2f5fa466",
+      "integrated_sha256": "40655d7a42545590b14f099fbb4e09738f6adf6abd41f652dd4cf934e8211991",
+      "overlay": true
+    },
+    {
+      "name": "resolving-merge-conflicts",
+      "source_kind": "matt",
+      "source_path": "skills/engineering/resolving-merge-conflicts",
+      "source_sha256": "b1fd57782c4699ca4b19dd4322e45c84c3e9d210d3b73d65f53230fe56ee779c",
+      "integrated_sha256": "0b8f1f4a55bcd696aa6855048e8122a3eb6c0c3d144cb2174a7bade8a3f9a0a3",
+      "overlay": true
+    },
+    {
+      "name": "grill-me",
+      "source_kind": "matt",
+      "source_path": "skills/productivity/grill-me",
+      "source_sha256": "38451dd2683eb309b4176ac5b2648ff6f86e320145baed1ac6c2e34367c8cae6",
+      "integrated_sha256": "772d892a3bd2245bd834471194d14eb783ccf242f1b22c70719ce0b61375a540",
+      "overlay": true
+    },
+    {
+      "name": "grilling",
+      "source_kind": "matt",
+      "source_path": "skills/productivity/grilling",
+      "source_sha256": "5f8e034b4892cfa8b8c07fd1da21e00cf08aa34b0d0189c6f424410bff7d74ae",
+      "integrated_sha256": "5f8e034b4892cfa8b8c07fd1da21e00cf08aa34b0d0189c6f424410bff7d74ae",
+      "overlay": false
+    },
+    {
+      "name": "handoff",
+      "source_kind": "matt",
+      "source_path": "skills/productivity/handoff",
+      "source_sha256": "4f7ef8b1c4e907fbf0de8e1533a16df3a991def76ef67dcb6c54fa6433d7f483",
+      "integrated_sha256": "b824bb16d759dfe17d2074b4517941fc2209ae1d8a85b17ed7220db2c9223876",
+      "overlay": true
+    },
+    {
+      "name": "teach",
+      "source_kind": "matt",
+      "source_path": "skills/productivity/teach",
+      "source_sha256": "a44fbaa67b0bfe0e4ae8007ee255a6e5e63d86309eb4077bec950f5087782297",
+      "integrated_sha256": "109dd7fad6d634b4fbffa21215dc76f6b6d45ad7a80f356358adeacaf3eb0f76",
+      "overlay": true
+    },
+    {
+      "name": "writing-great-skills",
+      "source_kind": "matt",
+      "source_path": "skills/productivity/writing-great-skills",
+      "source_sha256": "fb14b29302e6405c169b540247af11548f9d06fb0a9d3892d058b5354163827a",
+      "integrated_sha256": "3cfec3faf13d6cbc79995fe78739a3b32be4819de7e9f1f4a52893b4130a36c2",
+      "overlay": true
+    },
+    {
+      "name": "clarify-improvement-proposals",
+      "source_kind": "governance",
+      "source_path": "clarify-improvement-proposals",
+      "source_sha256": "26171e4d4fa41a1041c5d327dbab9ad3df56c235d33c3a0151f437dd113e1747",
+      "integrated_sha256": "26171e4d4fa41a1041c5d327dbab9ad3df56c235d33c3a0151f437dd113e1747",
+      "overlay": false
+    },
+    {
+      "name": "explain-code-flow",
+      "source_kind": "governance",
+      "source_path": "explain-code-flow",
+      "source_sha256": "3ae422ada2d3e9180c974fdf92485ee8959d97431f6ae64c35981955e12b0b1e",
+      "integrated_sha256": "3ae422ada2d3e9180c974fdf92485ee8959d97431f6ae64c35981955e12b0b1e",
+      "overlay": false
+    },
+    {
+      "name": "govern-modular-event-architecture",
+      "source_kind": "governance",
+      "source_path": "govern-modular-event-architecture",
+      "source_sha256": "adf513489d845cd5989a1016f782696477df007e07877605e402e15661143641",
+      "integrated_sha256": "c6da86ec563227dcda589bd41ac46341de3cf000fa0afc6ce15e2118f010099f",
+      "overlay": true
+    },
+    {
+      "name": "validate-on-device",
+      "source_kind": "governance",
+      "source_path": "validate-on-device",
+      "source_sha256": "68f71cbedcc8c45a782c3be9999f8c9526767099992c54420f82f5d6e437f43b",
+      "integrated_sha256": "e580506104f24118fc757b8f8322dbd9e8ed46a336e93d58e1c80b644a611a2c",
+      "overlay": true
+    },
+    {
+      "name": "engineering-risk-routing",
+      "source_kind": "integration",
+      "source_path": "skills/engineering-risk-routing",
+      "source_sha256": "2e78af0ffefa402cf96a44047dcb79fc3f811dfc56bcdf935abaa6313b998231",
+      "integrated_sha256": "2e78af0ffefa402cf96a44047dcb79fc3f811dfc56bcdf935abaa6313b998231",
+      "overlay": true
+    }
+  ]
+}

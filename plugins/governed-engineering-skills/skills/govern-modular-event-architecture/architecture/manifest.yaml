@@ -1,0 +1,421 @@
+standard_version: 2.1.0
+schema_version: 2.1.0
+project:
+  name: govern-modular-event-architecture
+  documentation_language: en
+source_sets:
+- id: formal-skill-source
+  classification: production
+  include:
+  - scripts
+  - scripts/**
+  - assets
+  - assets/**
+  - SKILL.md
+  - AGENTS.md
+  - requirements-architecture.txt
+  exclude: []
+  purpose: Govern the maintained skill implementation and distributable project assets.
+  provenance: Human-reviewed skill source.
+- id: skill-development
+  classification: development
+  include:
+  - tests/**
+  exclude: []
+  purpose: Keep regression fixtures and validation evidence outside formal program ownership.
+  provenance: Skill development tests.
+- id: skill-derived-documentation
+  classification: derived-documentation
+  include:
+  - architecture/generated/**
+  - architecture/ARCHITECTURE.md
+  exclude: []
+  purpose: Keep deterministic Description Views outside formal program ownership.
+  provenance: Architecture renderer output.
+- id: skill-build-output
+  classification: build-output
+  include:
+  - build/**
+  - .cache/**
+  - __pycache__/**
+  exclude: []
+  purpose: Exclude interpreter and build outputs from governance catalogs.
+  provenance: Python and validation tooling.
+modules:
+- id: architecture_tooling
+  level: L0
+  role: composition
+  implementation_status: implemented
+  paths:
+  - scripts/architecture_cli.py
+  - scripts/bootstrap_project.py
+  parent: null
+  depends_on:
+  - governance_engine
+  implements_ports: []
+  description:
+    purpose: Provide the single public schema 2.1.0 governance CLI and compose its
+      checker, renderer, bootstrap, adoption, and source-analysis modules.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Select and invoke one bounded architecture tooling command.
+    errors: []
+    invariants:
+    - architecture_cli.py is the only supported command-line entry.
+    - Internal scripts cannot be invoked as legacy public commands.
+  entrypoints:
+  - path: scripts/architecture_cli.py
+    symbol: main
+    kind: function
+  public_symbols:
+  - path: scripts/architecture_cli.py
+    symbol: main
+    kind: function
+- id: governance_engine
+  level: L1
+  role: domain
+  implementation_status: implemented
+  paths:
+  - scripts/check_architecture.py
+  - scripts/schema_description.py
+  - scripts/schema_v2.py
+  - scripts/type_catalog.py
+  - scripts/state_catalog.py
+  - scripts/boundary_catalog.py
+  - scripts/source_sets.py
+  - scripts/render_architecture.py
+  - scripts/governance_adoption.py
+  - scripts/c_analyzer.py
+  - scripts/ast_analyzer.py
+  - scripts/python_analyzer.py
+  parent: architecture_tooling
+  depends_on:
+  - realtime_schedulability_analysis
+  implements_ports: []
+  description:
+    purpose: Validate schema 2.1.0, source conformance, temporary debt, deterministic
+      views, and workload-driven scheduling through one deep governance module.
+    input_ports:
+    - manifest_validation.check
+    output_ports:
+    - manifest_validation.output
+    emitted_events:
+    - manifest_validation.completed
+    owned_state: []
+    side_effects:
+    - description: Write marker-owned generated documents only when requested by the single CLI.
+    errors: []
+    invariants:
+    - Empty baseline never implies verified source conformance.
+    - Python and C/C++ source evidence fail closed.
+    - Release requires zero temporary baseline entries.
+  entrypoints:
+  - path: scripts/check_architecture.py
+    symbol: validate_manifest
+    kind: function
+  public_symbols:
+  - path: scripts/check_architecture.py
+    symbol: validate_manifest
+    kind: function
+- id: realtime_schedulability_analysis
+  level: L2
+  role: component
+  implementation_status: implemented
+  paths:
+  - scripts/realtime_analysis.py
+  parent: governance_engine
+  depends_on: []
+  implements_ports: []
+  description:
+    purpose: Compute partitioned Rate Monotonic priority order, per-core response
+      times, candidate fingerprints, and conservative end-to-end Flow bounds.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Every calculation uses integer nanoseconds and deterministic tie-breaking.
+    - Missing bounds or non-convergent fixed points are BLOCKED rather than guessed.
+    - Utilization is an early screen and never replaces RTA.
+  entrypoints:
+  - path: scripts/realtime_analysis.py
+    symbol: analyze_realtime_profile
+    kind: function
+  public_symbols:
+  - path: scripts/realtime_analysis.py
+    symbol: analyze_realtime_profile
+    kind: function
+composition_roots:
+- id: governance-cli-release
+  module: architecture_tooling
+  path: scripts/architecture_cli.py
+  symbol: main
+  purpose: Dispatch every supported governance command through one complete public entry.
+  source_set: formal-skill-source
+  kind: release
+ports:
+- id: manifest_validation.check
+  owner: governance_engine
+  direction: input
+  kind: command
+  contract: scripts/check_architecture.py
+  implemented_by: []
+  description:
+    purpose: Submit one version-pinned manifest validation request.
+    data: Manifest path, optional baselines, output format, and generated-view check
+      flag.
+    timing: sync
+    immediate_rejections:
+    - code: configuration-error
+      condition: The manifest cannot be parsed or names an unsupported schema.
+  symbols:
+  - validate_manifest
+- id: manifest_validation.output
+  owner: governance_engine
+  direction: output
+  kind: event
+  contract: scripts/check_architecture.py
+  implemented_by: []
+  description:
+    purpose: Publish the deterministic diagnostic result.
+    data: Rule ID, severity, location, message, disposition, and final exit classification.
+    timing: sync
+    immediate_rejections: []
+  symbols:
+  - validate_manifest
+events:
+- id: manifest_validation.completed
+  owner: governance_engine
+  output_port: manifest_validation.output
+  delivery: at-most-once
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
+  description:
+    purpose: Report that one manifest validation request has a complete diagnostic
+      set.
+    emitted_when: Validation and optional generated-view comparison have completed.
+    payload_fields:
+    - name: diagnostics
+      type: list
+      meaning: Ordered architecture diagnostics and final exit classification.
+    intended_consumers:
+    - architecture_tooling
+types:
+- id: diagnostic
+  owner: governance_engine
+  language: python
+  declaration:
+    path: scripts/check_architecture.py
+    symbol: Diagnostic
+    kind: class
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: One deterministic architecture validation diagnostic.
+  lifetime: One checker invocation or serialized evidence result.
+  mutability: shared-mutable
+  mutation_authority:
+  - governance_engine
+  consumers:
+  - architecture_tooling
+  - governance_engine
+  references: []
+  fields:
+  - name: rule_id
+    type: str
+    role: domain-identity
+    meaning: Stable validation rule identifier.
+  - name: severity
+    type: str
+    role: domain-value
+    meaning: MUST or SHOULD classification.
+  - name: location
+    type: str
+    role: metadata
+    meaning: Stable source or manifest location.
+  - name: message
+    type: str
+    role: domain-value
+    meaning: Human-readable failure explanation.
+  - name: configuration
+    type: bool
+    role: metadata
+    meaning: Whether the diagnostic represents a tool configuration error.
+  - name: disposition
+    type: str
+    role: policy
+    meaning: Active, baseline, or accepted ADR disposition.
+- id: manifest-error
+  owner: governance_engine
+  language: python
+  declaration:
+    path: scripts/check_architecture.py
+    symbol: ManifestError
+    kind: class
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Typed failure raised when manifest YAML cannot be read.
+  lifetime: One failed manifest load operation.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - architecture_tooling
+  - governance_engine
+  references: []
+  fields: []
+- id: ast-evidence
+  owner: governance_engine
+  language: python
+  declaration:
+    path: scripts/ast_analyzer.py
+    symbol: AstEvidence
+    kind: class
+  visibility: private
+  semantic_kind: private-helper
+  description: Mutable accumulator for one bounded libclang analysis invocation.
+  lifetime: One C/C++ analyzer invocation.
+  mutability: owner-mutable
+  mutation_authority:
+  - governance_engine
+  consumers:
+  - governance_engine
+  references: []
+  fields:
+  - name: mode
+    type: str
+    role: metadata
+    meaning: Active AST evidence mode.
+  - name: covered_files
+    type: set[Path]
+    role: metadata
+    meaning: Governed files covered by successful AST parses.
+  - name: includes
+    type: list[tuple[Path, Path, int]]
+    role: metadata
+    meaning: Project include edges with source lines.
+  - name: catalog_only_generated_state
+    type: list[dict[str, str]]
+    role: metadata
+    meaning: Generator-owned mutable state reported without formal catalog migration.
+type_exclusions: []
+state_objects: []
+boundary_mappings: []
+flows:
+- id: validate-architecture
+  owner: architecture_tooling
+  description: Validate one manifest and return deterministic diagnostics.
+  trigger:
+    kind: command
+    ref: manifest_validation.check
+    description: A user or CI job invokes the checker.
+  steps:
+  - id: validate-architecture.step-1
+    order: 1
+    module: governance_engine
+    action: Parse the pinned schema and evaluate architecture, execution-efficiency,
+      baseline, and ADR rules.
+    receives:
+    - manifest_validation.check
+    emits:
+    - manifest_validation.completed
+    state_changes: []
+    side_effects: []
+  success:
+    result: Diagnostics and an exit classification are returned.
+    events:
+    - manifest_validation.completed
+  errors: []
+adr_exceptions: []
+c_analyzer:
+  ast:
+    status: not-applicable
+    rationale: The governed Skill implementation has no C or C++ translation units.
+  functional_boundary:
+    status: not-applicable
+    rationale: The governed skill implementation contains Python tooling and no C/C++ L3+ adapter sources.
+    forbidden_includes: []
+    forbidden_symbols: []
+  forbidden_public_includes: []
+  forbidden_public_symbols: []
+  forbidden_source_symbols: []
+python_analyzer:
+  status: required
+  rationale: The governed host-side implementation is Python and requires complete AST evidence.
+workloads:
+- id: validation-request
+  flow: validate-architecture
+  steps:
+  - validate-architecture.step-1
+  timing_class: best-effort
+  activation:
+    kind: command
+  data:
+    volume: One YAML manifest plus optional generated Markdown and baselines.
+  budgets: []
+execution_profiles:
+- id: cross-platform-cli
+  status: proposed
+  assurance_scope:
+  - functional-compatibility
+  target:
+    platform: runtime-selected
+    cpu: runtime-selected
+    runtime: Python 3.11+
+    compiler: Python interpreter
+    cache_topology: {}
+    scheduler_capabilities: []
+execution_units:
+- id: checker-process
+  profile: cross-platform-cli
+  kind: process
+  priority: operating-system-default
+  affinity: []
+  concurrency: 1
+  resources:
+    memory: bounded by manifest and generated view size
+  blocking: bounded file reads and writes
+  allocation: Python runtime managed
+execution_mappings:
+- id: validation-process-map
+  profile: cross-platform-cli
+  workload: validation-request
+  steps:
+  - validate-architecture.step-1
+  units:
+  - checker-process
+  serialization: one command invocation
+  reentrant: true
+  activation: command
+  wcet: not established for the cross-platform legacy profile
+execution_channels: []
+data_access_profiles: []
+microarchitecture_profiles: []
+platform_variants:
+- id: cross-platform-development
+  profile: cross-platform-cli
+  units:
+  - checker-process
+  data_access_profiles: []
+  microarchitecture_profiles: []
+  parameters: {}
+  release: false
+realtime_scheduling_studies: []
+validation_profiles:
+- id: host-tool-validation
+  applicability: not-applicable
+  rationale: This change validates host-side static tooling and makes no hardware, target-runtime, performance, or real-time acceptance claim.

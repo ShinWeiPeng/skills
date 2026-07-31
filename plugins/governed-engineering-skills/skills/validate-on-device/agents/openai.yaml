@@ -1,0 +1,7 @@
+interface:
+  display_name: "Validate On Device"
+  short_description: "Validate software with native traces and device evidence."
+  default_prompt: "Use $validate-on-device to collect bounded device or operating-system evidence linked to governed Flow and accepted Execution Profile IDs."
+
+policy:
+  allow_implicit_invocation: true

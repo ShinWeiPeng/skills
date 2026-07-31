@@ -1,0 +1,7 @@
+interface:
+  display_name: "Modular Event Architecture"
+  short_description: "Design boundaries, types, state, and real-time schedules before code."
+  default_prompt: "Use $govern-modular-event-architecture to pass the pre-code boundary, type, state, and applicable workload-driven real-time scheduling gates before implementing and validating the change."
+
+policy:
+  allow_implicit_invocation: true

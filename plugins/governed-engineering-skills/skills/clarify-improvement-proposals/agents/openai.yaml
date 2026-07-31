@@ -1,0 +1,7 @@
+interface:
+  display_name: "Clarify Improvement Proposals"
+  short_description: "Clarify decisions before recommending improvements."
+  default_prompt: "Use $clarify-improvement-proposals to clarify every ambiguity, screen product features for algorithm decisions and execution-efficiency impacts, and produce a Markdown improvement plan with tradeoffs and a complete validation evidence matrix."
+
+policy:
+  allow_implicit_invocation: true

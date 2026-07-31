@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "current_version": "0.2.0-beta.1",
+  "previous_version": "0.1.0",
+  "release_group": "0.2.0",
+  "bump": "minor",
+  "risk": "high",
+  "production_fingerprint": "sha256:6e03b65ee3cd7bea5a6361ffb4b952ead7554a5462b2c0dffa988c54aa64ca41",
+  "final_rc_fingerprint": null,
+  "applied_changesets": [
+    "semver-governance"
+  ],
+  "approval": null,
+  "validation_evidence": [],
+  "open_blockers": []
+}
