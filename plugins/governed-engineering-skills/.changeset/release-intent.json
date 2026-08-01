@@ -1,0 +1,15 @@
+{
+  "bump": "patch",
+  "target_stage": "beta",
+  "risk": "high",
+  "changesets": [
+    "release-workflow-lifecycle"
+  ],
+  "summary": {
+    "Fixed": [
+      "Make release base-branch preparation idempotent and restrict automated Version PR updates to pull requests that are still open."
+    ]
+  },
+  "approval": null,
+  "validation_evidence": []
+}

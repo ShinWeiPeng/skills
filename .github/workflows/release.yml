@@ -91,7 +91,10 @@ jobs:
 
       - name: Prepare Changesets base branch
         if: github.event_name == 'pull_request'
-        run: git branch --track main origin/main
+        run: |
+          if ! git show-ref --verify --quiet refs/heads/main; then
+            git branch --track main origin/main
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -171,8 +174,14 @@ jobs:
           git add -A
           git commit -m "chore: version skills"
           git push --force-with-lease origin "HEAD:$branch"
-          if gh pr view "$branch" --json url >/dev/null 2>&1; then
-            gh pr edit "$branch" \
+          open_pr_url="$(
+            gh pr list --state open --base main --head "$branch" \
+              --limit 1 \
+              --json url \
+              --jq '.[0].url // ""'
+          )"
+          if [ -n "$open_pr_url" ]; then
+            gh pr edit "$open_pr_url" \
               --title "chore: version skills" \
               --body "Automated root Changesets and governed plugin version update."
           else

@@ -462,13 +462,18 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             checkout_step,
         )
 
-    def test_changesets_validation_materializes_main_for_pull_requests(self) -> None:
+    def test_changesets_validation_materializes_main_idempotently_for_pull_requests(
+        self,
+    ) -> None:
         release_tooling_job = self._release_tooling_job()
 
         self.assertIn(
             "\n      - name: Prepare Changesets base branch"
             "\n        if: github.event_name == 'pull_request'"
-            "\n        run: git branch --track main origin/main",
+            "\n        run: |"
+            "\n          if ! git show-ref --verify --quiet refs/heads/main; then"
+            "\n            git branch --track main origin/main"
+            "\n          fi",
             release_tooling_job,
         )
 
@@ -508,6 +513,21 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             "\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}",
             version_step,
         )
+
+    def test_version_pull_request_selection_ignores_closed_pull_requests(self) -> None:
+        workflow = (
+            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
+        ).read_text(encoding="utf-8")
+        step_marker = "      - name: Create or update the shared Version Pull Request"
+        self.assertIn(step_marker, workflow)
+        _, _, workflow_after_marker = workflow.partition(step_marker)
+        version_pr_step, _, _ = workflow_after_marker.partition("\n      - name:")
+
+        self.assertIn(
+            'gh pr list --state open --base main --head "$branch"',
+            version_pr_step,
+        )
+        self.assertNotIn('gh pr view "$branch"', version_pr_step)
 
 
 if __name__ == "__main__":
