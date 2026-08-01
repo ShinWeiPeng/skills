@@ -67,6 +67,32 @@ class SemVerPolicyTests(unittest.TestCase):
             MODULE.next_version("0.2.0-rc.1", bump="minor", target_stage="beta", risk="high"),
         )
 
+    def test_explicit_minor_prerelease_group_transition(self) -> None:
+        self.assertEqual(
+            "0.3.0-beta.1",
+            MODULE.next_version(
+                "0.2.0-beta.1",
+                bump="minor",
+                target_stage="beta",
+                risk="high",
+                new_release_group=True,
+            ),
+        )
+        for current, bump, stage in (
+            ("0.2.0", "minor", "beta"),
+            ("0.2.0-beta.1", "patch", "beta"),
+            ("0.2.0-beta.1", "minor", "stable"),
+        ):
+            with self.subTest(current=current, bump=bump, stage=stage):
+                with self.assertRaises(ValueError):
+                    MODULE.next_version(
+                        current,
+                        bump=bump,
+                        target_stage=stage,
+                        risk="high",
+                        new_release_group=True,
+                    )
+
     def test_patch_policy(self) -> None:
         self.assertEqual(
             "0.2.1",
@@ -316,6 +342,40 @@ class RepositoryPolicyTests(unittest.TestCase):
         )
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
         self.assertEqual("0.2.0-beta.2", MODULE.apply_pending_intent(root))
+        self.assertFalse(intent_path.exists())
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
+    def test_explicit_new_release_group_is_applied_by_shared_version_flow(self) -> None:
+        root = self.make_repo()
+        (root / "skills" / "changed.md").write_text("changed", encoding="utf-8")
+        (root / ".changeset" / "new-minor.md").write_text(
+            '---\n"governed-engineering-skills": minor\n---\n\nStart a new minor beta.\n',
+            encoding="utf-8",
+        )
+        intent_path = root / ".changeset" / "release-intent.json"
+        intent_path.write_text(
+            json.dumps(
+                {
+                    "bump": "minor",
+                    "target_stage": "beta",
+                    "risk": "high",
+                    "new_release_group": True,
+                    "changesets": ["new-minor"],
+                    "summary": {"Changed": ["Started a new minor beta."]},
+                    "approval": None,
+                    "validation_evidence": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+        self.assertEqual("0.3.0-beta.1", MODULE.apply_pending_intent(root))
+        state = json.loads(
+            (root / ".changeset" / "release-state.json").read_text(encoding="utf-8")
+        )
+        self.assertTrue(state["new_release_group"])
+        self.assertEqual(["new-minor"], state["applied_changesets"])
+        self.assertTrue((root / ".changeset" / "applied" / "0.2.0" / "test-change.md").is_file())
         self.assertFalse(intent_path.exists())
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
 
