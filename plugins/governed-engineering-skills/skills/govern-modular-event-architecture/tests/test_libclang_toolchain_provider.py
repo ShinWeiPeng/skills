@@ -41,6 +41,8 @@ class LibclangToolchainProviderTests(unittest.TestCase):
         member: str = "esp-clang/bin/libclang.dll",
         content: bytes = b"official-library",
         link: bool = False,
+        extra_member: str | None = None,
+        extra_link: bool = False,
     ) -> Path:
         archive = self.root / f"fixture-{len(list(self.root.glob('fixture-*')))}.tar.xz"
         with tarfile.open(archive, "w:xz") as bundle:
@@ -52,6 +54,15 @@ class LibclangToolchainProviderTests(unittest.TestCase):
             else:
                 info.size = len(content)
                 bundle.addfile(info, io.BytesIO(content))
+            if extra_member is not None:
+                extra = tarfile.TarInfo(extra_member)
+                if extra_link:
+                    extra.type = tarfile.SYMTYPE
+                    extra.linkname = "../../outside"
+                    bundle.addfile(extra)
+                else:
+                    extra.size = len(content)
+                    bundle.addfile(extra, io.BytesIO(content))
         return archive
 
     def _lock(self, archive: Path, library_hash: str | None = None) -> Path:
@@ -159,12 +170,24 @@ class LibclangToolchainProviderTests(unittest.TestCase):
             provider._safe_extract(archive, self.root / "out")
         self.assertEqual("CAST002", caught.exception.rule_id)
 
-    def test_link_entry_is_not_materialized(self) -> None:
-        archive = self._archive(member="esp-clang/lib/libclang.so", link=True)
-        output = self.root / "out"
-        output.mkdir()
-        provider._safe_extract(archive, output)
-        self.assertFalse((output / "esp-clang/lib/libclang.so").exists())
+    def test_windows_path_traversal_is_rejected_by_install(self) -> None:
+        archive = self._archive(extra_member=r"..\outside.dll")
+        lock = self._lock(archive)
+        with self.assertRaises(ToolchainProviderError) as caught:
+            self._install(lock, archive)
+        self.assertEqual("CAST002", caught.exception.rule_id)
+        self.assertEqual(r"..\outside.dll", caught.exception.location)
+
+    def test_link_entry_is_rejected_by_install(self) -> None:
+        archive = self._archive(
+            extra_member="esp-clang/lib/libclang.so",
+            extra_link=True,
+        )
+        lock = self._lock(archive)
+        with self.assertRaises(ToolchainProviderError) as caught:
+            self._install(lock, archive)
+        self.assertEqual("CAST002", caught.exception.rule_id)
+        self.assertEqual("esp-clang/lib/libclang.so", caught.exception.location)
 
     def test_incomplete_cache_is_cast002(self) -> None:
         archive = self._archive()

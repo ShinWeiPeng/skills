@@ -5,7 +5,7 @@
   "release_group": "0.3.0",
   "bump": "minor",
   "risk": "high",
-  "production_fingerprint": "sha256:ca683a28904073b74b89c081e2c139d4e830ff11fbc9d9a23f111f96d4c69b70",
+  "production_fingerprint": "sha256:348c677f8d95690ccab2c80041e7155a9c8b27985ca60a7310541a4ce472e282",
   "final_rc_fingerprint": null,
   "applied_changesets": [
     "explain-code-flow-contract",

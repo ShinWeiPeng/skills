@@ -158,23 +158,33 @@ def _safe_extract(archive: Path, destination: Path) -> None:
     try:
         with tarfile.open(archive, mode="r:xz") as bundle:
             members = bundle.getmembers()
+            destination_root = destination.resolve()
             for member in members:
+                if "\\" in member.name:
+                    raise ToolchainProviderError(
+                        "CAST002", member.name, "unsafe archive path separator"
+                    )
                 relative = PurePosixPath(member.name)
                 if relative.is_absolute() or ".." in relative.parts:
                     raise ToolchainProviderError(
                         "CAST002", member.name, "unsafe archive path"
                     )
                 if member.issym() or member.islnk():
-                    # Link entries are refused: they are never materialized.
-                    continue
+                    raise ToolchainProviderError(
+                        "CAST002", member.name, "archive link entry is forbidden"
+                    )
                 if not (member.isdir() or member.isfile()):
                     raise ToolchainProviderError(
                         "CAST002", member.name, "special archive entry is forbidden"
                     )
             for member in members:
-                if member.issym() or member.islnk():
-                    continue
                 target = destination.joinpath(*PurePosixPath(member.name).parts)
+                try:
+                    target.resolve().relative_to(destination_root)
+                except ValueError as exc:
+                    raise ToolchainProviderError(
+                        "CAST002", member.name, "archive path escapes destination"
+                    ) from exc
                 if member.isdir():
                     target.mkdir(parents=True, exist_ok=True)
                     continue
