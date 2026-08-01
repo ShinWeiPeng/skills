@@ -1,7 +1,8 @@
 # ADR-0002: Guided Driver and central risk router
 
-- Status: proposed
+- Status: superseded
 - Date: 2026-07-29
+- Superseded by: ADR-0010
 
 ## Context and problem
 
@@ -39,6 +40,6 @@ The original promoted skills remain vendored snapshots. Integration overlays exi
 
 ## Approval
 
-- Approver: pending human review
-- Approval date: pending
-- Approval reference: pending
+- Approver: not applicable; superseded before acceptance
+- Approval date: not applicable
+- Approval reference: ADR-0010

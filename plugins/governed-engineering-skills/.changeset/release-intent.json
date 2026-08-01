@@ -1,0 +1,30 @@
+{
+  "bump": "minor",
+  "target_stage": "beta",
+  "risk": "high",
+  "new_release_group": true,
+  "changesets": [
+    "automatic-engineering-router"
+  ],
+  "summary": {
+    "Added": [
+      "Add GuidedRouteDecision, ProjectStateAssessment, IntentAssessment, and repository-evidence contracts."
+    ],
+    "Changed": [
+      "Make ask-matt the automatic entry for every software-engineering request.",
+      "Add evidence-backed dual-axis ProjectState and ordered intent routing.",
+      "Require one grilling interview before every repository-modifying change set."
+    ]
+  },
+  "approval": "ADR-0010",
+  "validation_evidence": [
+    {
+      "kind": "development",
+      "reference": "validation/0.4.0-beta.1.md"
+    },
+    {
+      "kind": "release-static",
+      "reference": "validation/0.4.0-beta.1.md"
+    }
+  ]
+}

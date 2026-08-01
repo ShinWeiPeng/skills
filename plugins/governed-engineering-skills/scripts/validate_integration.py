@@ -22,6 +22,12 @@ EXPECTED_SKILLS = {
     "govern-modular-event-architecture", "validate-on-device",
     "engineering-risk-routing",
 }
+IMPLICIT_ROUTE_SKILLS = {
+    "ask-matt",
+    "grill-me",
+    "grill-with-docs",
+    "wayfinder",
+}
 
 
 def main() -> int:
@@ -53,6 +59,16 @@ def main() -> int:
             errors.append(f"{name}: frontmatter name does not match directory")
         if not openai_yaml.is_file():
             errors.append(f"{name}: missing agents/openai.yaml")
+        elif name in IMPLICIT_ROUTE_SKILLS:
+            metadata = openai_yaml.read_text(encoding="utf-8")
+            if not re.search(
+                r"^\s*allow_implicit_invocation:\s*true\s*$",
+                metadata,
+                re.MULTILINE,
+            ):
+                errors.append(
+                    f"{name}: automatic route requires implicit invocation"
+                )
 
     manifest = json.loads(
         (PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")

@@ -64,33 +64,46 @@ modules:
   implementation_status: implemented
   paths:
   - skills/ask-matt
+  - skills/engineering-risk-routing/scripts/guided_workflow_router.py
   parent: null
   depends_on:
+  - workflow_routing_domain
   - risk_routing_domain
   - delivery_workflow_domain
   - governance_workflow_domain
+  - repository_evidence_adapter
   implements_ports: []
   public_headers: []
   description:
-    purpose: Present the user-invoked engineering map and coordinate risk, delivery,
-      and governance domains.
-    input_ports: []
+    purpose: Automatically route every software-engineering intent by coordinating
+      workflow selection, repository state, risk, delivery, and governance domains.
+    input_ports:
+    - guided-routing.route
     output_ports: []
     emitted_events: []
     owned_state: []
     side_effects: []
     errors: []
     invariants:
-    - Never execute human-only skills on the user's behalf.
+    - Users never need to know or invoke ask-matt for software-engineering work.
+    - Every repository-modifying change set completes grilling before mutation.
+    - Discoverable facts are explored before any unresolved decision is asked.
+    - A newly discovered discretionary decision stops execution and returns to grilling.
     - Never route standalone learning-note or HackMD work.
   entrypoints:
   - path: skills/ask-matt/SKILL.md
     symbol: ask-matt
     kind: skill
+  - path: skills/engineering-risk-routing/scripts/guided_workflow_router.py
+    symbol: main
+    kind: cli
   public_symbols:
   - path: skills/ask-matt/SKILL.md
     symbol: ask-matt
     kind: skill
+  - path: skills/engineering-risk-routing/scripts/guided_workflow_router.py
+    symbol: route
+    kind: function
 - id: risk_routing_domain
   level: L1
   role: domain
@@ -121,6 +134,56 @@ modules:
   public_symbols:
   - path: skills/engineering-risk-routing/scripts/classify_risk.py
     symbol: classify
+    kind: function
+- id: workflow_routing_domain
+  level: L1
+  role: domain
+  implementation_status: implemented
+  paths:
+  - skills/engineering-risk-routing/scripts/project_state.py
+  - skills/engineering-risk-routing/scripts/workflow_selection.py
+  - skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+  - skills/engineering-risk-routing/references/intent-rules.json
+  parent: guided_workflow_router
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Own deterministic engineering-intent classification, three-state project
+      assessment, capability fallback, and final skill handoff selection.
+    input_ports:
+    - workflow-routing.assess-project
+    - workflow-routing.select
+    output_ports:
+    - repository-evidence.collect
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Explicit skills outrank inferred intent.
+    - Intent selects the primary flow before project state and risk gates are applied.
+    - Indeterminate intent or project state is never silently guessed.
+    - Risk classification adds gates but never replaces the primary user intent.
+  entrypoints:
+  - path: skills/engineering-risk-routing/scripts/project_state.py
+    symbol: assess_project_state
+    kind: function
+  - path: skills/engineering-risk-routing/scripts/workflow_selection.py
+    symbol: select_workflow
+    kind: function
+  public_symbols:
+  - path: skills/engineering-risk-routing/scripts/project_state.py
+    symbol: RepositoryEvidencePort
+    kind: class
+  - path: skills/engineering-risk-routing/scripts/project_state.py
+    symbol: assess_project_state
+    kind: function
+  - path: skills/engineering-risk-routing/scripts/workflow_selection.py
+    symbol: classify_intent
+    kind: function
+  - path: skills/engineering-risk-routing/scripts/workflow_selection.py
+    symbol: select_workflow
     kind: function
 - id: delivery_workflow_domain
   level: L1
@@ -236,6 +299,41 @@ modules:
   - path: .codex-plugin/plugin.json
     symbol: governed-engineering-skills
     kind: manifest
+- id: repository_evidence_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - skills/engineering-risk-routing/scripts/repository_evidence.py
+  parent: null
+  depends_on:
+  - workflow_routing_domain
+  implements_ports:
+  - repository-evidence.collect
+  public_headers: []
+  description:
+    purpose: Enumerate tracked and non-ignored untracked repository evidence without
+      mutating Git, the index, or the worktree.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Never write repository files, Git metadata, or ignore configuration.
+    - Exclude ignored dependencies, caches, build outputs, generated artifacts, and
+      Git metadata from project-state evidence.
+    - Never follow symbolic links or read their target metadata.
+    - Preserve safely enumerable excluded paths with deterministic exclusion reasons.
+  entrypoints:
+  - path: skills/engineering-risk-routing/scripts/repository_evidence.py
+    symbol: GitFilesystemRepositoryEvidenceAdapter
+    kind: class
+  public_symbols:
+  - path: skills/engineering-risk-routing/scripts/repository_evidence.py
+    symbol: GitFilesystemRepositoryEvidenceAdapter
+    kind: class
 - id: local_install_adapter
   level: L3+
   role: adapter
@@ -447,6 +545,24 @@ composition_roots:
   source_set: plugin-production
   kind: release
 ports:
+- id: guided-routing.route
+  owner: guided_workflow_router
+  direction: input
+  kind: query
+  contract: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Route one software-engineering request to its safe primary skill.
+    data: Task text, project root, explicit skill, available capabilities, risk decision,
+      and wayfinder complexity evidence.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: The task text or project root is malformed.
+    - code: unavailable
+      condition: Project-state evidence cannot be collected.
+  symbols:
+  - ask-matt
 - id: risk-routing.classify
   owner: risk_routing_domain
   direction: input
@@ -461,6 +577,54 @@ ports:
     immediate_rejections: []
   symbols:
   - classify
+- id: workflow-routing.assess-project
+  owner: workflow_routing_domain
+  direction: input
+  kind: query
+  contract: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Convert repository evidence into a three-state implementation and documentation assessment.
+    data: Read-only tracked and non-ignored untracked path evidence.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: Evidence does not satisfy the RepositoryEvidence contract.
+  symbols:
+  - assess_project_state
+- id: workflow-routing.select
+  owner: workflow_routing_domain
+  direction: input
+  kind: query
+  contract: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Select the authoritative skill handoff after intent, project state, risk,
+      capability, and complexity checks.
+    data: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities,
+      and wayfinder threshold evidence.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: Any required assessment is missing or malformed.
+  symbols:
+  - select_workflow
+- id: repository-evidence.collect
+  owner: workflow_routing_domain
+  direction: output
+  kind: query
+  contract: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+  implemented_by:
+  - repository_evidence_adapter
+  description:
+    purpose: Read repository paths and Git tracking status for project-state assessment.
+    data: One project root produces normalized RepositoryEvidence rows.
+    timing: sync
+    immediate_rejections:
+    - code: unavailable
+      condition: The root is unreadable or Git evidence collection fails.
+  symbols:
+  - RepositoryEvidencePort
 - id: libclang_toolchain.resolve
   owner: governance_workflow_domain
   direction: output
@@ -482,6 +646,224 @@ ports:
   - LibclangToolchainPort
 events: []
 types:
+- id: repository-artifact
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: RepositoryArtifact
+    kind: interface
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: One tracked or non-ignored untracked path returned by repository discovery.
+  lifetime: One repository evidence query.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - workflow_routing_domain
+  - repository_evidence_adapter
+  references: []
+  fields:
+  - name: path
+    type: string
+    role: domain-identity
+    meaning: Project-relative normalized artifact path.
+  - name: tracking
+    type: string
+    role: metadata
+    meaning: tracked or untracked source of the artifact.
+  - name: size_bytes
+    type: integer
+    role: metadata
+    meaning: Artifact size used to distinguish empty placeholders from implementation.
+  - name: exclusion_reason
+    type: nullable-string
+    role: policy
+    meaning: Deterministic reason an artifact is excluded, or null when it is eligible evidence.
+- id: repository-evidence
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: RepositoryEvidence
+    kind: interface
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: One normalized repository artifact considered by project-state assessment.
+  lifetime: One project-state assessment.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  - workflow_routing_domain
+  references: []
+  fields:
+  - name: path
+    type: string
+    role: domain-identity
+    meaning: Project-relative normalized artifact path.
+  - name: tracking
+    type: string
+    role: metadata
+    meaning: tracked or untracked source of the evidence.
+  - name: size_bytes
+    type: integer
+    role: metadata
+    meaning: Artifact size used to distinguish empty placeholders from implementation.
+  - name: classification
+    type: string
+    role: policy
+    meaning: implementation, stateful-context, ambiguous, or excluded.
+  - name: reason
+    type: string
+    role: metadata
+    meaning: Deterministic explanation for the classification.
+- id: project-state-assessment
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: ProjectStateAssessment
+    kind: interface
+  visibility: cross-module
+  semantic_kind: query
+  description: Evidence-backed three-state assessment of implementation and durable project context.
+  lifetime: One guided route.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references:
+  - repository-artifact
+  - repository-evidence
+  fields:
+  - name: implementation
+    type: string
+    role: policy
+    meaning: present, absent, or indeterminate implementation state.
+  - name: stateful_context
+    type: string
+    role: policy
+    meaning: present, absent, or indeterminate durable documentation state.
+  - name: evidence
+    type: repository-evidence-array
+    role: metadata
+    meaning: Included and excluded path evidence supporting both axes.
+- id: intent-assessment
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: IntentAssessment
+    kind: interface
+  visibility: cross-module
+  semantic_kind: query
+  description: Ordered hard-intent classification for one engineering request.
+  lifetime: One guided route.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references: []
+  fields:
+  - name: intent
+    type: string
+    role: policy
+    meaning: Explicit skill, code understanding, diagnosis, review, implementation-design,
+      or indeterminate.
+  - name: explicit_skill
+    type: nullable-string
+    role: contract-control
+    meaning: User-selected skill that outranks inferred intent.
+  - name: matched_terms
+    type: string-array
+    role: metadata
+    meaning: Ordered deterministic term evidence.
+  - name: requires_modification
+    type: boolean
+    role: policy
+    meaning: Whether the change set must complete grilling before mutation.
+- id: guided-route-decision
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: GuidedRouteDecision
+    kind: interface
+  visibility: cross-module
+  semantic_kind: query
+  description: Authoritative engineering skill handoff with capability and gate evidence.
+  lifetime: One guided route and its handoff.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references:
+  - project-state-assessment
+  - intent-assessment
+  fields:
+  - name: selected_skill
+    type: nullable-string
+    role: contract-control
+    meaning: Authoritative primary skill or fallback selected for immediate safe handoff.
+  - name: status
+    type: string
+    role: contract-control
+    meaning: PASS, DEGRADED, or BLOCKED.
+  - name: reason
+    type: string
+    role: metadata
+    meaning: Reader-facing explanation of the handoff.
+  - name: required_gates
+    type: string-array
+    role: policy
+    meaning: Risk gates preserved from RoutingDecision.
+  - name: fallback
+    type: nullable-string
+    role: contract-control
+    meaning: Transparent equivalent primitive used when the preferred skill is unavailable.
+  - name: resume_target
+    type: nullable-string
+    role: contract-control
+    meaning: Workflow target after decisions, gates, or capabilities are resolved.
+- id: repository-evidence-port
+  owner: workflow_routing_domain
+  language: python
+  declaration:
+    path: skills/engineering-risk-routing/scripts/project_state.py
+    symbol: RepositoryEvidencePort
+    kind: class
+  visibility: module-public
+  semantic_kind: port
+  description: Demand-owned interface for read-only repository evidence collection.
+  lifetime: Process lifetime.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - workflow_routing_domain
+  - repository_evidence_adapter
+  references:
+  - repository-artifact
+  fields: []
+- id: git-filesystem-repository-evidence-adapter
+  owner: repository_evidence_adapter
+  language: python
+  declaration:
+    path: skills/engineering-risk-routing/scripts/repository_evidence.py
+    symbol: GitFilesystemRepositoryEvidenceAdapter
+    kind: class
+  visibility: module-public
+  semantic_kind: adapter-binding
+  description: Git-aware implementation of the repository evidence Port.
+  lifetime: One guided routing process.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references:
+  - repository-evidence-port
+  - repository-artifact
+  fields: []
 - id: routing-decision
   owner: risk_routing_domain
   language: json-schema
@@ -518,7 +900,8 @@ types:
   - name: next_skill
     type: nullable-string
     role: contract-control
-    meaning: Next skill selected by the route.
+    meaning: Compatibility advisory for the first risk gate; GuidedRouteDecision owns
+      the authoritative handoff.
   - name: status
     type: string
     role: contract-control
@@ -803,29 +1186,67 @@ types:
   fields: []
 type_exclusions: []
 state_objects: []
-boundary_mappings: []
+boundary_mappings:
+- id: routing-assessments-to-guided-handoff
+  interaction: Combine workflow-owned intent and project state with risk-owned gate
+    evidence without letting either sibling depend directly on the other.
+  producer: risk_routing_domain
+  consumer: workflow_routing_domain
+  parent: guided_workflow_router
+  producer_contract: routing-decision
+  consumer_contract: guided-route-decision
+  mapping_owner: guided_workflow_router
+  state_objects: []
+  allowed_edges:
+  - guided_workflow_router->risk_routing_domain
+  - guided_workflow_router->workflow_routing_domain
+  forbidden_edges:
+  - risk_routing_domain->workflow_routing_domain
+  - workflow_routing_domain->risk_routing_domain
 flows:
 - id: governed-engineering-route
   owner: guided_workflow_router
-  description: Classify an engineering request before selecting its first workflow
-    step.
+  description: Automatically classify every software-engineering request, inspect
+    its project state, preserve risk gates, and select an immediate safe handoff.
   trigger:
     kind: command
-    ref: risk-routing.classify
-    description: The user asks ask-matt or enters a governed engineering skill.
+    ref: guided-routing.route
+    description: The user states a software-engineering intent; no ask-matt invocation
+      is required.
   steps:
-  - id: governed-engineering-route.classify
+  - id: governed-engineering-route.assess
     order: 1
+    module: workflow_routing_domain
+    action: Classify ordered hard intent and assess implementation and durable context
+      from repository evidence.
+    receives:
+    - workflow-routing.assess-project
+    - repository-evidence.collect
+    emits: []
+    state_changes: []
+    side_effects: []
+  - id: governed-engineering-route.classify-risk
+    order: 2
     module: risk_routing_domain
-    action: Match ordered hard triggers and produce a RoutingDecision.
+    action: Match ordered risk hard triggers and preserve the required governance gates.
     receives:
     - risk-routing.classify
     emits: []
     state_changes: []
     side_effects: []
+  - id: governed-engineering-route.select
+    order: 3
+    module: workflow_routing_domain
+    action: Apply explicit-skill, intent, project-state, risk-gate, capability, and
+      wayfinder precedence to produce the authoritative GuidedRouteDecision.
+    receives:
+    - workflow-routing.select
+    emits: []
+    state_changes: []
+    side_effects: []
   success:
-    result: A PASS decision selects the next skill or identifies an out-of-scope standalone
-      request.
+    result: A PASS or DEGRADED decision selects an immediate safe handoff; unresolved
+      evidence or missing non-substitutable capability returns BLOCKED.
     events: []
   errors: []
 adr_exceptions: []
@@ -849,7 +1270,9 @@ workloads:
 - id: governed-routing-workload
   flow: governed-engineering-route
   steps:
-  - governed-engineering-route.classify
+  - governed-engineering-route.assess
+  - governed-engineering-route.classify-risk
+  - governed-engineering-route.select
   timing_class: best-effort
   activation:
     kind: command

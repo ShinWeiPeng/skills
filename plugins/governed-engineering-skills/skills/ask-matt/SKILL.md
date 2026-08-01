@@ -1,95 +1,95 @@
 ---
 name: ask-matt
-description: Ask which skill or flow fits your situation. A router over the skills in this repo.
+description: Automatically route every software-engineering request, including implementation, modification, debugging, review, code explanation, tests, architecture, and deployment. Model-invoked; users never need to name this skill.
 ---
 
-# Ask Matt
+# Automatic Engineering Router
 
-You don't remember every skill, so ask.
+Use this skill automatically whenever the user's intent is software engineering.
+The user describes the work; never require them to know or invoke `ask-matt`.
+Standalone notes and non-engineering writing remain outside this router.
 
-## Governed Guided Driver
+## Ordered route
 
-This integrated copy remains a user-invoked map: classify and hand off, but do not execute human-only skills on the user's behalf.
+Use this fixed precedence:
 
-1. Inspect the repository and the user's stated intent without mutation.
-2. Invoke `$engineering-risk-routing` and show its task class, matched hard triggers, risk class, required gates, next skill, PASS/BLOCKED condition, and return-to-flow target.
-3. Route engineering work through applicable steps in this order:
+```text
+explicit skill
+→ ordered hard intent
+→ three-state ProjectState
+→ R0–R3 required gates
+→ capability check
+→ authoritative handoff
+```
 
-   ```text
-   explain-code-flow → grilling → clarify-improvement-proposals
-   → govern-modular-event-architecture → to-spec / to-tickets
-   → implement + tdd → architecture checks + code-review
-   → validate-on-device when runtime evidence is required
-   ```
+1. Read the repository and task context without mutation. Discover Git and filesystem
+   facts instead of asking the user.
+2. Run `scripts/guided_workflow_router.py` from the
+   `engineering-risk-routing` skill, or apply its contracts exactly when the runtime
+   cannot execute the script.
+3. Treat `GuidedRouteDecision.selected_skill` as authoritative.
+   `RoutingDecision.next_skill` is only a risk advisory.
+4. Hand off to the selected skill automatically. Do not ask the user to invoke it.
+5. Stop on `BLOCKED`. Continue transparently on `DEGRADED` only when the decision
+   names an equivalent primitive.
 
-4. Stop on `BLOCKED`; never route around a missing governance or runtime-evidence capability.
-5. Requests outside engineering remain outside this driver.
+## ProjectState
 
-A **flow** is a path through the skills. Most paths run along one **main flow**, and two **on-ramps** merge onto it. Everything else is standalone, or a vocabulary layer that runs underneath.
+Assess both axes independently as `present`, `absent`, or `indeterminate`:
 
-## The main flow: idea → ship
+- `implementation`: product source or tests provide strong implementation evidence.
+- `stateful_context`: formal context such as `CONTEXT.md`, a spec, PRD, ADR, or
+  architecture manifest provides durable project knowledge.
 
-The route most work travels. You have an idea and want it built.
+Scan tracked files and non-ignored untracked files. Exclude Git metadata, ignored
+dependencies, caches, build output, and generated artifacts.
 
-1. **`/grill-with-docs`** — sharpen the idea by interview. Start here when you **have a codebase**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No codebase? Use `/grill-me` — see Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail.)
-2. **Branch — can you settle every question in conversation?** If a question needs a runnable answer (state, business logic, a UI you have to see), detour through a prototype, bridged by **`/handoff`** in both directions (see Crossing sessions):
-   - **`/handoff`** out, then open a fresh session against that file,
-   - **`/prototype`** to answer the question with throwaway code,
-   - **`/handoff`** back what you learned, and reference it from the original idea thread.
-3. **Branch — is this a multi-session build?**
-   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed — kick off **`/implement`** per ticket, **clearing context between each one**.
-   - **No** → **`/implement`** right here, in the same context window.
+Route modifying work as follows:
 
-   Either way, **`/implement`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — then closes out by running **`/code-review`**, a two-axis review (Standards + Spec) of the diff, before committing. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.
+- `absent / absent` → `grill-me`
+- implementation absent and stateful context present → `grill-with-docs`
+- implementation present → intent-specific exploration, then `grilling`
+- either axis indeterminate → show the evidence and use `grilling` to ask exactly one
+  conclusion-changing question; never guess
 
-### Context hygiene
+A README, template, or empty scaffold alone is not proof of a codebase.
 
-Keep steps 1–3 in **one unbroken context window** — don't compact or clear until after `/to-tickets` — so the grilling, spec, and tickets all build on the same thinking. Each `/implement` then starts fresh, working from the ticket.
+## Change-set interview contract
 
-The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the window (~120k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before `/to-tickets`, don't push on degraded — `/handoff` and continue in a fresh thread.
+Every repository-modifying change set completes grilling before mutation, regardless
+of size or an explicitly requested skill such as `tdd`.
 
-## On-ramps
+- Interview the whole change set once. Source, tests, docs, migrations, generated
+  views, versions, and changelog entries required by that change do not restart it.
+- A bug may complete read-only diagnosis first. Choosing the fix then requires
+  grilling.
+- Ask one decision question at a time and recommend an answer.
+- Do not ask discoverable facts.
+- Do not modify anything until the plan is decision-complete and the user says
+  `開始執行`.
+- If execution exposes any new discretionary decision, stop immediately, return to
+  grilling one question at a time, update the plan, and wait for authorization again.
+  Compiler errors and test failures that can be investigated are facts, not user
+  decisions.
 
-A starting situation that generates work, then merges onto the main flow.
+## Wayfinder escalation
 
-- **Bugs and requests piling up** → **`/triage`**. It moves issues through triage roles and produces agent-ready issues, which **`/implement`** later picks up.
+After grilling, recommend `wayfinder` only when all three signals exist:
 
-  Triage is only for issues **you didn't create** — bug reports, incoming feature requests, anything that arrives raw. Tickets that `/to-tickets` produced are already agent-ready, so **don't triage them**.
+1. at least two decision-ticket candidates;
+2. at least one blocking dependency;
+3. at least one fog area that cannot yet be phrased as a precise ticket.
 
-- **Something's broken** → **`/diagnosing-bugs`**. For the hard ones: the bug that resists a first glance, the intermittent flake, the regression that crept in between two known-good states. It refuses to theorise until it has a **tight feedback loop** — one command that already goes red on *this* bug — then fixes with a regression test. Its post-mortem hands off to **`/improve-codebase-architecture`** when the real finding is that there's no good seam to lock the bug down.
+Missing `wayfinder` or tracker capability is `BLOCKED`. Creating a map or tickets is
+an external write and still requires `開始執行`. Wayfinder hands off to `to-spec`,
+then `to-tickets`; it never jumps directly to implementation for a large effort.
 
-- **A huge, foggy effort — a greenfield project or a huge feature build, too big for one session** → **`/wayfinder`**, the most cognitively demanding flow here. When the way from here to the destination isn't visible yet, it charts a **shared map** of **decision tickets** on the issue tracker and resolves them one at a time — producing **decisions, not deliverables** — until the fog is pushed back and the way is clear. Where **`/grill-with-docs`** sharpens an idea you can hold in one session, wayfinder is for the idea you can't — and it's slower and denser, so save it for exactly that, never a well-scoped feature.
+## Capability and presentation
 
-  When the map clears, **it hands off, it doesn't build**: merge onto the main flow at **`/to-spec`**, which collapses the map's linked decisions into a buildable plan, then `/to-tickets` and `/implement` as usual. Looping the map straight into `/implement` skips that collapse and throws the linked detail away — go straight to `/implement` only when the effort turned out genuinely small.
-
-## Codebase health
-
-Not feature work — upkeep.
-
-- **`/improve-codebase-architecture`** — run whenever you have a spare moment to keep the codebase good for agents to operate in. It surfaces **deepening opportunities**; picking one _generates an idea_ you can take into the main flow at `/grill-with-docs`. It's the survey that finds the candidates; **`/codebase-design`** (below) is the bench you design the chosen one on.
-
-## Vocabulary underneath
-
-Two model-invoked references that run *beneath* the other skills — each the single source of truth for its vocabulary. Reach for them directly when the **words**, not the process, are the problem; or let the skills above pull them in.
-
-- **`/domain-modeling`** — sharpen the project's *domain* language: challenge a fuzzy term, resolve an overloaded word ("account" doing three jobs), record a hard-to-reverse decision as an ADR. It's the active discipline `/grill-with-docs` drives to keep `CONTEXT.md` a clean glossary.
-- **`/codebase-design`** — the deep-module vocabulary (module, interface, depth, seam, adapter, leverage, locality) for designing a module's *shape*: a lot of behaviour behind a small interface at a clean seam. `/tdd` and `/improve-codebase-architecture` both speak it.
-
-## Crossing sessions
-
-- **`/handoff`** — when a thread is full or you need to branch off (e.g. into a `/prototype` session), this compacts the conversation into a markdown file. You don't continue in place — you **open a new session and reference that file** to carry the context across. It's the bridge between context windows, in either direction. Use it when you want a **fresh session** but need the **current conversation preserved**.
-- **`/compact`** (built-in) — stay in the **same conversation**, letting the earlier turns be summarized. Use it at **intentional breaks between phases**, when you don't mind losing the verbatim history. Don't compact mid-phase — the agent can lose its way. `/handoff` forks; `/compact` continues.
-
-## Standalone
-
-Off the main flow entirely.
-
-- **`/grill-me`** — the same relentless interview as `/grill-with-docs`, but for when you have **no codebase**. Stateless: it saves nothing locally, builds no `CONTEXT.md`. Reach for it to sharpen any plan or design that doesn't live in a repo.
-- **`/prototype`** — a small, throwaway program that answers one design question: does this state model feel right, or what should this UI look like. Throwaway from day one — keep the answer, delete the code. It's the detour in step 2 of the main flow, but reach for it any time a design question is hard to settle on paper.
-- **`/research`** — delegate reading legwork to a **background agent**: it investigates a question against **primary sources**, then leaves a cited Markdown file in the repo. Keep working while it reads. The file it produces is something to take *into* the main flow at `/grill-with-docs` — research feeds the thinking, it doesn't replace it.
-- **`/teach`** — learn a concept over multiple sessions, using the current directory as a stateful workspace.
-- **`/writing-great-skills`** — reference for writing and editing skills well.
-
-## Precondition
-
-**`/setup-matt-pocock-skills`** — run before your first engineering flow to configure the issue tracker, triage labels, and doc layout the other skills assume. Custom issue trackers also work.
+- Missing `grill-me` with `grilling` available → `DEGRADED`; use the primitive
+  transparently.
+- Missing `ask-matt` from a fresh-task inventory → plugin discovery/release failure.
+- Missing a required non-substitutable skill → `BLOCKED`.
+- A normal `PASS` route gets one concise summary line.
+- Expand project, intent, risk, and capability evidence for `DEGRADED`, `BLOCKED`,
+  or any `indeterminate` assessment.

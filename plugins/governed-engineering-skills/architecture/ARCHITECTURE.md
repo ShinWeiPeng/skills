@@ -11,21 +11,27 @@
 flowchart TD
     n_guided_workflow_router["guided_workflow_router (L0)"]
     n_risk_routing_domain["risk_routing_domain (L1)"]
+    n_workflow_routing_domain["workflow_routing_domain (L1)"]
     n_delivery_workflow_domain["delivery_workflow_domain (L1)"]
     n_governance_workflow_domain["governance_workflow_domain (L1)"]
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)"]
+    n_repository_evidence_adapter["repository_evidence_adapter (L3+)"]
     n_local_install_adapter["local_install_adapter (L3+)"]
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)"]
     n_integration_validation_technical["integration_validation_technical (L3+)"]
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)"]
     n_architecture_governance_cli["architecture_governance_cli (L0)"]
     n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
+    n_guided_workflow_router -.->|depends| n_workflow_routing_domain
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
+    n_guided_workflow_router -.->|depends| n_repository_evidence_adapter
     n_guided_workflow_router -->|owns| n_risk_routing_domain
+    n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
@@ -34,18 +40,26 @@ flowchart TD
 
 ## Parent Views
 
-- [`guided_workflow_router`](generated/guided_workflow_router.md) — Present the user-invoked engineering map and coordinate risk, delivery, and governance domains.
+- [`guided_workflow_router`](generated/guided_workflow_router.md) — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
 - [`risk_routing_domain`](generated/risk_routing_domain.md) — Own engineering risk classes, gate selection, fail-closed behavior, and resume targets.
+- [`workflow_routing_domain`](generated/workflow_routing_domain.md) — Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
 - [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
 - [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, architecture ownership, evidence-backed explanation, and bounded runtime validation.
 - [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
 
 ## End-to-End Flows
 
-- [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Classify an engineering request before selecting its first workflow step.
+- [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
 
 ## Type Catalog
 
+- `repository-artifact` — `workflow_routing_domain` / `domain-value` / `cross-module`
+- `repository-evidence` — `workflow_routing_domain` / `domain-value` / `cross-module`
+- `project-state-assessment` — `workflow_routing_domain` / `query` / `cross-module`
+- `intent-assessment` — `workflow_routing_domain` / `query` / `cross-module`
+- `guided-route-decision` — `workflow_routing_domain` / `query` / `cross-module`
+- `repository-evidence-port` — `workflow_routing_domain` / `port` / `module-public`
+- `git-filesystem-repository-evidence-adapter` — `repository_evidence_adapter` / `adapter-binding` / `module-public`
 - `routing-decision` — `risk_routing_domain` / `query` / `cross-module`
 - `gate-result` — `risk_routing_domain` / `domain-value` / `cross-module`
 - `governance-diagnostic` — `governance_workflow_domain` / `private-helper` / `private`
@@ -72,6 +86,7 @@ flowchart TD
 
 ## Cross-module Mapping
 
+- `routing-assessments-to-guided-handoff` / `guided_workflow_router` / `risk_routing_domain` to `workflow_routing_domain`
 
 ## Adoption Readiness
 
