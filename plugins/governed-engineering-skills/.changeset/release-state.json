@@ -1,14 +1,13 @@
 {
   "schema_version": "1.0",
   "current_version": "0.3.0-beta.1",
-  "previous_version": "0.2.0-beta.1",
+  "previous_version": "0.2.0-beta.2",
   "release_group": "0.3.0",
   "bump": "minor",
   "risk": "high",
   "production_fingerprint": "sha256:348c677f8d95690ccab2c80041e7155a9c8b27985ca60a7310541a4ce472e282",
   "final_rc_fingerprint": null,
   "applied_changesets": [
-    "explain-code-flow-contract",
     "explicit-prerelease-group",
     "xtensa-libclang-provider"
   ],
