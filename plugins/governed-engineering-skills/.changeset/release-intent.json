@@ -3,11 +3,13 @@
   "target_stage": "beta",
   "risk": "high",
   "changesets": [
-    "safe-libclang-archive-links"
+    "safe-libclang-archive-links",
+    "prerelease-history-bumps"
   ],
   "summary": {
     "Fixed": [
-      "Allow the official Linux libclang archive to contain safe internal links without creating filesystem links or weakening traversal protection."
+      "Allow the official Linux libclang archive to contain safe internal links without creating filesystem links or weakening traversal protection.",
+      "Allow cumulative changesets in one prerelease group to retain their original SemVer bumps while validating the latest promotion independently."
     ]
   },
   "approval": null,

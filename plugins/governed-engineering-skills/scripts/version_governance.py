@@ -358,14 +358,9 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
         for changeset_id in applied_changesets:
             changeset_path = root / ".changeset" / f"{changeset_id}.md"
             try:
-                declared_bump = _changeset_bump(changeset_path, str(package.get("name", "")))
+                _changeset_bump(changeset_path, str(package.get("name", "")))
             except OSError as exc:
                 errors.append(f"applied changeset {changeset_id} is missing: {exc}")
-                continue
-            if declared_bump != bump:
-                errors.append(
-                    f"applied changeset {changeset_id} does not declare the release-state bump"
-                )
 
     all_changesets = {
         path.stem
