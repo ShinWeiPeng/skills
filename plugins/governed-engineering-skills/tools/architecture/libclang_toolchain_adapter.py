@@ -169,22 +169,32 @@ def _safe_extract(archive: Path, destination: Path) -> None:
                     raise ToolchainProviderError(
                         "CAST002", member.name, "unsafe archive path"
                     )
-                if member.issym() or member.islnk():
-                    raise ToolchainProviderError(
-                        "CAST002", member.name, "archive link entry is forbidden"
-                    )
-                if not (member.isdir() or member.isfile()):
-                    raise ToolchainProviderError(
-                        "CAST002", member.name, "special archive entry is forbidden"
-                    )
-            for member in members:
-                target = destination.joinpath(*PurePosixPath(member.name).parts)
+                target = destination.joinpath(*relative.parts)
                 try:
                     target.resolve().relative_to(destination_root)
                 except ValueError as exc:
                     raise ToolchainProviderError(
                         "CAST002", member.name, "archive path escapes destination"
                     ) from exc
+                if member.issym() or member.islnk():
+                    if not member.linkname or "\\" in member.linkname:
+                        raise ToolchainProviderError(
+                            "CAST002", member.name, "unsafe archive link target"
+                        )
+                    link_target = PurePosixPath(member.linkname)
+                    if link_target.is_absolute() or ".." in link_target.parts:
+                        raise ToolchainProviderError(
+                            "CAST002", member.name, "unsafe archive link target"
+                        )
+                    continue
+                if not (member.isdir() or member.isfile()):
+                    raise ToolchainProviderError(
+                        "CAST002", member.name, "special archive entry is forbidden"
+                    )
+            for member in members:
+                if member.issym() or member.islnk():
+                    continue
+                target = destination.joinpath(*PurePosixPath(member.name).parts)
                 if member.isdir():
                     target.mkdir(parents=True, exist_ok=True)
                     continue

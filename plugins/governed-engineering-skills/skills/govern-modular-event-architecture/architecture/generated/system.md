@@ -81,7 +81,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** Explicit install commands download into a temporary directory and atomically create an immutable version cache. (`-`); Verification reads the lock, cache, receipt, and library before configuring clang.cindex. (`-`)
 - **Errors:** None
-- **Invariants:** Gate verification never accesses the network.; Existing invalid caches are never deleted or overwritten automatically.; Archive extraction rejects absolute, parent-traversal, link, and special entries.; The Python package, PATH, and unrecorded locations cannot supply libclang.
+- **Invariants:** Gate verification never accesses the network.; Existing invalid caches are never deleted or overwritten automatically.; Archive extraction rejects absolute or parent-traversal member paths, unsafe link targets, and special entries; safe link entries are never materialized.; The Python package, PATH, and unrecorded locations cannot supply libclang.
 - **Entrypoints:** [`EspressifLibclangToolchainAdapter`](../../scripts/libclang_toolchain_adapter.py) (class)
 - **Public Symbols:** [`EspressifLibclangToolchainAdapter`](../../scripts/libclang_toolchain_adapter.py) (class)
 

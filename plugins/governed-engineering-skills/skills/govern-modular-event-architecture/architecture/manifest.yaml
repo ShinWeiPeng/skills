@@ -187,8 +187,9 @@ modules:
     invariants:
     - Gate verification never accesses the network.
     - Existing invalid caches are never deleted or overwritten automatically.
-    - Archive extraction rejects absolute, parent-traversal, link, and special
-      entries.
+    - Archive extraction rejects absolute or parent-traversal member paths,
+      unsafe link targets, and special entries; safe link entries are never
+      materialized.
     - The Python package, PATH, and unrecorded locations cannot supply libclang.
   entrypoints:
   - path: scripts/libclang_toolchain_adapter.py

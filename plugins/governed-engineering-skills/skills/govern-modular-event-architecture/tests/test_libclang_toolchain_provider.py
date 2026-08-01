@@ -43,6 +43,8 @@ class LibclangToolchainProviderTests(unittest.TestCase):
         link: bool = False,
         extra_member: str | None = None,
         extra_link: bool = False,
+        extra_linkname: str = "../../outside",
+        extra_link_type: bytes = tarfile.SYMTYPE,
     ) -> Path:
         archive = self.root / f"fixture-{len(list(self.root.glob('fixture-*')))}.tar.xz"
         with tarfile.open(archive, "w:xz") as bundle:
@@ -57,8 +59,8 @@ class LibclangToolchainProviderTests(unittest.TestCase):
             if extra_member is not None:
                 extra = tarfile.TarInfo(extra_member)
                 if extra_link:
-                    extra.type = tarfile.SYMTYPE
-                    extra.linkname = "../../outside"
+                    extra.type = extra_link_type
+                    extra.linkname = extra_linkname
                     bundle.addfile(extra)
                 else:
                     extra.size = len(content)
@@ -178,10 +180,55 @@ class LibclangToolchainProviderTests(unittest.TestCase):
         self.assertEqual("CAST002", caught.exception.rule_id)
         self.assertEqual(r"..\outside.dll", caught.exception.location)
 
-    def test_link_entry_is_rejected_by_install(self) -> None:
+    def test_safe_symlink_entry_is_ignored_by_install(self) -> None:
+        archive = self._archive(
+            extra_member="esp-clang/lib/libLLVM.so",
+            extra_link=True,
+            extra_linkname="libLLVM.so.20.1",
+        )
+        lock = self._lock(archive)
+        self._install(lock, archive)
+        cache = (
+            self.cache_override
+            / "espressif"
+            / "esp-clang-libs"
+            / "20.1.1_test"
+        )
+        self.assertFalse((cache / "esp-clang" / "lib" / "libLLVM.so").exists())
+
+    def test_safe_hardlink_entry_is_ignored_by_install(self) -> None:
+        archive = self._archive(
+            extra_member="esp-clang/lib/libLLVM.so",
+            extra_link=True,
+            extra_linkname="esp-clang/bin/libclang.dll",
+            extra_link_type=tarfile.LNKTYPE,
+        )
+        lock = self._lock(archive)
+        self._install(lock, archive)
+        cache = (
+            self.cache_override
+            / "espressif"
+            / "esp-clang-libs"
+            / "20.1.1_test"
+        )
+        self.assertFalse((cache / "esp-clang" / "lib" / "libLLVM.so").exists())
+
+    def test_unsafe_symlink_target_is_rejected_by_install(self) -> None:
         archive = self._archive(
             extra_member="esp-clang/lib/libclang.so",
             extra_link=True,
+        )
+        lock = self._lock(archive)
+        with self.assertRaises(ToolchainProviderError) as caught:
+            self._install(lock, archive)
+        self.assertEqual("CAST002", caught.exception.rule_id)
+        self.assertEqual("esp-clang/lib/libclang.so", caught.exception.location)
+
+    def test_unsafe_hardlink_target_is_rejected_by_install(self) -> None:
+        archive = self._archive(
+            extra_member="esp-clang/lib/libclang.so",
+            extra_link=True,
+            extra_link_type=tarfile.LNKTYPE,
         )
         lock = self._lock(archive)
         with self.assertRaises(ToolchainProviderError) as caught:
