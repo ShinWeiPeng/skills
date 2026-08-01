@@ -1,5 +1,12 @@
 # Governed Engineering Skills
 
+## 0.3.0-beta.2
+
+### Fixed
+
+- Allow the official Linux libclang archive to contain safe internal links without creating filesystem links or weakening traversal protection.
+- Allow cumulative changesets in one prerelease group to retain their original SemVer bumps while validating the latest promotion independently.
+
 ## 0.3.0-beta.1
 
 ### Added
