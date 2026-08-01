@@ -45,6 +45,8 @@
           "scripts/c_analyzer.py",
           "scripts/check_architecture.py",
           "scripts/governance_adoption.py",
+          "scripts/libclang_toolchain_adapter.py",
+          "scripts/libclang_toolchain_contract.py",
           "scripts/python_analyzer.py",
           "scripts/realtime_analysis.py",
           "scripts/render_architecture.py",
@@ -54,9 +56,7 @@
           "scripts/state_catalog.py",
           "scripts/type_catalog.py"
         ],
-        "mode": "python-ast",
-        "state_count": 0,
-        "type_count": 3
+        "mode": "python-ast"
       }
     },
     "diagnostics": [],

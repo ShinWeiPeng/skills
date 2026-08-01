@@ -49,6 +49,8 @@
           "skills/govern-modular-event-architecture/scripts/c_analyzer.py",
           "skills/govern-modular-event-architecture/scripts/check_architecture.py",
           "skills/govern-modular-event-architecture/scripts/governance_adoption.py",
+          "skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py",
+          "skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py",
           "skills/govern-modular-event-architecture/scripts/python_analyzer.py",
           "skills/govern-modular-event-architecture/scripts/realtime_analysis.py",
           "skills/govern-modular-event-architecture/scripts/render_architecture.py",
@@ -66,9 +68,7 @@
           "skills/validate-on-device/scripts/vod/profile.py",
           "skills/validate-on-device/scripts/vod/providers.py"
         ],
-        "mode": "python-ast",
-        "state_count": 0,
-        "type_count": 14
+        "mode": "python-ast"
       }
     },
     "diagnostics": [

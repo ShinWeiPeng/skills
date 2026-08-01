@@ -6,17 +6,29 @@ import json
 import os
 import re
 import shlex
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
 from check_architecture import Diagnostic, dependency_violation
+from libclang_toolchain_contract import ToolchainProviderError
 from source_sets import classify_path
 
 
 SOURCE_SUFFIXES = {".c", ".cc", ".cpp"}
 HEADER_SUFFIXES = {".h", ".hh", ".hpp"}
 C_LANGUAGES = {"c", "c++", "cpp"}
+_ROOT_ITEMS_CACHE: dict[
+    int,
+    tuple[
+        dict[str, list[Path]],
+        tuple[tuple[str, tuple[str, ...]], ...],
+    ],
+] = {}
 
 
 @dataclass
@@ -25,18 +37,36 @@ class AstEvidence:
     covered_files: set[Path] = field(default_factory=set)
     includes: list[tuple[Path, Path, int]] = field(default_factory=list)
     catalog_only_generated_state: list[dict[str, str]] = field(default_factory=list)
+    toolchain: dict[str, str] = field(default_factory=dict)
+    translation_units: list[dict[str, Any]] = field(default_factory=list)
+    worker_count: int = 1
+
+
+@lru_cache(maxsize=None)
+def _resolved(raw_path: str) -> Path:
+    return Path(raw_path).resolve()
 
 
 def _inside(path: Path, root: Path) -> bool:
     try:
-        path.resolve().relative_to(root.resolve())
+        _resolved(str(path)).relative_to(_resolved(str(root)))
         return True
     except ValueError:
         return False
 
 
+@lru_cache(maxsize=None)
+def _relative_strings(raw_path: str, raw_root: str) -> str:
+    return Path(
+        os.path.relpath(
+            str(_resolved(raw_path)),
+            str(_resolved(raw_root)),
+        )
+    ).as_posix()
+
+
 def _relative(path: Path, root: Path) -> str:
-    return Path(os.path.relpath(str(path.resolve()), str(root.resolve()))).as_posix()
+    return _relative_strings(str(path), str(root))
 
 
 def _roots(
@@ -52,16 +82,36 @@ def _roots(
     }
 
 
-def _owner(path: Path, roots: dict[str, list[Path]]) -> str | None:
+@lru_cache(maxsize=None)
+def _owner_from_roots(
+    raw_path: str,
+    root_items: tuple[tuple[str, tuple[str, ...]], ...],
+) -> str | None:
+    path = _resolved(raw_path)
     matches: list[tuple[int, str]] = []
-    for module_id, candidates in roots.items():
-        for candidate in candidates:
+    for module_id, raw_candidates in root_items:
+        for raw_candidate in raw_candidates:
+            candidate = _resolved(raw_candidate)
             if _inside(path, candidate):
                 matches.append((len(candidate.parts), module_id))
     if not matches:
         return None
     matches.sort(reverse=True)
     return matches[0][1]
+
+
+def _owner(path: Path, roots: dict[str, list[Path]]) -> str | None:
+    cache_key = id(roots)
+    cached = _ROOT_ITEMS_CACHE.get(cache_key)
+    if cached is None or cached[0] is not roots:
+        root_items = tuple(
+            (module_id, tuple(str(candidate) for candidate in candidates))
+            for module_id, candidates in sorted(roots.items())
+        )
+        _ROOT_ITEMS_CACHE[cache_key] = (roots, root_items)
+    else:
+        root_items = cached[1]
+    return _owner_from_roots(str(path), root_items)
 
 
 def _governed_files(
@@ -160,12 +210,61 @@ def _command_arguments(entry: dict[str, Any]) -> list[str]:
     return shlex.split(command, posix=os.name != "nt")
 
 
+def _strip_outer_quotes(value: str) -> str:
+    if (
+        len(value) >= 2
+        and value[0] == value[-1]
+        and value[0] in {"'", '"'}
+    ):
+        return value[1:-1]
+    return value
+
+
+def _gcc_implicit_include_arguments(
+    compiler: Path | None,
+    target_triple: str,
+    *,
+    cplusplus: bool,
+) -> list[str]:
+    """Reify GCC driver implicit headers for libclang's explicit parse API."""
+    if compiler is None or not compiler.is_file() or target_triple == "native":
+        return []
+    root = compiler.parent.parent
+    gcc_versions = sorted(
+        (root / "lib" / "gcc" / target_triple).glob("*"),
+        reverse=True,
+    )
+    cxx_versions = sorted(
+        (root / target_triple / "include" / "c++").glob("*"),
+        reverse=True,
+    )
+    candidates: list[Path] = []
+    if cplusplus and cxx_versions:
+        cxx = cxx_versions[0]
+        candidates.extend([cxx, cxx / target_triple, cxx / "backward"])
+    if gcc_versions:
+        gcc = gcc_versions[0]
+        candidates.extend([gcc / "include", gcc / "include-fixed"])
+    candidates.extend(
+        [
+            root / target_triple / "sys-include",
+            root / target_triple / "include",
+        ]
+    )
+    arguments: list[str] = []
+    for candidate in candidates:
+        if candidate.is_dir():
+            arguments.extend(["-isystem", str(candidate)])
+    return arguments
+
+
 def _parse_arguments(
     entry: dict[str, Any],
     target_triple: str,
 ) -> list[str]:
     """Keep semantic compiler arguments and discard build-output arguments."""
     original = _command_arguments(entry)
+    compiler = Path(_strip_outer_quotes(original[0])).resolve() if original else None
     if original:
         original = original[1:]
     source = Path(entry["_source"]).resolve()
@@ -174,7 +273,7 @@ def _parse_arguments(
     skip_value = {"-o", "-MF", "-MT", "-MQ", "-MJ"}
     index = 0
     while index < len(original):
-        argument = original[index]
+        argument = _strip_outer_quotes(original[index])
         if argument in skip_value:
             index += 2
             continue
@@ -190,7 +289,9 @@ def _parse_arguments(
             continue
         if argument in takes_value:
             if index + 1 < len(original):
-                result.extend([argument, original[index + 1]])
+                result.extend(
+                    [argument, _strip_outer_quotes(original[index + 1])]
+                )
             index += 2
             continue
         if argument.startswith(
@@ -219,6 +320,24 @@ def _parse_arguments(
         argument.startswith("--target=") for argument in result
     ):
         result.append(f"--target={target_triple}")
+    if (
+        target_triple != "native"
+        and compiler is not None
+        and compiler.is_file()
+        and any(
+            token in compiler.name.lower()
+            for token in ("gcc", "g++", "cc", "c++")
+        )
+        and not any(argument.startswith("--gcc-toolchain=") for argument in result)
+    ):
+        result.append(f"--gcc-toolchain={compiler.parent.parent}")
+        result.extend(
+            _gcc_implicit_include_arguments(
+                compiler,
+                target_triple,
+                cplusplus=source.suffix.lower() in {".cc", ".cpp", ".cxx"},
+            )
+        )
     return result
 
 
@@ -232,17 +351,24 @@ def _cursor_path(cursor: Any) -> Path | None:
     file = getattr(location, "file", None)
     if file is None:
         return None
-    return Path(str(file)).resolve()
+    return _resolved(str(file))
 
 
 def _cursor_line(cursor: Any) -> int:
     return int(getattr(getattr(cursor, "location", None), "line", 0) or 0)
 
 
-def _walk(cursor: Any, ancestors: tuple[Any, ...] = ()) -> Iterable[tuple[Any, tuple[Any, ...]]]:
+def _walk(
+    cursor: Any,
+    project_root: Path,
+    ancestors: tuple[Any, ...] = (),
+) -> Iterable[tuple[Any, tuple[Any, ...]]]:
+    path = _cursor_path(cursor)
+    if path is not None and not _inside(path, project_root):
+        return
     yield cursor, ancestors
     for child in cursor.get_children():
-        yield from _walk(child, (*ancestors, cursor))
+        yield from _walk(child, project_root, (*ancestors, cursor))
 
 
 def _declaration_kind(cursor: Any, cindex: Any) -> tuple[str | None, Any]:
@@ -328,7 +454,12 @@ def _type_declarations(
         if path is None or not _inside(path, project_root):
             continue
         kind, shape_cursor = _declaration_kind(cursor, cindex)
-        if kind is None or not cursor.spelling or not cursor.is_definition():
+        if (
+            kind is None
+            or not cursor.spelling
+            or cursor.spelling.startswith("(unnamed ")
+            or not cursor.is_definition()
+        ):
             continue
         key = (_relative(path, project_root), cursor.spelling)
         declarations[key] = {
@@ -360,7 +491,7 @@ def _catalog_type_checks(
 
     def excluded(path: str) -> bool:
         classification, _ = classify_path(manifest, path)
-        if classification == "generated-production":
+        if classification != "production":
             return True
         candidate = Path(path)
         return any(
@@ -690,6 +821,11 @@ def _state_checks(
         path = _cursor_path(cursor)
         if path is None or not _inside(path, project_root):
             continue
+        classification, _ = classify_path(
+            manifest, _relative(path, project_root)
+        )
+        if classification not in {"production", "generated-production"}:
+            continue
         if _mutable_global(cursor, cindex):
             key = (_relative(path, project_root), cursor.spelling)
             discovered[key] = cursor
@@ -804,6 +940,11 @@ def _state_checks(
     for cursor, ancestors in cursors_with_ancestors:
         path = _cursor_path(cursor)
         if path is None or not _inside(path, project_root):
+            continue
+        classification, _ = classify_path(
+            manifest, _relative(path, project_root)
+        )
+        if classification not in {"production", "generated-production"}:
             continue
         source_owner = _owner(path, roots)
         if source_owner is None:
@@ -947,6 +1088,29 @@ def analyze_ast(
         )
         return evidence
     try:
+        from libclang_toolchain_adapter import EspressifLibclangToolchainAdapter
+
+        toolchain = EspressifLibclangToolchainAdapter().verify(
+            project_root / "architecture" / "toolchain-lock.yaml"
+        )
+        evidence.toolchain = toolchain.to_dict()
+    except ToolchainProviderError as exc:
+        diagnostics.append(
+            Diagnostic(
+                exc.rule_id,
+                "MUST",
+                exc.location,
+                exc.message,
+                True,
+            )
+        )
+        return evidence
+    except (ImportError, OSError) as exc:
+        diagnostics.append(
+            Diagnostic("CAST001", "MUST", "libclang-provider", str(exc), True)
+        )
+        return evidence
+    try:
         from clang import cindex
     except (ImportError, OSError) as exc:
         diagnostics.append(
@@ -954,7 +1118,7 @@ def analyze_ast(
                 "CAST001",
                 "MUST",
                 "libclang",
-                f"libclang==18.1.1 is required: {exc}",
+                f"clang==20.1.5 binding is required: {exc}",
                 True,
             )
         )
@@ -984,18 +1148,65 @@ def analyze_ast(
         return evidence
 
     target_triple = str(ast.get("target_triple"))
-    index = cindex.Index.create()
     all_cursors_with_ancestors: list[tuple[Any, tuple[Any, ...]]] = []
     all_cursors: list[Any] = []
-    parse_failed = False
-    options = cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD
-    for source in sorted(governed_sources):
+    retained_translation_units: list[Any] = []
+    # Includes are collected through get_includes(); materializing every macro and
+    # preprocessing cursor multiplies Arduino/ESP-IDF parse cost without adding
+    # type, state, dependency, or function-body evidence.
+    options = 0
+    ordered_sources = sorted(governed_sources)
+    configured_workers = ast.get("worker_count")
+    try:
+        worker_count = (
+            int(configured_workers)
+            if configured_workers is not None
+            else 1
+        )
+    except (TypeError, ValueError):
+        worker_count = 0
+    if worker_count < 1 or worker_count > 16:
+        diagnostics.append(
+            Diagnostic(
+                "CAST002",
+                "MUST",
+                "c_analyzer.ast.worker_count",
+                "worker_count must be an integer from 1 through 16",
+                True,
+            )
+        )
+        return evidence
+    evidence.worker_count = min(worker_count, len(ordered_sources))
+    source_positions = {
+        source: index + 1 for index, source in enumerate(ordered_sources)
+    }
+
+    def parse_source(source: Path) -> dict[str, Any]:
+        started = time.perf_counter()
+        timing: dict[str, Any] = {
+            "source": _relative(source, project_root),
+            "status": "started",
+        }
+        if os.environ.get("GOVERNANCE_PROGRESS") == "1":
+            print(
+                f"AST start {source_positions[source]}/{len(ordered_sources)} "
+                f"{timing['source']}",
+                file=sys.stderr,
+                flush=True,
+            )
         entry = entries_by_source[source]
         arguments = _parse_arguments(entry, target_triple)
+        parse_started = time.perf_counter()
+        local_diagnostics: list[Diagnostic] = []
         try:
-            translation_unit = index.parse(str(source), args=arguments, options=options)
+            translation_unit = cindex.Index.create().parse(
+                str(source), args=arguments, options=options
+            )
         except Exception as exc:  # libclang raises binding-specific exceptions
-            diagnostics.append(
+            timing["status"] = "parse-failed"
+            timing["parse_seconds"] = round(time.perf_counter() - parse_started, 6)
+            timing["total_seconds"] = round(time.perf_counter() - started, 6)
+            local_diagnostics.append(
                 Diagnostic(
                     "CAST003",
                     "MUST",
@@ -1004,14 +1215,30 @@ def analyze_ast(
                     True,
                 )
             )
-            parse_failed = True
-            continue
+            if os.environ.get("GOVERNANCE_PROGRESS") == "1":
+                print(
+                    f"AST fail {source_positions[source]}/{len(ordered_sources)} "
+                    f"{timing['source']} parse-failed",
+                    file=sys.stderr,
+                    flush=True,
+                )
+            return {
+                "timing": timing,
+                "diagnostics": local_diagnostics,
+                "covered_files": set(),
+                "includes": [],
+                "walked": [],
+                "translation_unit": None,
+            }
+        timing["parse_seconds"] = round(time.perf_counter() - parse_started, 6)
         errors = [
             item
             for item in translation_unit.diagnostics
             if item.severity >= cindex.Diagnostic.Error
         ]
         if errors:
+            timing["status"] = "diagnostic-failed"
+            timing["total_seconds"] = round(time.perf_counter() - started, 6)
             for item in errors:
                 location = item.location
                 location_path = (
@@ -1019,7 +1246,7 @@ def analyze_ast(
                     if location.file and _inside(Path(str(location.file)), project_root)
                     else _relative(source, project_root)
                 )
-                diagnostics.append(
+                local_diagnostics.append(
                     Diagnostic(
                         "CAST003",
                         "MUST",
@@ -1028,26 +1255,80 @@ def analyze_ast(
                         True,
                     )
                 )
-            parse_failed = True
-            continue
-        evidence.covered_files.add(source)
+            if os.environ.get("GOVERNANCE_PROGRESS") == "1":
+                print(
+                    f"AST fail {source_positions[source]}/{len(ordered_sources)} "
+                    f"{timing['source']} diagnostic-failed",
+                    file=sys.stderr,
+                    flush=True,
+                )
+            return {
+                "timing": timing,
+                "diagnostics": local_diagnostics,
+                "covered_files": set(),
+                "includes": [],
+                "walked": [],
+                "translation_unit": translation_unit,
+            }
+        includes_started = time.perf_counter()
+        covered_files = {source}
+        include_edges: list[tuple[Path, Path, int]] = []
         for inclusion in translation_unit.get_includes():
             included = Path(str(inclusion.include)).resolve()
             if _inside(included, project_root):
-                evidence.covered_files.add(included)
+                covered_files.add(included)
                 including = (
                     Path(str(inclusion.source)).resolve()
                     if inclusion.source
                     else source
                 )
-                evidence.includes.append((including, included, int(inclusion.location.line)))
-        walked = list(_walk(translation_unit.cursor))
-        all_cursors_with_ancestors.extend(walked)
-        all_cursors.extend(cursor for cursor, _ in walked)
+                include_edges.append(
+                    (including, included, int(inclusion.location.line))
+                )
+        timing["includes_seconds"] = round(
+            time.perf_counter() - includes_started, 6
+        )
+        walk_started = time.perf_counter()
+        walked = list(_walk(translation_unit.cursor, project_root))
+        timing["walk_seconds"] = round(time.perf_counter() - walk_started, 6)
+        timing["project_cursors"] = len(walked)
         for cursor, _ in walked:
             path = _cursor_path(cursor)
             if path is not None and _inside(path, project_root):
-                evidence.covered_files.add(path)
+                covered_files.add(path)
+        timing["status"] = "parsed"
+        timing["total_seconds"] = round(time.perf_counter() - started, 6)
+        if os.environ.get("GOVERNANCE_PROGRESS") == "1":
+            print(
+                f"AST done {source_positions[source]}/{len(ordered_sources)} "
+                f"{timing['source']} {timing['total_seconds']:.3f}s",
+                file=sys.stderr,
+                flush=True,
+            )
+        return {
+            "timing": timing,
+            "diagnostics": local_diagnostics,
+            "covered_files": covered_files,
+            "includes": include_edges,
+            "walked": walked,
+            "translation_unit": translation_unit,
+        }
+
+    with ThreadPoolExecutor(max_workers=evidence.worker_count) as executor:
+        results = list(executor.map(parse_source, ordered_sources))
+    parse_failed = False
+    for result in results:
+        evidence.translation_units.append(result["timing"])
+        diagnostics.extend(result["diagnostics"])
+        evidence.covered_files.update(result["covered_files"])
+        evidence.includes.extend(result["includes"])
+        walked = result["walked"]
+        all_cursors_with_ancestors.extend(walked)
+        all_cursors.extend(cursor for cursor, _ in walked)
+        if result["translation_unit"] is not None:
+            retained_translation_units.append(result["translation_unit"])
+        if result["timing"]["status"] != "parsed":
+            parse_failed = True
     if parse_failed:
         return evidence
     missing_headers = sorted(governed_headers.difference(evidence.covered_files))

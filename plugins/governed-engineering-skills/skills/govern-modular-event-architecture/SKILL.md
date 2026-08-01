@@ -38,6 +38,9 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 - Require schema `2.1.0`. Reject earlier manifests; do not migrate or infer source classifications, owners, authorities, mappings, or real-time timing bounds.
 - Require exactly one release `composition_roots` entry and verify its path and symbol with the applicable language analyzer.
 - Treat `architecture_cli.py` as the only public governance CLI. Checker, renderer, bootstrap, and language-analyzer scripts are internal modules and direct legacy invocation is unsupported.
+- For governed C/C++, require `clang==20.1.5` bindings plus the project
+  toolchain lock's official Espressif libclang provider. Never load native
+  libclang from the Python package, `PATH`, or an unrecorded location.
 - Separate tool-host OS/Python compatibility metadata from governed-project Execution Profiles. Execution Profiles describe the target whose behavior is being assured.
 - Distinguish discovery, remediation, approved deferral, verified evidence, blocked capability, and failure. An empty baseline is not completion evidence.
 - Default to remediation for discovered legacy debt. Development may tolerate only exact, unexpired, non-AI-approved temporary deferrals; Release requires a zero-entry temporary baseline. Durable exceptions require an accepted ADR.
@@ -94,6 +97,20 @@ Resolve a project-specified or available Python 3 runtime first and confirm it c
 
 The bootstrapper refuses to overwrite governance files. Review every generated document before treating it as accepted. Every new project includes an architecture-adoption ADR with `proposed` status; it remains proposed until the user explicitly approves it.
 
+For a C/C++ project, bootstrap also writes
+`architecture/toolchain-lock.yaml`. Provision its native provider explicitly;
+ordinary gates remain offline:
+
+```powershell
+python tools\architecture\architecture_cli.py toolchain install `
+  --lock architecture\toolchain-lock.yaml
+python tools\architecture\architecture_cli.py toolchain verify `
+  --lock architecture\toolchain-lock.yaml
+```
+
+Python-only projects receive the provider-capable CLI modules but no toolchain
+lock and require no native libclang installation.
+
 New projects use schema `2.1.0`. Schema 2.1.0 retains all 1.0 through 2.0.2 requirements and adds workload-driven real-time scheduling studies. The manifest is the only editable source for Architecture Description Views and generated scheduling reports; generated Markdown is never edited by hand.
 
 ## Render description views
@@ -122,7 +139,7 @@ python tools\architecture\architecture_cli.py gate `
   --format text
 ```
 
-The single CLI dispatches every applicable language analyzer. For Python it requires complete stdlib AST coverage of types, runtime state, imports, declared symbols, and composition roots. For C/C++, install the pinned requirements, configure a complete compilation database and target triple, and govern every translation unit. Libclang AST evidence is mandatory; lexical scanning is supplemental and cannot prove ownership PASS. Exit code `0` is pass, `1` is a source/design MUST violation, and `2` is `BLOCKED` because capability, configuration, coverage, or parsing evidence is incomplete.
+The single CLI dispatches every applicable language analyzer. For Python it requires complete stdlib AST coverage of types, runtime state, imports, declared symbols, and composition roots. For C/C++, install the pinned requirements, explicitly install/verify the locked provider, configure a complete compilation database and target triple, and govern every translation unit. Libclang AST evidence is mandatory; lexical scanning is supplemental and cannot prove ownership PASS. Provider, native-library, binding-version, or Xtensa backend failures are `CAST001`; invalid lock, platform, cache, or receipt configuration is `CAST002`; compilation-database coverage and real translation-unit parse failures remain `CAST003`. Exit code `0` is pass, `1` is a source/design MUST violation, and `2` is `BLOCKED` because capability, configuration, coverage, or parsing evidence is incomplete.
 
 Report the exact command, exit code, minimal raw output, and `PASS`, `FAIL`, or `BLOCKED`. Do not declare completion while a required validation is not `PASS`.
 

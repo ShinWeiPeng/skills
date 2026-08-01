@@ -368,12 +368,40 @@ def _stable_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     else:
         code = 0
     phase = "release-readiness"
+    stable_analyzers: dict[str, Any] = {}
+    for analyzer, raw_result in evidence.get("analyzers", {}).items():
+        if not isinstance(raw_result, dict):
+            continue
+        result: dict[str, Any] = {"mode": raw_result.get("mode")}
+        for field in ("analyzed_files", "covered_files"):
+            values = raw_result.get(field)
+            if isinstance(values, list):
+                result[field] = sorted(str(value) for value in values)
+        if isinstance(raw_result.get("worker_count"), int):
+            result["worker_count"] = raw_result["worker_count"]
+        toolchain = raw_result.get("toolchain")
+        if isinstance(toolchain, dict):
+            result["toolchain"] = {
+                field: toolchain.get(field)
+                for field in (
+                    "provider",
+                    "provider_version",
+                    "binding_version",
+                    "platform",
+                    "archive_sha256",
+                    "library_sha256",
+                    "target_triple",
+                    "clang_version",
+                )
+                if toolchain.get(field) is not None
+            }
+        stable_analyzers[str(analyzer)] = result
     return {
         "phase": phase,
         "gate_result": "PASS" if code == 0 else "BLOCKED",
         "readiness_status": readiness_status(diagnostics, phase=phase),
         "exit_code": code,
-        "analyzers": evidence.get("analyzers", {}),
+        "analyzers": stable_analyzers,
         "diagnostics": diagnostics,
     }
 

@@ -1,0 +1,15 @@
+{
+  "bump": "patch",
+  "target_stage": "beta",
+  "risk": "high",
+  "changesets": [
+    "safe-libclang-archive-links"
+  ],
+  "summary": {
+    "Fixed": [
+      "Allow the official Linux libclang archive to contain safe internal links without creating filesystem links or weakening traversal protection."
+    ]
+  },
+  "approval": null,
+  "validation_evidence": []
+}

@@ -25,14 +25,14 @@ flowchart TD
 - **Parent:** `architecture_tooling`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `manifest_validation.check`
-- **Output Ports:** `manifest_validation.output`
+- **Output Ports:** `manifest_validation.output`, `libclang_toolchain.resolve`
 - **Emitted Events:** `manifest_validation.completed`
 - **Owned State:** None
 - **Side Effects:** Write marker-owned generated documents only when requested by the single CLI. (`-`)
 - **Errors:** None
-- **Invariants:** Empty baseline never implies verified source conformance.; Python and C/C++ source evidence fail closed.; Release requires zero temporary baseline entries.
+- **Invariants:** Empty baseline never implies verified source conformance.; Python and C/C++ source evidence fail closed.; Release requires zero temporary baseline entries.; C/C++ AST analysis requests a verified provider through the demand-owned libclang toolchain port.
 - **Entrypoints:** [`validate_manifest`](../../scripts/check_architecture.py) (function)
-- **Public Symbols:** [`validate_manifest`](../../scripts/check_architecture.py) (function)
+- **Public Symbols:** [`validate_manifest`](../../scripts/check_architecture.py) (function)<br>[`LibclangToolchainPort`](../../scripts/libclang_toolchain_contract.py) (class)
 
 ### `realtime_schedulability_analysis`
 
@@ -55,6 +55,7 @@ flowchart TD
 |---|---|---|---|---|---|---|
 | `manifest_validation.check` | `governance_engine` | input | command | sync | Submit one version-pinned manifest validation request.: Manifest path, optional baselines, output format, and generated-view check flag. | `validate_manifest` |
 | `manifest_validation.output` | `governance_engine` | output | event | sync | Publish the deterministic diagnostic result.: Rule ID, severity, location, message, disposition, and final exit classification. | `validate_manifest` |
+| `libclang_toolchain.resolve` | `governance_engine` | output | query | sync | Resolve and explicitly bind the exact libclang provider required by C/C++ AST governance.: A lock path and operation mode produce verified immutable provider evidence or a fail-closed diagnostic. | `LibclangToolchainPort` |
 
 ## Event Contracts
 
@@ -69,6 +70,9 @@ flowchart TD
 | `diagnostic` | `governance_engine` | `Diagnostic` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine` | None |
 | `manifest-error` | `governance_engine` | `ManifestError` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine` | None |
 | `ast-evidence` | `governance_engine` | `AstEvidence` (class, `scripts/ast_analyzer.py`) | private | private-helper | `governance_engine` | None |
+| `libclang-toolchain-port` | `governance_engine` | `LibclangToolchainPort` (class, `scripts/libclang_toolchain_contract.py`) | cross-module | port | `architecture_tooling`, `libclang_toolchain_adapter` | `libclang-toolchain-evidence` |
+| `libclang-toolchain-evidence` | `governance_engine` | `LibclangToolchainEvidence` (class, `scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine`, `libclang_toolchain_adapter` | None |
+| `toolchain-provider-error` | `governance_engine` | `ToolchainProviderError` (class, `scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine`, `libclang_toolchain_adapter` | None |
 
 ## State Ownership
 

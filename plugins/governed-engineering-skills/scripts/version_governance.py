@@ -91,14 +91,32 @@ def _bumped_base(
     raise ValueError(f"unknown bump: {bump}")
 
 
-def next_version(current: str, *, bump: str, target_stage: str, risk: str) -> str:
+def next_version(
+    current: str,
+    *,
+    bump: str,
+    target_stage: str,
+    risk: str,
+    new_release_group: bool = False,
+) -> str:
     """Return the next legal version or raise before any file mutation."""
     parts = parse_semver(current)
     major, minor, patch, stage, stage_number, _ = parts
+    if not isinstance(new_release_group, bool):
+        raise ValueError("new_release_group must be a boolean")
     if target_stage not in {"alpha", "beta", "rc", "stable"}:
         raise ValueError(f"unknown target stage: {target_stage}")
     if risk not in {"low", "high"}:
         raise ValueError(f"unknown risk: {risk}")
+    if new_release_group:
+        if stage is None:
+            raise ValueError("new_release_group requires a prerelease current version")
+        if bump not in {"major", "minor"}:
+            raise ValueError("new_release_group requires a major or minor bump")
+        if target_stage not in {"alpha", "beta"}:
+            raise ValueError("new_release_group must enter alpha or beta")
+        next_major, next_minor, next_patch = _bumped_base(parts, bump)
+        return f"{next_major}.{next_minor}.{next_patch}-{target_stage}.1"
 
     if stage is None:
         next_major, next_minor, next_patch = _bumped_base(parts, bump)
@@ -316,6 +334,10 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
     previous_version = str(state.get("previous_version", ""))
     bump = str(state.get("bump", ""))
     risk = str(state.get("risk", ""))
+    state_new_release_group = state.get("new_release_group", False)
+    if not isinstance(state_new_release_group, bool):
+        errors.append("release-state new_release_group must be a boolean")
+        state_new_release_group = False
     try:
         current_stage = parse_semver(package_version)[3] or "stable"
         if next_version(
@@ -323,6 +345,7 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
             bump=bump,
             target_stage=current_stage,
             risk=risk,
+            new_release_group=state_new_release_group,
         ) != package_version:
             errors.append("release-state does not describe the actual version transition")
     except ValueError as exc:
@@ -360,6 +383,8 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
             intent = _read_json(intent_path)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             errors.append(f"release intent unreadable: {exc}")
+        if intent is not None and not isinstance(intent.get("new_release_group", False), bool):
+            errors.append("release intent new_release_group must be a boolean")
     if pending_changesets:
         if intent is None:
             errors.append("pending plugin changesets require release-intent.json")
@@ -436,6 +461,7 @@ def apply_promotion(
     approval: dict[str, Any] | None,
     validation_evidence: list[dict[str, Any]],
     compatibility_adr: dict[str, Any] | None = None,
+    new_release_group: bool = False,
 ) -> str:
     """Atomically validate inputs in memory, then write one promotion."""
     package_path = root / "package.json"
@@ -447,7 +473,13 @@ def apply_promotion(
     current = str(package["version"])
     if current != str(manifest["version"]) or current != str(state["current_version"]):
         raise ValueError("release metadata must agree before promotion")
-    target = next_version(current, bump=bump, target_stage=target_stage, risk=risk)
+    target = next_version(
+        current,
+        bump=bump,
+        target_stage=target_stage,
+        risk=risk,
+        new_release_group=new_release_group,
+    )
     fingerprint = production_fingerprint(root)
     applied_changesets = [str(item) for item in state.get("applied_changesets", [])]
     new_changesets = [item for item in changeset_ids if item not in applied_changesets]
@@ -488,6 +520,7 @@ def apply_promotion(
     state["release_group"] = target_group
     state["bump"] = bump
     state["risk"] = risk
+    state["new_release_group"] = new_release_group
     state["production_fingerprint"] = fingerprint
     if target_group != current_group:
         archive_root = root / ".changeset" / "applied" / current_group
@@ -528,6 +561,9 @@ def apply_pending_intent(root: Path = PLUGIN_ROOT) -> str | None:
     if not intent_path.is_file():
         return None
     intent = _read_json(intent_path)
+    new_release_group = intent.get("new_release_group", False)
+    if not isinstance(new_release_group, bool):
+        raise ValueError("release intent new_release_group must be a boolean")
     target = apply_promotion(
         root,
         bump=str(intent.get("bump", "")),
@@ -538,6 +574,7 @@ def apply_pending_intent(root: Path = PLUGIN_ROOT) -> str | None:
         approval=intent.get("approval"),
         validation_evidence=intent.get("validation_evidence", []),
         compatibility_adr=intent.get("compatibility_adr"),
+        new_release_group=new_release_group,
     )
     intent_path.unlink()
     return target
@@ -596,6 +633,7 @@ def main(argv: list[str] | None = None) -> int:
     next_parser.add_argument("--bump", choices=("major", "minor", "patch"), required=True)
     next_parser.add_argument("--stage", choices=("alpha", "beta", "rc", "stable"), required=True)
     next_parser.add_argument("--risk", choices=("low", "high"), required=True)
+    next_parser.add_argument("--new-release-group", action="store_true")
     promote_parser = commands.add_parser("promote")
     promote_parser.add_argument("--bump", choices=("major", "minor", "patch"), required=True)
     promote_parser.add_argument("--stage", choices=("alpha", "beta", "rc", "stable"), required=True)
@@ -605,6 +643,7 @@ def main(argv: list[str] | None = None) -> int:
     promote_parser.add_argument("--approval")
     promote_parser.add_argument("--evidence")
     promote_parser.add_argument("--compatibility-adr")
+    promote_parser.add_argument("--new-release-group", action="store_true")
     tag_parser = commands.add_parser("tag")
     tag_parser.add_argument("--write", action="store_true")
     args = parser.parse_args(argv)
@@ -636,6 +675,7 @@ def main(argv: list[str] | None = None) -> int:
                     bump=args.bump,
                     target_stage=args.stage,
                     risk=args.risk,
+                    new_release_group=args.new_release_group,
                 )
             )
             return 0
@@ -650,6 +690,7 @@ def main(argv: list[str] | None = None) -> int:
                 approval=_load_optional_json(args.approval, None),
                 validation_evidence=_load_optional_json(args.evidence, []),
                 compatibility_adr=_load_optional_json(args.compatibility_adr, None),
+                new_release_group=args.new_release_group,
             )
             print(f"PASS: promoted governed plugin to {target}")
             return 0

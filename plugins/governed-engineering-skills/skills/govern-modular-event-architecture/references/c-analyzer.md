@@ -1,5 +1,24 @@
 # C/C++ analyzer
 
+## Pinned Xtensa libclang provider
+
+C/C++ projects use `clang==20.1.5` as the Python binding and a project
+`architecture/toolchain-lock.yaml` to select the official Espressif
+`esp-clang-libs 20.1.1_20250829` native library. The gate is offline and never
+discovers a library from the Python package, `PATH`, or an unrecorded location.
+
+Provision once, then verify:
+
+```powershell
+python tools\architecture\architecture_cli.py toolchain install --lock architecture\toolchain-lock.yaml
+python tools\architecture\architecture_cli.py toolchain verify --lock architecture\toolchain-lock.yaml
+```
+
+`CAST001` reports missing or inconsistent provider capability, binding, native
+version, hash, or Xtensa backend. `CAST002` reports lock, platform, cache, or
+receipt configuration failures. `CAST003` remains reserved for compilation
+database coverage and real translation-unit parsing failures.
+
 The single `architecture_cli.py gate` dispatches the internal C/C++ analyzer
 when the manifest requires it. Direct `c_analyzer.py` invocation is unsupported.
 Schema 2.1.0 requires AST evidence; lexical scans are supplemental and cannot

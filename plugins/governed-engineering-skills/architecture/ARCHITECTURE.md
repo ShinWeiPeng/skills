@@ -18,6 +18,8 @@ flowchart TD
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)"]
     n_integration_validation_technical["integration_validation_technical (L3+)"]
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)"]
+    n_architecture_governance_cli["architecture_governance_cli (L0)"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
@@ -25,6 +27,9 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
+    n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
+    n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
+    n_libclang_toolchain_adapter -.->|depends| n_governance_workflow_domain
 ```
 
 ## Parent Views
@@ -33,6 +38,7 @@ flowchart TD
 - [`risk_routing_domain`](generated/risk_routing_domain.md) — Own engineering risk classes, gate selection, fail-closed behavior, and resume targets.
 - [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
 - [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, architecture ownership, evidence-backed explanation, and bounded runtime validation.
+- [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
 
 ## End-to-End Flows
 
@@ -45,6 +51,10 @@ flowchart TD
 - `governance-diagnostic` — `governance_workflow_domain` / `private-helper` / `private`
 - `governance-manifest-error` — `governance_workflow_domain` / `private-helper` / `private`
 - `governance-ast-evidence` — `governance_workflow_domain` / `private-helper` / `private`
+- `libclang-toolchain-port` — `governance_workflow_domain` / `port` / `cross-module`
+- `libclang-toolchain-evidence` — `governance_workflow_domain` / `domain-value` / `cross-module`
+- `toolchain-provider-error` — `governance_workflow_domain` / `domain-value` / `cross-module`
+- `espressif-libclang-toolchain-adapter` — `libclang_toolchain_adapter` / `adapter-binding` / `module-public`
 - `collection-input-port` — `governance_workflow_domain` / `port` / `module-public`
 - `collection-output-port` — `governance_workflow_domain` / `port` / `module-public`
 - `transport-port` — `governance_workflow_domain` / `port` / `module-public`

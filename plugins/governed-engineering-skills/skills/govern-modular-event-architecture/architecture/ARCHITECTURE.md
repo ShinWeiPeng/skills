@@ -12,26 +12,34 @@ flowchart TD
     n_architecture_tooling["architecture_tooling (L0)"]
     n_governance_engine["governance_engine (L1)"]
     n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
     n_architecture_tooling -.->|depends| n_governance_engine
+    n_architecture_tooling -.->|depends| n_libclang_toolchain_adapter
     n_architecture_tooling -->|owns| n_governance_engine
     n_governance_engine -.->|depends| n_realtime_schedulability_analysis
     n_governance_engine -->|owns| n_realtime_schedulability_analysis
+    n_libclang_toolchain_adapter -.->|depends| n_governance_engine
 ```
 
 ## Parent Views
 
-- [`architecture_tooling`](generated/architecture_tooling.md) — Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, and source-analysis modules.
+- [`architecture_tooling`](generated/architecture_tooling.md) — Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
 - [`governance_engine`](generated/governance_engine.md) — Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
 
 ## End-to-End Flows
 
 - [`validate-architecture`](generated/architecture_tooling.md#validate-architecture) — Validate one manifest and return deterministic diagnostics.
+- [`verify-libclang-toolchain`](generated/architecture_tooling.md#verify-libclang-toolchain) — Resolve a lock-pinned provider, validate its immutable cache, bind libclang explicitly, and prove Xtensa parsing capability.
 
 ## Type Catalog
 
 - `diagnostic` — `governance_engine` / `domain-value` / `cross-module`
 - `manifest-error` — `governance_engine` / `domain-value` / `cross-module`
 - `ast-evidence` — `governance_engine` / `private-helper` / `private`
+- `libclang-toolchain-port` — `governance_engine` / `port` / `cross-module`
+- `libclang-toolchain-evidence` — `governance_engine` / `domain-value` / `cross-module`
+- `toolchain-provider-error` — `governance_engine` / `domain-value` / `cross-module`
+- `espressif-libclang-toolchain-adapter` — `libclang_toolchain_adapter` / `adapter-binding` / `module-public`
 
 ## State Ownership
 

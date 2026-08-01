@@ -13,6 +13,8 @@ flowchart TD
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)"]
     n_integration_validation_technical["integration_validation_technical (L3+)"]
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)"]
+    n_architecture_governance_cli["architecture_governance_cli (L0)"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
@@ -20,6 +22,9 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
+    n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
+    n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
+    n_libclang_toolchain_adapter -.->|depends| n_governance_workflow_domain
 ```
 
 ## Modules
@@ -35,6 +40,8 @@ flowchart TD
 | `vendor_sync_adapter` | L3+ | adapter | `-` | implemented | Hash vendored skills, refresh unmodified snapshots, and fail closed on overlay drift. |
 | `integration_validation_technical` | L3+ | technical | `-` | implemented | Validate plugin inventory, skill metadata, path portability, and learning-note isolation. |
 | `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and promote the plugin through isolated SemVer prerelease stages without changing the root package release state. |
+| `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. |
+| `libclang_toolchain_adapter` | L3+ | adapter | `-` | implemented | Provision and verify the official lock-pinned Espressif libclang distribution for target-capable C/C++ governance. |
 
 ### `guided_workflow_router`
 
@@ -92,9 +99,9 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Codex never approves its own ADR or Algorithm Design Record.
+- **Invariants:** Codex never approves its own ADR or Algorithm Design Record.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
 - **Entrypoints:** [`govern-modular-event-architecture`](../../skills/govern-modular-event-architecture/SKILL.md) (skill)
-- **Public Symbols:** [`govern-modular-event-architecture`](../../skills/govern-modular-event-architecture/SKILL.md) (skill)
+- **Public Symbols:** [`govern-modular-event-architecture`](../../skills/govern-modular-event-architecture/SKILL.md) (skill)<br>[`LibclangToolchainPort`](../../skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py) (class)
 
 ### `codex_plugin_adapter`
 
@@ -167,15 +174,46 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** An explicitly selected promotion updates plugin version metadata, release evidence, and the plugin changelog. (`-`)
 - **Errors:** None
-- **Invariants:** Plugin package and Codex manifest versions remain identical.; Root Changesets prerelease state is never read or modified.; Local Codex cachebusters never become formal release versions.; Invalid transitions or incomplete evidence are rejected before any release file is modified.
+- **Invariants:** Plugin package and Codex manifest versions remain identical.; Root Changesets prerelease state is never read or modified.; Local Codex cachebusters never become formal release versions.; Invalid transitions or incomplete evidence are rejected before any release file is modified.; Starting a new major or minor prerelease group from an existing prerelease requires an explicit new-release-group request and a new changeset.
 - **Entrypoints:** [`main`](../../scripts/version_governance.py) (cli)
 - **Public Symbols:** [`validate_repository`](../../scripts/version_governance.py) (function)
+
+### `architecture_governance_cli`
+
+- **Purpose:** Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** Dispatch one bounded governance or toolchain operation. (`-`)
+- **Errors:** None
+- **Invariants:** Gate execution never downloads or replaces a native provider cache.
+- **Entrypoints:** [`main`](../../skills/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+- **Public Symbols:** [`main`](../../skills/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+
+### `libclang_toolchain_adapter`
+
+- **Purpose:** Provision and verify the official lock-pinned Espressif libclang distribution for target-capable C/C++ governance.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** Explicit install creates an immutable per-user version cache. (`-`)
+- **Errors:** None
+- **Invariants:** Gate execution never downloads or overwrites a cache.; Library loading is explicit and hash-verified.
+- **Entrypoints:** [`EspressifLibclangToolchainAdapter`](../../skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py) (class)
+- **Public Symbols:** [`EspressifLibclangToolchainAdapter`](../../skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py) (class)
 
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
 | `risk-routing.classify` | `risk_routing_domain` | input | query | sync | Classify one engineering task and select required gates.: Task text, optional entry skill, available capabilities, and passed gate evidence. | `classify` |
+| `libclang_toolchain.resolve` | `governance_workflow_domain` | output | query | sync | Resolve, bind, and verify one lock-pinned target-capable libclang provider.: Toolchain lock and operation mode produce immutable provider evidence or fail-closed CAST diagnostics. | `LibclangToolchainPort` |
 
 ## Event Contracts
 
@@ -191,6 +229,10 @@ flowchart TD
 | `governance-diagnostic` | `governance_workflow_domain` | `Diagnostic` (class, `skills/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
 | `governance-manifest-error` | `governance_workflow_domain` | `ManifestError` (class, `skills/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
 | `governance-ast-evidence` | `governance_workflow_domain` | `AstEvidence` (class, `skills/govern-modular-event-architecture/scripts/ast_analyzer.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `libclang-toolchain-port` | `governance_workflow_domain` | `LibclangToolchainPort` (class, `skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | port | `governance_workflow_domain`, `libclang_toolchain_adapter` | `libclang-toolchain-evidence` |
+| `libclang-toolchain-evidence` | `governance_workflow_domain` | `LibclangToolchainEvidence` (class, `skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `governance_workflow_domain`, `libclang_toolchain_adapter` | None |
+| `toolchain-provider-error` | `governance_workflow_domain` | `ToolchainProviderError` (class, `skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_governance_cli`, `governance_workflow_domain`, `libclang_toolchain_adapter` | None |
+| `espressif-libclang-toolchain-adapter` | `libclang_toolchain_adapter` | `EspressifLibclangToolchainAdapter` (class, `skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py`) | module-public | adapter-binding | `architecture_governance_cli` | `libclang-toolchain-port`, `libclang-toolchain-evidence` |
 | `collection-input-port` | `governance_workflow_domain` | `CollectionInputPort` (class, `skills/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
 | `collection-output-port` | `governance_workflow_domain` | `CollectionOutputPort` (class, `skills/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
 | `transport-port` | `governance_workflow_domain` | `TransportPort` (class, `skills/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
