@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.3.0-beta.3
+
+### Fixed
+
+- Make release base-branch preparation idempotent and restrict automated Version PR updates to pull requests that are still open.
+
 ## 0.3.0-beta.2
 
 ### Fixed
