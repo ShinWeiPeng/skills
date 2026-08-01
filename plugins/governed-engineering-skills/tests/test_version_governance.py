@@ -345,6 +345,34 @@ class RepositoryPolicyTests(unittest.TestCase):
         self.assertFalse(intent_path.exists())
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
 
+    def test_same_prerelease_group_accepts_historical_changesets_with_different_bumps(
+        self,
+    ) -> None:
+        root = self.make_repo()
+        (root / "skills" / "patch.md").write_text("patch", encoding="utf-8")
+        (root / ".changeset" / "patch-fix.md").write_text(
+            '---\n"governed-engineering-skills": patch\n---\n\nFix beta behavior.\n',
+            encoding="utf-8",
+        )
+
+        target = MODULE.apply_promotion(
+            root,
+            bump="patch",
+            target_stage="beta",
+            risk="high",
+            summary={"Fixed": ["Fixed beta behavior."]},
+            changeset_ids=["patch-fix"],
+            approval=None,
+            validation_evidence=[],
+        )
+
+        self.assertEqual("0.2.0-beta.2", target)
+        state = json.loads(
+            (root / ".changeset" / "release-state.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(["test-change", "patch-fix"], state["applied_changesets"])
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
     def test_explicit_new_release_group_is_applied_by_shared_version_flow(self) -> None:
         root = self.make_repo()
         (root / "skills" / "changed.md").write_text("changed", encoding="utf-8")
