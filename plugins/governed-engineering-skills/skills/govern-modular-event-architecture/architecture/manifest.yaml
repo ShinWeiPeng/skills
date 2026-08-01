@@ -52,10 +52,12 @@ modules:
   parent: null
   depends_on:
   - governance_engine
+  - libclang_toolchain_adapter
   implements_ports: []
   description:
     purpose: Provide the single public schema 2.1.0 governance CLI and compose its
-      checker, renderer, bootstrap, adoption, and source-analysis modules.
+      checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang
+      provider modules.
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -66,6 +68,7 @@ modules:
     invariants:
     - architecture_cli.py is the only supported command-line entry.
     - Internal scripts cannot be invoked as legacy public commands.
+    - Gate commands never download or replace a toolchain cache.
   entrypoints:
   - path: scripts/architecture_cli.py
     symbol: main
@@ -90,6 +93,7 @@ modules:
   - scripts/governance_adoption.py
   - scripts/c_analyzer.py
   - scripts/ast_analyzer.py
+  - scripts/libclang_toolchain_contract.py
   - scripts/python_analyzer.py
   parent: architecture_tooling
   depends_on:
@@ -102,6 +106,7 @@ modules:
     - manifest_validation.check
     output_ports:
     - manifest_validation.output
+    - libclang_toolchain.resolve
     emitted_events:
     - manifest_validation.completed
     owned_state: []
@@ -112,6 +117,8 @@ modules:
     - Empty baseline never implies verified source conformance.
     - Python and C/C++ source evidence fail closed.
     - Release requires zero temporary baseline entries.
+    - C/C++ AST analysis requests a verified provider through the demand-owned
+      libclang toolchain port.
   entrypoints:
   - path: scripts/check_architecture.py
     symbol: validate_manifest
@@ -120,6 +127,9 @@ modules:
   - path: scripts/check_architecture.py
     symbol: validate_manifest
     kind: function
+  - path: scripts/libclang_toolchain_contract.py
+    symbol: LibclangToolchainPort
+    kind: class
 - id: realtime_schedulability_analysis
   level: L2
   role: component
@@ -150,6 +160,44 @@ modules:
   - path: scripts/realtime_analysis.py
     symbol: analyze_realtime_profile
     kind: function
+- id: libclang_toolchain_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - scripts/libclang_toolchain_adapter.py
+  parent: null
+  depends_on:
+  - governance_engine
+  implements_ports:
+  - libclang_toolchain.resolve
+  description:
+    purpose: Install and verify one lock-pinned Espressif libclang distribution,
+      bind its shared library explicitly, and prove Xtensa parsing capability.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Explicit install commands download into a temporary directory
+        and atomically create an immutable version cache.
+    - description: Verification reads the lock, cache, receipt, and library before
+        configuring clang.cindex.
+    errors: []
+    invariants:
+    - Gate verification never accesses the network.
+    - Existing invalid caches are never deleted or overwritten automatically.
+    - Archive extraction rejects absolute, parent-traversal, link, and special
+      entries.
+    - The Python package, PATH, and unrecorded locations cannot supply libclang.
+  entrypoints:
+  - path: scripts/libclang_toolchain_adapter.py
+    symbol: EspressifLibclangToolchainAdapter
+    kind: class
+  public_symbols:
+  - path: scripts/libclang_toolchain_adapter.py
+    symbol: EspressifLibclangToolchainAdapter
+    kind: class
 composition_roots:
 - id: governance-cli-release
   module: architecture_tooling
@@ -188,6 +236,26 @@ ports:
     immediate_rejections: []
   symbols:
   - validate_manifest
+- id: libclang_toolchain.resolve
+  owner: governance_engine
+  direction: output
+  kind: query
+  contract: scripts/libclang_toolchain_contract.py
+  implemented_by:
+  - libclang_toolchain_adapter
+  description:
+    purpose: Resolve and explicitly bind the exact libclang provider required by
+      C/C++ AST governance.
+    data: A lock path and operation mode produce verified immutable provider evidence
+      or a fail-closed diagnostic.
+    timing: sync
+    immediate_rejections:
+    - code: CAST001
+      condition: The provider, binding, library, version, or Xtensa backend is unavailable.
+    - code: CAST002
+      condition: The lock, platform selection, receipt, or cache configuration is invalid.
+  symbols:
+  - LibclangToolchainPort
 events:
 - id: manifest_validation.completed
   owner: governance_engine
@@ -312,6 +380,120 @@ types:
     type: list[dict[str, str]]
     role: metadata
     meaning: Generator-owned mutable state reported without formal catalog migration.
+  - name: translation_units
+    type: list[dict[str, Any]]
+    role: metadata
+    meaning: Per-translation-unit parse, include, project-cursor walk, and total timing evidence.
+  - name: worker_count
+    type: int
+    role: configuration
+    meaning: Bounded worker count used for deterministic parallel translation-unit parsing.
+- id: libclang-toolchain-port
+  owner: governance_engine
+  language: python
+  declaration:
+    path: scripts/libclang_toolchain_contract.py
+    symbol: LibclangToolchainPort
+    kind: class
+  visibility: cross-module
+  semantic_kind: port
+  description: Demand-owned provider contract used to install or verify a pinned
+    libclang toolchain.
+  lifetime: One CLI composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - architecture_tooling
+  - libclang_toolchain_adapter
+  references:
+  - libclang-toolchain-evidence
+  fields: []
+- id: libclang-toolchain-evidence
+  owner: governance_engine
+  language: python
+  declaration:
+    path: scripts/libclang_toolchain_contract.py
+    symbol: LibclangToolchainEvidence
+    kind: class
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Immutable evidence for the selected provider, binding, archive,
+    shared library, cache receipt, and Xtensa capability probes.
+  lifetime: One toolchain verification or gate invocation.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - architecture_tooling
+  - governance_engine
+  - libclang_toolchain_adapter
+  references: []
+  fields:
+  - name: provider
+    type: str
+    role: domain-identity
+    meaning: Lock-pinned provider identifier.
+  - name: provider_version
+    type: str
+    role: domain-value
+    meaning: Lock-pinned provider release.
+  - name: binding_version
+    type: str
+    role: domain-value
+    meaning: Imported clang Python binding version.
+  - name: library_path
+    type: Path
+    role: metadata
+    meaning: Verified explicit shared-library path.
+  - name: archive_sha256
+    type: str
+    role: metadata
+    meaning: Official archive digest.
+  - name: library_sha256
+    type: str
+    role: metadata
+    meaning: Extracted shared-library digest.
+  - name: target_triple
+    type: str
+    role: policy
+    meaning: Xtensa capability-probe target.
+- id: toolchain-provider-error
+  owner: governance_engine
+  language: python
+  declaration:
+    path: scripts/libclang_toolchain_contract.py
+    symbol: ToolchainProviderError
+    kind: class
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Fail-closed CAST001 or CAST002 provider diagnostic.
+  lifetime: One failed provider operation.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - architecture_tooling
+  - governance_engine
+  - libclang_toolchain_adapter
+  references: []
+  fields: []
+- id: espressif-libclang-toolchain-adapter
+  owner: libclang_toolchain_adapter
+  language: python
+  declaration:
+    path: scripts/libclang_toolchain_adapter.py
+    symbol: EspressifLibclangToolchainAdapter
+    kind: class
+  visibility: module-public
+  semantic_kind: adapter-binding
+  description: Official artifact installer and offline cache verifier.
+  lifetime: One CLI composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - architecture_tooling
+  references:
+  - libclang-toolchain-port
+  - libclang-toolchain-evidence
+  fields: []
 type_exclusions: []
 state_objects: []
 boundary_mappings: []
@@ -340,6 +522,31 @@ flows:
     events:
     - manifest_validation.completed
   errors: []
+- id: verify-libclang-toolchain
+  owner: architecture_tooling
+  description: Resolve a lock-pinned provider, validate its immutable cache, bind
+    libclang explicitly, and prove Xtensa parsing capability.
+  trigger:
+    kind: command
+    ref: libclang_toolchain.resolve
+    description: A user, CI job, or C/C++ development gate requests provider verification.
+  steps:
+  - id: verify-libclang-toolchain.step-1
+    order: 1
+    module: libclang_toolchain_adapter
+    action: Validate lock, platform, cache receipt, archive/library hashes, binding
+      version, provider version, and Xtensa capability probes.
+    receives:
+    - libclang_toolchain.resolve
+    emits: []
+    state_changes: []
+    side_effects:
+    - Read the immutable per-user provider cache.
+    - Configure clang.cindex with the verified shared-library path.
+  success:
+    result: Immutable provider evidence is available to the AST analyzer.
+    events: []
+  errors: []
 adr_exceptions: []
 c_analyzer:
   ast:
@@ -366,6 +573,16 @@ workloads:
     kind: command
   data:
     volume: One YAML manifest plus optional generated Markdown and baselines.
+  budgets: []
+- id: libclang-toolchain-verification
+  flow: verify-libclang-toolchain
+  steps:
+  - verify-libclang-toolchain.step-1
+  timing_class: best-effort
+  activation:
+    kind: command
+  data:
+    volume: One lock, receipt, shared library, and two minimal probe translation units.
   budgets: []
 execution_profiles:
 - id: cross-platform-cli

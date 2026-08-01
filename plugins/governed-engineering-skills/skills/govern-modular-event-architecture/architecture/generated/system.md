@@ -7,23 +7,27 @@ flowchart TD
     n_architecture_tooling["architecture_tooling (L0)"]
     n_governance_engine["governance_engine (L1)"]
     n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
     n_architecture_tooling -.->|depends| n_governance_engine
+    n_architecture_tooling -.->|depends| n_libclang_toolchain_adapter
     n_architecture_tooling -->|owns| n_governance_engine
     n_governance_engine -.->|depends| n_realtime_schedulability_analysis
     n_governance_engine -->|owns| n_realtime_schedulability_analysis
+    n_libclang_toolchain_adapter -.->|depends| n_governance_engine
 ```
 
 ## Modules
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, and source-analysis modules. |
+| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules. |
 | `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
 | `realtime_schedulability_analysis` | L2 | component | `governance_engine` | implemented | Compute partitioned Rate Monotonic priority order, per-core response times, candidate fingerprints, and conservative end-to-end Flow bounds. |
+| `libclang_toolchain_adapter` | L3+ | adapter | `-` | implemented | Install and verify one lock-pinned Espressif libclang distribution, bind its shared library explicitly, and prove Xtensa parsing capability. |
 
 ### `architecture_tooling`
 
-- **Purpose:** Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, and source-analysis modules.
+- **Purpose:** Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -32,7 +36,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** Select and invoke one bounded architecture tooling command. (`-`)
 - **Errors:** None
-- **Invariants:** architecture_cli.py is the only supported command-line entry.; Internal scripts cannot be invoked as legacy public commands.
+- **Invariants:** architecture_cli.py is the only supported command-line entry.; Internal scripts cannot be invoked as legacy public commands.; Gate commands never download or replace a toolchain cache.
 - **Entrypoints:** [`main`](../../scripts/architecture_cli.py) (function)
 - **Public Symbols:** [`main`](../../scripts/architecture_cli.py) (function)
 
@@ -42,14 +46,14 @@ flowchart TD
 - **Parent:** `architecture_tooling`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `manifest_validation.check`
-- **Output Ports:** `manifest_validation.output`
+- **Output Ports:** `manifest_validation.output`, `libclang_toolchain.resolve`
 - **Emitted Events:** `manifest_validation.completed`
 - **Owned State:** None
 - **Side Effects:** Write marker-owned generated documents only when requested by the single CLI. (`-`)
 - **Errors:** None
-- **Invariants:** Empty baseline never implies verified source conformance.; Python and C/C++ source evidence fail closed.; Release requires zero temporary baseline entries.
+- **Invariants:** Empty baseline never implies verified source conformance.; Python and C/C++ source evidence fail closed.; Release requires zero temporary baseline entries.; C/C++ AST analysis requests a verified provider through the demand-owned libclang toolchain port.
 - **Entrypoints:** [`validate_manifest`](../../scripts/check_architecture.py) (function)
-- **Public Symbols:** [`validate_manifest`](../../scripts/check_architecture.py) (function)
+- **Public Symbols:** [`validate_manifest`](../../scripts/check_architecture.py) (function)<br>[`LibclangToolchainPort`](../../scripts/libclang_toolchain_contract.py) (class)
 
 ### `realtime_schedulability_analysis`
 
@@ -66,12 +70,28 @@ flowchart TD
 - **Entrypoints:** [`analyze_realtime_profile`](../../scripts/realtime_analysis.py) (function)
 - **Public Symbols:** [`analyze_realtime_profile`](../../scripts/realtime_analysis.py) (function)
 
+### `libclang_toolchain_adapter`
+
+- **Purpose:** Install and verify one lock-pinned Espressif libclang distribution, bind its shared library explicitly, and prove Xtensa parsing capability.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** Explicit install commands download into a temporary directory and atomically create an immutable version cache. (`-`); Verification reads the lock, cache, receipt, and library before configuring clang.cindex. (`-`)
+- **Errors:** None
+- **Invariants:** Gate verification never accesses the network.; Existing invalid caches are never deleted or overwritten automatically.; Archive extraction rejects absolute, parent-traversal, link, and special entries.; The Python package, PATH, and unrecorded locations cannot supply libclang.
+- **Entrypoints:** [`EspressifLibclangToolchainAdapter`](../../scripts/libclang_toolchain_adapter.py) (class)
+- **Public Symbols:** [`EspressifLibclangToolchainAdapter`](../../scripts/libclang_toolchain_adapter.py) (class)
+
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
 | `manifest_validation.check` | `governance_engine` | input | command | sync | Submit one version-pinned manifest validation request.: Manifest path, optional baselines, output format, and generated-view check flag. | `validate_manifest` |
 | `manifest_validation.output` | `governance_engine` | output | event | sync | Publish the deterministic diagnostic result.: Rule ID, severity, location, message, disposition, and final exit classification. | `validate_manifest` |
+| `libclang_toolchain.resolve` | `governance_engine` | output | query | sync | Resolve and explicitly bind the exact libclang provider required by C/C++ AST governance.: A lock path and operation mode produce verified immutable provider evidence or a fail-closed diagnostic. | `LibclangToolchainPort` |
 
 ## Event Contracts
 
@@ -86,6 +106,10 @@ flowchart TD
 | `diagnostic` | `governance_engine` | `Diagnostic` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine` | None |
 | `manifest-error` | `governance_engine` | `ManifestError` (class, `scripts/check_architecture.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine` | None |
 | `ast-evidence` | `governance_engine` | `AstEvidence` (class, `scripts/ast_analyzer.py`) | private | private-helper | `governance_engine` | None |
+| `libclang-toolchain-port` | `governance_engine` | `LibclangToolchainPort` (class, `scripts/libclang_toolchain_contract.py`) | cross-module | port | `architecture_tooling`, `libclang_toolchain_adapter` | `libclang-toolchain-evidence` |
+| `libclang-toolchain-evidence` | `governance_engine` | `LibclangToolchainEvidence` (class, `scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine`, `libclang_toolchain_adapter` | None |
+| `toolchain-provider-error` | `governance_engine` | `ToolchainProviderError` (class, `scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_tooling`, `governance_engine`, `libclang_toolchain_adapter` | None |
+| `espressif-libclang-toolchain-adapter` | `libclang_toolchain_adapter` | `EspressifLibclangToolchainAdapter` (class, `scripts/libclang_toolchain_adapter.py`) | module-public | adapter-binding | `architecture_tooling` | `libclang-toolchain-port`, `libclang-toolchain-evidence` |
 
 ## State Ownership
 

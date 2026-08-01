@@ -35,7 +35,9 @@ def _render(path: Path, replacements: dict[str, str]) -> str:
     return text
 
 
-def _governance_files(project_root: Path) -> dict[Path, str | Path]:
+def _governance_files(
+    project_root: Path, *, include_c_toolchain: bool
+) -> dict[Path, str | Path]:
     files: dict[Path, str | Path] = {
         project_root / "AGENTS.md": ASSETS / "AGENTS.md.tmpl",
         project_root / "architecture" / "decisions" / "ADR-0001-modular-event-architecture.md": ASSETS / "ADR-0001-modular-event-architecture.md.tmpl",
@@ -53,9 +55,15 @@ def _governance_files(project_root: Path) -> dict[Path, str | Path]:
         project_root / "tools" / "architecture" / "boundary_catalog.py": SKILL_ROOT / "scripts" / "boundary_catalog.py",
         project_root / "tools" / "architecture" / "ast_analyzer.py": SKILL_ROOT / "scripts" / "ast_analyzer.py",
         project_root / "tools" / "architecture" / "c_analyzer.py": SKILL_ROOT / "scripts" / "c_analyzer.py",
+        project_root / "tools" / "architecture" / "libclang_toolchain_contract.py": SKILL_ROOT / "scripts" / "libclang_toolchain_contract.py",
+        project_root / "tools" / "architecture" / "libclang_toolchain_adapter.py": SKILL_ROOT / "scripts" / "libclang_toolchain_adapter.py",
         project_root / "tools" / "architecture" / "render_architecture.py": SKILL_ROOT / "scripts" / "render_architecture.py",
         project_root / "tools" / "architecture" / "requirements.txt": SKILL_ROOT / "requirements-architecture.txt",
     }
+    if include_c_toolchain:
+        files[project_root / "architecture" / "toolchain-lock.yaml"] = (
+            ASSETS / "toolchain-lock.yaml"
+        )
     return files
 
 
@@ -119,7 +127,12 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
     if exit_code(diagnostics) != 0:
         raise ValueError("confirmed spec is invalid:\n" + render_text(diagnostics))
 
-    files = _governance_files(project_root)
+    files = _governance_files(
+        project_root,
+        include_c_toolchain=(
+            spec.get("c_analyzer", {}).get("ast", {}).get("status") == "required"
+        ),
+    )
     document_contents = render_documents(spec)
     extra_paths = [manifest_path, adoption_path, baseline_path]
     extra_paths.extend(manifest_path.parent / relative for relative in document_contents)

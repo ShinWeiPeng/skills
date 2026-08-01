@@ -195,6 +195,8 @@ modules:
     errors: []
     invariants:
     - Codex never approves its own ADR or Algorithm Design Record.
+    - C/C++ AST governance resolves native libclang only through its demand-owned
+      pinned provider contract.
   entrypoints:
   - path: skills/govern-modular-event-architecture/SKILL.md
     symbol: govern-modular-event-architecture
@@ -203,6 +205,9 @@ modules:
   - path: skills/govern-modular-event-architecture/SKILL.md
     symbol: govern-modular-event-architecture
     kind: skill
+  - path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+    symbol: LibclangToolchainPort
+    kind: class
 - id: codex_plugin_adapter
   level: L3+
   role: adapter
@@ -358,6 +363,8 @@ modules:
     - Local Codex cachebusters never become formal release versions.
     - Invalid transitions or incomplete evidence are rejected before any release
       file is modified.
+    - Starting a new major or minor prerelease group from an existing prerelease
+      requires an explicit new-release-group request and a new changeset.
   entrypoints:
   - path: scripts/version_governance.py
     symbol: main
@@ -366,6 +373,71 @@ modules:
   - path: scripts/version_governance.py
     symbol: validate_repository
     kind: function
+- id: architecture_governance_cli
+  level: L0
+  role: composition
+  implementation_status: implemented
+  paths:
+  - skills/govern-modular-event-architecture/scripts/architecture_cli.py
+  parent: null
+  depends_on:
+  - governance_workflow_domain
+  - libclang_toolchain_adapter
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Compose the governance engine and pinned native provider behind the
+      single public architecture CLI.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Dispatch one bounded governance or toolchain operation.
+    errors: []
+    invariants:
+    - Gate execution never downloads or replaces a native provider cache.
+  entrypoints:
+  - path: skills/govern-modular-event-architecture/scripts/architecture_cli.py
+    symbol: main
+    kind: function
+  public_symbols:
+  - path: skills/govern-modular-event-architecture/scripts/architecture_cli.py
+    symbol: main
+    kind: function
+- id: libclang_toolchain_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+  parent: null
+  depends_on:
+  - governance_workflow_domain
+  implements_ports:
+  - libclang_toolchain.resolve
+  public_headers: []
+  description:
+    purpose: Provision and verify the official lock-pinned Espressif libclang
+      distribution for target-capable C/C++ governance.
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Explicit install creates an immutable per-user version cache.
+    errors: []
+    invariants:
+    - Gate execution never downloads or overwrites a cache.
+    - Library loading is explicit and hash-verified.
+  entrypoints:
+  - path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+    symbol: EspressifLibclangToolchainAdapter
+    kind: class
+  public_symbols:
+  - path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+    symbol: EspressifLibclangToolchainAdapter
+    kind: class
 composition_roots:
 - id: guided-workflow-release
   module: guided_workflow_router
@@ -389,6 +461,25 @@ ports:
     immediate_rejections: []
   symbols:
   - classify
+- id: libclang_toolchain.resolve
+  owner: governance_workflow_domain
+  direction: output
+  kind: query
+  contract: skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+  implemented_by:
+  - libclang_toolchain_adapter
+  description:
+    purpose: Resolve, bind, and verify one lock-pinned target-capable libclang provider.
+    data: Toolchain lock and operation mode produce immutable provider evidence
+      or fail-closed CAST diagnostics.
+    timing: sync
+    immediate_rejections:
+    - code: CAST001
+      condition: Provider or Xtensa capability is unavailable.
+    - code: CAST002
+      condition: Lock, platform, cache, or receipt is invalid.
+  symbols:
+  - LibclangToolchainPort
 events: []
 types:
 - id: routing-decision
@@ -507,6 +598,65 @@ types:
   mutation_authority: [governance_workflow_domain]
   consumers: [governance_workflow_domain]
   references: []
+  fields: []
+- id: libclang-toolchain-port
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py, symbol: LibclangToolchainPort, kind: class}
+  visibility: cross-module
+  semantic_kind: port
+  description: Demand-owned contract for explicit provider installation and offline verification.
+  lifetime: One governance CLI composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain, libclang_toolchain_adapter]
+  references: [libclang-toolchain-evidence]
+  fields: []
+- id: libclang-toolchain-evidence
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py, symbol: LibclangToolchainEvidence, kind: class}
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Immutable provider identity, integrity, path, version, and capability evidence.
+  lifetime: One provider operation or C/C++ gate.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [governance_workflow_domain, libclang_toolchain_adapter]
+  references: []
+  fields:
+  - {name: provider, type: str, role: domain-identity, meaning: Provider identifier.}
+  - {name: provider_version, type: str, role: domain-value, meaning: Provider release.}
+  - {name: binding_version, type: str, role: domain-value, meaning: Python binding release.}
+  - {name: library_path, type: Path, role: metadata, meaning: Explicit verified library path.}
+  - {name: archive_sha256, type: str, role: metadata, meaning: Official archive digest.}
+  - {name: library_sha256, type: str, role: metadata, meaning: Extracted library digest.}
+  - {name: target_triple, type: str, role: policy, meaning: Xtensa probe target.}
+- id: toolchain-provider-error
+  owner: governance_workflow_domain
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py, symbol: ToolchainProviderError, kind: class}
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Fail-closed CAST001 or CAST002 provider diagnostic.
+  lifetime: One failed provider operation.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [architecture_governance_cli, governance_workflow_domain, libclang_toolchain_adapter]
+  references: []
+  fields: []
+- id: espressif-libclang-toolchain-adapter
+  owner: libclang_toolchain_adapter
+  language: python
+  declaration: {path: skills/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py, symbol: EspressifLibclangToolchainAdapter, kind: class}
+  visibility: module-public
+  semantic_kind: adapter-binding
+  description: Official artifact installer and offline cache verifier.
+  lifetime: One CLI composition.
+  mutability: immutable
+  mutation_authority: []
+  consumers: [architecture_governance_cli]
+  references: [libclang-toolchain-port, libclang-toolchain-evidence]
   fields: []
 - id: collection-input-port
   owner: governance_workflow_domain

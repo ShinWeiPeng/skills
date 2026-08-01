@@ -35,6 +35,26 @@ jobs:
       - name: Install pinned governance dependencies
         run: python -m pip install -r plugins/governed-engineering-skills/skills/govern-modular-event-architecture/requirements-architecture.txt
 
+      - name: Cache official Espressif libclang provider
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/codex-toolchains
+            ~/AppData/Local/CodexToolchains
+          key: esp-clang-libs-${{ runner.os }}-20.1.1_20250829
+
+      - name: Install official Espressif libclang provider
+        run: >-
+          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          toolchain install
+          --lock plugins/governed-engineering-skills/skills/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
+
+      - name: Verify official Espressif libclang provider
+        run: >-
+          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          toolchain verify
+          --lock plugins/governed-engineering-skills/skills/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
+
       - name: Run governance unit tests
         run: python -m unittest discover -s plugins/governed-engineering-skills/skills/govern-modular-event-architecture/tests -p "test_*.py" -v
 

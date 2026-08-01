@@ -618,6 +618,7 @@ def analyze(
     manifest_path: Path,
     project_root: Path,
     baseline_path: Path | None = None,
+    evidence_out: dict[str, Any] | None = None,
 ) -> tuple[list[Diagnostic], str]:
     diagnostics = validate_manifest(manifest, manifest_path, baseline_path)
     if exit_code(diagnostics) == 2:
@@ -680,6 +681,14 @@ def analyze(
         )
     ast_evidence = analyze_ast(manifest, project_root, diagnostics)
     mode = ast_evidence.mode
+    if evidence_out is not None:
+        evidence_out["toolchain"] = ast_evidence.toolchain
+        evidence_out["covered_files"] = sorted(
+            _relative_display(path, project_root)
+            for path in ast_evidence.covered_files
+        )
+        evidence_out["translation_units"] = ast_evidence.translation_units
+        evidence_out["worker_count"] = ast_evidence.worker_count
     excluded_symbols = _excluded_type_symbols(
         manifest, source_contents, project_root
     )
@@ -808,7 +817,8 @@ def analyze(
                         continue
                     symbol = str(entry.get("symbol", ""))
                     content = source_path.read_text(encoding="utf-8", errors="replace")
-                    if not re.search(rf"\b{re.escape(symbol)}\b", content):
+                    lexical_symbol = symbol.rsplit("::", 1)[-1]
+                    if not re.search(rf"\b{re.escape(lexical_symbol)}\b", content):
                         diagnostics.append(
                             Diagnostic("CSYM003", severity, location, f"symbol {symbol!r} was not found")
                         )

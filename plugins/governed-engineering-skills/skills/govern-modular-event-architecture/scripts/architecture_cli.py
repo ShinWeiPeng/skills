@@ -26,6 +26,8 @@ from governance_adoption import (
     write_adoption_documents,
 )
 from python_analyzer import analyze_python
+from libclang_toolchain_adapter import EspressifLibclangToolchainAdapter
+from libclang_toolchain_contract import ToolchainProviderError
 
 
 PHASES = ("design", "development", "release")
@@ -86,9 +88,12 @@ def run_gate(
         if c_config.get("status") == "required":
             from c_analyzer import analyze
 
-            c_diagnostics, mode = analyze(manifest, manifest_path, project_root, None)
+            c_evidence: dict[str, Any] = {}
+            c_diagnostics, mode = analyze(
+                manifest, manifest_path, project_root, None, c_evidence
+            )
             diagnostics.extend(_as_dict(item) for item in c_diagnostics)
-            analyzers["c-cpp"] = {"mode": mode}
+            analyzers["c-cpp"] = {"mode": mode, **c_evidence}
         baseline = _load_optional(baseline_path)
         previous = _load_optional(previous_baseline_path)
         diagnostics.extend(
@@ -243,6 +248,24 @@ def _render_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _toolchain_command(args: argparse.Namespace) -> int:
+    adapter = EspressifLibclangToolchainAdapter()
+    try:
+        evidence = (
+            adapter.install(args.lock)
+            if args.toolchain_command == "install"
+            else adapter.verify(args.lock)
+        )
+    except ToolchainProviderError as exc:
+        print(
+            f"BLOCKED {exc.rule_id} {exc.location}: {exc.message}",
+            file=sys.stderr,
+        )
+        return 2
+    print(json.dumps(evidence.to_dict(), indent=2, ensure_ascii=False))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -275,6 +298,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     render_parser.add_argument("--baseline", type=Path)
     render_parser.set_defaults(handler=_render_command)
+    toolchain_parser = commands.add_parser(
+        "toolchain", help="install or verify a lock-pinned native toolchain"
+    )
+    toolchain_commands = toolchain_parser.add_subparsers(
+        dest="toolchain_command", required=True
+    )
+    for operation in ("install", "verify"):
+        operation_parser = toolchain_commands.add_parser(operation)
+        operation_parser.add_argument(
+            "--lock", type=Path, default=Path("architecture/toolchain-lock.yaml")
+        )
+        operation_parser.set_defaults(handler=_toolchain_command)
     args = parser.parse_args(argv)
     return int(args.handler(args))
 

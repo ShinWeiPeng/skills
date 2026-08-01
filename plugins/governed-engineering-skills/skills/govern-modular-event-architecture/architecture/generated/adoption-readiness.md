@@ -16,7 +16,7 @@
 
 ## Source conformance
 
-- `python`: `python-ast`; files: scripts/architecture_cli.py, scripts/ast_analyzer.py, scripts/bootstrap_project.py, scripts/boundary_catalog.py, scripts/c_analyzer.py, scripts/check_architecture.py, scripts/governance_adoption.py, scripts/python_analyzer.py, scripts/realtime_analysis.py, scripts/render_architecture.py, scripts/schema_description.py, scripts/schema_v2.py, scripts/source_sets.py, scripts/state_catalog.py, scripts/type_catalog.py
+- `python`: `python-ast`; files: scripts/architecture_cli.py, scripts/ast_analyzer.py, scripts/bootstrap_project.py, scripts/boundary_catalog.py, scripts/c_analyzer.py, scripts/check_architecture.py, scripts/governance_adoption.py, scripts/libclang_toolchain_adapter.py, scripts/libclang_toolchain_contract.py, scripts/python_analyzer.py, scripts/realtime_analysis.py, scripts/render_architecture.py, scripts/schema_description.py, scripts/schema_v2.py, scripts/source_sets.py, scripts/state_catalog.py, scripts/type_catalog.py
 
 ## Runtime-validation applicability
 

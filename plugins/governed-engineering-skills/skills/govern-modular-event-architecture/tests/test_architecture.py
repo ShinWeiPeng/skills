@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import yaml
 
@@ -16,6 +17,7 @@ SCRIPTS = SKILL_ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from bootstrap_project import bootstrap
+from ast_analyzer import _parse_arguments
 from c_analyzer import _discover_named_types, analyze
 from check_architecture import exit_code, validate_manifest
 from fanout_reference import publish_all
@@ -1193,6 +1195,41 @@ class SchemaV2Tests(unittest.TestCase):
 
 
 class CAnalyzerV2Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        from libclang_toolchain_adapter import EspressifLibclangToolchainAdapter
+
+        cls.provider_evidence = EspressifLibclangToolchainAdapter().verify(
+            SKILL_ROOT / "assets" / "project" / "toolchain-lock.yaml"
+        )
+
+    def setUp(self) -> None:
+        patcher = mock.patch(
+            "libclang_toolchain_adapter.EspressifLibclangToolchainAdapter.verify",
+            return_value=self.provider_evidence,
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_windows_quoted_include_with_spaces_is_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "main.cpp"
+            source.write_text("int main_value;\n", encoding="utf-8")
+            entry = {
+                "command": (
+                    f'clang++ "-I{root / "Library With Spaces" / "src"}" '
+                    f'-c "{source}"'
+                ),
+                "file": str(source),
+                "_source": source,
+            }
+            arguments = _parse_arguments(entry, "native")
+        self.assertIn(
+            f"-I{root / 'Library With Spaces' / 'src'}",
+            arguments,
+        )
+
     def write_fixture(self, root: Path) -> None:
         commands = []
         for name in ("app", "feature", "adapter"):
@@ -1336,6 +1373,37 @@ class CAnalyzerV2Tests(unittest.TestCase):
                 root,
             )
             self.assertTrue(any(item.rule_id == "SRC006" for item in diagnostics))
+
+    def test_build_output_declarations_are_not_product_catalog_candidates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_fixture(root)
+            build = root / "build"
+            build.mkdir()
+            (build / "generated.h").write_text(
+                "typedef struct { int value; } BuildArtifact;\n",
+                encoding="utf-8",
+            )
+            feature_source = root / "src" / "feature" / "feature.c"
+            feature_source.write_text(
+                '#include "feature.h"\n'
+                '#include "../../build/generated.h"\n'
+                "void feature_init(void) {}\n",
+                encoding="utf-8",
+            )
+            diagnostics, _ = analyze(
+                valid_manifest(c_ast=True),
+                root / "architecture" / "manifest.yaml",
+                root,
+            )
+            self.assertFalse(
+                any(
+                    item.rule_id.startswith("CTYPE")
+                    and "BuildArtifact" in item.location
+                    for item in diagnostics
+                ),
+                diagnostics,
+            )
 
     def test_wrong_manifest_cannot_hide_hardware_use(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -2174,8 +2242,11 @@ class ToolingTests(unittest.TestCase):
             self.assertIn("adoption-readiness.md", names)
             self.assertIn("adoption-readiness.json", names)
             self.assertIn("requirements.txt", names)
+            self.assertNotIn("toolchain-lock.yaml", names)
+            self.assertIn("libclang_toolchain_adapter.py", names)
+            self.assertIn("libclang_toolchain_contract.py", names)
             self.assertIn(
-                "libclang==18.1.1",
+                "clang==20.1.5",
                 (project / "tools" / "architecture" / "requirements.txt").read_text(
                     encoding="utf-8"
                 ),
@@ -2215,6 +2286,27 @@ class ToolingTests(unittest.TestCase):
             )
             self.assertNotEqual(0, old_command.returncode)
             self.assertIn("architecture_cli.py", old_command.stderr)
+
+    def test_bootstrap_c_project_installs_toolchain_lock(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            spec = root / "spec.yaml"
+            spec.write_text(
+                yaml.safe_dump(valid_manifest(c_ast=True), sort_keys=False),
+                encoding="utf-8",
+            )
+            project = root / "project"
+            written = bootstrap(project, spec)
+            self.assertIn("toolchain-lock.yaml", {path.name for path in written})
+            lock = yaml.safe_load(
+                (project / "architecture" / "toolchain-lock.yaml").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                "20.1.1_20250829",
+                lock["libclang_provider"]["version"],
+            )
 
     def test_bootstrap_realtime_project_uses_single_cli(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
