@@ -1,6 +1,6 @@
 {
   "name": "governed-engineering-skills",
-  "version": "0.2.0-beta.1",
+  "version": "0.3.0-beta.1",
   "private": true,
   "description": "Version metadata for the governed Codex engineering plugin.",
   "scripts": {

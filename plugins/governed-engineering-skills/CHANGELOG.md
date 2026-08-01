@@ -1,5 +1,20 @@
 # Governed Engineering Skills
 
+## 0.3.0-beta.1
+
+### Added
+
+- Add a lock-pinned official Espressif Xtensa libclang provider with explicit install/verify commands and offline AST gate enforcement.
+
+### Changed
+
+- Require an explicit release intent to start a new major or minor prerelease group from an existing prerelease.
+- Use clang 20.1.5 Python bindings and official esp-clang-libs 20.1.1_20250829 artifacts on Windows x64 and Linux amd64.
+
+### Fixed
+
+- Require deterministic reading-level routing and complete Level 1 Flow guidance for code-understanding requests.
+
 ## 0.2.0-beta.1
 
 ### Breaking Changes
