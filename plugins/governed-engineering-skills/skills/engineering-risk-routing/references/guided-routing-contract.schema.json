@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:governed-engineering-skills:guided-routing-contract",
+  "title": "Automatic engineering workflow routing contracts",
+  "$defs": {
+    "RepositoryArtifact": {
+      "type": "object",
+      "required": ["path", "tracking", "size_bytes", "exclusion_reason"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "tracking": {"type": "string", "enum": ["tracked", "untracked"]},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "exclusion_reason": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "RepositoryEvidence": {
+      "type": "object",
+      "required": ["path", "tracking", "size_bytes", "classification", "reason"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "tracking": {"type": "string", "enum": ["tracked", "untracked"]},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "classification": {
+          "type": "string",
+          "enum": ["implementation", "stateful-context", "ambiguous", "excluded"]
+        },
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "ProjectStateAssessment": {
+      "type": "object",
+      "required": ["implementation", "stateful_context", "evidence"],
+      "properties": {
+        "implementation": {
+          "type": "string",
+          "enum": ["present", "absent", "indeterminate"]
+        },
+        "stateful_context": {
+          "type": "string",
+          "enum": ["present", "absent", "indeterminate"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/RepositoryEvidence"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "IntentAssessment": {
+      "type": "object",
+      "required": ["intent", "explicit_skill", "matched_terms", "requires_modification"],
+      "properties": {
+        "intent": {
+          "type": "string",
+          "enum": [
+            "explicit-skill",
+            "code-understanding",
+            "diagnosis",
+            "review",
+            "implementation-design",
+            "indeterminate"
+          ]
+        },
+        "explicit_skill": {"type": ["string", "null"]},
+        "matched_terms": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "requires_modification": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "GuidedRouteDecision": {
+      "type": "object",
+      "required": [
+        "selected_skill",
+        "project_state",
+        "intent_assessment",
+        "required_gates",
+        "status",
+        "fallback",
+        "reason",
+        "resume_target"
+      ],
+      "properties": {
+        "selected_skill": {"type": ["string", "null"]},
+        "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},
+        "intent_assessment": {"$ref": "#/$defs/IntentAssessment"},
+        "required_gates": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "DEGRADED", "BLOCKED"]
+        },
+        "fallback": {"type": ["string", "null"]},
+        "reason": {"type": "string", "minLength": 1},
+        "resume_target": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}

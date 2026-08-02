@@ -5,6 +5,17 @@ description: Plan a huge chunk of work — more than one agent session can hold 
 
 A loose idea has arrived — too big for one agent session, and wrapped in fog: the way from here to the **destination** isn't visible yet. Wayfinding is about finding that way, not charging at the destination. This skill charts the way as a **shared map** on the repo's issue tracker, then works its **decision tickets** — questions whose resolution is a decision, not slices of a build to execute — one at a time until the route is clear.
 
+Enter from automatic routing only after grilling establishes all three signals:
+
+1. at least two decision-ticket candidates;
+2. at least one blocking dependency;
+3. at least one fog area that cannot yet be phrased as a precise ticket.
+
+If any signal is absent, stay in the ordinary `to-spec` flow. If `wayfinder` or the
+configured tracker is unavailable, return `BLOCKED`; do not emulate tracker writes.
+Creating or changing a map, ticket, dependency, claim, or resolution requires the
+user's explicit `開始執行`.
+
 Before creating or changing the map, read [the shared governed entry gate](../engineering-risk-routing/references/entry-gate.md) and invoke `$engineering-risk-routing`. Preserve the decision and required gates in the map so later implementation cannot bypass them.
 
 The destination varies per effort, and naming it is the first act of charting — it shapes every ticket. It might be a spec to hand off and iterate on, a decision to lock before planning starts, or a change made in place like a data-structure migration. The map is domain-agnostic — engineering work, course content, whatever fits the shape.

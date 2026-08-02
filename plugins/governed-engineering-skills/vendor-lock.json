@@ -7,7 +7,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/ask-matt",
       "source_sha256": "e13c68e505a522cdf00908890561efbacb4ecb79ebc0333db4b95f25bbf31e13",
-      "integrated_sha256": "60d0c30c81757988615fb3c3928b63397cf53070237605294e049c2b6f1ab27b",
+      "integrated_sha256": "2b60964c40953b87c61559707f3c31bb8c41ba076f76028facd41a4b66a02e25",
       "overlay": true
     },
     {
@@ -23,7 +23,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/grill-with-docs",
       "source_sha256": "fc8fbd85be9aed0a61f9410629bcc040f6620d09ffc1fc78b5e63a21bca9ad70",
-      "integrated_sha256": "9fbd947c5f0921f17ea247623203d741359f540128af295bff09b767cbf94088",
+      "integrated_sha256": "eeb4a3eb1223fe16e3f1825c987592f81167ccdc511b4c3ef943a929fe2f23b3",
       "overlay": true
     },
     {
@@ -79,7 +79,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/wayfinder",
       "source_sha256": "670f2ebe0aa854d6f8cda2659c6415621cf46307dcf06b42b48e4ba4d1b60385",
-      "integrated_sha256": "a68623231b4ff1ce2f70df67738c34a4d4050e0f27bd8a9bb3c50c0613a672c3",
+      "integrated_sha256": "e85835359b01940160322ea919e4d6d9fbed5d20e4dc2d345ab3895e47aa91ae",
       "overlay": true
     },
     {
@@ -143,7 +143,7 @@
       "source_kind": "matt",
       "source_path": "skills/productivity/grill-me",
       "source_sha256": "38451dd2683eb309b4176ac5b2648ff6f86e320145baed1ac6c2e34367c8cae6",
-      "integrated_sha256": "772d892a3bd2245bd834471194d14eb783ccf242f1b22c70719ce0b61375a540",
+      "integrated_sha256": "62e1647384bcff8b8e1b2677e06723d4e339507d8cc2b7b6fbc501217287743f",
       "overlay": true
     },
     {
@@ -183,7 +183,7 @@
       "source_kind": "governance",
       "source_path": "clarify-improvement-proposals",
       "source_sha256": "26171e4d4fa41a1041c5d327dbab9ad3df56c235d33c3a0151f437dd113e1747",
-      "integrated_sha256": "26171e4d4fa41a1041c5d327dbab9ad3df56c235d33c3a0151f437dd113e1747",
+      "integrated_sha256": "b6a3ad9d12a1644adf1b287d4ed5c6323296e5db8785a549ef13669529e16384",
       "overlay": false
     },
     {
@@ -191,7 +191,7 @@
       "source_kind": "governance",
       "source_path": "explain-code-flow",
       "source_sha256": "3ae422ada2d3e9180c974fdf92485ee8959d97431f6ae64c35981955e12b0b1e",
-      "integrated_sha256": "3ae422ada2d3e9180c974fdf92485ee8959d97431f6ae64c35981955e12b0b1e",
+      "integrated_sha256": "3680f06d45843722de625205a149784defeefb84df8a9ce80fe761857e222605",
       "overlay": false
     },
     {
@@ -199,7 +199,7 @@
       "source_kind": "governance",
       "source_path": "govern-modular-event-architecture",
       "source_sha256": "adf513489d845cd5989a1016f782696477df007e07877605e402e15661143641",
-      "integrated_sha256": "c6da86ec563227dcda589bd41ac46341de3cf000fa0afc6ce15e2118f010099f",
+      "integrated_sha256": "0634cda68aaa3a9e465adf37c099eb3fc650f66363c714eeb312bc7c1a47c1bb",
       "overlay": true
     },
     {
@@ -214,8 +214,8 @@
       "name": "engineering-risk-routing",
       "source_kind": "integration",
       "source_path": "skills/engineering-risk-routing",
-      "source_sha256": "2e78af0ffefa402cf96a44047dcb79fc3f811dfc56bcdf935abaa6313b998231",
-      "integrated_sha256": "2e78af0ffefa402cf96a44047dcb79fc3f811dfc56bcdf935abaa6313b998231",
+      "source_sha256": "bf2b1835c19d260eadbeb01217f71dc451165a6e41cf689f9574432581d63269",
+      "integrated_sha256": "bf2b1835c19d260eadbeb01217f71dc451165a6e41cf689f9574432581d63269",
       "overlay": true
     }
   ]

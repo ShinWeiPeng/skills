@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0",
+  "precedence": [
+    "review",
+    "diagnosis",
+    "code-understanding",
+    "implementation-design"
+  ],
+  "intents": [
+    {
+      "intent": "review",
+      "terms": ["code review", "review this", "review the", "review", "pull request", "pr review", "審查", "程式碼審查", "檢視"]
+    },
+    {
+      "intent": "diagnosis",
+      "terms": ["diagnose", "debug", "bug", "broken", "crash", "failure", "root cause", "找原因", "根因", "除錯", "壞掉", "失敗"]
+    },
+    {
+      "intent": "code-understanding",
+      "terms": ["explain code", "trace flow", "how does", "walk me through", "導讀", "解釋程式", "解釋", "資料流", "呼叫流程", "怎麼運作"]
+    },
+    {
+      "intent": "implementation-design",
+      "terms": ["implement", "build", "develop", "make", "add", "create", "change", "modify", "update", "fix", "refactor", "remove", "delete", "test", "deploy", "新增", "建立", "開發", "做", "修改", "更新", "修正", "重構", "移除", "刪除", "測試", "部署", "架構"]
+    }
+  ],
+  "modification_terms": ["implement", "build", "develop", "make", "add", "create", "change", "modify", "update", "fix", "refactor", "remove", "delete", "test", "deploy", "新增", "建立", "開發", "做", "修改", "更新", "修正", "重構", "移除", "刪除", "測試", "部署"],
+  "modifying_explicit_skills": [
+    "implement",
+    "prototype",
+    "research",
+    "resolving-merge-conflicts",
+    "setup-matt-pocock-skills",
+    "tdd",
+    "to-spec",
+    "to-tickets",
+    "wayfinder"
+  ],
+  "read_only_explicit_skills": [
+    "code-review",
+    "explain-code-flow"
+  ],
+  "mixed_action_connectors": [
+    "and",
+    "then",
+    "afterward",
+    "afterwards",
+    "並且",
+    "并且",
+    "然後",
+    "然后",
+    "接著",
+    "接着",
+    "並",
+    "并",
+    "再",
+    ",",
+    ";",
+    "，",
+    "；",
+    "。"
+  ]
+}

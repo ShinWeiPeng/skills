@@ -130,7 +130,11 @@ def initialize(matt_root: Path, governance_root: Path) -> int:
         "matt_commit": "2ab9580",
         "skills": entries,
     }
-    LOCK_PATH.write_text(json.dumps(lock, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    LOCK_PATH.write_text(
+        json.dumps(lock, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
     print(f"PASS: initialized {len(entries)} pinned skill snapshots")
     return 0
 
@@ -182,7 +186,11 @@ def refresh(matt_root: Path, governance_root: Path) -> int:
     if blocked:
         print("BLOCKED: upstream drift requires overlay review: " + ", ".join(blocked))
         return 2
-    LOCK_PATH.write_text(json.dumps(lock, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    LOCK_PATH.write_text(
+        json.dumps(lock, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
     print("PASS: refreshed " + (", ".join(refreshed) if refreshed else "no snapshots"))
     return 0
 
