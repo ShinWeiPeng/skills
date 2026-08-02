@@ -1,5 +1,17 @@
 # Governed Engineering Skills
 
+## 0.4.0-beta.1
+
+### Added
+
+- Add GuidedRouteDecision, ProjectStateAssessment, IntentAssessment, and repository-evidence contracts.
+
+### Changed
+
+- Make ask-matt the automatic entry for every software-engineering request.
+- Add evidence-backed dual-axis ProjectState and ordered intent routing.
+- Require one grilling interview before every repository-modifying change set.
+
 ## 0.3.0-beta.3
 
 ### Fixed

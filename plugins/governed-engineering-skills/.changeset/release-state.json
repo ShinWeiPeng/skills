@@ -1,21 +1,26 @@
 {
   "schema_version": "1.0",
-  "current_version": "0.3.0-beta.3",
-  "previous_version": "0.3.0-beta.2",
-  "release_group": "0.3.0",
-  "bump": "patch",
+  "current_version": "0.4.0-beta.1",
+  "previous_version": "0.3.0-beta.3",
+  "release_group": "0.4.0",
+  "bump": "minor",
   "risk": "high",
-  "production_fingerprint": "sha256:1123c99bfabacce874d400fff9fa2a6d7ba5b916299c6e31e19fcf71815ee483",
+  "production_fingerprint": "sha256:d33e86ded1fa5c89b1834324977ef26dcb87883d03c5c59ab1777252dd4bfb29",
   "final_rc_fingerprint": null,
   "applied_changesets": [
-    "explicit-prerelease-group",
-    "xtensa-libclang-provider",
-    "safe-libclang-archive-links",
-    "prerelease-history-bumps",
-    "release-workflow-lifecycle"
+    "automatic-engineering-router"
   ],
-  "approval": null,
-  "validation_evidence": [],
+  "approval": "ADR-0010",
+  "validation_evidence": [
+    {
+      "kind": "development",
+      "reference": "validation/0.4.0-beta.1.md"
+    },
+    {
+      "kind": "release-static",
+      "reference": "validation/0.4.0-beta.1.md"
+    }
+  ],
   "open_blockers": [],
-  "new_release_group": false
+  "new_release_group": true
 }
