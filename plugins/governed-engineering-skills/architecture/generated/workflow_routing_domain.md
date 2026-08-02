@@ -51,7 +51,8 @@ flowchart TD
 | `repository-evidence` | `workflow_routing_domain` | `RepositoryEvidence` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | domain-value | `guided_workflow_router`, `workflow_routing_domain` | None |
 | `project-state-assessment` | `workflow_routing_domain` | `ProjectStateAssessment` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | `repository-artifact`, `repository-evidence` |
 | `intent-assessment` | `workflow_routing_domain` | `IntentAssessment` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | None |
-| `guided-route-decision` | `workflow_routing_domain` | `GuidedRouteDecision` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | `project-state-assessment`, `intent-assessment` |
+| `guided-route-decision` | `workflow_routing_domain` | `GuidedRouteDecision` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | `project-state-assessment`, `intent-assessment`, `spec-context-assessment` |
+| `spec-context-assessment` | `workflow_routing_domain` | `SpecContextAssessment` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router`, `workflow_routing_domain` | None |
 | `repository-evidence-port` | `workflow_routing_domain` | `RepositoryEvidencePort` (class, `skills/engineering-risk-routing/scripts/project_state.py`) | module-public | port | `workflow_routing_domain`, `repository_evidence_adapter` | `repository-artifact` |
 
 ## State Ownership

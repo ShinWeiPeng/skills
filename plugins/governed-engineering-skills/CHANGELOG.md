@@ -1,5 +1,16 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.1
+
+### Added
+
+- Added canonical change-set specification contracts, validation, materialization, resolution, and traceability.
+
+### Changed
+
+- Required every repository-modifying workflow to verify a canonical spec before TDD or implementation.
+- Made empty formal-context files ambiguous and confirmed specs durable cross-task routing context.
+
 ## 0.4.0-beta.1
 
 ### Added

@@ -13,6 +13,7 @@ flowchart TD
     n_risk_routing_domain["risk_routing_domain (L1)"]
     n_workflow_routing_domain["workflow_routing_domain (L1)"]
     n_delivery_workflow_domain["delivery_workflow_domain (L1)"]
+    n_spec_governance_domain["spec_governance_domain (L2)"]
     n_governance_workflow_domain["governance_workflow_domain (L1)"]
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)"]
@@ -30,6 +31,8 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
+    n_delivery_workflow_domain -.->|depends| n_spec_governance_domain
+    n_delivery_workflow_domain -->|owns| n_spec_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
@@ -50,6 +53,7 @@ flowchart TD
 ## End-to-End Flows
 
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
+- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
 
 ## Type Catalog
 
@@ -58,6 +62,11 @@ flowchart TD
 - `project-state-assessment` — `workflow_routing_domain` / `query` / `cross-module`
 - `intent-assessment` — `workflow_routing_domain` / `query` / `cross-module`
 - `guided-route-decision` — `workflow_routing_domain` / `query` / `cross-module`
+- `spec-context-assessment` — `workflow_routing_domain` / `query` / `cross-module`
+- `spec-consistency-assessment` — `spec_governance_domain` / `query` / `module-public`
+- `canonical-spec-reference` — `spec_governance_domain` / `domain-value` / `module-public`
+- `delivery-spec-context` — `delivery_workflow_domain` / `domain-value` / `cross-module`
+- `spec-traceability-assessment` — `spec_governance_domain` / `query` / `module-public`
 - `repository-evidence-port` — `workflow_routing_domain` / `port` / `module-public`
 - `git-filesystem-repository-evidence-adapter` — `repository_evidence_adapter` / `adapter-binding` / `module-public`
 - `routing-decision` — `risk_routing_domain` / `query` / `cross-module`
@@ -87,6 +96,8 @@ flowchart TD
 ## Cross-module Mapping
 
 - `routing-assessments-to-guided-handoff` / `guided_workflow_router` / `risk_routing_domain` to `workflow_routing_domain`
+- `canonical-spec-to-delivery-context` / `delivery_workflow_domain` / `spec_governance_domain` to `delivery_workflow_domain`
+- `delivery-spec-to-routing-context` / `guided_workflow_router` / `delivery_workflow_domain` to `workflow_routing_domain`
 
 ## Adoption Readiness
 

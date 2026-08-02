@@ -1,24 +1,24 @@
 {
   "schema_version": "1.0",
-  "current_version": "0.4.0-beta.1",
-  "previous_version": "0.3.0-beta.3",
-  "release_group": "0.4.0",
+  "current_version": "0.5.0-beta.1",
+  "previous_version": "0.4.0-beta.1",
+  "release_group": "0.5.0",
   "bump": "minor",
   "risk": "high",
-  "production_fingerprint": "sha256:d33e86ded1fa5c89b1834324977ef26dcb87883d03c5c59ab1777252dd4bfb29",
+  "production_fingerprint": "sha256:9c01a26da2bb306eddfe2b3a96363f17b171d22aebeb761b74e40df66eec5486",
   "final_rc_fingerprint": null,
   "applied_changesets": [
-    "automatic-engineering-router"
+    "canonical-spec-governance"
   ],
-  "approval": "ADR-0010",
+  "approval": null,
   "validation_evidence": [
     {
       "kind": "development",
-      "reference": "validation/0.4.0-beta.1.md"
+      "reference": "validation/0.5.0-beta.1.md"
     },
     {
       "kind": "release-static",
-      "reference": "validation/0.4.0-beta.1.md"
+      "reference": "validation/0.5.0-beta.1.md"
     }
   ],
   "open_blockers": [],

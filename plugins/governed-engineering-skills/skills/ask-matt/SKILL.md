@@ -17,6 +17,7 @@ Use this fixed precedence:
 explicit skill
 → ordered hard intent
 → three-state ProjectState
+→ active SpecContext
 → R0–R3 required gates
 → capability check
 → authoritative handoff
@@ -39,7 +40,8 @@ Assess both axes independently as `present`, `absent`, or `indeterminate`:
 
 - `implementation`: product source or tests provide strong implementation evidence.
 - `stateful_context`: formal context such as `CONTEXT.md`, a spec, PRD, ADR, or
-  architecture manifest provides durable project knowledge.
+  architecture manifest provides durable project knowledge. Empty formal-context
+  files are `indeterminate`, not present.
 
 Scan tracked files and non-ignored untracked files. Exclude Git metadata, ignored
 dependencies, caches, build output, and generated artifacts.
@@ -52,7 +54,8 @@ Route modifying work as follows:
 - either axis indeterminate → show the evidence and use `grilling` to ask exactly one
   conclusion-changing question; never guess
 
-A README, template, or empty scaffold alone is not proof of a codebase.
+A README, template, empty scaffold, or empty formal-context file alone is not proof
+of a codebase or durable project knowledge.
 
 ## Change-set interview contract
 
@@ -67,10 +70,20 @@ of size or an explicitly requested skill such as `tdd`.
 - Do not ask discoverable facts.
 - Do not modify anything until the plan is decision-complete and the user says
   `開始執行`.
+- Invoke `spec-governance.reconcile` after every answer and display its Spec delta,
+  affected IDs, relations, conflicts, open decisions, and verdict.
+- After authorization, materialize one canonical `specs/SPEC-####-<slug>.md`. Every
+  modifying path must complete the `spec-verified` stage before TDD or implementation.
+- On a later task, resolve and verify a confirmed spec. Resume its TDD/implementation
+  target without repeating grilling when there is no new decision or conflict.
 - If execution exposes any new discretionary decision, stop immediately, return to
   grilling one question at a time, update the plan, and wait for authorization again.
   Compiler errors and test failures that can be investigated are facts, not user
   decisions.
+
+Resolve active specs by explicit path, tracker canonical path, branch match, then the
+unique confirmed spec. Multiple candidates are `BLOCKED`; never select the newest.
+Implemented specs are not active fallback.
 
 ## Wayfinder escalation
 

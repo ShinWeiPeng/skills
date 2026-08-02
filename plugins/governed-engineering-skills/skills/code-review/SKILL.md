@@ -28,10 +28,14 @@ Before going further, confirm the fixed point resolves (`git rev-parse <fixed-po
 
 Look for the originating spec, in this order:
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
-2. A path the user passed as an argument.
-3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+1. The canonical path already resolved by `spec-governance`.
+2. A canonical `specs/SPEC-####-<slug>.md` path the user passed.
+3. A tracker snapshot's explicit canonical local path.
+4. A canonical spec matching the branch, then the unique confirmed spec.
+5. Legacy issue/PRD sources only when no canonical spec exists.
+
+Never choose the newest of multiple candidates. Report `BLOCKED` and ask once for the
+canonical path. The local canonical spec is authoritative over tracker text.
 
 ### 3. Identify the standards sources
 
@@ -74,6 +78,11 @@ Send a single message with two `Agent` tool calls. Use the `general-purpose` sub
 - The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
+
+The Spec axis must additionally report uncovered REQ IDs, unverified AC IDs, and
+scope creep as a `SpecTraceabilityAssessment`. This standalone review is read-only;
+it must not change spec status. The enclosing `implement` orchestration performs the
+`implemented` transition only after both required evidence and Spec PASS exist.
 
 ### 5. Aggregate
 

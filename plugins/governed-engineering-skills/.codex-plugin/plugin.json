@@ -1,6 +1,6 @@
 {
   "name": "governed-engineering-skills",
-  "version": "0.4.0-beta.1",
+  "version": "0.5.0-beta.1",
   "description": "Automatically route software-engineering work through evidence-backed interviewing, delivery, architecture, and runtime governance.",
   "author": {
     "name": "Hugo Peng"
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Governed Engineering Skills",
     "shortDescription": "Automatically govern every engineering workflow.",
-    "longDescription": "A Codex-only engineering router that users enter through ordinary requests. It assesses intent and project state, grills every modifying change set, and applies delivery, architecture, code-flow, and runtime-evidence gates.",
+    "longDescription": "A Codex-only engineering router that users enter through ordinary requests. It assesses intent, project state, and canonical spec context, then applies delivery, architecture, code-flow, and runtime-evidence gates.",
     "developerName": "Hugo Peng",
     "category": "Developer Tools",
     "capabilities": [
@@ -19,7 +19,7 @@
     "defaultPrompt": [
       "Automatically use $ask-matt for every software-engineering request; never require the user to know a skill name.",
       "Explore repository facts read-only, classify intent and dual-axis ProjectState, then apply $engineering-risk-routing gates.",
-      "Before any repository-modifying change set, complete one-question-at-a-time $grilling and wait for the user's exact 開始執行 authorization."
+      "Before any repository-modifying change set, reconcile one canonical spec, wait for the user's exact 開始執行 authorization, then verify it before implementation."
     ]
   }
 }

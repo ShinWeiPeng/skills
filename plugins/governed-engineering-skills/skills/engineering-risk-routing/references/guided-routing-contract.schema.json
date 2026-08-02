@@ -72,12 +72,31 @@
       },
       "additionalProperties": false
     },
+    "SpecContextAssessment": {
+      "type": "object",
+      "required": ["state", "selected_path", "candidates", "reason"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["none", "ambiguous", "working", "confirmed", "implemented", "invalid"]
+        },
+        "selected_path": {"type": ["string", "null"]},
+        "candidates": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
     "GuidedRouteDecision": {
       "type": "object",
       "required": [
         "selected_skill",
         "project_state",
         "intent_assessment",
+        "spec_context",
         "required_gates",
         "status",
         "fallback",
@@ -88,6 +107,7 @@
         "selected_skill": {"type": ["string", "null"]},
         "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},
         "intent_assessment": {"$ref": "#/$defs/IntentAssessment"},
+        "spec_context": {"$ref": "#/$defs/SpecContextAssessment"},
         "required_gates": {
           "type": "array",
           "items": {"type": "string"},

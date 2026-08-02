@@ -139,16 +139,24 @@ def select_workflow(
     wayfinder_evidence: dict[str, Any] | None = None,
     tracker_available: bool = True,
     has_unresolved_decision: bool = False,
+    spec_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Select the authoritative workflow handoff after ordered assessments."""
     completed = completed_stages or set()
-    grilling_complete = bool(
-        completed & {"grilling", "grill-me", "grill-with-docs"}
-    )
     intent = intent_assessment["intent"]
     modifies = bool(intent_assessment["requires_modification"])
     implementation = project_state["implementation"]
     context = project_state["stateful_context"]
+    resolved_spec = spec_context or {
+        "state": "none",
+        "selected_path": None,
+        "candidates": [],
+        "reason": "no active canonical specification",
+    }
+    spec_state = resolved_spec["state"]
+    grilling_complete = bool(
+        completed & {"grilling", "grill-me", "grill-with-docs"}
+    ) or (spec_state == "confirmed" and "spec-verified" in completed)
 
     def decision(
         selected_skill: str | None,
@@ -162,6 +170,7 @@ def select_workflow(
             "selected_skill": selected_skill,
             "project_state": project_state,
             "intent_assessment": intent_assessment,
+            "spec_context": resolved_spec,
             "required_gates": list(risk_decision.get("required_gates", [])),
             "status": status,
             "fallback": fallback,
@@ -215,6 +224,17 @@ def select_workflow(
             resume_target="intent-decision",
         )
 
+    if modifies and spec_state in {"ambiguous", "invalid"}:
+        return capability_checked(
+            "spec-governance",
+            reason=resolved_spec["reason"],
+            resume_target=(
+                "spec-context-decision"
+                if spec_state == "ambiguous"
+                else "spec-repair"
+            ),
+        ) | {"status": "BLOCKED"}
+
     if "indeterminate" in {implementation, context}:
         return decision(
             "grilling",
@@ -230,8 +250,27 @@ def select_workflow(
             resume_target="grilling" if modifies else None,
         )
 
+    explicit_skill = intent_assessment.get("explicit_skill")
+    post_spec_target = explicit_skill
+    if intent == "review":
+        post_spec_target = "code-review"
+    elif intent == "code-understanding":
+        post_spec_target = "explain-code-flow"
+    elif not post_spec_target:
+        post_spec_target = (
+            "to-spec"
+            if implementation == "absent"
+            else risk_decision.get("next_skill")
+        )
+
+    if modifies and spec_state == "confirmed" and "spec-verified" not in completed:
+        return capability_checked(
+            "spec-governance",
+            reason="The confirmed canonical spec must verify before execution resumes.",
+            resume_target=post_spec_target,
+        )
+
     if modifies and not grilling_complete:
-        explicit_skill = intent_assessment.get("explicit_skill")
         if implementation == "absent" and context == "absent":
             preferred = "grill-me"
             resume_target = "to-spec"
@@ -245,6 +284,13 @@ def select_workflow(
             preferred,
             reason="The modifying change set must complete grilling first.",
             resume_target=resume_target,
+        )
+
+    if modifies and "spec-verified" not in completed:
+        return capability_checked(
+            "spec-governance",
+            reason="The decision-complete working spec must be materialized and verified.",
+            resume_target=post_spec_target,
         )
 
     if risk_decision.get("status", "PASS") == "BLOCKED":

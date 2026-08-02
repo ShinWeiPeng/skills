@@ -82,14 +82,14 @@ flowchart TD
 - **Parent:** `guided_workflow_router`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
-- **Output Ports:** None
-- **Emitted Events:** None
+- **Output Ports:** `delivery-workflow.result`
+- **Emitted Events:** `delivery.tracker-publication-pending`
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Mutation and commits require task and repository authorization.
-- **Entrypoints:** [`implement`](../../skills/implement/SKILL.md) (skill)
-- **Public Symbols:** [`implement`](../../skills/implement/SKILL.md) (skill)
+- **Invariants:** Mutation and commits require task and repository authorization.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed unless new decisions appear.
+- **Entrypoints:** [`implement`](../../skills/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/implement/scripts/spec_delivery.py) (function)
+- **Public Symbols:** [`implement`](../../skills/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/implement/scripts/spec_delivery.py) (function)
 
 ### `governance_workflow_domain`
 
@@ -115,12 +115,14 @@ flowchart TD
 | `workflow-routing.assess-project` | `workflow_routing_domain` | input | query | sync | Convert repository evidence into a three-state implementation and documentation assessment.: Read-only tracked and non-ignored untracked path evidence. | `assess_project_state` |
 | `workflow-routing.select` | `workflow_routing_domain` | input | query | sync | Select the authoritative skill handoff after intent, project state, risk, capability, and complexity checks.: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities, and wayfinder threshold evidence. | `select_workflow` |
 | `repository-evidence.collect` | `workflow_routing_domain` | output | query | sync | Read repository paths and Git tracking status for project-state assessment.: One project root produces normalized RepositoryEvidence rows. | `RepositoryEvidencePort` |
+| `delivery-workflow.result` | `delivery_workflow_domain` | output | event | sync | Publish delivery failures that preserve a valid canonical specification.: Canonical specification identity and the pending external delivery action. | `implement` |
 | `libclang_toolchain.resolve` | `governance_workflow_domain` | output | query | sync | Resolve, bind, and verify one lock-pinned target-capable libclang provider.: Toolchain lock and operation mode produce immutable provider evidence or fail-closed CAST diagnostics. | `LibclangToolchainPort` |
 
 ## Event Contracts
 
 | ID | Owner | Delivery | Emitted when | Purpose | Consumers |
 |---|---|---|---|---|---|
+| `delivery.tracker-publication-pending` | `delivery_workflow_domain` | at-most-once | Canonical materialization succeeds and tracker publication fails. | Preserve durable context while reporting that its tracker snapshot remains pending. | `guided_workflow_router` |
 
 ## Type Catalog
 
@@ -130,7 +132,9 @@ flowchart TD
 | `repository-evidence` | `workflow_routing_domain` | `RepositoryEvidence` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | domain-value | `guided_workflow_router`, `workflow_routing_domain` | None |
 | `project-state-assessment` | `workflow_routing_domain` | `ProjectStateAssessment` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | `repository-artifact`, `repository-evidence` |
 | `intent-assessment` | `workflow_routing_domain` | `IntentAssessment` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | None |
-| `guided-route-decision` | `workflow_routing_domain` | `GuidedRouteDecision` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | `project-state-assessment`, `intent-assessment` |
+| `guided-route-decision` | `workflow_routing_domain` | `GuidedRouteDecision` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | `project-state-assessment`, `intent-assessment`, `spec-context-assessment` |
+| `spec-context-assessment` | `workflow_routing_domain` | `SpecContextAssessment` (interface, `skills/engineering-risk-routing/references/guided-routing-contract.schema.json`) | cross-module | query | `guided_workflow_router`, `workflow_routing_domain` | None |
+| `delivery-spec-context` | `delivery_workflow_domain` | `CanonicalSpecReferenceProjection` (interface, `skills/implement/SKILL.md`) | cross-module | domain-value | `guided_workflow_router` | `canonical-spec-reference` |
 | `repository-evidence-port` | `workflow_routing_domain` | `RepositoryEvidencePort` (class, `skills/engineering-risk-routing/scripts/project_state.py`) | module-public | port | `workflow_routing_domain`, `repository_evidence_adapter` | `repository-artifact` |
 | `routing-decision` | `risk_routing_domain` | `RoutingDecision` (interface, `skills/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | None |
 | `gate-result` | `risk_routing_domain` | `GateResult` (interface, `skills/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | domain-value | `guided_workflow_router` | None |
@@ -162,6 +166,7 @@ flowchart TD
 | Interaction | Producer | Consumer | Parent | Producer contract | Consumer contract | Mapping owner | State accessed | Allowed edges | Forbidden edges |
 |---|---|---|---|---|---|---|---|---|---|
 | `routing-assessments-to-guided-handoff`: Combine workflow-owned intent and project state with risk-owned gate evidence without letting either sibling depend directly on the other. | `risk_routing_domain` | `workflow_routing_domain` | `guided_workflow_router` | `routing-decision` | `guided-route-decision` | `guided_workflow_router` | None | `guided_workflow_router->risk_routing_domain`, `guided_workflow_router->workflow_routing_domain` | `risk_routing_domain->workflow_routing_domain`, `workflow_routing_domain->risk_routing_domain` |
+| `delivery-spec-to-routing-context`: Convert delivery-owned canonical specification evidence into the routing domain's request-to-spec context without creating a sibling dependency. | `delivery_workflow_domain` | `workflow_routing_domain` | `guided_workflow_router` | `delivery-spec-context` | `spec-context-assessment` | `guided_workflow_router` | None | `guided_workflow_router->delivery_workflow_domain`, `delivery_workflow_domain->spec_governance_domain`, `guided_workflow_router->workflow_routing_domain` | `spec_governance_domain->workflow_routing_domain`, `workflow_routing_domain->delivery_workflow_domain` |
 
 ## End-to-End Flows
 

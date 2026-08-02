@@ -12,6 +12,12 @@ architecture records count as durable context; a README or template alone does n
 Ask one question at a time, recommend an answer, and investigate discoverable facts
 instead of asking the user.
 
+Invoke `spec-governance.reconcile` after every answer. Compare the working spec with
+non-empty legacy context, accepted ADRs, and the architecture manifest; show the Spec
+delta, affected IDs, relationships, conflicts, open decisions, and verdict. A
+confirmed spec found on a later task is verified and resumed without another
+interview unless the request introduces a new decision or conflict.
+
 Before writing `CONTEXT.md`, ADRs, or other files, read [the shared governed entry gate](../engineering-risk-routing/references/entry-gate.md) and invoke `$engineering-risk-routing`. In Plan mode, describe the intended documentation diff but do not write it.
 
 Documentation created by this wrapper belongs to the same change set and does not
