@@ -1,5 +1,17 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.1
+
+### Added
+
+- Add repository-canonical change-set specifications and deterministic cross-task resolution.
+- Add requirement-to-acceptance traceability and verified implementation evidence.
+
+### Changed
+
+- Require spec reconciliation, authorization, materialization, and verification before modifying workflows.
+- Route confirmed specifications across tasks without repeating resolved grilling.
+
 ## 0.4.0-beta.1
 
 ### Added
