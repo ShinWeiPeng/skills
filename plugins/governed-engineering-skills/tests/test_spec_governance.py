@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 
@@ -186,6 +187,94 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
         self.assertEqual("DEC-001", result["working_spec"]["decisions"][0]["id"])
         self.assertEqual(["REQ-002", "DEC-001"], result["delta"]["added_ids"])
 
+    def test_reconcile_updates_existing_item_without_replacing_its_id(self) -> None:
+        result = SPEC_CONTRACT.reconcile_working_spec(
+            {
+                "requirements": [
+                    {"id": "REQ-001", "text": "Retry failed payments."},
+                ],
+                "decisions": [],
+                "acceptance_criteria": [],
+            },
+            {
+                "requirements": [
+                    {
+                        "id": "REQ-001",
+                        "text": "Retry failed payments at most three times.",
+                    },
+                ],
+            },
+        )
+
+        self.assertEqual(
+            [
+                {
+                    "id": "REQ-001",
+                    "text": "Retry failed payments at most three times.",
+                },
+            ],
+            result["working_spec"]["requirements"],
+        )
+        self.assertEqual(["REQ-001"], result["delta"]["changed_ids"])
+        self.assertEqual([], result["delta"]["added_ids"])
+
+    def test_reconcile_reports_removed_ids_and_drops_their_relationships(self) -> None:
+        result = SPEC_CONTRACT.reconcile_working_spec(
+            {
+                "requirements": [
+                    {"id": "REQ-001", "text": "Retry failed payments."},
+                    {"id": "REQ-002", "text": "Record retry exhaustion."},
+                ],
+                "decisions": [],
+                "acceptance_criteria": [],
+                "relationships": [
+                    {
+                        "source": "REQ-001",
+                        "relation": "depends_on",
+                        "target": "REQ-002",
+                    },
+                ],
+            },
+            {"removed_ids": ["REQ-002"]},
+        )
+
+        self.assertEqual(
+            [{"id": "REQ-001", "text": "Retry failed payments."}],
+            result["working_spec"]["requirements"],
+        )
+        self.assertEqual(["REQ-002"], result["delta"]["removed_ids"])
+        self.assertEqual([], result["relationships"])
+
+    def test_reconcile_preserves_relationships_across_rounds(self) -> None:
+        existing = {
+            "source": "REQ-001",
+            "relation": "depends_on",
+            "target": "DEC-001",
+        }
+        added = {
+            "source": "AC-001",
+            "relation": "depends_on",
+            "target": "REQ-001",
+        }
+        result = SPEC_CONTRACT.reconcile_working_spec(
+            {
+                "requirements": [
+                    {"id": "REQ-001", "text": "Retry failed payments."},
+                ],
+                "decisions": [
+                    {"id": "DEC-001", "text": "Use exponential backoff."},
+                ],
+                "acceptance_criteria": [
+                    {"id": "AC-001", "text": "A fourth attempt is never made."},
+                ],
+                "relationships": [existing],
+            },
+            {"relationships": [added]},
+        )
+
+        self.assertEqual([existing, added], result["relationships"])
+        self.assertEqual([existing, added], result["working_spec"]["relationships"])
+
     def test_reconcile_retains_unresolved_state_and_conflicts_block(self) -> None:
         first = SPEC_CONTRACT.reconcile_working_spec(
             {
@@ -296,7 +385,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual("specs/SPEC-0001-payment-retry.md", passed["canonical_spec"]["path"])
             self.assertIn("status: implemented", path.read_text(encoding="utf-8"))
             self.assertIn(
-                "| 2 | 2026-08-02 | Recorded implementation PASS evidence. |",
+                f"| 2 | {date.today().isoformat()} | Recorded implementation PASS evidence. |",
                 path.read_text(encoding="utf-8"),
             )
 

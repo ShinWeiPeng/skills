@@ -234,31 +234,87 @@ def _next_item_id(rows: list[dict[str, str]], prefix: str) -> str:
 
 
 def reconcile_working_spec(
-    working_spec: dict[str, list[dict[str, str]]],
-    new_content: dict[str, list[str]],
+    working_spec: dict[str, Any],
+    new_content: dict[str, Any],
 ) -> dict[str, Any]:
-    """Merge a discussion delta while preserving stable IDs for unchanged text."""
+    """Merge a discussion delta while preserving stable IDs across revisions."""
     result: dict[str, Any] = {
         key: [dict(row) for row in working_spec.get(key, [])]
         for key in ("requirements", "decisions", "acceptance_criteria")
     }
     added_ids: list[str] = []
+    changed_ids: list[str] = []
+    removed_ids: list[str] = []
     mapping = {
         "requirements": "REQ",
         "decisions": "DEC",
         "acceptance_criteria": "AC",
     }
     for key, prefix in mapping.items():
-        existing = {row.get("text", "").strip().casefold(): row for row in result[key]}
+        existing_by_id = {str(row.get("id", "")): row for row in result[key]}
+        existing_by_text = {
+            str(row.get("text", "")).strip().casefold(): row
+            for row in result[key]
+        }
         for value in new_content.get(key, []):
-            normalized = value.strip().casefold()
-            if normalized in existing:
+            incoming = {"text": value} if isinstance(value, str) else dict(value)
+            requested_id = str(incoming.pop("id", "")).strip()
+            text = str(incoming.get("text", "")).strip()
+            incoming["text"] = text
+            if requested_id and requested_id in existing_by_id:
+                current = existing_by_id[requested_id]
+                updated = {**current, **incoming, "id": requested_id}
+                if updated != current:
+                    old_text = str(current.get("text", "")).strip().casefold()
+                    current.clear()
+                    current.update(updated)
+                    existing_by_text.pop(old_text, None)
+                    existing_by_text[text.casefold()] = current
+                    if requested_id not in changed_ids:
+                        changed_ids.append(requested_id)
+                continue
+            normalized = text.casefold()
+            if normalized in existing_by_text:
                 continue
             item_id = _next_item_id(result[key], prefix)
-            row = {"id": item_id, "text": value.strip()}
+            row = {**incoming, "id": item_id}
             result[key].append(row)
-            existing[normalized] = row
+            existing_by_id[item_id] = row
+            existing_by_text[normalized] = row
             added_ids.append(item_id)
+
+    requested_removals = list(dict.fromkeys(new_content.get("removed_ids", [])))
+    for item_id in requested_removals:
+        for key in mapping:
+            retained = [
+                row for row in result[key] if str(row.get("id", "")) != item_id
+            ]
+            if len(retained) != len(result[key]):
+                result[key] = retained
+                removed_ids.append(item_id)
+                if item_id in added_ids:
+                    added_ids.remove(item_id)
+                if item_id in changed_ids:
+                    changed_ids.remove(item_id)
+                break
+
+    relationships = [
+        dict(item) for item in working_spec.get("relationships", [])
+    ]
+    for item in new_content.get("relationships", []):
+        if item not in relationships:
+            relationships.append(dict(item))
+    resolved_relationships = {
+        json.dumps(item, sort_keys=True)
+        for item in new_content.get("resolved_relationships", [])
+    }
+    relationships = [
+        item
+        for item in relationships
+        if json.dumps(item, sort_keys=True) not in resolved_relationships
+        and item.get("source") not in removed_ids
+        and item.get("target") not in removed_ids
+    ]
     open_decisions = list(working_spec.get("open_decisions", []))
     for item in new_content.get("open_decisions", []):
         if item not in open_decisions:
@@ -279,13 +335,18 @@ def reconcile_working_spec(
         for item in conflicts
         if json.dumps(item, sort_keys=True) not in resolved_conflicts
     ]
+    result["relationships"] = relationships
     result["open_decisions"] = open_decisions
     result["conflicts"] = conflicts
     return {
         "verdict": "BLOCKED" if open_decisions or conflicts else "PASS",
         "working_spec": result,
-        "delta": {"added_ids": added_ids, "changed_ids": [], "removed_ids": []},
-        "relationships": list(new_content.get("relationships", [])),
+        "delta": {
+            "added_ids": added_ids,
+            "changed_ids": changed_ids,
+            "removed_ids": removed_ids,
+        },
+        "relationships": relationships,
         "conflicts": conflicts,
         "open_decisions": open_decisions,
     }

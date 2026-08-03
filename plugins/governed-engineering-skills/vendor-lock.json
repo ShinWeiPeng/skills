@@ -222,8 +222,8 @@
       "name": "spec-governance",
       "source_kind": "integration",
       "source_path": "skills/spec-governance",
-      "source_sha256": "ad2a300d886ad217673f103464f01b507a2fffa4794f88ef51200327ef614272",
-      "integrated_sha256": "ad2a300d886ad217673f103464f01b507a2fffa4794f88ef51200327ef614272",
+      "source_sha256": "65341fcdf0d2b09e3558840ed633b3616b884aa2ffc492a6bb8b2d0cdbaad20c",
+      "integrated_sha256": "65341fcdf0d2b09e3558840ed633b3616b884aa2ffc492a6bb8b2d0cdbaad20c",
       "overlay": true
     }
   ]
