@@ -212,28 +212,90 @@ modules:
   - skills/teach
   - skills/writing-great-skills
   parent: guided_workflow_router
-  depends_on: []
+  depends_on:
+  - spec_governance_domain
   implements_ports: []
   public_headers: []
   description:
     purpose: Move an engineering idea or defect through planning, implementation,
       and review without bypassing required gates.
     input_ports: []
-    output_ports: []
-    emitted_events: []
+    output_ports:
+    - delivery-workflow.result
+    emitted_events:
+    - delivery.tracker-publication-pending
     owned_state: []
     side_effects: []
     errors: []
     invariants:
     - Mutation and commits require task and repository authorization.
+    - Every repository-modifying change set has one canonical specification before implementation.
+    - A confirmed specification is verified rather than re-interviewed unless new decisions appear.
   entrypoints:
   - path: skills/implement/SKILL.md
     symbol: implement
     kind: skill
+  - path: skills/implement/scripts/spec_delivery.py
+    symbol: assess_delivery_spec_context
+    kind: function
   public_symbols:
   - path: skills/implement/SKILL.md
     symbol: implement
     kind: skill
+  - path: skills/implement/scripts/spec_delivery.py
+    symbol: assess_delivery_spec_context
+    kind: function
+- id: spec_governance_domain
+  level: L2
+  role: component
+  implementation_status: implemented
+  paths:
+  - skills/spec-governance
+  parent: delivery_workflow_domain
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Reconcile engineering discussion into one canonical change-set specification,
+      materialize it only after authorization, and verify traceability before implementation.
+    input_ports:
+    - spec-governance.reconcile
+    - spec-governance.materialize
+    - spec-governance.verify
+    output_ports:
+    - spec-governance.result
+    emitted_events:
+    - spec-governance.blocked
+    owned_state: []
+    side_effects:
+    - description: Materialize one authorized canonical specification under specs/.
+    errors:
+    - id: specification_unresolved
+      condition: Conflicts, open decisions, invalid references, or missing requirement-to-acceptance
+        traceability remain.
+      event: spec-governance.blocked
+      handling: Preserve the last confirmed specification and return to grilling with
+        exactly one conclusion-changing question.
+    invariants:
+    - Discussion updates remain an in-conversation working specification until explicit authorization.
+    - Confirmed specifications have unique stable IDs, resolved relations, no open decisions,
+        and at least one acceptance criterion per requirement.
+    - Implemented specifications record PASS evidence for every acceptance criterion
+        and a passing Spec review.
+  entrypoints:
+  - path: skills/spec-governance/SKILL.md
+    symbol: spec-governance
+    kind: skill
+  - path: skills/spec-governance/scripts/spec_contract.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: skills/spec-governance/SKILL.md
+    symbol: spec-governance
+    kind: skill
+  - path: skills/spec-governance/scripts/spec_contract.py
+    symbol: main
+    kind: function
 - id: governance_workflow_domain
   level: L1
   role: domain
@@ -625,6 +687,82 @@ ports:
       condition: The root is unreadable or Git evidence collection fails.
   symbols:
   - RepositoryEvidencePort
+- id: spec-governance.reconcile
+  owner: spec_governance_domain
+  direction: input
+  kind: query
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Reconcile one newly confirmed discussion statement into the working specification.
+    data: Existing durable context, the working specification, and one confirmed statement
+      produce a classified delta and consistency verdict.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: The statement or working specification is malformed.
+  symbols:
+  - spec-governance
+- id: spec-governance.materialize
+  owner: spec_governance_domain
+  direction: input
+  kind: command
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Persist one decision-complete working specification as the canonical repository artifact.
+    data: An authorized PASS SpecConsistencyAssessment produces one versioned Markdown specification.
+    timing: sync
+    immediate_rejections:
+    - code: unauthorized
+      condition: The user has not supplied the repository's exact execution authorization.
+    - code: unresolved
+      condition: Conflicts, open decisions, invalid relations, or uncovered requirements remain.
+  symbols:
+  - spec-governance
+- id: spec-governance.verify
+  owner: spec_governance_domain
+  direction: input
+  kind: query
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Verify a canonical specification and its requirement-to-validation traceability.
+    data: A resolved canonical specification and current request produce a PASS or BLOCKED assessment.
+    timing: sync
+    immediate_rejections:
+    - code: ambiguous
+      condition: More than one canonical specification matches the current change set.
+    - code: invalid
+      condition: The selected specification violates the structural contract.
+  symbols:
+  - spec-governance
+- id: spec-governance.result
+  owner: spec_governance_domain
+  direction: output
+  kind: event
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Publish one specification lifecycle result to the delivery parent.
+    data: Consistency or traceability verdict with canonical specification identity.
+    timing: sync
+    immediate_rejections: []
+  symbols:
+  - spec-governance
+- id: delivery-workflow.result
+  owner: delivery_workflow_domain
+  direction: output
+  kind: event
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Publish delivery failures that preserve a valid canonical specification.
+    data: Canonical specification identity and the pending external delivery action.
+    timing: sync
+    immediate_rejections: []
+  symbols:
+  - implement
 - id: libclang_toolchain.resolve
   owner: governance_workflow_domain
   direction: output
@@ -644,7 +782,40 @@ ports:
       condition: Lock, platform, cache, or receipt is invalid.
   symbols:
   - LibclangToolchainPort
-events: []
+events:
+- id: spec-governance.blocked
+  owner: spec_governance_domain
+  output_port: spec-governance.result
+  delivery: at-most-once
+  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
+  lifecycle: [received, validated, processing, succeeded, failed]
+  description:
+    purpose: Tell delivery orchestration that specification work cannot continue safely.
+    emitted_when: A reconciliation or verification has unresolved blocking evidence.
+    payload_fields:
+    - name: verdict
+      type: string
+      meaning: BLOCKED specification verdict.
+    - name: reason
+      type: string
+      meaning: Conflict, ambiguity, or missing traceability that must be resolved.
+    intended_consumers:
+    - delivery_workflow_domain
+- id: delivery.tracker-publication-pending
+  owner: delivery_workflow_domain
+  output_port: delivery-workflow.result
+  delivery: at-most-once
+  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
+  lifecycle: [received, validated, processing, succeeded, failed]
+  description:
+    purpose: Preserve durable context while reporting that its tracker snapshot remains pending.
+    emitted_when: Canonical materialization succeeds and tracker publication fails.
+    payload_fields:
+    - name: canonical_spec
+      type: CanonicalSpecReference
+      meaning: The repository specification that remains authoritative and retryable.
+    intended_consumers:
+    - guided_workflow_router
 types:
 - id: repository-artifact
   owner: workflow_routing_domain
@@ -801,12 +972,25 @@ types:
   references:
   - project-state-assessment
   - intent-assessment
+  - spec-context-assessment
   fields:
   - name: selected_skill
     type: nullable-string
     role: contract-control
     meaning: Authoritative primary skill or fallback selected for immediate safe handoff.
-  - name: status
+  - name: project_state
+    type: ProjectStateAssessment
+    role: metadata
+    meaning: Evidence-backed implementation and durable-context assessment.
+  - name: intent_assessment
+    type: IntentAssessment
+    role: metadata
+    meaning: Ordered engineering intent classification.
+  - name: spec_context
+    type: SpecContextAssessment
+    role: contract-control
+    meaning: Active canonical specification selection required by modifying workflows.
+  - name: state
     type: string
     role: contract-control
     meaning: PASS, DEGRADED, or BLOCKED.
@@ -826,6 +1010,174 @@ types:
     type: nullable-string
     role: contract-control
     meaning: Workflow target after decisions, gates, or capabilities are resolved.
+- id: spec-context-assessment
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: SpecContextAssessment
+    kind: interface
+  visibility: cross-module
+  semantic_kind: query
+  description: Deterministic binding between one engineering request and its canonical specification.
+  lifetime: One guided route and its specification handoff.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  - workflow_routing_domain
+  references: []
+  fields:
+  - name: status
+    type: string
+    role: policy
+    meaning: none, ambiguous, working, confirmed, implemented, or invalid.
+  - name: selected_path
+    type: nullable-string
+    role: domain-identity
+    meaning: Project-relative canonical specification path selected for this change set.
+  - name: candidates
+    type: string-array
+    role: metadata
+    meaning: Deterministically ordered matching specification paths.
+  - name: reason
+    type: string
+    role: metadata
+    meaning: Evidence-backed explanation of selection or ambiguity.
+- id: spec-consistency-assessment
+  owner: spec_governance_domain
+  language: json-schema
+  declaration:
+    path: skills/spec-governance/references/spec-contract.schema.json
+    symbol: SpecConsistencyAssessment
+    kind: interface
+  visibility: module-public
+  semantic_kind: query
+  description: Classified specification delta with relationship and unresolved-decision evidence.
+  lifetime: One discussion reconciliation.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - delivery_workflow_domain
+  references: []
+  fields:
+  - name: verdict
+    type: string
+    role: contract-control
+    meaning: PASS or BLOCKED.
+  - name: delta
+    type: object-array
+    role: domain-value
+    meaning: Added or changed stable IDs and their knowledge classifications.
+  - name: conflicts
+    type: object-array
+    role: policy
+    meaning: Unresolved logical contradictions with durable or working context.
+  - name: open_decisions
+    type: string-array
+    role: policy
+    meaning: Conclusion-changing decisions that prevent materialization.
+- id: canonical-spec-reference
+  owner: spec_governance_domain
+  language: json-schema
+  declaration:
+    path: skills/spec-governance/references/spec-contract.schema.json
+    symbol: CanonicalSpecReference
+    kind: interface
+  visibility: module-public
+  semantic_kind: domain-value
+  description: Stable identity and lifecycle metadata for one canonical change-set specification.
+  lifetime: One specification revision.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - delivery_workflow_domain
+  references: []
+  fields:
+  - name: spec_id
+    type: string
+    role: domain-identity
+    meaning: Repository-unique SPEC identifier.
+  - name: path
+    type: string
+    role: metadata
+    meaning: Project-relative canonical Markdown path.
+  - name: revision
+    type: integer
+    role: metadata
+    meaning: Monotonically increasing specification revision.
+  - name: status
+    type: string
+    role: policy
+    meaning: confirmed or implemented lifecycle state.
+- id: delivery-spec-context
+  owner: delivery_workflow_domain
+  language: markdown
+  declaration:
+    path: skills/implement/SKILL.md
+    symbol: CanonicalSpecReferenceProjection
+    kind: interface
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Delivery-owned projection of the canonical specification identity for guided routing.
+  lifetime: One guided route and its delivery handoff.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  references:
+  - canonical-spec-reference
+  fields:
+  - name: spec_id
+    type: string
+    role: domain-identity
+    meaning: Repository-unique SPEC identifier.
+  - name: path
+    type: string
+    role: metadata
+    meaning: Project-relative canonical Markdown path.
+  - name: revision
+    type: integer
+    role: metadata
+    meaning: Monotonically increasing specification revision.
+  - name: status
+    type: string
+    role: policy
+    meaning: confirmed or implemented lifecycle state.
+- id: spec-traceability-assessment
+  owner: spec_governance_domain
+  language: json-schema
+  declaration:
+    path: skills/spec-governance/references/spec-contract.schema.json
+    symbol: SpecTraceabilityAssessment
+    kind: interface
+  visibility: module-public
+  semantic_kind: query
+  description: Requirement, acceptance, validation, and scope-conformance verdict for implementation.
+  lifetime: One pre-implementation verification or Spec review.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - delivery_workflow_domain
+  references:
+  - canonical-spec-reference
+  fields:
+  - name: verdict
+    type: string
+    role: contract-control
+    meaning: PASS or BLOCKED.
+  - name: uncovered_requirements
+    type: string-array
+    role: policy
+    meaning: REQ identifiers without acceptance coverage.
+  - name: uncovered_acceptance
+    type: string-array
+    role: policy
+    meaning: AC identifiers without a validation method or required evidence.
+  - name: scope_creep
+    type: string-array
+    role: policy
+    meaning: Implemented behavior not authorized by the canonical specification.
 - id: repository-evidence-port
   owner: workflow_routing_domain
   language: python
@@ -1203,6 +1555,37 @@ boundary_mappings:
   forbidden_edges:
   - risk_routing_domain->workflow_routing_domain
   - workflow_routing_domain->risk_routing_domain
+- id: canonical-spec-to-delivery-context
+  interaction: Project the child-owned canonical specification result into its parent
+    delivery workflow without leaking the child contract to a sibling.
+  producer: spec_governance_domain
+  consumer: delivery_workflow_domain
+  parent: delivery_workflow_domain
+  producer_contract: canonical-spec-reference
+  consumer_contract: delivery-spec-context
+  mapping_owner: delivery_workflow_domain
+  state_objects: []
+  allowed_edges:
+  - delivery_workflow_domain->spec_governance_domain
+  forbidden_edges:
+  - spec_governance_domain->delivery_workflow_domain
+- id: delivery-spec-to-routing-context
+  interaction: Convert delivery-owned canonical specification evidence into the
+    routing domain's request-to-spec context without creating a sibling dependency.
+  producer: delivery_workflow_domain
+  consumer: workflow_routing_domain
+  parent: guided_workflow_router
+  producer_contract: delivery-spec-context
+  consumer_contract: spec-context-assessment
+  mapping_owner: guided_workflow_router
+  state_objects: []
+  allowed_edges:
+  - guided_workflow_router->delivery_workflow_domain
+  - delivery_workflow_domain->spec_governance_domain
+  - guided_workflow_router->workflow_routing_domain
+  forbidden_edges:
+  - spec_governance_domain->workflow_routing_domain
+  - workflow_routing_domain->delivery_workflow_domain
 flows:
 - id: governed-engineering-route
   owner: guided_workflow_router
@@ -1249,6 +1632,86 @@ flows:
       evidence or missing non-substitutable capability returns BLOCKED.
     events: []
   errors: []
+- id: governed-change-set-lifecycle
+  owner: delivery_workflow_domain
+  description: Reconcile one modifying change set into a canonical specification,
+    materialize it after authorization, verify traceability, implement it, and close
+    it only after Spec review passes.
+  trigger:
+    kind: command
+    ref: spec-governance.reconcile
+    description: A modifying engineering discussion confirms one new statement.
+  steps:
+  - id: governed-change-set-lifecycle.reconcile
+    order: 1
+    module: spec_governance_domain
+    action: Classify the confirmed statement, update stable relationships, and report
+      the working specification delta, conflicts, and open decisions.
+    receives:
+    - spec-governance.reconcile
+    emits: []
+    state_changes: []
+    side_effects: []
+  - id: governed-change-set-lifecycle.authorize
+    order: 2
+    module: delivery_workflow_domain
+    action: Present the decision-complete specification and wait for exact repository
+      execution authorization without writing files.
+    receives: []
+    emits: []
+    state_changes: []
+    side_effects: []
+  - id: governed-change-set-lifecycle.materialize
+    order: 3
+    module: spec_governance_domain
+    action: Materialize the authorized canonical specification under specs/ and
+      preserve it if tracker publication later fails.
+    receives:
+    - spec-governance.materialize
+    emits: []
+    state_changes: []
+    side_effects:
+    - Write one canonical specification revision.
+  - id: governed-change-set-lifecycle.publish
+    order: 4
+    module: delivery_workflow_domain
+    action: Publish a tracker snapshot that names the repository specification as canonical.
+    receives: []
+    emits: []
+    state_changes: []
+    side_effects:
+    - Create or update one tracker Issue when configured.
+  - id: governed-change-set-lifecycle.verify
+    order: 5
+    module: spec_governance_domain
+    action: Verify requirement-to-acceptance-to-validation traceability and return
+      to grilling only when the request introduces a new decision or conflict.
+    receives:
+    - spec-governance.verify
+    emits: []
+    state_changes: []
+    side_effects: []
+  - id: governed-change-set-lifecycle.implement-review
+    order: 6
+    module: delivery_workflow_domain
+    action: Implement through the agreed test seams, run two-axis review, and mark
+      the canonical specification implemented only after the Spec axis passes.
+    receives: []
+    emits: []
+    state_changes: []
+    side_effects:
+    - Update the canonical specification with PASS evidence and implemented status.
+  success:
+    result: The implemented behavior is traceable to one canonical specification
+      whose requirements and acceptance criteria have verified PASS evidence.
+    events: []
+  errors:
+  - condition: Reconciliation finds an unresolved conflict or conclusion-changing decision.
+    event: spec-governance.blocked
+    handling: Remain in grilling and ask exactly one conclusion-changing question.
+  - condition: Canonical materialization succeeds but tracker publication fails.
+    event: delivery.tracker-publication-pending
+    handling: Preserve the canonical specification and report BLOCKED with a retry target.
 adr_exceptions: []
 c_analyzer:
   ast:
@@ -1278,6 +1741,21 @@ workloads:
     kind: command
   data:
     volume: one engineering task
+  budgets: []
+- id: governed-change-set-workload
+  flow: governed-change-set-lifecycle
+  steps:
+  - governed-change-set-lifecycle.reconcile
+  - governed-change-set-lifecycle.authorize
+  - governed-change-set-lifecycle.materialize
+  - governed-change-set-lifecycle.publish
+  - governed-change-set-lifecycle.verify
+  - governed-change-set-lifecycle.implement-review
+  timing_class: best-effort
+  activation:
+    kind: command
+  data:
+    volume: one modifying engineering change set
   budgets: []
 execution_profiles: []
 execution_units: []

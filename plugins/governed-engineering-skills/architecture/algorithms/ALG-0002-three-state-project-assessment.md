@@ -16,9 +16,9 @@
 ## Problem and observable success
 
 Determine independently whether implementation and durable stateful context exist.
-Success means an empty repository is `absent / absent`, formal documents affect only
-context, source affects implementation, and weak scaffold evidence never becomes a
-silent yes or no.
+Success means an empty repository is `absent / absent`, non-empty formal documents
+affect only context, empty formal documents remain ambiguous, source affects
+implementation, and weak scaffold evidence never becomes a silent yes or no.
 
 ## Inputs, outputs, and assumptions
 
@@ -32,12 +32,14 @@ records safely enumerable exclusions without reading a symbolic-link target.
 ## Exact behavior and tie-breaking
 
 1. Recognized non-empty source or test suffixes set implementation to `present`.
-2. Formal context paths set stateful context to `present`.
-3. Empty source placeholders add implementation ambiguity.
+2. Non-empty formal context paths set stateful context to `present`.
+3. Empty formal context paths add context ambiguity; empty source placeholders add
+   implementation ambiguity.
 4. Generic scaffolds make both axes indeterminate only when no strong source or
-   formal context evidence exists.
-5. Any strong implementation or formal-context evidence prevents unrelated weak
-   artifacts from making the other axis indeterminate.
+   formal-context evidence exists.
+5. Strong evidence on an axis outranks ambiguity on that axis, and strong evidence
+   on either axis prevents unrelated weak artifacts from making the other axis
+   indeterminate.
 6. Excluded evidence never changes either axis.
 
 ## Complexity, errors, and forbidden behavior

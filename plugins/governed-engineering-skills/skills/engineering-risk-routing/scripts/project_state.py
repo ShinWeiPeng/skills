@@ -57,6 +57,7 @@ def assess_project_state(
     implementation = "absent"
     stateful_context = "absent"
     ambiguous_source_placeholder = False
+    ambiguous_context = False
     ambiguous_generic_artifact = False
     for item in evidence:
         row = dict(item)
@@ -80,10 +81,14 @@ def assess_project_state(
             row["classification"] = "implementation"
             row["reason"] = "recognized product or test source suffix"
             implementation = "present"
-        elif _is_stateful_context(path):
+        elif _is_stateful_context(path) and row.get("size_bytes", 0) > 0:
             row["classification"] = "stateful-context"
             row["reason"] = "recognized durable project context"
             stateful_context = "present"
+        elif _is_stateful_context(path):
+            row["classification"] = "ambiguous"
+            row["reason"] = "empty formal context does not prove durable project knowledge"
+            ambiguous_context = True
         else:
             row["classification"] = "ambiguous"
             row["reason"] = "weak artifact alone does not prove either project axis"
@@ -102,8 +107,13 @@ def assess_project_state(
     ):
         implementation = "indeterminate"
     if (
-        ambiguous_generic_artifact
-        and not strong_evidence_present
+        (
+            ambiguous_context
+            or (
+                ambiguous_generic_artifact
+                and not strong_evidence_present
+            )
+        )
         and stateful_context == "absent"
     ):
         stateful_context = "indeterminate"

@@ -6,7 +6,7 @@
 - Owner module: `workflow_routing_domain`
 - Product feature: Automatic authoritative engineering handoff
 - Flow IDs: `governed-engineering-route`
-- Related ADRs: `ADR-0010`
+- Related ADRs: `ADR-0010`, `ADR-0011`
 - Source paths:
   - `skills/engineering-risk-routing/references/intent-rules.json`
   - `skills/engineering-risk-routing/scripts/workflow_selection.py`
@@ -28,13 +28,20 @@ must produce the same `GuidedRouteDecision`.
 3. Keep review and code-understanding read-only unless a versioned connector plus
    mutation term identifies an explicit second action; inherently modifying explicit
    skills remain modifying without relying on prompt wording.
-4. Apply ProjectState to the classified intent.
-5. Add R0–R3 required gates without changing the primary intent.
-6. Check capability and return the authoritative handoff.
+4. Resolve active canonical specification context in this order: an explicitly named
+   path, a tracker-provided canonical path, a branch match, then the repository's
+   unique confirmed specification. Never select the newest of multiple candidates.
+5. Apply ProjectState and specification context to the classified intent.
+6. Add R0–R3 required gates without changing the primary intent.
+7. Require `spec-verified` before any modifying path reaches TDD or implementation.
+8. Check capability and return the authoritative handoff.
 
 Unmatched intent and indeterminate ProjectState stop in one-question grilling.
 Review and code explanation remain read-only. A modifying bug diagnoses first and
-grills before choosing a fix. Every other modifying path grills once per change set.
+grills before choosing a fix. Every other modifying path reconciles one working
+specification per change set. A confirmed specification verifies on a new task and
+resumes execution without another interview unless the request introduces a new
+decision or conflict.
 
 ## Wayfinder and capability thresholds
 

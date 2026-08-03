@@ -63,6 +63,8 @@
           "skills/govern-modular-event-architecture/scripts/source_sets.py",
           "skills/govern-modular-event-architecture/scripts/state_catalog.py",
           "skills/govern-modular-event-architecture/scripts/type_catalog.py",
+          "skills/implement/scripts/spec_delivery.py",
+          "skills/spec-governance/scripts/spec_contract.py",
           "skills/validate-on-device/scripts/validate_on_device.py",
           "skills/validate-on-device/scripts/vod/__init__.py",
           "skills/validate-on-device/scripts/vod/evidence.py",
@@ -88,6 +90,14 @@
         "configuration": false,
         "disposition": "active",
         "location": "delivery_workflow_domain",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
+        "location": "spec_governance_domain",
         "message": "one or more symbols have no installed language analyzer",
         "rule_id": "SYM004",
         "severity": "SHOULD"

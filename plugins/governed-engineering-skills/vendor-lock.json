@@ -7,7 +7,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/ask-matt",
       "source_sha256": "e13c68e505a522cdf00908890561efbacb4ecb79ebc0333db4b95f25bbf31e13",
-      "integrated_sha256": "2b60964c40953b87c61559707f3c31bb8c41ba076f76028facd41a4b66a02e25",
+      "integrated_sha256": "5d0bf99a39647f0a28c15e3c7518d8cff845ebf1b74467e57f12c5c2967e33ea",
       "overlay": true
     },
     {
@@ -23,7 +23,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/grill-with-docs",
       "source_sha256": "fc8fbd85be9aed0a61f9410629bcc040f6620d09ffc1fc78b5e63a21bca9ad70",
-      "integrated_sha256": "eeb4a3eb1223fe16e3f1825c987592f81167ccdc511b4c3ef943a929fe2f23b3",
+      "integrated_sha256": "8ec18e0730500b6aed6f2a312982828c6b498736ef9d799d915cef701ea1e850",
       "overlay": true
     },
     {
@@ -63,7 +63,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/to-spec",
       "source_sha256": "cd37a7e35c3812350c9f5c7bcebac95b3925dcff6a3b0655b3aea87229c52447",
-      "integrated_sha256": "ee5bef800aa392118aa259b55067a1e3a8c5a87122ad9fc292987d2e6c18bd33",
+      "integrated_sha256": "5a66beaf7c6801be8e4d36dcda1c779e6c729a504bcccd38ca265888dee3e824",
       "overlay": true
     },
     {
@@ -87,7 +87,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/implement",
       "source_sha256": "b49a049477c7eec7f8dd90745dbc3f27bf75617b832d5b5f33c55aab7638a12e",
-      "integrated_sha256": "673ee3d57d2ca568263a42cdbd299538301703e98eee012ec59903902dd6884b",
+      "integrated_sha256": "1d1bc2646f5f1dde455609f7c63bc5db09e8f155d8b88ad3108e140dd1dd1eaf",
       "overlay": true
     },
     {
@@ -127,7 +127,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/code-review",
       "source_sha256": "146642733a3e0d59919450a7c012eb334b87fdf1859b7e879e631b4a2f5fa466",
-      "integrated_sha256": "40655d7a42545590b14f099fbb4e09738f6adf6abd41f652dd4cf934e8211991",
+      "integrated_sha256": "a4da882feb822623beafa819dd5bd677c1bca97cf5a0394f323c12c40c7986f3",
       "overlay": true
     },
     {
@@ -143,7 +143,7 @@
       "source_kind": "matt",
       "source_path": "skills/productivity/grill-me",
       "source_sha256": "38451dd2683eb309b4176ac5b2648ff6f86e320145baed1ac6c2e34367c8cae6",
-      "integrated_sha256": "62e1647384bcff8b8e1b2677e06723d4e339507d8cc2b7b6fbc501217287743f",
+      "integrated_sha256": "c4cc845a0189142ed47c34658f05df3bb5af6bd2de33001cac4998df16398128",
       "overlay": true
     },
     {
@@ -151,8 +151,8 @@
       "source_kind": "matt",
       "source_path": "skills/productivity/grilling",
       "source_sha256": "5f8e034b4892cfa8b8c07fd1da21e00cf08aa34b0d0189c6f424410bff7d74ae",
-      "integrated_sha256": "5f8e034b4892cfa8b8c07fd1da21e00cf08aa34b0d0189c6f424410bff7d74ae",
-      "overlay": false
+      "integrated_sha256": "4f91d02d18e61bfe0a0da38b71c66fd2ac0fe120fd49d39f913da2cc1668ac98",
+      "overlay": true
     },
     {
       "name": "handoff",
@@ -214,8 +214,16 @@
       "name": "engineering-risk-routing",
       "source_kind": "integration",
       "source_path": "skills/engineering-risk-routing",
-      "source_sha256": "bf2b1835c19d260eadbeb01217f71dc451165a6e41cf689f9574432581d63269",
-      "integrated_sha256": "bf2b1835c19d260eadbeb01217f71dc451165a6e41cf689f9574432581d63269",
+      "source_sha256": "481235649ad841c55d6ef6cf67be55d75ca881ceb34a7e90cd9396817cf3889d",
+      "integrated_sha256": "481235649ad841c55d6ef6cf67be55d75ca881ceb34a7e90cd9396817cf3889d",
+      "overlay": true
+    },
+    {
+      "name": "spec-governance",
+      "source_kind": "integration",
+      "source_path": "skills/spec-governance",
+      "source_sha256": "65341fcdf0d2b09e3558840ed633b3616b884aa2ffc492a6bb8b2d0cdbaad20c",
+      "integrated_sha256": "65341fcdf0d2b09e3558840ed633b3616b884aa2ffc492a6bb8b2d0cdbaad20c",
       "overlay": true
     }
   ]

@@ -20,13 +20,14 @@ EXPECTED_SKILLS = {
     "resolving-merge-conflicts", "grill-me", "grilling", "handoff", "teach",
     "writing-great-skills", "clarify-improvement-proposals", "explain-code-flow",
     "govern-modular-event-architecture", "validate-on-device",
-    "engineering-risk-routing",
+    "engineering-risk-routing", "spec-governance",
 }
 IMPLICIT_ROUTE_SKILLS = {
     "ask-matt",
     "grill-me",
     "grill-with-docs",
     "wayfinder",
+    "spec-governance",
 }
 
 

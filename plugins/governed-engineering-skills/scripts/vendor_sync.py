@@ -46,6 +46,7 @@ GOVERNANCE_SKILLS = {
 OVERLAYS = {
     "ask-matt",
     "grill-me",
+    "grilling",
     "diagnosing-bugs",
     "grill-with-docs",
     "triage",
@@ -122,6 +123,16 @@ def initialize(matt_root: Path, governance_root: Path) -> int:
             "source_path": "skills/engineering-risk-routing",
             "source_sha256": tree_hash(SKILLS_ROOT / "engineering-risk-routing"),
             "integrated_sha256": tree_hash(SKILLS_ROOT / "engineering-risk-routing"),
+            "overlay": True,
+        }
+    )
+    entries.append(
+        {
+            "name": "spec-governance",
+            "source_kind": "integration",
+            "source_path": "skills/spec-governance",
+            "source_sha256": tree_hash(SKILLS_ROOT / "spec-governance"),
+            "integrated_sha256": tree_hash(SKILLS_ROOT / "spec-governance"),
             "overlay": True,
         }
     )

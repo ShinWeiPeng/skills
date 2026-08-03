@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:governed-engineering-skills:spec-contract",
+  "title": "Canonical specification governance contracts",
+  "$defs": {
+    "CanonicalSpecReference": {
+      "type": "object",
+      "required": ["spec_id", "path", "revision", "status"],
+      "properties": {
+        "spec_id": {"type": "string", "pattern": "^SPEC-[0-9]{4}$"},
+        "path": {"type": "string", "pattern": "^specs/SPEC-[0-9]{4}-[a-z0-9-]+\\.md$"},
+        "revision": {"type": "integer", "minimum": 1},
+        "status": {"type": "string", "enum": ["confirmed", "implemented"]}
+      },
+      "additionalProperties": false
+    },
+    "SpecConsistencyAssessment": {
+      "type": "object",
+      "required": ["verdict", "delta", "relationships", "conflicts", "open_decisions"],
+      "properties": {
+        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "delta": {
+          "type": "object",
+          "required": ["added_ids", "changed_ids", "removed_ids"],
+          "properties": {
+            "added_ids": {"type": "array", "items": {"type": "string"}},
+            "changed_ids": {"type": "array", "items": {"type": "string"}},
+            "removed_ids": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        },
+        "relationships": {"type": "array"},
+        "conflicts": {"type": "array"},
+        "open_decisions": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "SpecTraceabilityAssessment": {
+      "type": "object",
+      "required": ["verdict", "uncovered_requirements", "uncovered_acceptance", "scope_creep"],
+      "properties": {
+        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "uncovered_requirements": {"type": "array", "items": {"type": "string"}},
+        "uncovered_acceptance": {"type": "array", "items": {"type": "string"}},
+        "scope_creep": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

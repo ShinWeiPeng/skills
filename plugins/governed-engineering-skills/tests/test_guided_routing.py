@@ -60,7 +60,7 @@ class ProjectStateAssessmentTests(unittest.TestCase):
 
     def test_context_document_marks_stateful_context_present(self) -> None:
         result = PROJECT_STATE.assess_project_state(
-            [{"path": "CONTEXT.md", "tracking": "tracked"}]
+            [{"path": "CONTEXT.md", "tracking": "tracked", "size_bytes": 20}]
         )
 
         self.assertEqual("absent", result["implementation"])
@@ -69,6 +69,15 @@ class ProjectStateAssessmentTests(unittest.TestCase):
             "stateful-context",
             result["evidence"][0]["classification"],
         )
+
+    def test_empty_formal_context_is_indeterminate_not_present(self) -> None:
+        result = PROJECT_STATE.assess_project_state(
+            [{"path": "CONTEXT.md", "tracking": "tracked", "size_bytes": 0}]
+        )
+
+        self.assertEqual("absent", result["implementation"])
+        self.assertEqual("indeterminate", result["stateful_context"])
+        self.assertEqual("ambiguous", result["evidence"][0]["classification"])
 
     def test_readme_only_is_indeterminate_on_both_axes(self) -> None:
         result = PROJECT_STATE.assess_project_state(
@@ -288,6 +297,14 @@ class IntentAssessmentTests(unittest.TestCase):
         self.assertTrue(result["requires_modification"])
         self.assertIn("新增", result["matched_terms"])
 
+    def test_review_and_fix_is_modifying_not_read_only_review(self) -> None:
+        result = WORKFLOW_SELECTION.classify_intent(
+            "Review this change and fix any bugs"
+        )
+
+        self.assertEqual("review", result["intent"])
+        self.assertTrue(result["requires_modification"])
+
     def test_english_terms_do_not_match_inside_unrelated_words(self) -> None:
         result = WORKFLOW_SELECTION.classify_intent(
             "Explain how the address formatter works"
@@ -408,6 +425,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         "grill-me",
         "grill-with-docs",
         "grilling",
+        "spec-governance",
         "tdd",
         "to-spec",
         "wayfinder",
@@ -512,10 +530,22 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             available_skills=self.SKILLS,
             completed_stages={"grilling"},
         )
+        after_spec_verification = WORKFLOW_SELECTION.select_workflow(
+            intent,
+            project_state,
+            self.RISK,
+            available_skills=self.SKILLS,
+            completed_stages={"grilling", "spec-verified"},
+        )
 
         self.assertEqual("grilling", before_grilling["selected_skill"])
-        self.assertEqual("code-review", after_grilling["selected_skill"])
-        self.assertEqual("tdd", after_grilling["resume_target"])
+        self.assertEqual("spec-governance", after_grilling["selected_skill"])
+        self.assertEqual("code-review", after_grilling["resume_target"])
+        self.assertEqual(
+            "code-review",
+            after_spec_verification["selected_skill"],
+        )
+        self.assertEqual("tdd", after_spec_verification["resume_target"])
 
     def test_explicit_tdd_cannot_skip_change_set_grilling(self) -> None:
         result = WORKFLOW_SELECTION.select_workflow(
@@ -570,7 +600,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             project_state,
             self.RISK,
             available_skills=self.SKILLS,
-            completed_stages={"grilling"},
+            completed_stages={"grilling", "spec-verified"},
             wayfinder_evidence={
                 "decision_ticket_candidates": 2,
                 "blocking_dependencies": 1,
@@ -582,7 +612,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             project_state,
             self.RISK,
             available_skills=self.SKILLS,
-            completed_stages={"grilling"},
+            completed_stages={"grilling", "spec-verified"},
             wayfinder_evidence={
                 "decision_ticket_candidates": 2,
                 "blocking_dependencies": 1,
@@ -609,7 +639,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
                 project_state,
                 self.RISK,
                 available_skills=self.SKILLS,
-                completed_stages={"grilling"},
+                completed_stages={"grilling", "spec-verified"},
                 wayfinder_evidence=evidence,
             )
             self.assertNotEqual("wayfinder", result["selected_skill"])
@@ -623,8 +653,70 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             completed_stages={"grill-me"},
         )
 
-        self.assertEqual("to-spec", result["selected_skill"])
+        self.assertEqual("spec-governance", result["selected_skill"])
         self.assertNotEqual("grill-me", result["selected_skill"])
+
+    def test_confirmed_spec_verifies_then_resumes_tdd_without_grilling(self) -> None:
+        spec_context = {
+            "state": "confirmed",
+            "selected_path": "specs/SPEC-0001-payment-retry.md",
+            "candidates": ["specs/SPEC-0001-payment-retry.md"],
+            "reason": "unique confirmed specification",
+        }
+        project_state = PROJECT_STATE.assess_project_state(
+            [
+                {"path": "src/payment.py", "tracking": "tracked", "size_bytes": 10},
+                {
+                    "path": spec_context["selected_path"],
+                    "tracking": "tracked",
+                    "size_bytes": 100,
+                },
+            ]
+        )
+
+        verify = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("修改付款重試規則"),
+            project_state,
+            self.RISK,
+            available_skills=self.SKILLS,
+            spec_context=spec_context,
+        )
+        resume = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("修改付款重試規則"),
+            project_state,
+            self.RISK,
+            available_skills=self.SKILLS,
+            spec_context=spec_context,
+            completed_stages={"spec-verified"},
+        )
+
+        self.assertEqual("spec-governance", verify["selected_skill"])
+        self.assertEqual("tdd", verify["resume_target"])
+        self.assertEqual("tdd", resume["selected_skill"])
+        self.assertNotIn(resume["selected_skill"], {"grilling", "grill-with-docs"})
+
+    def test_ambiguous_spec_context_blocks_without_guessing(self) -> None:
+        result = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("修改付款重試規則"),
+            PROJECT_STATE.assess_project_state(
+                [{"path": "src/payment.py", "tracking": "tracked", "size_bytes": 10}]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS,
+            spec_context={
+                "state": "ambiguous",
+                "selected_path": None,
+                "candidates": [
+                    "specs/SPEC-0001-a.md",
+                    "specs/SPEC-0002-b.md",
+                ],
+                "reason": "multiple confirmed specifications",
+            },
+        )
+
+        self.assertEqual("BLOCKED", result["status"])
+        self.assertEqual("spec-governance", result["selected_skill"])
+        self.assertEqual("spec-context-decision", result["resume_target"])
 
     def test_missing_wayfinder_capability_is_blocked(self) -> None:
         result = WORKFLOW_SELECTION.select_workflow(
@@ -632,7 +724,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             PROJECT_STATE.assess_project_state([]),
             self.RISK,
             available_skills=self.SKILLS - {"wayfinder"},
-            completed_stages={"grilling"},
+            completed_stages={"grilling", "spec-verified"},
             wayfinder_evidence={
                 "decision_ticket_candidates": 2,
                 "blocking_dependencies": 1,
@@ -650,7 +742,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             PROJECT_STATE.assess_project_state([]),
             self.RISK,
             available_skills=self.SKILLS,
-            completed_stages={"grilling"},
+            completed_stages={"grilling", "spec-verified"},
             wayfinder_evidence={
                 "decision_ticket_candidates": 2,
                 "blocking_dependencies": 1,
@@ -671,7 +763,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             ),
             self.RISK,
             available_skills=self.SKILLS,
-            completed_stages={"grilling"},
+            completed_stages={"grilling", "spec-verified"},
             has_unresolved_decision=True,
         )
 
@@ -701,8 +793,18 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             available_skills=self.SKILLS,
             completed_stages={"grilling"},
         )
-        self.assertEqual("BLOCKED", after_grilling["status"])
-        self.assertIsNone(after_grilling["selected_skill"])
+        self.assertEqual("PASS", after_grilling["status"])
+        self.assertEqual("spec-governance", after_grilling["selected_skill"])
+
+        after_verification = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("新增付款服務"),
+            PROJECT_STATE.assess_project_state([]),
+            risk,
+            available_skills=self.SKILLS,
+            completed_stages={"grilling", "spec-verified"},
+        )
+        self.assertEqual("BLOCKED", after_verification["status"])
+        self.assertIsNone(after_verification["selected_skill"])
 
     def test_blocked_risk_gate_prevents_read_only_handoff(self) -> None:
         risk = {
@@ -789,6 +891,7 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 "RepositoryEvidence",
                 "ProjectStateAssessment",
                 "IntentAssessment",
+                "SpecContextAssessment",
                 "GuidedRouteDecision",
             },
             set(schema["$defs"]),
