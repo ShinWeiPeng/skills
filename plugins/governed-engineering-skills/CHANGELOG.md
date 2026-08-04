@@ -1,5 +1,17 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.3
+
+### Changed
+
+- Make the governed plugin the repository's only active release unit.
+- Create or update plugin-only Version pull requests from plugin-release/main.
+
+### Fixed
+
+- Remove recurring root Changesets failures from valid plugin pull requests.
+- Skip existing plugin tags on non-release pushes without moving them.
+
 ## 0.5.0-beta.2
 
 ### Added
