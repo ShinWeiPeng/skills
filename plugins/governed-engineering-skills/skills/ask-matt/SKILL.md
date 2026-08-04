@@ -54,6 +54,12 @@ Route modifying work as follows:
 - either axis indeterminate → show the evidence and use `grilling` to ask exactly one
   conclusion-changing question; never guess
 
+A resolved confirmed specification proves durable context, not that the current
+request continues the same change set. New or specification-changing work still
+follows the ProjectState interview route. Set `resume_confirmed_spec=true` only when
+the user explicitly asks to execute or continue the selected confirmed spec and the
+request introduces no new decision or conflict; every other combination fails closed.
+
 A README, template, empty scaffold, or empty formal-context file alone is not proof
 of a codebase or durable project knowledge.
 
@@ -74,8 +80,9 @@ of size or an explicitly requested skill such as `tdd`.
   affected IDs, relations, conflicts, open decisions, and verdict.
 - After authorization, materialize one canonical `specs/SPEC-####-<slug>.md`. Every
   modifying path must complete the `spec-verified` stage before TDD or implementation.
-- On a later task, resolve and verify a confirmed spec. Resume its TDD/implementation
-  target without repeating grilling when there is no new decision or conflict.
+- On a later task, resolve and verify a confirmed spec only with explicit
+  `resume_confirmed_spec` evidence. Resume its TDD/implementation target without
+  repeating grilling when there is no new decision or conflict.
 - If execution exposes any new discretionary decision, stop immediately, return to
   grilling one question at a time, update the plan, and wait for authorization again.
   Compiler errors and test failures that can be investigated are facts, not user
@@ -83,7 +90,8 @@ of size or an explicitly requested skill such as `tdd`.
 
 Resolve active specs by explicit path, tracker canonical path, branch match, then the
 unique confirmed spec. Multiple candidates are `BLOCKED`; never select the newest.
-Implemented specs are not active fallback.
+Implemented specs are not active fallback. Resolution alone never supplies resume
+evidence.
 
 ## Wayfinder escalation
 

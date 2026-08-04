@@ -61,6 +61,7 @@ flowchart TD
 - `repository-evidence` — `workflow_routing_domain` / `domain-value` / `cross-module`
 - `project-state-assessment` — `workflow_routing_domain` / `query` / `cross-module`
 - `intent-assessment` — `workflow_routing_domain` / `query` / `cross-module`
+- `workflow-selection-options` — `workflow_routing_domain` / `domain-value` / `cross-module`
 - `guided-route-decision` — `workflow_routing_domain` / `query` / `cross-module`
 - `spec-context-assessment` — `workflow_routing_domain` / `query` / `cross-module`
 - `spec-consistency-assessment` — `spec_governance_domain` / `query` / `module-public`

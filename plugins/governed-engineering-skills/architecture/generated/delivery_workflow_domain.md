@@ -30,7 +30,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Mutation and commits require task and repository authorization.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed unless new decisions appear.
+- **Invariants:** Mutation and commits require task and repository authorization.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
 - **Entrypoints:** [`implement`](../../skills/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/implement/scripts/spec_delivery.py) (function)
 - **Public Symbols:** [`implement`](../../skills/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/implement/scripts/spec_delivery.py) (function)
 

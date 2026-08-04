@@ -73,6 +73,7 @@ def route(
     has_unresolved_decision: bool = False,
     tracker_spec_path: str | None = None,
     branch: str | None = None,
+    resume_confirmed_spec: bool = False,
 ) -> dict[str, Any]:
     capabilities = (
         discover_available_skills()
@@ -104,6 +105,7 @@ def route(
         tracker_available=tracker_available,
         has_unresolved_decision=has_unresolved_decision,
         spec_context=spec_context,
+        resume_confirmed_spec=resume_confirmed_spec,
     )
 
 
@@ -123,6 +125,14 @@ def main() -> int:
     parser.add_argument("--tracker-unavailable", action="store_true")
     parser.add_argument("--tracker-spec-path")
     parser.add_argument("--unresolved-decision", action="store_true")
+    parser.add_argument(
+        "--resume-confirmed-spec",
+        action="store_true",
+        help=(
+            "Resume the selected confirmed spec without another interview; "
+            "requires explicit no-new-decision evidence."
+        ),
+    )
     parser.add_argument("--branch")
     parser.add_argument(
         "--json",
@@ -148,6 +158,7 @@ def main() -> int:
         has_unresolved_decision=args.unresolved_decision,
         tracker_spec_path=args.tracker_spec_path,
         branch=args.branch,
+        resume_confirmed_spec=args.resume_confirmed_spec,
     )
     print(format_route_output(result, force_json=args.json))
     return 0 if result["status"] in {"PASS", "DEGRADED"} else 2
