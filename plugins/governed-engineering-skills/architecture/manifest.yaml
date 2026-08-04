@@ -316,8 +316,9 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Enforce decision completeness, architecture ownership, evidence-backed
-      explanation, and bounded runtime validation.
+    purpose: Enforce decision completeness, evidence-calibrated Flow cost review,
+      architecture ownership, evidence-backed explanation, and bounded runtime
+      validation.
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -326,6 +327,11 @@ modules:
     errors: []
     invariants:
     - Codex never approves its own ADR or Algorithm Design Record.
+    - A material Flow recommendation evaluates functional admission, execution
+      and real-time feasibility, maintainability and extensibility, and model
+      assurance before Module, Port, Event, or execution decisions are finalized.
+    - Estimated models cannot establish a platform performance winner or
+      real-time PASS; load-bearing evidence gaps remain BLOCKED.
     - C/C++ AST governance resolves native libclang only through its demand-owned
       pinned provider contract.
   entrypoints:
@@ -1665,8 +1671,8 @@ flows:
 - id: governed-change-set-lifecycle
   owner: delivery_workflow_domain
   description: Reconcile one modifying change set into a canonical specification,
-    materialize it after authorization, verify traceability, implement it, and close
-    it only after Spec review passes.
+    review material Flow costs and evidence, materialize it after authorization,
+    verify traceability, implement it, and close it only after Spec review passes.
   trigger:
     kind: command
     ref: spec-governance.reconcile
@@ -1682,8 +1688,19 @@ flows:
     emits: []
     state_changes: []
     side_effects: []
-  - id: governed-change-set-lifecycle.authorize
+  - id: governed-change-set-lifecycle.review-flow-cost
     order: 2
+    module: governance_workflow_domain
+    action: Review every material as-is and target Flow through functional
+      admission, execution and real-time feasibility, maintainability and
+      extensibility change scenarios, and model assurance; keep unresolved
+      load-bearing evidence BLOCKED.
+    receives: []
+    emits: []
+    state_changes: []
+    side_effects: []
+  - id: governed-change-set-lifecycle.authorize
+    order: 3
     module: delivery_workflow_domain
     action: Present the decision-complete specification and wait for exact repository
       execution authorization without writing files.
@@ -1692,7 +1709,7 @@ flows:
     state_changes: []
     side_effects: []
   - id: governed-change-set-lifecycle.materialize
-    order: 3
+    order: 4
     module: spec_governance_domain
     action: Materialize the authorized canonical specification under specs/ and
       preserve it if tracker publication later fails.
@@ -1703,7 +1720,7 @@ flows:
     side_effects:
     - Write one canonical specification revision.
   - id: governed-change-set-lifecycle.publish
-    order: 4
+    order: 5
     module: delivery_workflow_domain
     action: Publish a tracker snapshot that names the repository specification as canonical.
     receives: []
@@ -1712,7 +1729,7 @@ flows:
     side_effects:
     - Create or update one tracker Issue when configured.
   - id: governed-change-set-lifecycle.verify
-    order: 5
+    order: 6
     module: spec_governance_domain
     action: Verify requirement-to-acceptance-to-validation traceability and return
       to grilling only when the request introduces a new decision or conflict.
@@ -1722,7 +1739,7 @@ flows:
     state_changes: []
     side_effects: []
   - id: governed-change-set-lifecycle.implement-review
-    order: 6
+    order: 7
     module: delivery_workflow_domain
     action: Implement through the agreed test seams, run two-axis review, and mark
       the canonical specification implemented only after the Spec axis passes.
@@ -1739,6 +1756,11 @@ flows:
   - condition: Reconciliation finds an unresolved conflict or conclusion-changing decision.
     event: spec-governance.blocked
     handling: Remain in grilling and ask exactly one conclusion-changing question.
+  - condition: A material Flow has unresolved platform units, cost paths, budgets,
+      model error, reserve, interference, or scenario coverage.
+    event: spec-governance.blocked
+    handling: Preserve directional analysis but keep the performance or real-time
+      claim BLOCKED until the required evidence is calibrated.
   - condition: Canonical materialization succeeds but tracker publication fails.
     event: delivery.tracker-publication-pending
     handling: Preserve the canonical specification and report BLOCKED with a retry target.
@@ -1776,6 +1798,7 @@ workloads:
   flow: governed-change-set-lifecycle
   steps:
   - governed-change-set-lifecycle.reconcile
+  - governed-change-set-lifecycle.review-flow-cost
   - governed-change-set-lifecycle.authorize
   - governed-change-set-lifecycle.materialize
   - governed-change-set-lifecycle.publish

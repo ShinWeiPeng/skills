@@ -32,6 +32,12 @@ every feature. A triggered feature requires a proposed Algorithm Design Record
 owned by its implementing L1 or L2 module. A non-triggered feature requires a
 specific `not applicable` reason.
 
+Read [the evidence-calibrated Flow cost review](../govern-modular-event-architecture/references/flow-cost-review.md)
+when a proposal creates or changes an end-to-end Flow, callback, event,
+execution context, Queue, data layout, or performance/resource claim. Resolve
+its functional admission, execution cost, evolution scenarios, and model
+assurance before recommending a winner.
+
 Do not treat the proposal as decision-complete while the selected method,
 quantitative acceptance thresholds, data assumptions, or a risk-required
 prototype or benchmark remains unresolved.
@@ -66,6 +72,20 @@ When the proposal creates a software project; adds, splits, merges, or reorganiz
 10. Require human confirmation of platform, CPU, runtime, compiler, cache topology, and scheduler capabilities before accepting execution or microarchitecture decisions. Treat missing confirmation as unresolved/`BLOCKED`.
 11. Require Tier 1 analysis for hard-real-time workloads. Tier 2 layout, tiling, branch, SIMD, PGO, LTO, scheduling, or fixed tuning changes require a portable/as-is baseline, representative candidate benchmarks, and full-Flow non-regression criteria.
 12. For every hard/soft real-time workload, read the governance skill's `references/realtime-scheduling-analysis.md` before finalizing Task count, activation rate, priority, core allocation, Queue/notification, synchronization, scheduler method, deadline, or soft SLO decisions. Require at least two structurally different candidates, scheduler-compatible provisional analysis, a generated human-readable Markdown study report, and explicit non-AI selection before implementation. RTOS alone does not trigger RMA; timing class triggers the study and scheduler compatibility selects the method.
+13. Add a `Flow execution impact` section for each material Flow. Distinguish
+    `estimated`, `calibrated`, `validated`, and `BLOCKED`; record critical path,
+    budgets and sources, predicted/observed values, prediction error, scenario
+    coverage, uncovered risks, reserve source, evidence references, and build
+    equivalence.
+14. Add an `Evolution impact` section using concrete source, subscriber,
+    adapter, processing-stage, and platform-variant change scenarios. Compare
+    affected Modules, interfaces, mappings, Flows, tests, execution profiles,
+    migration, and deployment in terms of locality and leverage.
+
+Never use `faster`, `stack is sufficient`, `real-time ready`, `maintainable`, or
+`extensible` as a conclusion unless the corresponding evidence-calibrated
+contract supports it. Static-only or average-only evidence remains an estimate;
+missing load-bearing evidence is `BLOCKED`.
 
 For an existing project without governance files, propose an as-is inventory followed by remediation of every discovered violation. A baseline is not the default migration result: include one only for exact items a non-AI developer explicitly chooses to defer, with a review date and removal condition. Release requires the temporary baseline to be empty. For a new project, propose confirmed bootstrap inputs and generated governance artifacts.
 
@@ -81,6 +101,8 @@ Use GitHub-flavored Markdown and include applicable sections:
 ## Confirmed decisions
 ## Architecture impact
 ## Execution efficiency impact
+## Flow execution impact
+## Evolution impact
 ## Algorithm impact
 ## Recommended improvements
 

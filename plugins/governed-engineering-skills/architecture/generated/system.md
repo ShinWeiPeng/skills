@@ -45,7 +45,7 @@ flowchart TD
 | `workflow_routing_domain` | L1 | domain | `guided_workflow_router` | implemented | Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection. |
 | `delivery_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Move an engineering idea or defect through planning, implementation, and review without bypassing required gates. |
 | `spec_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Reconcile engineering discussion into one canonical change-set specification, materialize it only after authorization, and verify traceability before implementation. |
-| `governance_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Enforce decision completeness, architecture ownership, evidence-backed explanation, and bounded runtime validation. |
+| `governance_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation. |
 | `codex_plugin_adapter` | L3+ | adapter | `-` | implemented | Bind the integrated skill directory to Codex plugin discovery. |
 | `repository_evidence_adapter` | L3+ | adapter | `-` | implemented | Enumerate tracked and non-ignored untracked repository evidence without mutating Git, the index, or the worktree. |
 | `local_install_adapter` | L3+ | adapter | `-` | implemented | Register the repo-local marketplace through the supported Codex CLI command and open the governed plugin's Codex Desktop installation page. |
@@ -132,7 +132,7 @@ flowchart TD
 
 ### `governance_workflow_domain`
 
-- **Purpose:** Enforce decision completeness, architecture ownership, evidence-backed explanation, and bounded runtime validation.
+- **Purpose:** Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
 - **Parent:** `guided_workflow_router`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -141,7 +141,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Codex never approves its own ADR or Algorithm Design Record.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
+- **Invariants:** Codex never approves its own ADR or Algorithm Design Record.; A material Flow recommendation evaluates functional admission, execution and real-time feasibility, maintainability and extensibility, and model assurance before Module, Port, Event, or execution decisions are finalized.; Estimated models cannot establish a platform performance winner or real-time PASS; load-bearing evidence gaps remain BLOCKED.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
 - **Entrypoints:** [`govern-modular-event-architecture`](../../skills/govern-modular-event-architecture/SKILL.md) (skill)
 - **Public Symbols:** [`govern-modular-event-architecture`](../../skills/govern-modular-event-architecture/SKILL.md) (skill)<br>[`LibclangToolchainPort`](../../skills/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py) (class)
 

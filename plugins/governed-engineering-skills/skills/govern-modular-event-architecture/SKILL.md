@@ -29,6 +29,7 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 - Read [references/runtime-validation.md](references/runtime-validation.md) when physical devices, OS scheduling/resource traces, test-only runtime control, Serial/TCP capture, or high-frequency statistics are in scope.
 - Read [references/execution-efficiency.md](references/execution-efficiency.md) before defining Tasks, Threads, ISR/Event Loop/Worker allocation, Queue capacity, priority, affinity, data layout, cache/branch/SIMD behavior, compiler optimization, or platform performance budgets.
 - Read [references/realtime-scheduling-analysis.md](references/realtime-scheduling-analysis.md) before defining or changing hard/soft real-time Task count, activation rate, priority, core allocation, Queue/notification timing, synchronization blocking, scheduler method, or deadline/SLO acceptance.
+- Read [references/flow-cost-review.md](references/flow-cost-review.md) before retaining or changing an end-to-end Flow, callback topology, execution context, Queue, data movement, resource model, real-time claim, or maintainability/extensibility recommendation.
 
 ## Enforce the standard
 
@@ -57,6 +58,11 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 - Keep test and runtime evidence adapters at L3+. Require demand-owned observability/test ports and test-only composition wiring; never ship a test command parser merely to simplify validation.
 - Screen every product feature for algorithm impact. Require a complete `ALG-####` record for triggered features and a specific `not applicable` reason for non-triggered features.
 - Keep logical Modules separate from runtime Execution Units. Confirm the platform with a human, classify Flow workloads, and govern the inherited execution-profile rules before claiming execution efficiency.
+- Evaluate every material Flow through functional admission, execution and
+  real-time feasibility, maintainability/extensibility change scenarios, and
+  model assurance. Preserve external compatibility independently from internal
+  orchestration. Do not select a platform performance winner from an
+  `estimated` model.
 - For every hard/soft real-time workload, require at least two structurally different scheduling candidates, scheduler-compatible provisional analysis, a generated human-readable Markdown study report, and explicit non-AI selection before source edits. Use RMA/RTA only for the supported RM fixed-priority model. Hard deadline misses fail; soft misses require a quantified SLO plan and non-AI risk acceptance, then final SLO evidence.
 - Require Tier 1 cost analysis for hard-real-time workloads. Treat layout, tiling, branch, SIMD, PGO, LTO, scheduling, and load-balancing choices as algorithm-bearing.
 - Keep private L2 algorithm steps out of top-level Flow descriptions. Link Algorithm Design Records to their owning L1/L2 module and applicable Flow IDs.
@@ -68,20 +74,38 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 For every architecture-affecting change, complete this sequence in order:
 
 1. State the responsibility and observable behavior.
-2. Select the L0-L3+ module owner.
-3. Define commands, queries, events, and external Ports.
-4. Assign one semantic owner to every public contract.
-5. Produce the Type Ownership Matrix.
-6. Produce the State Object Ownership Matrix.
-7. List actual and intended dependency edges.
-8. Define parent mapping and orchestration.
-9. For hard/soft real-time work, complete the scheduling study and obtain human selection of a provisional-PASS candidate; a soft-only `SOFT_RISK` additionally requires an SLO plan and human risk acceptance.
-10. Validate the planned manifest without source-completeness checks.
-11. Edit source only after the design result is `PASS`.
+2. Complete the evidence-calibrated Flow Review. For an existing project,
+   reconstruct the as-is Flow and production-equivalent baseline. For
+   Greenfield, define end-to-end Flow and a portable estimate before fixing
+   Modules, Ports, Events, Tasks, or Queues. Compare at least two structurally
+   different candidates for a Flow-affecting decision.
+3. Resolve platform/toolchain semantics, budgets, benchmark triggers,
+   prediction error, reserve sources, and the model-assurance verdict. Logical
+   design may continue without platform facts, but platform performance and
+   real-time decisions remain `BLOCKED`.
+4. Select the L0-L3+ module owner.
+5. Define commands, queries, events, and external Ports.
+6. Assign one semantic owner to every public contract.
+7. Produce the Type Ownership Matrix.
+8. Produce the State Object Ownership Matrix.
+9. List actual and intended dependency edges.
+10. Define parent mapping and orchestration.
+11. For hard/soft real-time work, complete the scheduling study and obtain human selection of a provisional-PASS candidate; a soft-only `SOFT_RISK` additionally requires an SLO plan and human risk acceptance.
+12. Validate the planned manifest without source-completeness checks.
+13. Edit source only after the design result is `PASS`.
 
 The Boundary Design Table MUST contain Interaction, Producer, Consumer, Parent, Producer contract, Consumer contract, Mapping owner, State accessed, Allowed edges, and Forbidden edges. The Type Ownership Matrix MUST also record referenced project types and ABI, wire, and storage impact. The State Object Ownership Matrix MUST inventory mutable file-scope/static/thread-local objects, extern objects, and objects whose addresses cross module boundaries.
 
 Any unresolved owner, illegal dependency, missing authority, mapping, source classification, or real-time schedulability input makes the gate `BLOCKED`. Do not first create a struct, getter, shared header, global, Task, or copied generated declaration and then rewrite the manifest to justify it. Use `python scripts\architecture_cli.py gate --phase design --manifest architecture\manifest.yaml`; source completeness is deferred until implementation, but source-set membership and all declared design relationships are blocking.
+
+Any unresolved load-bearing Flow unit, callback/indirect path, build
+composition, platform fact, timing/resource budget, interference source,
+scenario coverage, prediction overrun, or reserve source also makes the
+applicable execution/model claim `BLOCKED`. Static analysis and runtime
+measurement cross-check one another; neither alone validates unexecuted or
+unresolved paths. Physical and OS-native calibration routes through
+`$validate-on-device`, followed by a separate release-equivalent
+non-regression check.
 
 ## Initialize a project
 
