@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.4
+
+### Added
+
+- Added evidence-calibrated Flow cost, real-time, stack-assurance, and evolution governance.
+
+### Changed
+
+- Architecture improvement proposals now distinguish estimated, calibrated, validated, and blocked performance evidence.
+
 ## 0.5.0-beta.3
 
 ### Changed

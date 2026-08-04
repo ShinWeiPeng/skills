@@ -1,16 +1,17 @@
 {
   "schema_version": "1.0",
-  "current_version": "0.5.0-beta.3",
-  "previous_version": "0.5.0-beta.2",
+  "current_version": "0.5.0-beta.4",
+  "previous_version": "0.5.0-beta.3",
   "release_group": "0.5.0",
-  "bump": "patch",
+  "bump": "minor",
   "risk": "high",
-  "production_fingerprint": "sha256:8d9177ba7a02ec1ac8d98a512bb08e8b8ba810a2dc9ecc0596c6ae92eedc3c37",
+  "production_fingerprint": "sha256:f184c3d6379bbce8f6f71c01a9f3ec39a411b874254728a1c49eea1474b93693",
   "final_rc_fingerprint": null,
   "applied_changesets": [
     "canonical-spec-governance",
     "docs-only-routing-precedence",
-    "plugin-only-release-flow"
+    "plugin-only-release-flow",
+    "evidence-calibrated-flow-cost-governance"
   ],
   "approval": null,
   "validation_evidence": [],
