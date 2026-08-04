@@ -39,7 +39,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/improve-codebase-architecture",
       "source_sha256": "9f3b34638376bc84370cd0f6fdc7dff09579c9ae91244ee64fea44cf618e7f86",
-      "integrated_sha256": "fc385efc01a15088089201a8dac1b207d7659141b9a5b48580fd26006665b704",
+      "integrated_sha256": "5830ff195535122607b8e606380bf3a6036b10fb53fa044cc0c04a271aa86bf8",
       "overlay": true
     },
     {
@@ -183,7 +183,7 @@
       "source_kind": "governance",
       "source_path": "clarify-improvement-proposals",
       "source_sha256": "26171e4d4fa41a1041c5d327dbab9ad3df56c235d33c3a0151f437dd113e1747",
-      "integrated_sha256": "b6a3ad9d12a1644adf1b287d4ed5c6323296e5db8785a549ef13669529e16384",
+      "integrated_sha256": "a4194cc07c5369a5a52aa2c77fe6b45d4717ea0cf4c0d92acecb28591400fbc0",
       "overlay": false
     },
     {
@@ -199,7 +199,7 @@
       "source_kind": "governance",
       "source_path": "govern-modular-event-architecture",
       "source_sha256": "adf513489d845cd5989a1016f782696477df007e07877605e402e15661143641",
-      "integrated_sha256": "0634cda68aaa3a9e465adf37c099eb3fc650f66363c714eeb312bc7c1a47c1bb",
+      "integrated_sha256": "377c73fbe510d9a8ca505671a9ecd0e88f26a56064f1f97694d1508cdee87a7b",
       "overlay": true
     },
     {

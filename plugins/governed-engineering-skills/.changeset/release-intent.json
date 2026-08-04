@@ -1,0 +1,19 @@
+{
+  "bump": "minor",
+  "target_stage": "beta",
+  "risk": "high",
+  "new_release_group": false,
+  "changesets": [
+    "evidence-calibrated-flow-cost-governance"
+  ],
+  "summary": {
+    "Added": [
+      "Added evidence-calibrated Flow cost, real-time, stack-assurance, and evolution governance."
+    ],
+    "Changed": [
+      "Architecture improvement proposals now distinguish estimated, calibrated, validated, and blocked performance evidence."
+    ]
+  },
+  "approval": null,
+  "validation_evidence": []
+}

@@ -47,13 +47,13 @@ flowchart TD
 - [`risk_routing_domain`](generated/risk_routing_domain.md) — Own engineering risk classes, gate selection, fail-closed behavior, and resume targets.
 - [`workflow_routing_domain`](generated/workflow_routing_domain.md) — Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
 - [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
-- [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, architecture ownership, evidence-backed explanation, and bounded runtime validation.
+- [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
 - [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
 
 ## End-to-End Flows
 
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
-- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
+- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, review material Flow costs and evidence, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
 
 ## Type Catalog
 

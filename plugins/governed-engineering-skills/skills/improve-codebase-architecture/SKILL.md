@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+description: Scan an existing codebase for deepening and data-flow opportunities, compare execution cost, real-time feasibility, maintainability, extensibility, and model evidence, present candidates as a visual HTML report, then grill through the selected candidate.
 ---
 
 # Improve Codebase Architecture
@@ -13,6 +13,7 @@ This command is _informed_ by the project's domain model and built on a shared d
 
 - Run the `/codebase-design` skill for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."
 - The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.
+- Read the governance skill's [evidence-calibrated Flow cost review](../govern-modular-event-architecture/references/flow-cost-review.md). Apply its four ordered dimensions and fail-closed model-assurance rules before assigning recommendation strength.
 
 ## Process
 
@@ -35,6 +36,19 @@ Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't
 
 Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
 
+For every material candidate, reconstruct the actual as-is Flow before proposing
+the target. Trace ordered Module/Port/Event steps, state commits, callbacks,
+side effects, errors, execution contexts, data ownership, payload lifetime, and
+resource costs. Establish a production-equivalent baseline when execution
+evidence can change the recommendation. Do not treat an accepted external
+contract as evidence that the internal orchestration is good.
+
+Compare at least two structurally different target Flows when the candidate
+changes data or control movement. Screen functional admission first, then
+execution and real-time constraints, concrete change scenarios, and model
+assurance. A local refactor may report Flow impact `N/A` only with a specific
+source-backed reason.
+
 ### 2. Present candidates as an HTML report
 
 Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
@@ -48,6 +62,9 @@ For each candidate, render a card with:
 - **Solution** — plain English description of what would change
 - **Benefits** — explained in terms of locality and leverage, and how tests would improve
 - **Before / After diagram** — side-by-side, custom-drawn, illustrating the shallowness and the deepening
+- **Flow evidence** — as-is/target sequence, critical path, model verdict, predicted/observed error, scenario coverage, resource headroom, and blocked evidence
+- **Evolution evidence** — source/subscriber/adapter/stage/platform change scenarios and their affected interfaces, mappings, tests, and deployment artifacts
+- **Candidate tradeoffs** — constraint failures followed by a Pareto comparison; never a universal weighted score
 - **Recommendation strength** — one of `Strong`, `Worth exploring`, `Speculative`, rendered as a badge
 
 End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
@@ -63,6 +80,11 @@ Do NOT propose interfaces yet. After the file is written, ask the user: "Which o
 ### 3. Grilling loop
 
 Once the user picks a candidate, run the `/grilling` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
+
+Do not call an `estimated` model a performance winner. Resolve budgets,
+platform/toolchain facts, benchmark triggers, prediction errors, reserves, and
+load-bearing scenario gaps before a calibrated or validated claim. Route
+required physical/OS evidence through `$validate-on-device`.
 
 Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:
 

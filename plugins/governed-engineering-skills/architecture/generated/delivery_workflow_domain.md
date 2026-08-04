@@ -90,7 +90,7 @@ flowchart TD
 
 ### `governed-change-set-lifecycle`
 
-Reconcile one modifying change set into a canonical specification, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
+Reconcile one modifying change set into a canonical specification, review material Flow costs and evidence, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
 
 #### Flow Diagram
 
@@ -98,18 +98,21 @@ Reconcile one modifying change set into a canonical specification, materialize i
 sequenceDiagram
     participant n_delivery_workflow_domain as delivery_workflow_domain
     participant n_spec_governance_domain as spec_governance_domain
+    participant n_governance_workflow_domain as governance_workflow_domain
     n_delivery_workflow_domain->>+n_spec_governance_domain: Classify the confirmed statement, update stable relationships, and report the working specification delta, conflicts, and open decisions.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: step 1
-    n_spec_governance_domain->>+n_delivery_workflow_domain: Present the decision-complete specification and wait for exact repository execution authorization without writing files.
-    n_delivery_workflow_domain-->>-n_spec_governance_domain: step 2
+    n_spec_governance_domain->>+n_governance_workflow_domain: Review every material as-is and target Flow through functional admission, execution and real-time feasibility, maintainability and extensibility change scenarios, and model assurance; keep unresolved load-bearing evidence BLOCKED.
+    n_governance_workflow_domain-->>-n_spec_governance_domain: step 2
+    n_governance_workflow_domain->>+n_delivery_workflow_domain: Present the decision-complete specification and wait for exact repository execution authorization without writing files.
+    n_delivery_workflow_domain-->>-n_governance_workflow_domain: step 3
     n_delivery_workflow_domain->>+n_spec_governance_domain: Materialize the authorized canonical specification under specs/ and preserve it if tracker publication later fails.
-    n_spec_governance_domain-->>-n_delivery_workflow_domain: step 3
+    n_spec_governance_domain-->>-n_delivery_workflow_domain: step 4
     n_spec_governance_domain->>+n_delivery_workflow_domain: Publish a tracker snapshot that names the repository specification as canonical.
-    n_delivery_workflow_domain-->>-n_spec_governance_domain: step 4
+    n_delivery_workflow_domain-->>-n_spec_governance_domain: step 5
     n_delivery_workflow_domain->>+n_spec_governance_domain: Verify requirement-to-acceptance-to-validation traceability and return to grilling only when the request introduces a new decision or conflict.
-    n_spec_governance_domain-->>-n_delivery_workflow_domain: step 5
+    n_spec_governance_domain-->>-n_delivery_workflow_domain: step 6
     n_spec_governance_domain->>+n_delivery_workflow_domain: Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes.
-    n_delivery_workflow_domain-->>-n_spec_governance_domain: step 6
+    n_delivery_workflow_domain-->>-n_spec_governance_domain: step 7
 ```
 
 #### Ordered Steps
@@ -117,16 +120,18 @@ sequenceDiagram
 | # | Module | Action | Receives | Emits | State changes | Side effects |
 |---|---|---|---|---|---|---|
 | 1 | `spec_governance_domain` | Classify the confirmed statement, update stable relationships, and report the working specification delta, conflicts, and open decisions. | `spec-governance.reconcile` | None | None | None |
-| 2 | `delivery_workflow_domain` | Present the decision-complete specification and wait for exact repository execution authorization without writing files. | None | None | None | None |
-| 3 | `spec_governance_domain` | Materialize the authorized canonical specification under specs/ and preserve it if tracker publication later fails. | `spec-governance.materialize` | None | None | Write one canonical specification revision. |
-| 4 | `delivery_workflow_domain` | Publish a tracker snapshot that names the repository specification as canonical. | None | None | None | Create or update one tracker Issue when configured. |
-| 5 | `spec_governance_domain` | Verify requirement-to-acceptance-to-validation traceability and return to grilling only when the request introduces a new decision or conflict. | `spec-governance.verify` | None | None | None |
-| 6 | `delivery_workflow_domain` | Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes. | None | None | None | Update the canonical specification with PASS evidence and implemented status. |
+| 2 | `governance_workflow_domain` | Review every material as-is and target Flow through functional admission, execution and real-time feasibility, maintainability and extensibility change scenarios, and model assurance; keep unresolved load-bearing evidence BLOCKED. | None | None | None | None |
+| 3 | `delivery_workflow_domain` | Present the decision-complete specification and wait for exact repository execution authorization without writing files. | None | None | None | None |
+| 4 | `spec_governance_domain` | Materialize the authorized canonical specification under specs/ and preserve it if tracker publication later fails. | `spec-governance.materialize` | None | None | Write one canonical specification revision. |
+| 5 | `delivery_workflow_domain` | Publish a tracker snapshot that names the repository specification as canonical. | None | None | None | Create or update one tracker Issue when configured. |
+| 6 | `spec_governance_domain` | Verify requirement-to-acceptance-to-validation traceability and return to grilling only when the request introduces a new decision or conflict. | `spec-governance.verify` | None | None | None |
+| 7 | `delivery_workflow_domain` | Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes. | None | None | None | Update the canonical specification with PASS evidence and implemented status. |
 
 - **Success:** The implemented behavior is traceable to one canonical specification whose requirements and acceptance criteria have verified PASS evidence.
 - **Errors:** Reconciliation finds an unresolved conflict or conclusion-changing decision. → `spec-governance.blocked` → Remain in grilling and ask exactly one conclusion-changing question.
+- **Errors:** A material Flow has unresolved platform units, cost paths, budgets, model error, reserve, interference, or scenario coverage. → `spec-governance.blocked` → Preserve directional analysis but keep the performance or real-time claim BLOCKED until the required evidence is calibrated.
 - **Errors:** Canonical materialization succeeds but tracker publication fails. → `delivery.tracker-publication-pending` → Preserve the canonical specification and report BLOCKED with a retry target.
 
 #### Execution efficiency
 
-- Workload `governed-change-set-workload`: `best-effort`; steps `governed-change-set-lifecycle.reconcile`, `governed-change-set-lifecycle.authorize`, `governed-change-set-lifecycle.materialize`, `governed-change-set-lifecycle.publish`, `governed-change-set-lifecycle.verify`, `governed-change-set-lifecycle.implement-review`; profiles None.
+- Workload `governed-change-set-workload`: `best-effort`; steps `governed-change-set-lifecycle.reconcile`, `governed-change-set-lifecycle.review-flow-cost`, `governed-change-set-lifecycle.authorize`, `governed-change-set-lifecycle.materialize`, `governed-change-set-lifecycle.publish`, `governed-change-set-lifecycle.verify`, `governed-change-set-lifecycle.implement-review`; profiles None.
