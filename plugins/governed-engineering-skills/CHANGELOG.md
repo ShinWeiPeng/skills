@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.2
+
+### Added
+
+- Added the resume_confirmed_spec Python and CLI routing option with fail-closed validation.
+
+### Fixed
+
+- Required explicit confirmed-spec resume evidence so docs-only new work cannot bypass grill-with-docs.
+
 ## 0.5.0-beta.1
 
 ### Added

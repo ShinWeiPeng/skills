@@ -1,26 +1,18 @@
 {
   "schema_version": "1.0",
-  "current_version": "0.5.0-beta.1",
-  "previous_version": "0.4.0-beta.1",
+  "current_version": "0.5.0-beta.2",
+  "previous_version": "0.5.0-beta.1",
   "release_group": "0.5.0",
   "bump": "minor",
   "risk": "high",
-  "production_fingerprint": "sha256:8de917ea3e299caf4c0438dc0c6c84450a5178ec33e54571724e806cc9444337",
+  "production_fingerprint": "sha256:665afc33c6d9790484e6a9fb5a178bc8421b4138a58076a7c886dd73afd13438",
   "final_rc_fingerprint": null,
   "applied_changesets": [
-    "canonical-spec-governance"
+    "canonical-spec-governance",
+    "docs-only-routing-precedence"
   ],
   "approval": null,
-  "validation_evidence": [
-    {
-      "kind": "development",
-      "reference": "validation/0.5.0-beta.1.md"
-    },
-    {
-      "kind": "release-static",
-      "reference": "validation/0.5.0-beta.1.md"
-    }
-  ],
+  "validation_evidence": [],
   "open_blockers": [],
-  "new_release_group": true
+  "new_release_group": false
 }

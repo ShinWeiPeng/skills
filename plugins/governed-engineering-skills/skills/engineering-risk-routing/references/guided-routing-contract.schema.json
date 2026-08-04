@@ -72,6 +72,18 @@
       },
       "additionalProperties": false
     },
+    "WorkflowSelectionOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "resume_confirmed_spec": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mapped workflow-domain evidence for confirmed-spec continuation."
+        }
+      },
+      "additionalProperties": false
+    },
     "SpecContextAssessment": {
       "type": "object",
       "required": ["state", "selected_path", "candidates", "reason"],

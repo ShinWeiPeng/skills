@@ -56,8 +56,9 @@ Pinned upstream snapshots remain unchanged.
 - No repository spec exists before explicit authorization.
 - A confirmed spec changes an implementation-absent repository from context absent
   to context present.
-- Later tasks verify the resolved confirmed spec and resume without grilling when no
-  new decision or conflict exists.
+- Later tasks verify and resume the resolved confirmed spec without grilling only
+  when the caller supplies explicit resume evidence and no new decision or conflict
+  exists; resolution alone proves durable context.
 - Multiple candidates block; implemented specs are not active fallback.
 - Every confirmed requirement has an acceptance criterion; every implemented
   acceptance criterion has PASS evidence and a passing Spec review.

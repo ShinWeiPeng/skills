@@ -140,6 +140,7 @@ def select_workflow(
     tracker_available: bool = True,
     has_unresolved_decision: bool = False,
     spec_context: dict[str, Any] | None = None,
+    resume_confirmed_spec: bool = False,
 ) -> dict[str, Any]:
     """Select the authoritative workflow handoff after ordered assessments."""
     completed = completed_stages or set()
@@ -156,7 +157,11 @@ def select_workflow(
     spec_state = resolved_spec["state"]
     grilling_complete = bool(
         completed & {"grilling", "grill-me", "grill-with-docs"}
-    ) or (spec_state == "confirmed" and "spec-verified" in completed)
+    ) or (
+        resume_confirmed_spec
+        and spec_state == "confirmed"
+        and "spec-verified" in completed
+    )
 
     def decision(
         selected_skill: str | None,
@@ -224,6 +229,16 @@ def select_workflow(
             resume_target="intent-decision",
         )
 
+    if modifies and resume_confirmed_spec and spec_state != "confirmed":
+        return capability_checked(
+            "spec-governance",
+            reason=(
+                "Confirmed-spec resume evidence requires exactly one valid "
+                "confirmed canonical specification."
+            ),
+            resume_target="spec-context-decision",
+        ) | {"status": "BLOCKED"}
+
     if modifies and spec_state in {"ambiguous", "invalid"}:
         return capability_checked(
             "spec-governance",
@@ -263,7 +278,12 @@ def select_workflow(
             else risk_decision.get("next_skill")
         )
 
-    if modifies and spec_state == "confirmed" and "spec-verified" not in completed:
+    if (
+        modifies
+        and resume_confirmed_spec
+        and spec_state == "confirmed"
+        and "spec-verified" not in completed
+    ):
         return capability_checked(
             "spec-governance",
             reason="The confirmed canonical spec must verify before execution resumes.",

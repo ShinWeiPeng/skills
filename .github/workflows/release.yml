@@ -81,7 +81,7 @@ jobs:
           --baseline plugins/governed-engineering-skills/architecture/baseline.yaml
 
   release-tooling-validation:
-    name: Release tooling / Changesets
+    name: Release tooling / Governed plugin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -89,35 +89,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Prepare Changesets base branch
-        if: github.event_name == 'pull_request'
-        run: |
-          if ! git show-ref --verify --quiet refs/heads/main; then
-            git branch --track main origin/main
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - name: Install release dependencies
-        run: npm ci
-
-      - name: Audit release dependencies
-        run: npm audit --audit-level=high
-
-      - name: Validate root Changesets release plan
-        if: github.event_name != 'pull_request' || github.head_ref != 'changeset-release/main'
-        run: npx changeset status
-
-      - name: Validate isolated plugin release metadata
-        run: npm run check:plugin-version
+      - name: Validate governed plugin release metadata
+        run: python plugins/governed-engineering-skills/scripts/version_governance.py check
 
   release:
     name: Version
@@ -135,44 +113,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Prepare root and plugin version files
+      - name: Apply governed plugin release intent
         id: version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          npm run version
+          python plugins/governed-engineering-skills/scripts/version_governance.py apply-intent
+          python plugins/governed-engineering-skills/scripts/version_governance.py check
           if git diff --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create or update the shared Version Pull Request
+      - name: Create or update the governed plugin Version Pull Request
         if: steps.version.outputs.changed == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          branch="changeset-release/main"
+          branch="plugin-release/main"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$branch"
           git add -A
-          git commit -m "chore: version skills"
+          git commit -m "chore: version governed engineering skills"
           git push --force-with-lease origin "HEAD:$branch"
           open_pr_url="$(
             gh pr list --state open --base main --head "$branch" \
@@ -182,18 +151,24 @@ jobs:
           )"
           if [ -n "$open_pr_url" ]; then
             gh pr edit "$open_pr_url" \
-              --title "chore: version skills" \
-              --body "Automated root Changesets and governed plugin version update."
+              --title "chore: version governed engineering skills" \
+              --body "Automated governed plugin version update."
           else
             gh pr create \
               --base main \
               --head "$branch" \
-              --title "chore: version skills" \
-              --body "Automated root Changesets and governed plugin version update."
+              --title "chore: version governed engineering skills" \
+              --body "Automated governed plugin version update."
           fi
 
-      - name: Tag unchanged released versions
+      - name: Create missing governed plugin release tag
         if: steps.version.outputs.changed == 'false'
+        shell: bash
         run: |
-          npm run tag
-          git push origin --tags
+          tag="$(python plugins/governed-engineering-skills/scripts/version_governance.py tag)"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists; no release tag is needed."
+          else
+            python plugins/governed-engineering-skills/scripts/version_governance.py tag --write
+            git push origin "refs/tags/$tag"
+          fi

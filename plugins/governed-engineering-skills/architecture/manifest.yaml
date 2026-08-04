@@ -89,6 +89,8 @@ modules:
     - Every repository-modifying change set completes grilling before mutation.
     - Discoverable facts are explored before any unresolved decision is asked.
     - A newly discovered discretionary decision stops execution and returns to grilling.
+    - A confirmed specification resumes only when the caller supplies explicit
+      resume evidence; discovery alone proves only durable context.
     - Never route standalone learning-note or HackMD work.
   entrypoints:
   - path: skills/ask-matt/SKILL.md
@@ -163,6 +165,9 @@ modules:
     invariants:
     - Explicit skills outrank inferred intent.
     - Intent selects the primary flow before project state and risk gates are applied.
+    - A uniquely resolved confirmed specification does not bypass ProjectState
+      interview precedence without explicit resume evidence.
+    - Resume evidence fails closed unless it identifies one valid confirmed specification.
     - Indeterminate intent or project state is never silently guessed.
     - Risk classification adds gates but never replaces the primary user intent.
   entrypoints:
@@ -230,7 +235,8 @@ modules:
     invariants:
     - Mutation and commits require task and repository authorization.
     - Every repository-modifying change set has one canonical specification before implementation.
-    - A confirmed specification is verified rather than re-interviewed unless new decisions appear.
+    - A confirmed specification is verified rather than re-interviewed only with
+      explicit resume evidence and no new decision or conflict.
   entrypoints:
   - path: skills/implement/SKILL.md
     symbol: implement
@@ -507,8 +513,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Validate and promote the plugin through isolated SemVer prerelease
-      stages without changing the root package release state.
+    purpose: Validate and promote the repository's only release unit through
+      isolated plugin SemVer prerelease stages.
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -519,7 +525,7 @@ modules:
     errors: []
     invariants:
     - Plugin package and Codex manifest versions remain identical.
-    - Root Changesets prerelease state is never read or modified.
+    - Plugin release metadata is the repository's sole active version authority.
     - Local Codex cachebusters never become formal release versions.
     - Invalid transitions or incomplete evidence are rejected before any release
       file is modified.
@@ -954,6 +960,29 @@ types:
     type: boolean
     role: policy
     meaning: Whether the change set must complete grilling before mutation.
+- id: workflow-selection-options
+  owner: workflow_routing_domain
+  language: json-schema
+  declaration:
+    path: skills/engineering-risk-routing/references/guided-routing-contract.schema.json
+    symbol: WorkflowSelectionOptions
+    kind: interface
+  visibility: cross-module
+  semantic_kind: domain-value
+  description: Explicit caller evidence that controls safe workflow-selection exceptions.
+  lifetime: One guided route.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - guided_workflow_router
+  - workflow_routing_domain
+  references: []
+  fields:
+  - name: resume_confirmed_spec
+    type: boolean
+    role: contract-control
+    meaning: True only when the request explicitly continues the selected confirmed
+      specification without a new decision or conflict; defaults to false.
 - id: guided-route-decision
   owner: workflow_routing_domain
   language: json-schema
@@ -1620,8 +1649,9 @@ flows:
   - id: governed-engineering-route.select
     order: 3
     module: workflow_routing_domain
-    action: Apply explicit-skill, intent, project-state, risk-gate, capability, and
-      wayfinder precedence to produce the authoritative GuidedRouteDecision.
+    action: Apply explicit-skill, intent, project-state, confirmed-spec resume
+      evidence, risk-gate, capability, and wayfinder precedence to produce the
+      authoritative GuidedRouteDecision.
     receives:
     - workflow-routing.select
     emits: []

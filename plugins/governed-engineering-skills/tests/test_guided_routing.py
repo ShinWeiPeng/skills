@@ -37,6 +37,72 @@ WORKFLOW_SELECTION = load_module(
     SCRIPTS_ROOT / "workflow_selection.py",
 )
 
+CONFIRMED_SPEC_TEXT = """---
+spec_version: 1
+spec_id: SPEC-0001
+revision: 1
+status: confirmed
+change_set: payment-retry
+---
+
+# Payment retry
+
+## Problem
+
+Retries are inconsistent.
+
+## Solution
+
+Use one bounded retry policy.
+
+## User Stories
+
+- As an operator, I can observe retry exhaustion.
+
+## Requirements
+
+| ID | Requirement |
+|---|---|
+| REQ-001 | Retry at most three times. |
+
+## Decisions
+
+| ID | Decision |
+|---|---|
+| DEC-001 | Use bounded retry. |
+
+## Acceptance Criteria
+
+| ID | Requirements | Criterion | Validation Method | Evidence |
+|---|---|---|---|---|
+| AC-001 | REQ-001 | A fourth attempt is rejected. | `test_retry_limit` | pending |
+
+## Relationships
+
+| Source | Relation | Target |
+|---|---|---|
+| REQ-001 | depends_on | DEC-001 |
+
+## Out of Scope
+
+- Changing payment providers.
+
+## Open Decisions
+
+None.
+
+## Routing/Gates
+
+- TDD
+- Spec review: pending
+
+## Revision History
+
+| Revision | Date | Change |
+|---|---|---|
+| 1 | 2026-08-03 | Initial confirmed contract. |
+"""
+
 
 class ProjectStateAssessmentTests(unittest.TestCase):
     def test_empty_repository_is_absent_on_both_axes(self) -> None:
@@ -462,6 +528,36 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         self.assertEqual("grill-with-docs", result["selected_skill"])
         self.assertEqual("to-spec", result["resume_target"])
 
+    def test_doc_only_confirmed_spec_without_resume_still_grills_with_docs(
+        self,
+    ) -> None:
+        spec_context = {
+            "state": "confirmed",
+            "selected_path": "specs/SPEC-0001-payment-retry.md",
+            "candidates": ["specs/SPEC-0001-payment-retry.md"],
+            "reason": "unique confirmed specification",
+        }
+
+        result = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("新增不同的付款部署規格"),
+            PROJECT_STATE.assess_project_state(
+                [
+                    {
+                        "path": spec_context["selected_path"],
+                        "tracking": "tracked",
+                        "size_bytes": 100,
+                    }
+                ]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS,
+            spec_context=spec_context,
+        )
+
+        self.assertEqual("PASS", result["status"])
+        self.assertEqual("grill-with-docs", result["selected_skill"])
+        self.assertEqual("to-spec", result["resume_target"])
+
     def test_existing_implementation_modification_starts_with_grilling(self) -> None:
         result = WORKFLOW_SELECTION.select_workflow(
             WORKFLOW_SELECTION.classify_intent("修改付款重試規則"),
@@ -680,6 +776,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             self.RISK,
             available_skills=self.SKILLS,
             spec_context=spec_context,
+            resume_confirmed_spec=True,
         )
         resume = WORKFLOW_SELECTION.select_workflow(
             WORKFLOW_SELECTION.classify_intent("修改付款重試規則"),
@@ -688,12 +785,61 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             available_skills=self.SKILLS,
             spec_context=spec_context,
             completed_stages={"spec-verified"},
+            resume_confirmed_spec=True,
         )
 
         self.assertEqual("spec-governance", verify["selected_skill"])
         self.assertEqual("tdd", verify["resume_target"])
         self.assertEqual("tdd", resume["selected_skill"])
         self.assertNotIn(resume["selected_skill"], {"grilling", "grill-with-docs"})
+
+    def test_resume_requires_exactly_one_valid_confirmed_spec(self) -> None:
+        contexts = {
+            "none": None,
+            "ambiguous": {
+                "state": "ambiguous",
+                "selected_path": None,
+                "candidates": ["specs/SPEC-0001-a.md", "specs/SPEC-0002-b.md"],
+                "reason": "multiple confirmed specifications",
+            },
+            "invalid": {
+                "state": "invalid",
+                "selected_path": None,
+                "candidates": ["specs/SPEC-0001-invalid.md"],
+                "reason": "repository contains invalid specifications",
+            },
+            "implemented": {
+                "state": "implemented",
+                "selected_path": "specs/SPEC-0001-payment-retry.md",
+                "candidates": ["specs/SPEC-0001-payment-retry.md"],
+                "reason": "explicit canonical path",
+            },
+        }
+
+        for state, spec_context in contexts.items():
+            with self.subTest(state=state):
+                result = WORKFLOW_SELECTION.select_workflow(
+                    WORKFLOW_SELECTION.classify_intent(
+                        "修改付款規格並繼續既有 change set"
+                    ),
+                    PROJECT_STATE.assess_project_state(
+                        [
+                            {
+                                "path": "CONTEXT.md",
+                                "tracking": "tracked",
+                                "size_bytes": 100,
+                            }
+                        ]
+                    ),
+                    self.RISK,
+                    available_skills=self.SKILLS,
+                    spec_context=spec_context,
+                    resume_confirmed_spec=True,
+                )
+
+                self.assertEqual("BLOCKED", result["status"])
+                self.assertEqual("spec-governance", result["selected_skill"])
+                self.assertEqual("spec-context-decision", result["resume_target"])
 
     def test_ambiguous_spec_context_blocks_without_guessing(self) -> None:
         result = WORKFLOW_SELECTION.select_workflow(
@@ -874,6 +1020,43 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 msg=skill,
             )
 
+    def test_resume_documentation_requires_explicit_evidence(self) -> None:
+        ask_matt = (PLUGIN_ROOT / "skills" / "ask-matt" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        risk_routing = (
+            PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+        grill_with_docs = (
+            PLUGIN_ROOT / "skills" / "grill-with-docs" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+        algorithm = (
+            PLUGIN_ROOT
+            / "architecture"
+            / "algorithms"
+            / "ALG-0003-ordered-workflow-selection.md"
+        ).read_text(encoding="utf-8")
+        canonical_spec_adr = (
+            PLUGIN_ROOT
+            / "architecture"
+            / "decisions"
+            / "ADR-0011-canonical-change-set-specification.md"
+        ).read_text(encoding="utf-8")
+        manifest = (PLUGIN_ROOT / "architecture" / "manifest.yaml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("resume_confirmed_spec=true", ask_matt)
+        self.assertIn("--resume-confirmed-spec", risk_routing)
+        self.assertIn("explicit resume evidence", grill_with_docs)
+        self.assertIn("resume_confirmed_spec", algorithm)
+        self.assertIn("explicit resume evidence", canonical_spec_adr)
+        self.assertIn("explicit resume evidence", manifest)
+        self.assertNotIn(
+            "verified rather than re-interviewed unless",
+            manifest,
+        )
+
     def test_schema_declares_all_public_contracts(self) -> None:
         schema = json.loads(
             (
@@ -892,10 +1075,14 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 "ProjectStateAssessment",
                 "IntentAssessment",
                 "SpecContextAssessment",
+                "WorkflowSelectionOptions",
                 "GuidedRouteDecision",
             },
             set(schema["$defs"]),
         )
+        options = schema["$defs"]["WorkflowSelectionOptions"]
+        self.assertEqual([], options["required"])
+        self.assertFalse(options["properties"]["resume_confirmed_spec"]["default"])
         decision = schema["$defs"]["GuidedRouteDecision"]
         self.assertIn("DEGRADED", decision["properties"]["status"]["enum"])
         self.assertIn("project_state", decision["required"])
@@ -945,6 +1132,73 @@ class GuidedRoutingContractTests(unittest.TestCase):
         self.assertEqual("grill-me", result["selected_skill"])
         self.assertEqual("absent", result["project_state"]["implementation"])
         self.assertEqual("absent", result["project_state"]["stateful_context"])
+
+    def test_cli_requires_explicit_flag_to_resume_a_confirmed_spec(self) -> None:
+        build_root = PLUGIN_ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=build_root) as directory:
+            root = Path(directory)
+            specs_dir = root / "specs"
+            specs_dir.mkdir()
+            (specs_dir / "SPEC-0001-payment-retry.md").write_text(
+                CONFIRMED_SPEC_TEXT,
+                encoding="utf-8",
+            )
+            subprocess.run(
+                ["git", "init"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "add", "specs/SPEC-0001-payment-retry.md"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            base_command = [
+                sys.executable,
+                str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                "--project-root",
+                str(root),
+                "--json",
+            ]
+            default_route = subprocess.run(
+                [
+                    *base_command,
+                    "--prompt",
+                    "新增另一個付款部署規格",
+                ],
+                cwd=PLUGIN_ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+            resume_route = subprocess.run(
+                [
+                    *base_command,
+                    "--prompt",
+                    "修改並繼續既有付款 change set",
+                    "--resume-confirmed-spec",
+                ],
+                cwd=PLUGIN_ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+
+        self.assertEqual(
+            "grill-with-docs",
+            json.loads(default_route.stdout)["selected_skill"],
+        )
+        self.assertEqual(
+            "spec-governance",
+            json.loads(resume_route.stdout)["selected_skill"],
+        )
 
     def test_cli_pass_output_is_one_summary_line(self) -> None:
         build_root = PLUGIN_ROOT / "build"

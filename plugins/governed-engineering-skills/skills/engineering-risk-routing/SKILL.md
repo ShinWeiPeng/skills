@@ -31,6 +31,11 @@ Classify before an engineering workflow performs mutation. Keep this skill model
 4. If `task_class` is `out_of_scope`, do not route it through `ask-matt`. Standalone learning-note creation remains owned by the independently installed note skill.
 5. If status is `BLOCKED`, state the missing capability or unpassed gate and stop before mutation. Never replace architecture or device evidence with a build, ordinary log, or lower-risk flow.
 
+When composing the authoritative guided workflow route, pass
+`--resume-confirmed-spec` only for an explicit request to execute or continue the
+resolved confirmed spec with no new decision or conflict. The flag defaults to
+false; spec discovery without the flag follows ProjectState interview precedence.
+
 ## Precedence
 
 - `R3 Runtime-critical` outranks `R2 Governed`, which outranks `R1 Standard`, which outranks `R0 Knowledge`.
