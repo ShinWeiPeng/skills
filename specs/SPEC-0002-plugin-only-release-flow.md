@@ -1,8 +1,8 @@
 ---
 spec_version: 1
 spec_id: SPEC-0002
-revision: 2
-status: confirmed
+revision: 3
+status: implemented
 change_set: plugin-only-release-flow
 ---
 
@@ -63,11 +63,11 @@ and keep existing tags immutable.
 | ID | Requirements | Criterion | Validation Method | Evidence |
 |---|---|---|---|---|
 | AC-001 | REQ-001, REQ-002 | Active release configuration contains no root Changesets files, Node release manifest or lockfile, `npx changeset status`, Node setup, npm install, or npm audit. | File-existence and targeted text checks plus workflow contract tests. | PASS — root release artifacts are absent, targeted active-workflow search is empty, and plugin-only workflow contract tests pass. |
-| AC-002 | REQ-003 | The workflow directly applies and validates plugin intent and creates or updates only an open `plugin-release/main` Version pull request with the confirmed title and plugin-only body. | Workflow contract tests and GitHub Actions pull-request run. | LOCAL PASS — workflow contracts pass; hosted GitHub Actions evidence is pending commit and push. |
+| AC-002 | REQ-003 | The workflow directly applies and validates plugin intent and creates or updates only an open `plugin-release/main` Version pull request with the confirmed title and plugin-only body. | Workflow contract tests and GitHub Actions pull-request run. | PASS — workflow contracts pass and PR #14 run `30874535006` completed the plugin release check plus all six Governance jobs successfully. |
 | AC-003 | REQ-004 | The workflow skips an existing version tag and creates and pushes a missing version tag without changing the strict tag-writer behavior. | Workflow contract tests plus controlled local tag tests. | PASS — workflow guards on the exact remote tag, pushes only that tag when absent, and the CLI regression proves an existing tag cannot move. |
 | AC-004 | REQ-005, REQ-006 | Plugin public metadata and tag format remain unchanged; source documentation, proposed ADR, manifest, and generated views consistently describe one release unit. | Version governance, documentation assertions, deterministic render comparison, and architecture release gate. | PASS — version check, deterministic renderer, plugin release gate, and Standards review pass with no findings. |
 | AC-005 | REQ-007 | Pending patch release metadata validates at `0.5.0-beta.2`; applying it in an isolated fixture produces `0.5.0-beta.3`. | Version-governance unit tests and repository check. | PASS — branch metadata remains beta.2, release intent validates, and the successive-intent fixture produces beta.3. |
-| AC-006 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007 | Focused tests, complete plugin tests, integration validation, version governance, architecture release gates, and diff hygiene all pass. | Recorded commands, exit codes, and minimal raw output in the implementation handoff. | PASS — 119 tests, 28-skill integration, version governance, spec validation, workflow YAML parsing, both architecture release gates, and `git diff --check` exit 0. |
+| AC-006 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007 | Focused tests, complete plugin tests, integration validation, version governance, architecture release gates, and diff hygiene all pass. | Recorded commands, exit codes, and minimal raw output in the implementation handoff. | PASS — 119 local tests, 28-skill integration, version governance, spec validation, workflow YAML parsing, both architecture release gates, `git diff --check`, six hosted Governance jobs, and the hosted plugin release check exit successfully. |
 
 ## Relationships
 
@@ -98,8 +98,8 @@ None.
 
 - Grilling: PASS — the maintainer confirmed plugin-only ownership and an automated
   Version pull request.
-- Spec verification: PASS — revision 2 has complete REQ-to-AC traceability and no
-  open decisions; hosted AC-002 evidence remains pending.
+- Spec verification: PASS — revision 3 has complete REQ-to-AC traceability,
+  no open decisions, and PASS evidence for every acceptance criterion.
 - Clarify improvement proposal: PASS — release scope, compatibility, migration,
   tag behavior, and validation were confirmed.
 - Architecture proposal: PASS — only existing module descriptions and generated
@@ -108,8 +108,10 @@ None.
   complete 119-test suite passes.
 - Code review Standards axis: PASS — no documented-standard violation or
   actionable Fowler smell.
-- Code review Spec axis: PASS for implementation — no missing requirement,
-  incorrect behavior, or scope creep; AC-002 hosted evidence remains pending.
+- Code review Spec axis: PASS — no missing requirement, unverified acceptance
+  criterion, incorrect behavior, or scope creep.
+- Spec review: PASS — all requirements and acceptance criteria are covered by
+  local or hosted evidence, including PR #14 run `30874535006`.
 
 ## Revision History
 
@@ -117,3 +119,4 @@ None.
 |---|---|---|
 | 1 | 2026-08-04 | Materialized the authorized plugin-only release-flow contract. |
 | 2 | 2026-08-04 | Recorded passing local implementation, validation, architecture, and two-axis review evidence; kept hosted AC-002 pending. |
+| 3 | 2026-08-04 | Recorded PR #14 hosted Actions evidence and marked the fully verified change set implemented. |
