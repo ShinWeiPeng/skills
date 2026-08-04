@@ -1,0 +1,21 @@
+{
+  "bump": "patch",
+  "target_stage": "beta",
+  "risk": "high",
+  "new_release_group": false,
+  "changesets": [
+    "plugin-only-release-flow"
+  ],
+  "summary": {
+    "Changed": [
+      "Make the governed plugin the repository's only active release unit.",
+      "Create or update plugin-only Version pull requests from plugin-release/main."
+    ],
+    "Fixed": [
+      "Remove recurring root Changesets failures from valid plugin pull requests.",
+      "Skip existing plugin tags on non-release pushes without moving them."
+    ]
+  },
+  "approval": null,
+  "validation_evidence": []
+}

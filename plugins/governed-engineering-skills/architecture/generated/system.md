@@ -51,7 +51,7 @@ flowchart TD
 | `local_install_adapter` | L3+ | adapter | `-` | implemented | Register the repo-local marketplace through the supported Codex CLI command and open the governed plugin's Codex Desktop installation page. |
 | `vendor_sync_adapter` | L3+ | adapter | `-` | implemented | Hash vendored skills, refresh unmodified snapshots, and fail closed on overlay drift. |
 | `integration_validation_technical` | L3+ | technical | `-` | implemented | Validate plugin inventory, skill metadata, path portability, and learning-note isolation. |
-| `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and promote the plugin through isolated SemVer prerelease stages without changing the root package release state. |
+| `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and promote the repository's only release unit through isolated plugin SemVer prerelease stages. |
 | `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. |
 | `libclang_toolchain_adapter` | L3+ | adapter | `-` | implemented | Provision and verify the official lock-pinned Espressif libclang distribution for target-capable C/C++ governance. |
 
@@ -222,7 +222,7 @@ flowchart TD
 
 ### `plugin_release_governance_technical`
 
-- **Purpose:** Validate and promote the plugin through isolated SemVer prerelease stages without changing the root package release state.
+- **Purpose:** Validate and promote the repository's only release unit through isolated plugin SemVer prerelease stages.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -231,7 +231,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** An explicitly selected promotion updates plugin version metadata, release evidence, and the plugin changelog. (`-`)
 - **Errors:** None
-- **Invariants:** Plugin package and Codex manifest versions remain identical.; Root Changesets prerelease state is never read or modified.; Local Codex cachebusters never become formal release versions.; Invalid transitions or incomplete evidence are rejected before any release file is modified.; Starting a new major or minor prerelease group from an existing prerelease requires an explicit new-release-group request and a new changeset.
+- **Invariants:** Plugin package and Codex manifest versions remain identical.; Plugin release metadata is the repository's sole active version authority.; Local Codex cachebusters never become formal release versions.; Invalid transitions or incomplete evidence are rejected before any release file is modified.; Starting a new major or minor prerelease group from an existing prerelease requires an explicit new-release-group request and a new changeset.
 - **Entrypoints:** [`main`](../../scripts/version_governance.py) (cli)
 - **Public Symbols:** [`validate_repository`](../../scripts/version_governance.py) (function)
 

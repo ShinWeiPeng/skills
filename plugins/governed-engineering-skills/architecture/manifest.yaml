@@ -513,8 +513,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Validate and promote the plugin through isolated SemVer prerelease
-      stages without changing the root package release state.
+    purpose: Validate and promote the repository's only release unit through
+      isolated plugin SemVer prerelease stages.
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -525,7 +525,7 @@ modules:
     errors: []
     invariants:
     - Plugin package and Codex manifest versions remain identical.
-    - Root Changesets prerelease state is never read or modified.
+    - Plugin release metadata is the repository's sole active version authority.
     - Local Codex cachebusters never become formal release versions.
     - Invalid transitions or incomplete evidence are rejected before any release
       file is modified.

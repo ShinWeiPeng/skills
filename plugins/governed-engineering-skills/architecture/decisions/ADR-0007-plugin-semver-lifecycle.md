@@ -5,18 +5,22 @@
 
 ## Context
 
-The repository already versions the upstream `mattpocock-skills` package with
-Changesets. The governed Codex plugin has a separate compatibility lifecycle,
-and repository-wide Changesets prerelease mode would place unrelated packages
-into the same beta state.
+The repository previously versioned the private upstream `mattpocock-skills`
+root package with Changesets while the governed Codex plugin used a separate
+compatibility lifecycle. Only the plugin is maintained, installed, and
+published. Keeping the unused root release unit makes root Changesets interpret
+plugin files as root package changes and reject valid plugin pull requests that
+do not contain a duplicate root changeset.
 
 ## Decision
 
 Give `governed-engineering-skills` its own private package metadata, changeset
 records, changelog, release fingerprint, and alpha/beta/RC/stable state
-machine. Keep the root Changesets workflow for the upstream package and invoke
-the plugin's deterministic validation and tag adapter from the same Version
-workflow.
+machine. Make it the repository's only release unit. Remove root Changesets and
+Node release dependencies, validate plugin metadata directly with the Python
+governance CLI, and apply pending intent through an automated Version pull
+request on `plugin-release/main`. Create the immutable plugin version tag only
+when it is absent.
 
 Use `MAJOR.MINOR.PATCH[-STAGE.NUMBER]`. MAJOR and MINOR changes pass through
 beta and RC. Low-risk PATCH releases may be stable directly; high-risk PATCH
@@ -31,6 +35,10 @@ additionally requires an accepted compatibility ADR.
 
 - Repository-wide Changesets prerelease mode: rejected because prerelease state
   is shared and would affect unrelated packages.
+- Dual root/plugin release ledgers: rejected because the root package is not
+  published and duplicate empty root changesets add no release information.
+- Path-based root validation exemption: rejected because repository-level
+  specifications can accompany a plugin change and make ownership ambiguous.
 - Version-only manifest edits: rejected because they provide no changelog,
   transition validation, or evidence binding.
 - A second public governance CLI: rejected; version scripts remain a
@@ -39,9 +47,10 @@ additionally requires an accepted compatibility ADR.
 
 ## Benefits, costs, and tradeoffs
 
-The plugin gains visible maturity stages and reproducible promotion evidence.
-The cost is additional private package metadata and a plugin-specific release
-state file.
+The plugin retains visible maturity stages and reproducible promotion evidence
+while pull requests no longer require root empty changesets. Removing the Node
+release dependency reduces CI time and supply-chain surface. The cost is that
+the upstream root package no longer receives new versions or tags.
 
 ## Risks and mitigations
 
@@ -49,17 +58,27 @@ state file.
 - **Accidental local cachebuster release:** CI rejects build metadata.
 - **Stable release differs from RC:** the production fingerprint must match.
 - **Self-approval:** stable and `1.0.0` gates reject AI approver identities.
+- **Duplicate tag attempts on non-release pushes:** the workflow checks the
+  remote tag before invoking the strict tag writer and never moves an existing
+  tag.
 
 ## Compatibility and migration impact
 
-The current `0.1.0` development line enters `0.2.0-beta.1`. No npm package is
-published; package metadata exists only for version governance.
+Existing root versions, tags, and remote branches remain historical and are not
+rewritten or deleted. No npm package is published; plugin package metadata
+exists only for version governance. The plugin ID, installation path, SemVer
+policy, changelog, and `governed-engineering-skills@<version>` tag format remain
+unchanged.
 
 ## Validation
 
 - Unit-test every legal and illegal version transition.
 - Validate package, manifest, changelog, state, changeset, fingerprint, evidence,
   and approval consistency in CI.
+- Verify active release automation contains no root Changesets or Node release
+  dependency and only selects open `plugin-release/main` pull requests.
+- Verify existing version tags are skipped and missing tags are created exactly
+  once.
 - Run plugin integration validation and both architecture release gates.
 
 ## Approval

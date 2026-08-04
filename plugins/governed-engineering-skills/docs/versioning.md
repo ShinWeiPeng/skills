@@ -45,18 +45,21 @@ formal commits. A local reload may temporarily append exactly one
 `+codex.local-<timestamp>` cachebuster to the plugin manifest; CI rejects that
 suffix as a formal version.
 
-The plugin owns its `.changeset` directory. Do not run repository-level
-`changeset pre enter` for this plugin because that would place unrelated
-packages into the same prerelease state.
+The plugin owns the repository's only active release lifecycle and keeps all
+release records in its private `.changeset` directory. The repository root has no
+package version, Changesets state, or Node release dependencies.
 
 Each release-affecting plugin change adds a plugin changeset and
 `.changeset/release-intent.json`. The intent names the bump, target stage,
 risk, changeset IDs, structured changelog summary, and any approval or
-validation evidence. The shared Version workflow applies root Changesets first,
-then the isolated plugin intent, and commits both results to the same
-`changeset-release/main` pull request. With no version-file changes, that
-workflow creates the root and plugin tags instead.
+validation evidence. After a feature pull request reaches `main`, the Version
+workflow applies the isolated plugin intent and commits the resulting version,
+changelog, and release state to `plugin-release/main`. It creates or updates one
+open plugin Version pull request. After that pull request is merged, the workflow
+creates `governed-engineering-skills@<version>` only when the tag does not already
+exist. Pushes with no new release safely leave existing tags unchanged.
 
-Resolve a supported Python 3 runtime before invoking the npm release scripts.
-CI does this with `actions/setup-python`; an older `python` executable already
-present on a workstation is not a supported fallback.
+Resolve a supported Python 3 runtime before invoking
+`scripts/version_governance.py`. CI does this with `actions/setup-python`; an
+older `python` executable already present on a workstation is not a supported
+fallback.

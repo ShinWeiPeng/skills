@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -105,6 +107,17 @@ class SemVerPolicyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.next_version("0.2.0", bump="patch", target_stage="stable", risk="high")
 
+    def test_patch_in_existing_beta_group_advances_prerelease(self) -> None:
+        self.assertEqual(
+            "0.5.0-beta.3",
+            MODULE.next_version(
+                "0.5.0-beta.2",
+                bump="patch",
+                target_stage="beta",
+                risk="high",
+            ),
+        )
+
     def test_stable_promotion_requires_matching_rc_evidence(self) -> None:
         errors = MODULE.validate_promotion_evidence(
             "0.2.0-rc.1",
@@ -140,8 +153,13 @@ class SemVerPolicyTests(unittest.TestCase):
 
 
 class RepositoryPolicyTests(unittest.TestCase):
-    def make_repo(self, version: str = "0.2.0-beta.1") -> Path:
-        temporary = tempfile.TemporaryDirectory()
+    def make_repo(
+        self,
+        version: str = "0.2.0-beta.1",
+        *,
+        temporary_parent: Path | None = None,
+    ) -> Path:
+        temporary = tempfile.TemporaryDirectory(dir=temporary_parent)
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name) / "plugin"
         root.mkdir()
@@ -318,7 +336,7 @@ class RepositoryPolicyTests(unittest.TestCase):
             )
         self.assertEqual(before, (root / "package.json").read_bytes())
 
-    def test_pending_changeset_is_applied_by_shared_version_flow(self) -> None:
+    def test_pending_changeset_is_applied_by_plugin_version_flow(self) -> None:
         root = self.make_repo()
         (root / "skills" / "changed.md").write_text("changed", encoding="utf-8")
         (root / ".changeset" / "beta-fix.md").write_text(
@@ -344,6 +362,136 @@ class RepositoryPolicyTests(unittest.TestCase):
         self.assertEqual("0.2.0-beta.2", MODULE.apply_pending_intent(root))
         self.assertFalse(intent_path.exists())
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
+    def test_successive_plugin_release_intents_advance_to_beta_three(self) -> None:
+        root = self.make_repo()
+        (root / "skills" / "beta-two.md").write_text("beta two", encoding="utf-8")
+        (root / ".changeset" / "beta-two.md").write_text(
+            '---\n"governed-engineering-skills": patch\n---\n\nBeta two.\n',
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            "0.2.0-beta.2",
+            MODULE.apply_promotion(
+                root,
+                bump="patch",
+                target_stage="beta",
+                risk="high",
+                summary={"Fixed": ["Produced beta two."]},
+                changeset_ids=["beta-two"],
+                approval=None,
+                validation_evidence=[],
+            ),
+        )
+
+        (root / "skills" / "beta-three.md").write_text("beta three", encoding="utf-8")
+        (root / ".changeset" / "beta-three.md").write_text(
+            '---\n"governed-engineering-skills": patch\n---\n\nBeta three.\n',
+            encoding="utf-8",
+        )
+        intent_path = root / ".changeset" / "release-intent.json"
+        intent_path.write_text(
+            json.dumps(
+                {
+                    "bump": "patch",
+                    "target_stage": "beta",
+                    "risk": "high",
+                    "new_release_group": False,
+                    "changesets": ["beta-three"],
+                    "summary": {"Fixed": ["Produced beta three."]},
+                    "approval": None,
+                    "validation_evidence": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+        self.assertEqual("0.2.0-beta.3", MODULE.apply_pending_intent(root))
+        self.assertFalse(intent_path.exists())
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
+    def test_tag_cli_never_moves_an_existing_version_tag(self) -> None:
+        root = self.make_repo(temporary_parent=REPOSITORY_ROOT)
+        subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.name", "Version Test"],
+            cwd=root,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "version-test@example.invalid"],
+            cwd=root,
+            check=True,
+        )
+        subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+        )
+        first = subprocess.run(
+            [
+                sys.executable,
+                str(MODULE_PATH),
+                "--root",
+                str(root),
+                "tag",
+                "--write",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(0, first.returncode, first.stdout + first.stderr)
+        tagged_commit = subprocess.run(
+            ["git", "rev-list", "-n", "1", "governed-engineering-skills@0.2.0-beta.1"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+        (root / "README.md").write_text("later commit\n", encoding="utf-8")
+        subprocess.run(["git", "add", "README.md"], cwd=root, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "later"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+        )
+        second = subprocess.run(
+            [
+                sys.executable,
+                str(MODULE_PATH),
+                "--root",
+                str(root),
+                "tag",
+                "--write",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(1, second.returncode)
+        self.assertIn("already points at a different commit", second.stdout)
+        self.assertEqual(
+            tagged_commit,
+            subprocess.run(
+                [
+                    "git",
+                    "rev-list",
+                    "-n",
+                    "1",
+                    "governed-engineering-skills@0.2.0-beta.1",
+                ],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip(),
+        )
 
     def test_same_prerelease_group_accepts_historical_changesets_with_different_bumps(
         self,
@@ -446,49 +594,34 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         release_tooling_job, _, _ = workflow_after_job_marker.partition("\n  release:")
         return release_tooling_job
 
-    def test_changesets_validation_checkout_fetches_full_history(self) -> None:
-        release_tooling_job = self._release_tooling_job()
-        checkout_marker = "      - name: Checkout"
-        self.assertIn(checkout_marker, release_tooling_job)
-        _, _, workflow_after_checkout_marker = release_tooling_job.partition(
-            checkout_marker
-        )
-        checkout_step, _, _ = workflow_after_checkout_marker.partition(
-            "\n      - name:"
-        )
-
-        self.assertIn(
-            "\n        with:\n          fetch-depth: 0",
-            checkout_step,
-        )
-
-    def test_changesets_validation_materializes_main_idempotently_for_pull_requests(
-        self,
-    ) -> None:
+    def test_release_validation_is_plugin_only(self) -> None:
         release_tooling_job = self._release_tooling_job()
 
         self.assertIn(
-            "\n      - name: Prepare Changesets base branch"
-            "\n        if: github.event_name == 'pull_request'"
-            "\n        run: |"
-            "\n          if ! git show-ref --verify --quiet refs/heads/main; then"
-            "\n            git branch --track main origin/main"
-            "\n          fi",
+            "\n      - name: Validate governed plugin release metadata"
+            "\n        run: python plugins/governed-engineering-skills/"
+            "scripts/version_governance.py check",
             release_tooling_job,
         )
+        for forbidden in (
+            "Prepare Changesets base branch",
+            "Setup Node.js",
+            "npm ci",
+            "npm audit",
+            "npx changeset status",
+        ):
+            self.assertNotIn(forbidden, release_tooling_job)
 
-    def test_version_pull_request_skips_pending_changeset_validation(self) -> None:
-        release_tooling_job = self._release_tooling_job()
-        step_marker = "      - name: Validate root Changesets release plan"
-        self.assertIn(step_marker, release_tooling_job)
-        _, _, workflow_after_marker = release_tooling_job.partition(step_marker)
-        validation_step, _, _ = workflow_after_marker.partition("\n      - name:")
-
-        self.assertIn(
-            "\n        if: github.event_name != 'pull_request'"
-            " || github.head_ref != 'changeset-release/main'",
-            validation_step,
-        )
+    def test_root_release_tooling_is_removed(self) -> None:
+        for obsolete_path in (
+            REPOSITORY_ROOT / ".changeset",
+            REPOSITORY_ROOT / "package.json",
+            REPOSITORY_ROOT / "package-lock.json",
+        ):
+            self.assertFalse(
+                obsolete_path.exists(),
+                f"obsolete root release artifact remains: {obsolete_path}",
+            )
 
     def test_governed_plugin_text_files_checkout_with_lf(self) -> None:
         attributes_path = REPOSITORY_ROOT / ".gitattributes"
@@ -500,25 +633,32 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             attributes.splitlines(),
         )
 
-    def test_version_step_provides_github_token_to_changesets(self) -> None:
+    def test_version_step_applies_only_plugin_release_intent(self) -> None:
         workflow = (
             REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
         ).read_text(encoding="utf-8")
-        step_marker = "      - name: Prepare root and plugin version files"
+        step_marker = "      - name: Apply governed plugin release intent"
         self.assertIn(step_marker, workflow)
         _, _, workflow_after_marker = workflow.partition(step_marker)
         version_step, _, _ = workflow_after_marker.partition("\n      - name:")
 
         self.assertIn(
-            "\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}",
+            "\n          python plugins/governed-engineering-skills/"
+            "scripts/version_governance.py apply-intent"
+            "\n          python plugins/governed-engineering-skills/"
+            "scripts/version_governance.py check",
             version_step,
         )
+        self.assertNotIn("npm", version_step)
+        self.assertNotIn("GITHUB_TOKEN", version_step)
 
     def test_version_pull_request_selection_ignores_closed_pull_requests(self) -> None:
         workflow = (
             REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
         ).read_text(encoding="utf-8")
-        step_marker = "      - name: Create or update the shared Version Pull Request"
+        step_marker = (
+            "      - name: Create or update the governed plugin Version Pull Request"
+        )
         self.assertIn(step_marker, workflow)
         _, _, workflow_after_marker = workflow.partition(step_marker)
         version_pr_step, _, _ = workflow_after_marker.partition("\n      - name:")
@@ -528,6 +668,44 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             version_pr_step,
         )
         self.assertNotIn('gh pr view "$branch"', version_pr_step)
+        self.assertIn('branch="plugin-release/main"', version_pr_step)
+        self.assertIn(
+            '--title "chore: version governed engineering skills"',
+            version_pr_step,
+        )
+        self.assertIn(
+            '--body "Automated governed plugin version update."',
+            version_pr_step,
+        )
+        self.assertNotIn("root Changesets", version_pr_step)
+        self.assertNotIn("changeset-release/main", version_pr_step)
+
+    def test_release_tag_is_created_only_when_missing(self) -> None:
+        workflow = (
+            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
+        ).read_text(encoding="utf-8")
+        step_marker = "      - name: Create missing governed plugin release tag"
+        self.assertIn(step_marker, workflow)
+        _, _, workflow_after_marker = workflow.partition(step_marker)
+        tag_step, _, _ = workflow_after_marker.partition("\n      - name:")
+
+        self.assertIn(
+            'tag="$(python plugins/governed-engineering-skills/'
+            'scripts/version_governance.py tag)"',
+            tag_step,
+        )
+        self.assertIn(
+            'git ls-remote --exit-code --tags origin "refs/tags/$tag"',
+            tag_step,
+        )
+        self.assertIn(
+            "python plugins/governed-engineering-skills/"
+            "scripts/version_governance.py tag --write",
+            tag_step,
+        )
+        self.assertIn('git push origin "refs/tags/$tag"', tag_step)
+        self.assertNotIn("git push origin --tags", tag_step)
+        self.assertNotIn("npm", tag_step)
 
 
 if __name__ == "__main__":
