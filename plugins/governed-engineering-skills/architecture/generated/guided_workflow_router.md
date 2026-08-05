@@ -6,11 +6,11 @@
 
 ```mermaid
 flowchart TD
-    n_guided_workflow_router["guided_workflow_router (L0)"]
-    n_risk_routing_domain["risk_routing_domain (L1)"]
-    n_workflow_routing_domain["workflow_routing_domain (L1)"]
-    n_delivery_workflow_domain["delivery_workflow_domain (L1)"]
-    n_governance_workflow_domain["governance_workflow_domain (L1)"]
+    n_guided_workflow_router["guided_workflow_router (L0)<br/>協調工作流程、儲存庫狀態、風險與治理並自動路由工程請求"]
+    n_risk_routing_domain["risk_routing_domain (L1)<br/>判定工程風險、必要關卡與安全恢復目標"]
+    n_workflow_routing_domain["workflow_routing_domain (L1)<br/>分類工程意圖、評估專案狀態並選擇最終技能"]
+    n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>讓工程需求安全通過規劃、實作與審查"]
+    n_governance_workflow_domain["governance_workflow_domain (L1)<br/>管理決策完整性、架構所有權與證據驗證"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
@@ -179,9 +179,9 @@ Automatically classify every software-engineering request, inspect its project s
 
 ```mermaid
 sequenceDiagram
-    participant n_guided_workflow_router as guided_workflow_router
-    participant n_workflow_routing_domain as workflow_routing_domain
-    participant n_risk_routing_domain as risk_routing_domain
+    participant n_guided_workflow_router as guided_workflow_router<br/>協調工作流程、儲存庫狀態、風險與治理並自動路由工程請求
+    participant n_workflow_routing_domain as workflow_routing_domain<br/>分類工程意圖、評估專案狀態並選擇最終技能
+    participant n_risk_routing_domain as risk_routing_domain<br/>判定工程風險、必要關卡與安全恢復目標
     n_guided_workflow_router->>+n_workflow_routing_domain: Classify ordered hard intent and assess implementation and durable context from repository evidence.
     n_workflow_routing_domain-->>-n_guided_workflow_router: step 1
     n_workflow_routing_domain->>+n_risk_routing_domain: Match ordered risk hard triggers and preserve the required governance gates.

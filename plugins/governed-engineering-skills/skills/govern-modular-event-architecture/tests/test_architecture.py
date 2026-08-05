@@ -359,6 +359,23 @@ def valid_manifest(*, c_ast: bool = False) -> dict:
     return manifest
 
 
+def localized_manifest() -> dict:
+    manifest = valid_manifest()
+    manifest["standard_version"] = "2.2.0"
+    manifest["schema_version"] = "2.2.0"
+    manifest["project"]["diagram_language"] = "zh-TW"
+    summaries = {
+        "app": "組合系統並協調功能領域",
+        "feature": "驗證並執行主要功能",
+        "adapter": "連接外部輸入輸出技術",
+    }
+    for item in manifest["modules"]:
+        item["description"]["diagram_summaries"] = {
+            "zh-TW": summaries[item["id"]]
+        }
+    return manifest
+
+
 def realtime_design_manifest() -> dict:
     manifest = valid_manifest()
     manifest["project"]["documentation_language"] = "zh-TW"
@@ -667,6 +684,51 @@ class SchemaV2Tests(unittest.TestCase):
         diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
         self.assertEqual(2, exit_code(diagnostics))
         self.assertTrue(any(item.rule_id == "VER002" for item in diagnostics))
+
+    def test_schema_2_2_localized_diagram_summaries_pass(self) -> None:
+        diagnostics = validate_manifest(
+            localized_manifest(), Path("architecture/manifest.yaml")
+        )
+        self.assertEqual(0, exit_code(diagnostics), diagnostics)
+
+    def test_schema_2_2_requires_exact_nonblank_diagram_summary(self) -> None:
+        for value in (None, "", "   "):
+            with self.subTest(value=value):
+                manifest = localized_manifest()
+                if value is None:
+                    del manifest["modules"][1]["description"]["diagram_summaries"][
+                        "zh-TW"
+                    ]
+                else:
+                    manifest["modules"][1]["description"]["diagram_summaries"][
+                        "zh-TW"
+                    ] = value
+                diagnostics = validate_manifest(
+                    manifest, Path("architecture/manifest.yaml")
+                )
+                self.assertTrue(
+                    any(item.rule_id == "DESC013" for item in diagnostics),
+                    diagnostics,
+                )
+
+    def test_schema_2_2_rejects_malformed_summary_catalog_and_version_mismatch(
+        self,
+    ) -> None:
+        malformed = localized_manifest()
+        malformed["modules"][0]["description"]["diagram_summaries"] = [
+            "組合系統"
+        ]
+        diagnostics = validate_manifest(
+            malformed, Path("architecture/manifest.yaml")
+        )
+        self.assertTrue(any(item.rule_id == "DESC013" for item in diagnostics))
+
+        mismatch = localized_manifest()
+        mismatch["standard_version"] = "2.1.0"
+        diagnostics = validate_manifest(
+            mismatch, Path("architecture/manifest.yaml")
+        )
+        self.assertTrue(any(item.rule_id == "VER001" for item in diagnostics))
 
     def test_hard_realtime_bare_metal_profile_triggers_and_passes_study(self) -> None:
         diagnostics = validate_manifest(
@@ -1192,6 +1254,36 @@ class SchemaV2Tests(unittest.TestCase):
         self.assertIn("SignalId", documents[Path("generated/system.md")])
         self.assertIn("State Ownership", documents[Path("generated/system.md")])
         self.assertIn("Cross-module Mapping", documents[Path("generated/system.md")])
+
+    def test_renderer_adds_function_first_localized_views_only_for_2_2(self) -> None:
+        legacy = render_documents(valid_manifest())
+        self.assertNotIn(
+            "Main Function Tree", legacy[Path("ARCHITECTURE.md")]
+        )
+        self.assertIn('n_app["app (L0)"]', legacy[Path("ARCHITECTURE.md")])
+
+        documents = render_documents(localized_manifest())
+        index = documents[Path("ARCHITECTURE.md")]
+        parent = documents[Path("generated/feature.md")]
+        self.assertLess(
+            index.index("## System Purpose and Entrypoints"),
+            index.index("## Complete Technical Reference"),
+        )
+        self.assertIn("## Main Function Tree", index)
+        function_tree = index.split("## Main Function Tree", 1)[1].split(
+            "## Function Guide", 1
+        )[0]
+        self.assertIn("app (L0)<br/>組合系統並協調功能領域", function_tree)
+        self.assertIn("feature (L1)<br/>驗證並執行主要功能", function_tree)
+        self.assertNotIn("adapter (L3+)", function_tree)
+        self.assertIn("adapter (L3+)<br/>連接外部輸入輸出技術", index)
+        self.assertIn("### `feature`", index)
+        self.assertIn("Related Flows", index)
+        self.assertIn(
+            "participant n_feature as feature<br/>驗證並執行主要功能",
+            parent,
+        )
+        self.assertIn("Validate and process the command.", parent)
 
 
 class CAnalyzerV2Tests(unittest.TestCase):
@@ -2286,6 +2378,33 @@ class ToolingTests(unittest.TestCase):
             )
             self.assertNotEqual(0, old_command.returncode)
             self.assertIn("architecture_cli.py", old_command.stderr)
+
+    def test_bootstrap_defaults_unspecified_versions_to_2_2(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = localized_manifest()
+            manifest.pop("standard_version")
+            manifest.pop("schema_version")
+            spec = root / "spec.yaml"
+            spec.write_text(
+                yaml.safe_dump(manifest, sort_keys=False, allow_unicode=True),
+                encoding="utf-8",
+            )
+            project = root / "project"
+            bootstrap(project, spec)
+            generated = yaml.safe_load(
+                (project / "architecture" / "manifest.yaml").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual("2.2.0", generated["standard_version"])
+            self.assertEqual("2.2.0", generated["schema_version"])
+            baseline = yaml.safe_load(
+                (project / "architecture" / "baseline.yaml").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual("2.2.0", baseline["schema_version"])
 
     def test_bootstrap_c_project_installs_toolchain_lock(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

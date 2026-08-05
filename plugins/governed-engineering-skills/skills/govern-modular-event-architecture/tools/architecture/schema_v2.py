@@ -1,4 +1,4 @@
-"""Schema 2.1 type-governed architecture and execution validation."""
+"""Schema 2.1/2.2 type-governed architecture and execution validation."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from check_architecture import (
     DESCRIPTION_STANDARD_VERSION,
     SCHEMA_VERSION,
     STANDARD_VERSION,
+    SUPPORTED_SCHEMA_VERSIONS,
     Diagnostic,
     ManifestError,
     _diag,
@@ -155,7 +156,7 @@ def _apply_governance(
     if baseline_path is not None:
         try:
             baseline = load_yaml(baseline_path)
-            if baseline.get("schema_version") != SCHEMA_VERSION:
+            if baseline.get("schema_version") != data.get("schema_version"):
                 _diag(diagnostics, "BAS001", str(baseline_path), "baseline schema version mismatch", configuration=True)
             entries = baseline.get("violations")
             if not isinstance(entries, list):
@@ -208,10 +209,24 @@ def validate_manifest_v2(
     check_docs: bool = False,
 ) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
-    if data.get("standard_version") != STANDARD_VERSION:
-        _diag(diagnostics, "VER001", "standard_version", f"must equal {STANDARD_VERSION!r}", configuration=True)
-    if data.get("schema_version") != SCHEMA_VERSION:
-        _diag(diagnostics, "VER001", "schema_version", f"must equal {SCHEMA_VERSION!r}", configuration=True)
+    schema_version = data.get("schema_version")
+    standard_version = data.get("standard_version")
+    if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+        _diag(
+            diagnostics,
+            "VER001",
+            "schema_version",
+            f"must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)!r}",
+            configuration=True,
+        )
+    if standard_version != schema_version:
+        _diag(
+            diagnostics,
+            "VER001",
+            "standard_version",
+            "standard_version and schema_version must be an exact supported pair",
+            configuration=True,
+        )
 
     projected = copy.deepcopy(data)
     projected["standard_version"] = DESCRIPTION_STANDARD_VERSION
@@ -250,6 +265,86 @@ def validate_manifest_v2(
         for item in data.get("modules", [])
         if isinstance(item, dict) and _is_nonempty_string(item.get("id"))
     }
+    project = data.get("project") if isinstance(data.get("project"), dict) else {}
+    diagram_language = project.get("diagram_language")
+    if schema_version == "2.2.0":
+        if diagram_language is not None and (
+            not _is_nonempty_string(diagram_language)
+            or re.fullmatch(r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*", str(diagram_language))
+            is None
+        ):
+            _diag(
+                diagnostics,
+                "DESC013",
+                "project.diagram_language",
+                "must be a non-empty BCP 47-style language tag",
+                configuration=True,
+            )
+        for module_id, module in modules.items():
+            description = (
+                module.get("description")
+                if isinstance(module.get("description"), dict)
+                else {}
+            )
+            summaries = description.get("diagram_summaries")
+            location = f"{module_id}.description.diagram_summaries"
+            if summaries is not None and not isinstance(summaries, dict):
+                _diag(
+                    diagnostics,
+                    "DESC013",
+                    location,
+                    "must be a locale-keyed mapping",
+                    configuration=True,
+                )
+                summaries = {}
+            if isinstance(summaries, dict):
+                for locale, summary in summaries.items():
+                    if (
+                        not _is_nonempty_string(locale)
+                        or re.fullmatch(
+                            r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*",
+                            str(locale),
+                        )
+                        is None
+                        or not _is_nonempty_string(summary)
+                    ):
+                        _diag(
+                            diagnostics,
+                            "DESC013",
+                            f"{location}.{locale}",
+                            "locale keys and summaries must be non-empty and valid",
+                            configuration=True,
+                        )
+                if diagram_language is not None and not _is_nonempty_string(
+                    summaries.get(str(diagram_language))
+                ):
+                    _diag(
+                        diagnostics,
+                        "DESC013",
+                        f"{location}.{diagram_language}",
+                        "must provide the exact project.diagram_language summary",
+                        configuration=True,
+                    )
+            elif diagram_language is not None:
+                _diag(
+                    diagnostics,
+                    "DESC013",
+                    f"{location}.{diagram_language}",
+                    "must provide the exact project.diagram_language summary",
+                    configuration=True,
+                )
+    elif diagram_language is not None or any(
+        isinstance(module.get("description"), dict)
+        and "diagram_summaries" in module["description"]
+        for module in modules.values()
+    ):
+        _diag(
+            diagnostics,
+            "DESC013",
+            "project.diagram_language",
+            "localized diagram summaries require exact schema 2.2.0",
+            configuration=True,
+        )
     source_sets = {
         str(item.get("id")): item
         for item in data.get("source_sets", [])
@@ -387,7 +482,7 @@ def validate_manifest_v2(
             location = f"{flow_id}.steps[{index}]"
             step_id = step.get("id") if isinstance(step, dict) else None
             if not _is_nonempty_string(step_id) or not ID_PATTERN.fullmatch(str(step_id)):
-                _diag(diagnostics, "EXE001", f"{location}.id", "schema 2.1.0 requires a stable step ID", configuration=True)
+                _diag(diagnostics, "EXE001", f"{location}.id", "schema 2.1.0/2.2.0 requires a stable step ID", configuration=True)
             elif str(step_id) in step_ids:
                 _diag(diagnostics, "EXE002", f"{location}.id", f"duplicate flow step ID {step_id!r}", configuration=True)
             else:

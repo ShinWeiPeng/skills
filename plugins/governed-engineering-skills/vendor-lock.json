@@ -191,7 +191,7 @@
       "source_kind": "governance",
       "source_path": "explain-code-flow",
       "source_sha256": "3ae422ada2d3e9180c974fdf92485ee8959d97431f6ae64c35981955e12b0b1e",
-      "integrated_sha256": "3680f06d45843722de625205a149784defeefb84df8a9ce80fe761857e222605",
+      "integrated_sha256": "1aefaad3a6559e7942dc338991b6d1ed8a43c02902867ca53a3881774398199a",
       "overlay": false
     },
     {
@@ -199,7 +199,7 @@
       "source_kind": "governance",
       "source_path": "govern-modular-event-architecture",
       "source_sha256": "adf513489d845cd5989a1016f782696477df007e07877605e402e15661143641",
-      "integrated_sha256": "c9133626151e8eb8ac645a2da538f860311633144242d37f9eb07cd4361958fa",
+      "integrated_sha256": "5ba58f15445999ee3d66b68b464bb72b100b3e4af178ca7bfac654443d683659",
       "overlay": true
     },
     {

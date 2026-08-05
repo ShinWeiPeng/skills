@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TD
-    n_workflow_routing_domain["workflow_routing_domain (L1)"]
+    n_workflow_routing_domain["workflow_routing_domain (L1)<br/>分類工程意圖、評估專案狀態並選擇最終技能"]
 ```
 
 ## Modules

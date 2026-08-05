@@ -1,7 +1,7 @@
 interface:
   display_name: "迭代式程式資料流與架構導讀"
   short_description: "涵蓋所有程式理解問題，分層導覽 System、Flow、模組與程式區段"
-  default_prompt: "使用 $explain-code-flow 判定程式理解問題的閱讀層級，驗證 Schema 2.1.0 正式視圖，再以原始碼與 AST 證據完整導覽。"
+  default_prompt: "使用 $explain-code-flow 判定程式理解問題的閱讀層級，驗證 Schema 2.1.0/2.2.0 正式視圖，再以原始碼與 AST 證據完整導覽。"
 
 policy:
   allow_implicit_invocation: true

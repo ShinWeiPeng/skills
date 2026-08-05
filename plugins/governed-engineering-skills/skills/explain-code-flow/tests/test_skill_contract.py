@@ -10,7 +10,7 @@ METADATA = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
 
 
 class ExplainCodeFlowContractTests(unittest.TestCase):
-    def test_only_schema_2_0_2_has_formal_support(self) -> None:
+    def test_only_schema_2_1_and_2_2_have_formal_support(self) -> None:
         matrix = SKILL.split("### Enforce the capability matrix", 1)[1].split(
             "### Route a blocked request through governance", 1
         )[0]
@@ -22,13 +22,18 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
             and not line.startswith("|---")
         ]
 
-        self.assertEqual(2, len(data_rows))
+        self.assertEqual(3, len(data_rows))
         self.assertTrue(
             data_rows[0].startswith(
                 "| `2.1.0` | `2.1.0` | Supported | Supported after"
             )
         )
-        self.assertTrue(data_rows[1].startswith("| Any other pair, including `1.x` |"))
+        self.assertTrue(
+            data_rows[1].startswith(
+                "| `2.2.0` | `2.2.0` | Supported | Supported after"
+            )
+        )
+        self.assertTrue(data_rows[2].startswith("| Any other pair, including `1.x` |"))
 
     def test_governance_owns_formal_view_translation(self) -> None:
         self.assertIn(
@@ -77,12 +82,12 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
         self.assertIn("Analyzer verdict", SKILL)
         self.assertIn("Never translate `已檢視` into analyzer `PASS`", SKILL)
 
-    def test_schema_2_0_2_evidence_is_exposed(self) -> None:
+    def test_schema_2_1_and_2_2_evidence_is_exposed(self) -> None:
         for required in (
             "production, generated-production, development, derived-documentation, and build-output",
             "Type ownership, State ownership, and cross-module Boundary Mapping",
-            "For schema 2.1.0, include the inherited execution contract",
-            "schema 2.1.0 inherited workload",
+            "For schema 2.1.0 or 2.2.0, include the inherited execution contract",
+            "schema 2.1.0/2.2.0 inherited workload",
             "C/C++ consistency requires complete AST evidence",
         ):
             with self.subTest(required=required):
@@ -92,7 +97,7 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
         self.assertIn('display_name: "迭代式程式資料流與架構導讀"', METADATA)
         self.assertIn("$explain-code-flow", METADATA)
         self.assertIn("所有程式理解問題", METADATA)
-        self.assertIn("Schema 2.1.0 正式視圖", METADATA)
+        self.assertIn("Schema 2.1.0/2.2.0 正式視圖", METADATA)
         self.assertIn("原始碼與 AST 證據", METADATA)
         self.assertIn("allow_implicit_invocation: true", METADATA)
 

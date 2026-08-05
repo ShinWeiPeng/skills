@@ -1,4 +1,4 @@
-"""Validate and resolve schema 2.1.0 logical source classifications."""
+"""Validate and resolve schema 2.1.0/2.2.0 logical source classifications."""
 
 from __future__ import annotations
 

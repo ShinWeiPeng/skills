@@ -133,14 +133,22 @@ class GovernanceCliTests(unittest.TestCase):
         }
         development = copy.deepcopy(diagnostics)
         baseline_diagnostics = apply_baseline(
-            development, approved, None, phase="development"
+            development,
+            approved,
+            None,
+            phase="development",
+            expected_schema_version="2.1.0",
         )
         self.assertEqual([], baseline_diagnostics)
         self.assertEqual("baseline", development[0]["disposition"])
 
         release = copy.deepcopy(diagnostics)
         release_diagnostics = apply_baseline(
-            release, approved, None, phase="release"
+            release,
+            approved,
+            None,
+            phase="release",
+            expected_schema_version="2.1.0",
         )
         self.assertTrue(
             any(item["rule_id"] == "BAS006" for item in release_diagnostics)
@@ -150,11 +158,21 @@ class GovernanceCliTests(unittest.TestCase):
         unapproved = copy.deepcopy(approved)
         unapproved["violations"][0]["approved_by"] = "Codex"
         invalid = apply_baseline(
-            copy.deepcopy(diagnostics), unapproved, None, phase="development"
+            copy.deepcopy(diagnostics),
+            unapproved,
+            None,
+            phase="development",
+            expected_schema_version="2.1.0",
         )
         self.assertTrue(any(item["rule_id"] == "BAS003" for item in invalid))
 
-        stale = apply_baseline([], approved, None, phase="development")
+        stale = apply_baseline(
+            [],
+            approved,
+            None,
+            phase="development",
+            expected_schema_version="2.1.0",
+        )
         self.assertTrue(any(item["rule_id"] == "BAS005" for item in stale))
 
         growth = apply_baseline(
@@ -162,6 +180,7 @@ class GovernanceCliTests(unittest.TestCase):
             approved,
             {"schema_version": "2.1.0", "violations": []},
             phase="development",
+            expected_schema_version="2.1.0",
         )
         self.assertTrue(any(item["rule_id"] == "BAS004" for item in growth))
 

@@ -1,4 +1,4 @@
-"""Validate schema 2.1.0 state-object ownership and AST capability contracts."""
+"""Validate schema 2.1.0/2.2.0 state-object ownership and AST capability contracts."""
 
 from __future__ import annotations
 

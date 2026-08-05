@@ -104,7 +104,7 @@ Apply additional evidence by family:
 
 ## Relationship to architecture
 
-Schema 2.1.0 retains the execution-efficiency requirement to link the owning `ALG-####` to the applicable Workload, Execution Profile, Data Access Profile, Microarchitecture Profile, Real-time Scheduling Study, and Flow IDs. Scheduler and Task-set selection are algorithm-bearing and follow `realtime-scheduling-analysis.md`; RMA/RTA applies only to the supported RM fixed-priority method. Tier 2 requires a portable baseline, representative benchmark composition, neighboring parameter candidates, and full-Flow regression evidence.
+Schema 2.1.0/2.2.0 retains the execution-efficiency requirement to link the owning `ALG-####` to the applicable Workload, Execution Profile, Data Access Profile, Microarchitecture Profile, Real-time Scheduling Study, and Flow IDs. Scheduler and Task-set selection are algorithm-bearing and follow `realtime-scheduling-analysis.md`; RMA/RTA applies only to the supported RM fixed-priority method. Tier 2 requires a portable baseline, representative benchmark composition, neighboring parameter candidates, and full-Flow regression evidence.
 
 Do not model private L2 algorithm steps as top-level end-to-end flows. Link the
 record to the owning module and applicable L0/L1 Flow IDs instead.

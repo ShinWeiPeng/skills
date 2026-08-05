@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TD
-    n_risk_routing_domain["risk_routing_domain (L1)"]
+    n_risk_routing_domain["risk_routing_domain (L1)<br/>判定工程風險、必要關卡與安全恢復目標"]
 ```
 
 ## Modules

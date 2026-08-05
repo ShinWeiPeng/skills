@@ -6,8 +6,8 @@
 
 ```mermaid
 flowchart TD
-    n_governance_engine["governance_engine (L1)"]
-    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)"]
+    n_governance_engine["governance_engine (L1)<br/>驗證架構 Schema、原始碼一致性與決定性文件"]
+    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)<br/>計算分割式 RM 排程、回應時間與 Flow 上界"]
     n_governance_engine -.->|depends| n_realtime_schedulability_analysis
     n_governance_engine -->|owns| n_realtime_schedulability_analysis
 ```
@@ -16,12 +16,12 @@ flowchart TD
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
+| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
 | `realtime_schedulability_analysis` | L2 | component | `governance_engine` | implemented | Compute partitioned Rate Monotonic priority order, per-core response times, candidate fingerprints, and conservative end-to-end Flow bounds. |
 
 ### `governance_engine`
 
-- **Purpose:** Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
+- **Purpose:** Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
 - **Parent:** `architecture_tooling`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `manifest_validation.check`
