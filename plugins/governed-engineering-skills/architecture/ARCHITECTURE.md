@@ -2,27 +2,120 @@
 
 # Governed Engineering Skills Architecture Guide
 
-- Standard: `2.1.0`
-- Schema: `2.1.0`
+- Standard: `2.2.0`
+- Schema: `2.2.0`
+
+## System Purpose and Entrypoints
+
+- `guided_workflow_router` — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
+  - Entrypoints: [`ask-matt`](../skills/ask-matt/SKILL.md) (skill)<br>[`main`](../skills/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
+- `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI.
+  - Entrypoints: [`main`](../skills/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+
+## Main Function Tree
+
+```mermaid
+flowchart TD
+    n_guided_workflow_router["guided_workflow_router (L0)<br/>協調工作流程、儲存庫狀態、風險與治理並自動路由工程請求"]
+    n_risk_routing_domain["risk_routing_domain (L1)<br/>判定工程風險、必要關卡與安全恢復目標"]
+    n_workflow_routing_domain["workflow_routing_domain (L1)<br/>分類工程意圖、評估專案狀態並選擇最終技能"]
+    n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>讓工程需求安全通過規劃、實作與審查"]
+    n_spec_governance_domain["spec_governance_domain (L2)<br/>將討論整理成唯一規格並在實作前驗證追溯性"]
+    n_governance_workflow_domain["governance_workflow_domain (L1)<br/>管理決策完整性、架構所有權與證據驗證"]
+    n_architecture_governance_cli["architecture_governance_cli (L0)<br/>以單一公開 CLI 組合架構治理引擎與原生供應器"]
+    n_guided_workflow_router -->|owns| n_risk_routing_domain
+    n_guided_workflow_router -->|owns| n_workflow_routing_domain
+    n_guided_workflow_router -->|owns| n_delivery_workflow_domain
+    n_delivery_workflow_domain -->|owns| n_spec_governance_domain
+    n_guided_workflow_router -->|owns| n_governance_workflow_domain
+```
+
+## Function Guide
+
+### `guided_workflow_router`
+
+- **Purpose:** Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
+- **Children:** `risk_routing_domain`, `workflow_routing_domain`, `delivery_workflow_domain`, `governance_workflow_domain`
+- **Related Flows:** [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route)
+- **Protection Rationale:** Users never need to know or invoke ask-matt for software-engineering work.; Every design or specification decision offers two or three meaningful options, preferring structured choices and falling back to equivalent numbered text.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
+
+### `risk_routing_domain`
+
+- **Purpose:** Own engineering risk classes, gate selection, fail-closed behavior, and resume targets.
+- **Children:** None
+- **Related Flows:** [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route)
+- **Protection Rationale:** Higher hard-trigger risk always takes precedence.; Missing required capabilities or evidence cannot be downgraded.
+
+### `workflow_routing_domain`
+
+- **Purpose:** Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
+- **Children:** None
+- **Related Flows:** [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route)
+- **Protection Rationale:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
+
+### `delivery_workflow_domain`
+
+- **Purpose:** Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
+- **Children:** `spec_governance_domain`
+- **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
+- **Protection Rationale:** Mutation and commits require task and repository authorization.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
+
+### `spec_governance_domain`
+
+- **Purpose:** Reconcile engineering discussion into one canonical change-set specification, materialize it only after authorization, and verify traceability before implementation.
+- **Children:** None
+- **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
+- **Protection Rationale:** Discussion updates remain an in-conversation working specification until explicit authorization.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.; Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.
+
+### `governance_workflow_domain`
+
+- **Purpose:** Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
+- **Children:** None
+- **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
+- **Protection Rationale:** Codex never approves its own ADR or Algorithm Design Record.; A material Flow recommendation evaluates functional admission, execution and real-time feasibility, maintainability and extensibility, and model assurance before Module, Port, Event, or execution decisions are finalized.; Estimated models cannot establish a platform performance winner or real-time PASS; load-bearing evidence gaps remain BLOCKED.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
+
+### `architecture_governance_cli`
+
+- **Purpose:** Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- **Children:** None
+- **Related Flows:** None
+- **Protection Rationale:** Gate execution never downloads or replaces a native provider cache.
+
+
+## Parent Views
+
+- [`guided_workflow_router`](generated/guided_workflow_router.md) — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
+- [`risk_routing_domain`](generated/risk_routing_domain.md) — Own engineering risk classes, gate selection, fail-closed behavior, and resume targets.
+- [`workflow_routing_domain`](generated/workflow_routing_domain.md) — Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
+- [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
+- [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
+- [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
+
+## End-to-End Flows
+
+- [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
+- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, review material Flow costs and evidence, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
+
+## Complete Technical Reference
 
 ## System Overview
 
 ```mermaid
 flowchart TD
-    n_guided_workflow_router["guided_workflow_router (L0)"]
-    n_risk_routing_domain["risk_routing_domain (L1)"]
-    n_workflow_routing_domain["workflow_routing_domain (L1)"]
-    n_delivery_workflow_domain["delivery_workflow_domain (L1)"]
-    n_spec_governance_domain["spec_governance_domain (L2)"]
-    n_governance_workflow_domain["governance_workflow_domain (L1)"]
-    n_codex_plugin_adapter["codex_plugin_adapter (L3+)"]
-    n_repository_evidence_adapter["repository_evidence_adapter (L3+)"]
-    n_local_install_adapter["local_install_adapter (L3+)"]
-    n_vendor_sync_adapter["vendor_sync_adapter (L3+)"]
-    n_integration_validation_technical["integration_validation_technical (L3+)"]
-    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)"]
-    n_architecture_governance_cli["architecture_governance_cli (L0)"]
-    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
+    n_guided_workflow_router["guided_workflow_router (L0)<br/>協調工作流程、儲存庫狀態、風險與治理並自動路由工程請求"]
+    n_risk_routing_domain["risk_routing_domain (L1)<br/>判定工程風險、必要關卡與安全恢復目標"]
+    n_workflow_routing_domain["workflow_routing_domain (L1)<br/>分類工程意圖、評估專案狀態並選擇最終技能"]
+    n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>讓工程需求安全通過規劃、實作與審查"]
+    n_spec_governance_domain["spec_governance_domain (L2)<br/>將討論整理成唯一規格並在實作前驗證追溯性"]
+    n_governance_workflow_domain["governance_workflow_domain (L1)<br/>管理決策完整性、架構所有權與證據驗證"]
+    n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接到 Codex 外掛探索"]
+    n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>唯讀蒐集 Git 與檔案系統的專案證據"]
+    n_local_install_adapter["local_install_adapter (L3+)<br/>註冊本機 marketplace 並開啟 Codex 安裝頁"]
+    n_vendor_sync_adapter["vendor_sync_adapter (L3+)<br/>驗證 vendored 技能雜湊並安全同步快照"]
+    n_integration_validation_technical["integration_validation_technical (L3+)<br/>驗證外掛清單、技能中繼資料與路徑可攜性"]
+    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>管理外掛 SemVer 預發佈驗證與晉級"]
+    n_architecture_governance_cli["architecture_governance_cli (L0)<br/>以單一公開 CLI 組合架構治理引擎與原生供應器"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
@@ -40,20 +133,6 @@ flowchart TD
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
     n_libclang_toolchain_adapter -.->|depends| n_governance_workflow_domain
 ```
-
-## Parent Views
-
-- [`guided_workflow_router`](generated/guided_workflow_router.md) — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
-- [`risk_routing_domain`](generated/risk_routing_domain.md) — Own engineering risk classes, gate selection, fail-closed behavior, and resume targets.
-- [`workflow_routing_domain`](generated/workflow_routing_domain.md) — Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
-- [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
-- [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
-- [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
-
-## End-to-End Flows
-
-- [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
-- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, review material Flow costs and evidence, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
 
 ## Type Catalog
 

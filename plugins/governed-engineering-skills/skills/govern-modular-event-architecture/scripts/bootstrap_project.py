@@ -15,6 +15,7 @@ import yaml
 from check_architecture import (
     SCHEMA_VERSION,
     STANDARD_VERSION,
+    SUPPORTED_SCHEMA_VERSIONS,
     exit_code,
     load_yaml,
     render_text,
@@ -73,7 +74,7 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
     adoption = spec.pop(
         "adoption",
         {
-            "schema_version": SCHEMA_VERSION,
+            "schema_version": spec.get("schema_version", SCHEMA_VERSION),
             "project_stage": "new",
             "applicable_analyzers": [
                 name
@@ -104,7 +105,7 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
     spec.setdefault("boundary_mappings", [])
     spec.setdefault("source_sets", [])
     spec.setdefault("composition_roots", [])
-    if spec.get("schema_version") == SCHEMA_VERSION:
+    if spec.get("schema_version") in SUPPORTED_SCHEMA_VERSIONS:
         spec.setdefault("flows", [])
         spec.setdefault("project", {}).setdefault("documentation_language", "zh-TW")
         for field in (
@@ -167,7 +168,7 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
         yaml.safe_dump(adoption, sort_keys=False, allow_unicode=True),
         encoding="utf-8",
     )
-    baseline = {"schema_version": SCHEMA_VERSION, "violations": []}
+    baseline = {"schema_version": spec["schema_version"], "violations": []}
     baseline_path.write_text(
         yaml.safe_dump(baseline, sort_keys=False, allow_unicode=True),
         encoding="utf-8",

@@ -1,8 +1,9 @@
-standard_version: 2.1.0
-schema_version: 2.1.0
+standard_version: 2.2.0
+schema_version: 2.2.0
 project:
   name: Governed Engineering Skills
   documentation_language: en
+  diagram_language: zh-TW
 source_sets:
 - id: plugin-production
   classification: production
@@ -77,6 +78,8 @@ modules:
   description:
     purpose: Automatically route every software-engineering intent by coordinating
       workflow selection, repository state, risk, delivery, and governance domains.
+    diagram_summaries:
+      zh-TW: 協調工作流程、儲存庫狀態、風險與治理並自動路由工程請求
     input_ports:
     - guided-routing.route
     output_ports: []
@@ -121,6 +124,8 @@ modules:
   description:
     purpose: Own engineering risk classes, gate selection, fail-closed behavior, and
       resume targets.
+    diagram_summaries:
+      zh-TW: 判定工程風險、必要關卡與安全恢復目標
     input_ports:
     - risk-routing.classify
     output_ports: []
@@ -155,6 +160,8 @@ modules:
   description:
     purpose: Own deterministic engineering-intent classification, three-state project
       assessment, capability fallback, and final skill handoff selection.
+    diagram_summaries:
+      zh-TW: 分類工程意圖、評估專案狀態並選擇最終技能
     input_ports:
     - workflow-routing.assess-project
     - workflow-routing.select
@@ -226,6 +233,8 @@ modules:
   description:
     purpose: Move an engineering idea or defect through planning, implementation,
       and review without bypassing required gates.
+    diagram_summaries:
+      zh-TW: 讓工程需求安全通過規劃、實作與審查
     input_ports: []
     output_ports:
     - delivery-workflow.result
@@ -266,6 +275,8 @@ modules:
   description:
     purpose: Reconcile engineering discussion into one canonical change-set specification,
       materialize it only after authorization, and verify traceability before implementation.
+    diagram_summaries:
+      zh-TW: 將討論整理成唯一規格並在實作前驗證追溯性
     input_ports:
     - spec-governance.reconcile
     - spec-governance.materialize
@@ -321,6 +332,8 @@ modules:
     purpose: Enforce decision completeness, evidence-calibrated Flow cost review,
       architecture ownership, evidence-backed explanation, and bounded runtime
       validation.
+    diagram_summaries:
+      zh-TW: 管理決策完整性、架構所有權與證據驗證
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -359,6 +372,8 @@ modules:
   public_headers: []
   description:
     purpose: Bind the integrated skill directory to Codex plugin discovery.
+    diagram_summaries:
+      zh-TW: 將整合技能目錄接到 Codex 外掛探索
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -390,6 +405,8 @@ modules:
   description:
     purpose: Enumerate tracked and non-ignored untracked repository evidence without
       mutating Git, the index, or the worktree.
+    diagram_summaries:
+      zh-TW: 唯讀蒐集 Git 與檔案系統的專案證據
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -423,6 +440,8 @@ modules:
   description:
     purpose: Register the repo-local marketplace through the supported Codex CLI
       command and open the governed plugin's Codex Desktop installation page.
+    diagram_summaries:
+      zh-TW: 註冊本機 marketplace 並開啟 Codex 安裝頁
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -462,6 +481,8 @@ modules:
   description:
     purpose: Hash vendored skills, refresh unmodified snapshots, and fail closed on
       overlay drift.
+    diagram_summaries:
+      zh-TW: 驗證 vendored 技能雜湊並安全同步快照
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -494,6 +515,8 @@ modules:
   description:
     purpose: Validate plugin inventory, skill metadata, path portability, and learning-note
       isolation.
+    diagram_summaries:
+      zh-TW: 驗證外掛清單、技能中繼資料與路徑可攜性
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -523,6 +546,8 @@ modules:
   description:
     purpose: Validate and promote the repository's only release unit through
       isolated plugin SemVer prerelease stages.
+    diagram_summaries:
+      zh-TW: 管理外掛 SemVer 預發佈驗證與晉級
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -562,6 +587,8 @@ modules:
   description:
     purpose: Compose the governance engine and pinned native provider behind the
       single public architecture CLI.
+    diagram_summaries:
+      zh-TW: 以單一公開 CLI 組合架構治理引擎與原生供應器
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -594,6 +621,8 @@ modules:
   description:
     purpose: Provision and verify the official lock-pinned Espressif libclang
       distribution for target-capable C/C++ governance.
+    diagram_summaries:
+      zh-TW: 安裝並驗證鎖定版本的 Espressif libclang
     input_ports: []
     output_ports: []
     emitted_events: []

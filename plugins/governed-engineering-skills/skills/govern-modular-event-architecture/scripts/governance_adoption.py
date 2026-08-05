@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA_VERSION = "2.1.0"
+SCHEMA_VERSION = "2.2.0"
+SUPPORTED_SCHEMA_VERSIONS = {"2.1.0", SCHEMA_VERSION}
 BANNED_AI_APPROVERS = {"ai", "assistant", "chatgpt", "codex", "gpt", "model", "openai"}
 BASELINE_REQUIRED_FIELDS = {
     "rule_id",
@@ -70,12 +71,16 @@ def validate_adoption(
             )
         )
         return diagnostics
-    if adoption.get("schema_version") != SCHEMA_VERSION:
+    expected_version = manifest.get("schema_version")
+    if (
+        adoption.get("schema_version") != expected_version
+        or expected_version not in SUPPORTED_SCHEMA_VERSIONS
+    ):
         diagnostics.append(
             _diagnostic(
                 "ADP002",
                 "schema_version",
-                f"adoption schema must equal {SCHEMA_VERSION!r}",
+                f"adoption schema must equal manifest schema {expected_version!r}",
             )
         )
     if adoption.get("project_stage") not in {"new", "existing"}:
@@ -190,12 +195,13 @@ def validate_adoption(
 
 def _parse_baseline(
     baseline: dict[str, Any] | None,
+    expected_schema_version: Any = SCHEMA_VERSION,
 ) -> tuple[dict[tuple[str, str], dict[str, Any]], list[dict[str, Any]]]:
     diagnostics: list[dict[str, Any]] = []
     entries: dict[tuple[str, str], dict[str, Any]] = {}
     if baseline is None:
         return entries, diagnostics
-    if baseline.get("schema_version") != SCHEMA_VERSION:
+    if baseline.get("schema_version") != expected_schema_version:
         diagnostics.append(
             _diagnostic("BAS001", "baseline.schema_version", "baseline schema version mismatch")
         )
@@ -256,10 +262,13 @@ def apply_baseline(
     previous_baseline: dict[str, Any] | None,
     *,
     phase: str,
+    expected_schema_version: Any = SCHEMA_VERSION,
 ) -> list[dict[str, Any]]:
     """Apply exact approved deferrals and return baseline-policy diagnostics."""
-    entries, policy = _parse_baseline(baseline)
-    previous, previous_policy = _parse_baseline(previous_baseline)
+    entries, policy = _parse_baseline(baseline, expected_schema_version)
+    previous, previous_policy = _parse_baseline(
+        previous_baseline, expected_schema_version
+    )
     if previous_baseline is not None:
         policy.extend(previous_policy)
         for key in sorted(set(entries).difference(previous)):
@@ -482,7 +491,7 @@ def render_adoption_documents(
     )
     payload = {
         "_generated": JSON_GENERATED_MARKER,
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": manifest.get("schema_version"),
         "project": manifest.get("project", {}).get("name"),
         "composition_roots": roots,
         "baseline_entry_count": baseline_count,

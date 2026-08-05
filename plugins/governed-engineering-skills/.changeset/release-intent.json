@@ -1,0 +1,16 @@
+{
+  "bump": "minor",
+  "target_stage": "beta",
+  "risk": "high",
+  "changesets": [
+    "function-first-architecture-description"
+  ],
+  "summary": {
+    "Changed": [
+      "Added backward-compatible schema 2.2.0 localized module summaries and function-first Architecture Description Views."
+    ]
+  },
+  "approval": null,
+  "validation_evidence": [],
+  "new_release_group": false
+}

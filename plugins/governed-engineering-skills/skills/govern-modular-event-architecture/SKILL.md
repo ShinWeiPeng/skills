@@ -1,6 +1,6 @@
 ---
 name: govern-modular-event-architecture
-description: "Govern cross-language modular event architecture, production-source boundaries, named-type and runtime-state ownership, product algorithms, and hard/soft real-time scheduling analysis. Use when Codex creates, reviews, explains, improves, or refactors architecture or algorithms; changes structs, classes, enums, unions, typedefs, DTOs, schemas, runtime state, configuration, ports, events, callbacks, adapters, module boundaries, data flow, execution units, Tasks, priorities, activation rates, core allocation, generated production sources, or architecture views; or checks conformance. Enforce schema 2.1.0 classification, authoring-first L0-L3+ responsibilities, pre-code boundary/type/state/scheduling gates, Type Catalogs, dependency inversion, contracts, fail-closed C/C++ AST evidence, Algorithm Design Records, Description Views, ADR-controlled exceptions, and validation. Invoke explicitly with $govern-modular-event-architecture."
+description: "Govern cross-language modular event architecture, production-source boundaries, named-type and runtime-state ownership, product algorithms, and hard/soft real-time scheduling analysis. Use when Codex creates, reviews, explains, improves, or refactors architecture or algorithms; changes structs, classes, enums, unions, typedefs, DTOs, schemas, runtime state, configuration, ports, events, callbacks, adapters, module boundaries, data flow, execution units, Tasks, priorities, activation rates, core allocation, generated production sources, or architecture views; or checks conformance. Enforce schema 2.2.0 with exact 2.1.0 compatibility, authoring-first L0-L3+ responsibilities, pre-code boundary/type/state/scheduling gates, Type Catalogs, dependency inversion, contracts, fail-closed C/C++ AST evidence, Algorithm Design Records, Description Views, ADR-controlled exceptions, and validation. Invoke explicitly with $govern-modular-event-architecture."
 ---
 
 # Govern Modular Event Architecture
@@ -37,7 +37,7 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 - Treat `MUST` as blocking, `SHOULD` as a recorded warning, and `MAY` as optional.
 - Permit a MUST exception only through an accepted ADR with a non-AI approver and an approval reference. Codex may draft an ADR but MUST NOT approve it.
 - Keep the project pinned to explicit standard and schema versions.
-- Require schema `2.1.0`. Reject earlier manifests; do not migrate or infer source classifications, owners, authorities, mappings, or real-time timing bounds.
+- Require an exact Standard/Schema pair. Accept `2.1.0` and `2.2.0`; bootstrap new projects at `2.2.0`. Reject earlier or mismatched manifests and do not migrate or infer source classifications, owners, authorities, mappings, or real-time timing bounds.
 - Require exactly one release `composition_roots` entry and verify its path and symbol with the applicable language analyzer.
 - Treat `architecture_cli.py` as the only public governance CLI. Checker, renderer, bootstrap, and language-analyzer scripts are internal modules and direct legacy invocation is unsupported.
 - For governed C/C++, require `clang==20.1.5` bindings plus the project
@@ -136,11 +136,11 @@ python tools\architecture\architecture_cli.py toolchain verify `
 Python-only projects receive the provider-capable CLI modules but no toolchain
 lock and require no native libclang installation.
 
-New projects use schema `2.1.0`. Schema 2.1.0 retains all 1.0 through 2.0.2 requirements and adds workload-driven real-time scheduling studies. The manifest is the only editable source for Architecture Description Views and generated scheduling reports; generated Markdown is never edited by hand.
+New projects use schema `2.2.0`. Schema 2.2.0 retains all 2.1.0 requirements, keeps 2.1.0 input supported, and adds independent diagram-language selection plus locale-keyed module summaries. When `project.diagram_language` is set, every diagram-visible module supplies the exact non-empty locale entry; the renderer never translates or falls back. The manifest is the only editable source for Architecture Description Views and generated scheduling reports; generated Markdown is never edited by hand.
 
 ## Render description views
 
-For a schema 2.1.0 project, regenerate checked-in views after every manifest change:
+For a supported schema 2.1.0 or 2.2.0 project, regenerate checked-in views after every manifest change:
 
 ```powershell
 python tools\architecture\architecture_cli.py render `
@@ -149,7 +149,7 @@ python tools\architecture\architecture_cli.py render `
   --baseline architecture\baseline.yaml
 ```
 
-Use `--check` in validation. The generic checker performs the same exact in-memory stale comparison. Earlier projects require human-owned source sets, architecture, type inventory, state inventory, boundary design, and applicable real-time timing inputs before creating a new 2.1.0 manifest; this skill provides no migration command.
+Use `--check` in validation. The generic checker performs the same exact in-memory stale comparison. Earlier projects require human-owned source sets, architecture, type inventory, state inventory, boundary design, and applicable real-time timing inputs before creating a new 2.2.0 manifest; this skill provides no migration command.
 
 ## Validate a project
 

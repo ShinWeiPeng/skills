@@ -2,17 +2,69 @@
 
 # govern-modular-event-architecture Architecture Guide
 
-- Standard: `2.1.0`
-- Schema: `2.1.0`
+- Standard: `2.2.0`
+- Schema: `2.2.0`
+
+## System Purpose and Entrypoints
+
+- `architecture_tooling` — Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
+  - Entrypoints: [`main`](../scripts/architecture_cli.py) (function)
+
+## Main Function Tree
+
+```mermaid
+flowchart TD
+    n_architecture_tooling["architecture_tooling (L0)<br/>以單一公開 CLI 組合架構檢查、產生與分析工具"]
+    n_governance_engine["governance_engine (L1)<br/>驗證架構 Schema、原始碼一致性與決定性文件"]
+    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)<br/>計算分割式 RM 排程、回應時間與 Flow 上界"]
+    n_architecture_tooling -->|owns| n_governance_engine
+    n_governance_engine -->|owns| n_realtime_schedulability_analysis
+```
+
+## Function Guide
+
+### `architecture_tooling`
+
+- **Purpose:** Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
+- **Children:** `governance_engine`
+- **Related Flows:** [`validate-architecture`](generated/architecture_tooling.md#validate-architecture), [`verify-libclang-toolchain`](generated/architecture_tooling.md#verify-libclang-toolchain)
+- **Protection Rationale:** architecture_cli.py is the only supported command-line entry.; Internal scripts cannot be invoked as legacy public commands.; Gate commands never download or replace a toolchain cache.
+
+### `governance_engine`
+
+- **Purpose:** Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
+- **Children:** `realtime_schedulability_analysis`
+- **Related Flows:** [`validate-architecture`](generated/architecture_tooling.md#validate-architecture)
+- **Protection Rationale:** Empty baseline never implies verified source conformance.; Python and C/C++ source evidence fail closed.; Release requires zero temporary baseline entries.; C/C++ AST analysis requests a verified provider through the demand-owned libclang toolchain port.
+
+### `realtime_schedulability_analysis`
+
+- **Purpose:** Compute partitioned Rate Monotonic priority order, per-core response times, candidate fingerprints, and conservative end-to-end Flow bounds.
+- **Children:** None
+- **Related Flows:** None
+- **Protection Rationale:** Every calculation uses integer nanoseconds and deterministic tie-breaking.; Missing bounds or non-convergent fixed points are BLOCKED rather than guessed.; Utilization is an early screen and never replaces RTA.
+
+
+## Parent Views
+
+- [`architecture_tooling`](generated/architecture_tooling.md) — Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
+- [`governance_engine`](generated/governance_engine.md) — Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
+
+## End-to-End Flows
+
+- [`validate-architecture`](generated/architecture_tooling.md#validate-architecture) — Validate one manifest and return deterministic diagnostics.
+- [`verify-libclang-toolchain`](generated/architecture_tooling.md#verify-libclang-toolchain) — Resolve a lock-pinned provider, validate its immutable cache, bind libclang explicitly, and prove Xtensa parsing capability.
+
+## Complete Technical Reference
 
 ## System Overview
 
 ```mermaid
 flowchart TD
-    n_architecture_tooling["architecture_tooling (L0)"]
-    n_governance_engine["governance_engine (L1)"]
-    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)"]
-    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
+    n_architecture_tooling["architecture_tooling (L0)<br/>以單一公開 CLI 組合架構檢查、產生與分析工具"]
+    n_governance_engine["governance_engine (L1)<br/>驗證架構 Schema、原始碼一致性與決定性文件"]
+    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)<br/>計算分割式 RM 排程、回應時間與 Flow 上界"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang"]
     n_architecture_tooling -.->|depends| n_governance_engine
     n_architecture_tooling -.->|depends| n_libclang_toolchain_adapter
     n_architecture_tooling -->|owns| n_governance_engine
@@ -20,16 +72,6 @@ flowchart TD
     n_governance_engine -->|owns| n_realtime_schedulability_analysis
     n_libclang_toolchain_adapter -.->|depends| n_governance_engine
 ```
-
-## Parent Views
-
-- [`architecture_tooling`](generated/architecture_tooling.md) — Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
-- [`governance_engine`](generated/governance_engine.md) — Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
-
-## End-to-End Flows
-
-- [`validate-architecture`](generated/architecture_tooling.md#validate-architecture) — Validate one manifest and return deterministic diagnostics.
-- [`verify-libclang-toolchain`](generated/architecture_tooling.md#verify-libclang-toolchain) — Resolve a lock-pinned provider, validate its immutable cache, bind libclang explicitly, and prove Xtensa parsing capability.
 
 ## Type Catalog
 

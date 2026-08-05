@@ -18,8 +18,10 @@ except ImportError:  # pragma: no cover - exercised by deployment environments
     raise SystemExit(2)
 
 
-STANDARD_VERSION = "2.1.0"
-SCHEMA_VERSION = "2.1.0"
+STANDARD_VERSION = "2.2.0"
+SCHEMA_VERSION = "2.2.0"
+SUPPORTED_STANDARD_VERSIONS = {"2.1.0", STANDARD_VERSION}
+SUPPORTED_SCHEMA_VERSIONS = {"2.1.0", SCHEMA_VERSION}
 DESCRIPTION_STANDARD_VERSION = "1.1.0"
 DESCRIPTION_SCHEMA_VERSION = "1.1.0"
 LEGACY_STANDARD_VERSION = "1.0.0"
@@ -440,10 +442,10 @@ def validate_manifest(
     *,
     check_docs: bool = False,
 ) -> list[Diagnostic]:
-    """Validate the only supported public schema version."""
+    """Validate an exact supported public schema/standard version pair."""
     schema_version = data.get("schema_version")
     standard_version = data.get("standard_version")
-    if schema_version == SCHEMA_VERSION:
+    if schema_version in SUPPORTED_SCHEMA_VERSIONS:
         from schema_v2 import validate_manifest_v2
 
         return validate_manifest_v2(
@@ -458,15 +460,21 @@ def validate_manifest(
         diagnostics,
         "VER002",
         "schema_version",
-        f"unsupported schema version {schema_version!r}; supported: {SCHEMA_VERSION!r}",
+        (
+            f"unsupported schema version {schema_version!r}; supported: "
+            f"{sorted(SUPPORTED_SCHEMA_VERSIONS)!r}"
+        ),
         configuration=True,
     )
-    if standard_version != STANDARD_VERSION:
+    if standard_version not in SUPPORTED_STANDARD_VERSIONS:
         _diag(
             diagnostics,
             "VER003",
             "standard_version",
-            f"unsupported standard version {standard_version!r}",
+            (
+                f"unsupported standard version {standard_version!r}; supported: "
+                f"{sorted(SUPPORTED_STANDARD_VERSIONS)!r}"
+            ),
             configuration=True,
         )
     return diagnostics

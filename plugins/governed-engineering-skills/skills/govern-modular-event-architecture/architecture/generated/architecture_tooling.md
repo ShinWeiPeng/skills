@@ -6,8 +6,8 @@
 
 ```mermaid
 flowchart TD
-    n_architecture_tooling["architecture_tooling (L0)"]
-    n_governance_engine["governance_engine (L1)"]
+    n_architecture_tooling["architecture_tooling (L0)<br/>以單一公開 CLI 組合架構檢查、產生與分析工具"]
+    n_governance_engine["governance_engine (L1)<br/>驗證架構 Schema、原始碼一致性與決定性文件"]
     n_architecture_tooling -.->|depends| n_governance_engine
     n_architecture_tooling -->|owns| n_governance_engine
 ```
@@ -16,12 +16,12 @@ flowchart TD
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules. |
-| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
+| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules. |
+| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
 
 ### `architecture_tooling`
 
-- **Purpose:** Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
+- **Purpose:** Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -36,7 +36,7 @@ flowchart TD
 
 ### `governance_engine`
 
-- **Purpose:** Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
+- **Purpose:** Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
 - **Parent:** `architecture_tooling`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `manifest_validation.check`
@@ -94,8 +94,8 @@ Validate one manifest and return deterministic diagnostics.
 
 ```mermaid
 sequenceDiagram
-    participant n_architecture_tooling as architecture_tooling
-    participant n_governance_engine as governance_engine
+    participant n_architecture_tooling as architecture_tooling<br/>以單一公開 CLI 組合架構檢查、產生與分析工具
+    participant n_governance_engine as governance_engine<br/>驗證架構 Schema、原始碼一致性與決定性文件
     n_architecture_tooling->>+n_governance_engine: Parse the pinned schema and evaluate architecture, execution-efficiency, baseline, and ADR rules.
     Note right of n_governance_engine: manifest_validation.completed
     n_governance_engine-->>-n_architecture_tooling: step 1
@@ -121,8 +121,8 @@ Resolve a lock-pinned provider, validate its immutable cache, bind libclang expl
 
 ```mermaid
 sequenceDiagram
-    participant n_architecture_tooling as architecture_tooling
-    participant n_libclang_toolchain_adapter as libclang_toolchain_adapter
+    participant n_architecture_tooling as architecture_tooling<br/>以單一公開 CLI 組合架構檢查、產生與分析工具
+    participant n_libclang_toolchain_adapter as libclang_toolchain_adapter<br/>安裝並驗證鎖定版本的 Espressif libclang
     n_architecture_tooling->>+n_libclang_toolchain_adapter: Validate lock, platform, cache receipt, archive/library hashes, binding version, provider version, and Xtensa capability probes.
     n_libclang_toolchain_adapter-->>-n_architecture_tooling: step 1
 ```

@@ -9,7 +9,7 @@
       "applicability": "not-applicable",
       "rationale": "This governed project is host-side static tooling with no hardware, target-runtime, performance, or real-time acceptance claim."
     },
-    "schema_version": "2.1.0",
+    "schema_version": "2.2.0",
     "tool_host_evidence": {
       "operating_systems": [
         "windows",
@@ -66,5 +66,5 @@
     "readiness_status": "VERIFIED"
   },
   "project": "govern-modular-event-architecture",
-  "schema_version": "2.1.0"
+  "schema_version": "2.2.0"
 }

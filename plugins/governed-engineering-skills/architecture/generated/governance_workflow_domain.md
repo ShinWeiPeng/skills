@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TD
-    n_governance_workflow_domain["governance_workflow_domain (L1)"]
+    n_governance_workflow_domain["governance_workflow_domain (L1)<br/>管理決策完整性、架構所有權與證據驗證"]
 ```
 
 ## Modules

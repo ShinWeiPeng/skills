@@ -70,6 +70,7 @@ Do not claim a formal System or Parent view is ready unless every blocking check
 | Standard | Schema | Local code explanation | Formal System/Parent guidance |
 |---|---|---|---|
 | `2.1.0` | `2.1.0` | Supported | Supported after governance checker, deterministic renderer, generated-view, real-time scheduling study when applicable, and applicable language-analyzer validation passes |
+| `2.2.0` | `2.2.0` | Supported | Supported after the same governance evidence as 2.1.0, including exact localized diagram-summary validation when `diagram_language` is set |
 | Any other pair, including `1.x` | Any other pair | Supported only as source-level analysis with an architecture-context limitation | Block as unsupported by this explanation skill; do not conclude that the project itself is invalid |
 
 Reject mismatched Standard/Schema pairs. Do not guess the semantics of a newer schema, ignore unknown fields, or present best-effort output as a formal view.
@@ -80,8 +81,8 @@ Distinguish capability from project validity:
 
 - An absent, legacy, or unknown version is `explanation tool unsupported`; it is not evidence that the project itself is invalid.
 - A mismatched Standard/Schema pair is an invalid governance configuration.
-- A supported `2.1.0` project whose checker or renderer fails is invalid, stale, or blocked according to the reported diagnostic.
-- A supported `2.1.0` project whose applicable language analyzer lacks complete evidence is `BLOCKED` for formal System/Parent guidance. A manifest-only design PASS does not prove implemented source conformance.
+- A supported `2.1.0` or `2.2.0` project whose checker or renderer fails is invalid, stale, or blocked according to the reported diagnostic.
+- A supported `2.1.0` or `2.2.0` project whose applicable language analyzer lacks complete evidence is `BLOCKED` for formal System/Parent guidance. A manifest-only design PASS does not prove implemented source conformance.
 
 ### Route a blocked request through governance
 
@@ -175,7 +176,7 @@ Make every stage actionable. Link files and symbols, state why the order matters
 
 List every governed end-to-end Flow and any relevant coverage gap.
 
-For schema 2.1.0, include the inherited execution contract for each Flow: Workload IDs, timing class, Execution Profile/Unit/Channel boundaries, Data Access and Microarchitecture Profile links, and platform variant. For a hard/soft real-time workload, also route through its generated `realtime-study-<study-id>.md` candidate comparison, scheduler method, per-core ordering, Task/Flow RTA, hard failures, soft risks, SLO evidence state, and human approval. Do not infer missing execution mappings from Module boundaries.
+For schema 2.1.0 or 2.2.0, include the inherited execution contract for each Flow: Workload IDs, timing class, Execution Profile/Unit/Channel boundaries, Data Access and Microarchitecture Profile links, and platform variant. For a hard/soft real-time workload, also route through its generated `realtime-study-<study-id>.md` candidate comparison, scheduler method, per-core ordering, Task/Flow RTA, hard failures, soft risks, SLO evidence state, and human approval. Do not infer missing execution mappings from Module boundaries.
 
 | Flow ID | Owner | Trigger | 主要路徑 | 成功結果 | Error branches | 程式錨點 | 可深入節點 |
 |---|---|---|---|---|---|---|---|
@@ -252,7 +253,7 @@ Preserve the governed Flow ID and show its project-to-Parent-to-Flow breadcrumb.
 4. success result and committed state;
 5. every declared error branch and handling outcome;
 6. timing, task/thread/interrupt/queue/callback boundaries;
-7. schema 2.1.0 inherited workload, execution-unit, channel, real-time scheduling study, working-set, cache-sensitive layout, branch/SIMD, compiler, and platform-variant evidence when declared;
+7. schema 2.1.0/2.2.0 inherited workload, execution-unit, channel, real-time scheduling study, working-set, cache-sensitive layout, branch/SIMD, compiler, and platform-variant evidence when declared;
 8. implementation links and core function roles;
 9. risks and compact navigation.
 
@@ -310,7 +311,7 @@ Perform a final self-check and rewrite the response before returning if any appl
 - A code-understanding response is not replaced by an artifact-editing plan or general summary merely because a presentation, document, spreadsheet, diagram, or note is attached.
 - A blocked System/Parent response reports `BLOCKED`, the observed version or missing artifact, and the governance next action; it does not emit any of the eight formal Level 0 sections.
 - An unsupported-version response identifies an explanation-tool capability limitation and does not claim that the project itself is invalid.
-- A supported 2.1.0 formal System/Parent response requires complete applicable AST and symbol evidence; incomplete evidence is `BLOCKED`.
+- A supported 2.1.0/2.2.0 formal System/Parent response requires complete applicable AST and symbol evidence; incomplete evidence is `BLOCKED`.
 - Every file/symbol claim has a valid link or an explicit `待確認／symbol 未驗證` label.
 
 ## Save only on explicit request

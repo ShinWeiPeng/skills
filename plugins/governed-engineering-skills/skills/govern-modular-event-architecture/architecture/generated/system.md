@@ -4,10 +4,10 @@
 
 ```mermaid
 flowchart TD
-    n_architecture_tooling["architecture_tooling (L0)"]
-    n_governance_engine["governance_engine (L1)"]
-    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)"]
-    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)"]
+    n_architecture_tooling["architecture_tooling (L0)<br/>以單一公開 CLI 組合架構檢查、產生與分析工具"]
+    n_governance_engine["governance_engine (L1)<br/>驗證架構 Schema、原始碼一致性與決定性文件"]
+    n_realtime_schedulability_analysis["realtime_schedulability_analysis (L2)<br/>計算分割式 RM 排程、回應時間與 Flow 上界"]
+    n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang"]
     n_architecture_tooling -.->|depends| n_governance_engine
     n_architecture_tooling -.->|depends| n_libclang_toolchain_adapter
     n_architecture_tooling -->|owns| n_governance_engine
@@ -20,14 +20,14 @@ flowchart TD
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules. |
-| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
+| `architecture_tooling` | L0 | composition | `-` | implemented | Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules. |
+| `governance_engine` | L1 | domain | `architecture_tooling` | implemented | Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module. |
 | `realtime_schedulability_analysis` | L2 | component | `governance_engine` | implemented | Compute partitioned Rate Monotonic priority order, per-core response times, candidate fingerprints, and conservative end-to-end Flow bounds. |
 | `libclang_toolchain_adapter` | L3+ | adapter | `-` | implemented | Install and verify one lock-pinned Espressif libclang distribution, bind its shared library explicitly, and prove Xtensa parsing capability. |
 
 ### `architecture_tooling`
 
-- **Purpose:** Provide the single public schema 2.1.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
+- **Purpose:** Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang provider modules.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -42,7 +42,7 @@ flowchart TD
 
 ### `governance_engine`
 
-- **Purpose:** Validate schema 2.1.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
+- **Purpose:** Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic views, and workload-driven scheduling through one deep governance module.
 - **Parent:** `architecture_tooling`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `manifest_validation.check`

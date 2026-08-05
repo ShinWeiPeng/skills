@@ -97,12 +97,18 @@ def run_gate(
         baseline = _load_optional(baseline_path)
         previous = _load_optional(previous_baseline_path)
         diagnostics.extend(
-            apply_baseline(diagnostics, baseline, previous, phase=phase)
+            apply_baseline(
+                diagnostics,
+                baseline,
+                previous,
+                phase=phase,
+                expected_schema_version=manifest.get("schema_version"),
+            )
         )
     code = _exit_code(diagnostics)
     status = readiness_status(diagnostics, phase=phase)
     evidence = {
-        "schema_version": "2.1.0",
+        "schema_version": manifest.get("schema_version"),
         "phase": phase,
         "gate_result": "PASS" if code == 0 else "BLOCKED",
         "readiness_status": status,
@@ -149,7 +155,7 @@ def _gate_command(args: argparse.Namespace) -> int:
     except (ManifestError, OSError, ValueError, yaml.YAMLError) as exc:
         code = 2
         evidence = {
-            "schema_version": "2.1.0",
+            "schema_version": "2.2.0",
             "phase": args.phase,
             "gate_result": "BLOCKED",
             "readiness_status": "BLOCKED",

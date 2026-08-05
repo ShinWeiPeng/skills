@@ -5,10 +5,12 @@ Description Views make a valid architecture understandable without adding runtim
 ## Information model
 
 - The System view shows all modules, levels, parent relationships, summary cards, Port/Event contracts, Type Ownership, State Ownership, cross-module Mapping, and navigation. This ensures unparented L3+ technical adapters remain documented.
+- For schema 2.2.0, the root view starts with system purpose and entrypoints, an L0-L2 main-function tree, and per-function responsibility, children, related Flows, invariants, and error-handling rationale before the complete technical reference. L3+ modules stay out of the main-function tree but remain in the complete System diagram, applicable Flows, and catalogs.
 - One Parent view is generated for each L0 and L1 module. It contains its local structure, child module cards, owned Port, Event, Type and State cards, relevant mappings, and end-to-end flows.
 - Module cards explain purpose, I/O, emitted events, state, side effects, errors, invariants, source paths, entrypoints, and public symbols.
 - Flow views use a Mermaid sequence diagram plus an exact ordered-step table. They describe externally meaningful movement across modules, not private algorithms.
-- Schema 2.1.0 retains one generated `execution-<profile-id>.md` page per platform profile. Parent Flow sections link workloads to those pages and expose Task/Thread/ISR/Queue boundaries without equating Modules to Execution Units.
+- When schema 2.2.0 sets `project.diagram_language`, flowchart nodes and sequence participants show the formal module ID plus the exact `description.diagram_summaries[diagram_language]` value. The renderer never translates, falls back, or changes Flow actions, prose, tables, filenames, or anchors.
+- Schemas 2.1.0 and 2.2.0 retain one generated `execution-<profile-id>.md` page per platform profile. Parent Flow sections link workloads to those pages and expose Task/Thread/ISR/Queue boundaries without equating Modules to Execution Units.
 - Each real-time scheduling study generates `realtime-study-<study-id>.md`. It shows workload timing classes, analysis method, execution model, candidate comparison, per-core ordering, Task/Flow RTA, hard failures, soft risks, SLO plans/results, costs, decisions, and approval references in the project's documentation language.
 - Paths and symbols link architecture claims to their declared source files. They do not promise a line-level source anchor. Rename them in the manifest in the same change as code.
 

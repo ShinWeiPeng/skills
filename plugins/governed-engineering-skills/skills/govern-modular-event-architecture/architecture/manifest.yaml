@@ -1,8 +1,9 @@
-standard_version: 2.1.0
-schema_version: 2.1.0
+standard_version: 2.2.0
+schema_version: 2.2.0
 project:
   name: govern-modular-event-architecture
   documentation_language: en
+  diagram_language: zh-TW
 source_sets:
 - id: formal-skill-source
   classification: production
@@ -55,9 +56,11 @@ modules:
   - libclang_toolchain_adapter
   implements_ports: []
   description:
-    purpose: Provide the single public schema 2.1.0 governance CLI and compose its
+    purpose: Provide the single public schema 2.1.0/2.2.0 governance CLI and compose its
       checker, renderer, bootstrap, adoption, source-analysis, and pinned libclang
       provider modules.
+    diagram_summaries:
+      zh-TW: 以單一公開 CLI 組合架構檢查、產生與分析工具
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -100,8 +103,10 @@ modules:
   - realtime_schedulability_analysis
   implements_ports: []
   description:
-    purpose: Validate schema 2.1.0, source conformance, temporary debt, deterministic
+    purpose: Validate schema 2.1.0/2.2.0, source conformance, temporary debt, deterministic
       views, and workload-driven scheduling through one deep governance module.
+    diagram_summaries:
+      zh-TW: 驗證架構 Schema、原始碼一致性與決定性文件
     input_ports:
     - manifest_validation.check
     output_ports:
@@ -142,6 +147,8 @@ modules:
   description:
     purpose: Compute partitioned Rate Monotonic priority order, per-core response
       times, candidate fingerprints, and conservative end-to-end Flow bounds.
+    diagram_summaries:
+      zh-TW: 計算分割式 RM 排程、回應時間與 Flow 上界
     input_ports: []
     output_ports: []
     emitted_events: []
@@ -174,6 +181,8 @@ modules:
   description:
     purpose: Install and verify one lock-pinned Espressif libclang distribution,
       bind its shared library explicitly, and prove Xtensa parsing capability.
+    diagram_summaries:
+      zh-TW: 安裝並驗證鎖定版本的 Espressif libclang
     input_ports: []
     output_ports: []
     emitted_events: []

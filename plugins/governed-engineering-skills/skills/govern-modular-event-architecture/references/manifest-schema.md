@@ -1,12 +1,12 @@
 # Architecture manifest schema
 
-## Schema 2.1.0 cumulative contract
+## Schema 2.2.0 cumulative contract
 
-Pin `standard_version: "2.1.0"` and `schema_version: "2.1.0"`. Schema 2.1.0 retains every requirement from 1.0 through 2.0.2 and adds workload-driven real-time scheduling studies and generated human-readable reports.
+Pin an exact Standard/Schema pair. New projects use `standard_version: "2.2.0"` and `schema_version: "2.2.0"`. Existing exact 2.1.0 pairs remain supported. Schema 2.2.0 retains every 2.1.0 requirement and adds independently localized diagram summaries plus function-first root navigation.
 
-The checker accepts only schema 2.1.0 manifests. It does not migrate or infer source intent, Task activation, timing bounds, or schedulability assumptions from earlier input.
+The checker accepts exact 2.1.0 and 2.2.0 pairs. It rejects mismatched pairs and does not migrate or infer source intent, Task activation, timing bounds, schedulability assumptions, or translations.
 
-Schema 2.1.0 retains stable `id` values on Flow steps plus these top-level lists:
+Schema 2.2.0 retains stable `id` values on Flow steps plus these top-level lists:
 
 ```yaml
 workloads: []
@@ -139,23 +139,48 @@ Every study generates
 `architecture/generated/realtime-study-<study-id>.md`. The report is a read-only
 review projection and participates in exact stale-document checking.
 
-`architecture/manifest.yaml` is the machine-readable and human-description source of truth. Schema 2.1.0 generates navigation, Type Ownership, State Ownership, Mapping, execution, and real-time scheduling documents from it; do not maintain duplicate descriptions in generated Markdown.
+`architecture/manifest.yaml` is the machine-readable and human-description source of truth. Schemas 2.1.0 and 2.2.0 generate navigation, Type Ownership, State Ownership, Mapping, execution, and real-time scheduling documents from it; do not maintain duplicate descriptions in generated Markdown.
+
+## Diagram language and localized summaries
+
+Schema 2.2.0 adds optional `project.diagram_language` and optional
+`module.description.diagram_summaries`:
+
+```yaml
+project:
+  documentation_language: en
+  diagram_language: zh-TW
+modules:
+  - id: routing_domain
+    description:
+      purpose: Route engineering work safely.
+      diagram_summaries:
+        zh-TW: 安全路由工程工作
+```
+
+When `diagram_language` is present, every module that can appear in a Mermaid
+diagram MUST provide a non-empty summary for that exact language tag. Locale keys
+and values must be non-empty. The checker and renderer do not translate, fall back,
+or mix languages. Formal module IDs remain unchanged. Schema 2.1.0 neither accepts
+nor uses these 2.2-only fields and retains byte-for-byte legacy rendering.
 
 ## Version policy
 
-- Only schema 2.1.0 input is supported.
+- Exact schema/standard 2.1.0 and 2.2.0 pairs are supported.
 - Standard and schema versions advance together.
-- An earlier project requires a new human-owned source-set and as-is inventory. Never infer source intent, type/state ownership, authority, mapping, Task activation, or timing bounds and never silently generate a 2.1.0 manifest.
+- Bootstrap defaults new projects to 2.2.0. Existing 2.1.0 projects are not automatically migrated.
+- An earlier project requires a new human-owned source-set and as-is inventory. Never infer source intent, type/state ownership, authority, mapping, Task activation, timing bounds, or translations and never silently generate a 2.2.0 manifest.
 - Internal validation layers preserve 1.0 through 2.0.1 rules but are not public schema entry points.
 
 ## Top level
 
 ```yaml
-standard_version: "2.1.0"
-schema_version: "2.1.0"
+standard_version: "2.2.0"
+schema_version: "2.2.0"
 project:
   name: "example"
-  documentation_language: "zh-TW"
+  documentation_language: "en"
+  diagram_language: "zh-TW"
 source_sets:
   - id: "formal-program"
     classification: "production"
@@ -202,11 +227,13 @@ Schema 2.0.1 input is rejected. There is no automatic migration because source i
 
 ## Module description
 
-Schema 2.1.0 retains the 1.1 module description contract. Each module requires `implementation_status: planned|implemented`, `paths`, `entrypoints`, `public_symbols`, and this explicit description shape:
+Schema 2.2.0 retains the 2.1.0 module description contract. Each module requires `implementation_status: planned|implemented`, `paths`, `entrypoints`, `public_symbols`, and this explicit description shape:
 
 ```yaml
 description:
   purpose: "What this module owns"
+  diagram_summaries:
+    zh-TW: "此模組負責的用途"
   input_ports: []
   output_ports: []
   emitted_events: []
@@ -387,7 +414,7 @@ computes analyzer and readiness verdicts and deterministically generates
 
 ## Public tooling interface
 
-Schema 2.1.0 exposes only `architecture_cli.py`:
+Schemas 2.1.0 and 2.2.0 expose only `architecture_cli.py`:
 
 ```powershell
 python tools\architecture\architecture_cli.py gate --phase design
@@ -403,4 +430,4 @@ reported as a complete governance PASS.
 
 ## Inherited requirements
 
-The sections above use the current 2.1.0 shape. All rules from 1.0 through 2.0.2 remain blocking. Version 2.1.0 adds workload-driven real-time scheduling studies and generated human-readable reports and removes no inherited governance.
+The sections above use the current 2.2.0 shape. All rules through 2.1.0 remain blocking. Version 2.2.0 adds localized diagram summaries and function-first navigation without removing inherited governance; exact 2.1.0 remains supported.

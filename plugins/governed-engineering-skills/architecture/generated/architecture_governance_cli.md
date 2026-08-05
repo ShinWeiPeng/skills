@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TD
-    n_architecture_governance_cli["architecture_governance_cli (L0)"]
+    n_architecture_governance_cli["architecture_governance_cli (L0)<br/>以單一公開 CLI 組合架構治理引擎與原生供應器"]
 ```
 
 ## Modules

@@ -522,7 +522,7 @@ def _catalog_type_checks(
                     "CTYPE001",
                     "MUST",
                     f"{key[0]}:{key[1]}",
-                    "named C/C++ type is missing from the schema 2.1.0 catalog",
+                    "named C/C++ type is missing from the schema 2.1.0/2.2.0 catalog",
                 )
             )
             continue

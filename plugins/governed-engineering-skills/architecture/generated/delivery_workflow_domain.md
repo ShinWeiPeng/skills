@@ -6,8 +6,8 @@
 
 ```mermaid
 flowchart TD
-    n_delivery_workflow_domain["delivery_workflow_domain (L1)"]
-    n_spec_governance_domain["spec_governance_domain (L2)"]
+    n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>讓工程需求安全通過規劃、實作與審查"]
+    n_spec_governance_domain["spec_governance_domain (L2)<br/>將討論整理成唯一規格並在實作前驗證追溯性"]
     n_delivery_workflow_domain -.->|depends| n_spec_governance_domain
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
 ```
@@ -96,9 +96,9 @@ Reconcile one modifying change set into a canonical specification, review materi
 
 ```mermaid
 sequenceDiagram
-    participant n_delivery_workflow_domain as delivery_workflow_domain
-    participant n_spec_governance_domain as spec_governance_domain
-    participant n_governance_workflow_domain as governance_workflow_domain
+    participant n_delivery_workflow_domain as delivery_workflow_domain<br/>讓工程需求安全通過規劃、實作與審查
+    participant n_spec_governance_domain as spec_governance_domain<br/>將討論整理成唯一規格並在實作前驗證追溯性
+    participant n_governance_workflow_domain as governance_workflow_domain<br/>管理決策完整性、架構所有權與證據驗證
     n_delivery_workflow_domain->>+n_spec_governance_domain: Classify the confirmed statement, update stable relationships, and report the working specification delta, conflicts, and open decisions.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: step 1
     n_spec_governance_domain->>+n_governance_workflow_domain: Review every material as-is and target Flow through functional admission, execution and real-time feasibility, maintainability and extensibility change scenarios, and model assurance; keep unresolved load-bearing evidence BLOCKED.

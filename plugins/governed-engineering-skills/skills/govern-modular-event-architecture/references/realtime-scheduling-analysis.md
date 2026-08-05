@@ -22,7 +22,7 @@ Complete this gate before editing product source:
 4. Produce at least two structurally different candidates. Change Task
    grouping, activation rate, core allocation, or communication topology;
    renamed copies are not alternatives.
-5. Select `analysis_method`. Schema 2.1.0 installs only
+5. Select `analysis_method`. Schema 2.1.0/2.2.0 installs only
    `rate-monotonic-rta`. An EDF, cyclic-executive, global-FP, or other method is
    `BLOCKED` until a proposed ALG, analyzer, schema contract, and tests exist.
 6. Run provisional analysis with conservative design budgets, generate the
@@ -91,7 +91,7 @@ non-negative integer nanoseconds.
 
 The pre-release fields `rtos_design_studies`, `rtos`, `rtos_isr`,
 `rtos_timing`, and `timer_isr_ns` are obsolete and configuration `BLOCKED`.
-Schema 2.1.0 performs no inference or migration.
+Schema 2.1.0/2.2.0 performs no inference or migration.
 
 ## RMA screen and RTA
 
