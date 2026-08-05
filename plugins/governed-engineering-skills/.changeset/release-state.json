@@ -1,18 +1,19 @@
 {
   "schema_version": "1.0",
-  "current_version": "0.5.0-beta.5",
-  "previous_version": "0.5.0-beta.4",
+  "current_version": "0.5.0-beta.6",
+  "previous_version": "0.5.0-beta.5",
   "release_group": "0.5.0",
   "bump": "minor",
-  "risk": "low",
-  "production_fingerprint": "sha256:06f4dcb4085c9b4964d6ba4ef3d28dbdccf07fd933d30121c2dbb688e4167352",
+  "risk": "high",
+  "production_fingerprint": "sha256:1593303bb8f5a81440396e447d3e7710142014a7b48711ad930fb8028e7daedd",
   "final_rc_fingerprint": null,
   "applied_changesets": [
     "canonical-spec-governance",
     "docs-only-routing-precedence",
     "plugin-only-release-flow",
     "evidence-calibrated-flow-cost-governance",
-    "default-decision-choice-contract"
+    "default-decision-choice-contract",
+    "function-first-architecture-description"
   ],
   "approval": null,
   "validation_evidence": [],
