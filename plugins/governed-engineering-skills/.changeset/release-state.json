@@ -1,22 +1,11 @@
 {
-  "schema_version": "1.0",
-  "current_version": "0.5.0-beta.6",
-  "previous_version": "0.5.0-beta.5",
-  "release_group": "0.5.0",
+  "schema_version": "2.0",
+  "current_version": "0.5.0",
+  "previous_version": "0.5.0-beta.6",
   "bump": "minor",
-  "risk": "high",
-  "production_fingerprint": "sha256:1593303bb8f5a81440396e447d3e7710142014a7b48711ad930fb8028e7daedd",
-  "final_rc_fingerprint": null,
+  "production_fingerprint": "sha256:67bb121e99e9d4bbafe6579e98859f93dc1d641ee1a3f732ba84e0ab4afad0bd",
   "applied_changesets": [
-    "canonical-spec-governance",
-    "docs-only-routing-precedence",
-    "plugin-only-release-flow",
-    "evidence-calibrated-flow-cost-governance",
-    "default-decision-choice-contract",
-    "function-first-architecture-description"
-  ],
-  "approval": null,
-  "validation_evidence": [],
-  "open_blockers": [],
-  "new_release_group": false
+    "continuous-stable-plugin-versioning",
+    "shared-debug-computation-model"
+  ]
 }

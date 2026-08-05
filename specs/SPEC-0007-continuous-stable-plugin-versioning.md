@@ -1,8 +1,8 @@
 ---
 spec_version: 1
 spec_id: SPEC-0007
-revision: 1
-status: confirmed
+revision: 2
+status: implemented
 change_set: continuous-stable-plugin-versioning
 ---
 
@@ -57,11 +57,11 @@ PATCH and compatible features increment MINOR.
 
 | ID | Requirements | Criterion | Validation Method | Evidence |
 |---|---|---|---|---|
-| AC-001 | REQ-001, REQ-002, REQ-004 | Transition tests prove prerelease migration to `0.5.0`, stable PATCH/MINOR progression, and rejection of prerelease/build metadata. | Version-governance unit tests. | Pending implementation verification. |
-| AC-002 | REQ-003, REQ-005 | Repository validation and intent application accept the simplified intent and atomically synchronize all release metadata. | Repository-policy tests and isolated intent fixture. | Pending implementation verification. |
-| AC-003 | REQ-006 | Workflow and tag tests prove existing tags never move and missing tags are created once. | Workflow contract and CLI tag tests. | Pending implementation verification. |
-| AC-004 | REQ-007, REQ-008 | Instructions, docs, ADR, manifest, generated views, workflow, CLI names, plugin ID, and tag format are consistent. | Text contracts, architecture render/check, integration validation, and diff review. | Pending implementation verification. |
-| AC-005 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008 | Complete plugin tests, integration validation, architecture development/release gates, version governance, YAML parsing, and diff hygiene pass. | Recorded local commands and exit codes. | Pending implementation verification. |
+| AC-001 | REQ-001, REQ-002, REQ-004 | Transition tests prove prerelease migration to `0.5.0`, stable PATCH/MINOR progression, and rejection of prerelease/build metadata. | Version-governance unit tests. | PASS — 22 version-governance tests verify stable parsing, PATCH/MINOR/MAJOR progression, exact beta.6 migration, and rejection of all other prereleases/build metadata. |
+| AC-002 | REQ-003, REQ-005 | Repository validation and intent application accept the simplified intent and atomically synchronize all release metadata. | Repository-policy tests and isolated intent fixture. | PASS — mixed-bump and obsolete-field tests pass; both isolated simulation and the authorized direct migration produce synchronized `0.5.0` metadata with release-state schema `2.0`. |
+| AC-003 | REQ-006 | Workflow and tag tests prove existing tags never move and missing tags are created once. | Workflow contract and CLI tag tests. | PASS — workflow contracts preserve exact missing-tag creation, and the stable-tag CLI regression refuses to move an existing tag. |
+| AC-004 | REQ-007, REQ-008 | Instructions, docs, ADR, manifest, generated views, workflow, CLI names, plugin ID, and tag format are consistent. | Text contracts, architecture render/check, integration validation, and diff review. | PASS — stable-only text contracts, accepted ADR-0013, deterministic rendering, integration validation, YAML parsing, and both architecture release gates pass without boundary changes. |
+| AC-005 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008 | Complete plugin tests, integration validation, architecture development/release gates, version governance, YAML parsing, and diff hygiene pass. | Recorded local commands and exit codes. | PASS — 129 plugin tests, 104 architecture-skill tests, integration validation, version governance, both project release gates, workflow YAML parsing, spec validation, and diff hygiene pass. |
 
 ## Relationships
 
@@ -100,10 +100,20 @@ None.
   metadata, immutable tags, and the Version pull request.
 - Product algorithm screening: not applicable — release infrastructure is not a
   user-facing product algorithm.
-- Spec verification: pending strict contract validation.
+- Spec verification: PASS — revisions 1 and 2 have complete requirement-to-AC
+  traceability and no open decision or scope creep.
+- TDD: PASS — stable-only tests were observed red against the staged lifecycle,
+  then all 22 version-governance tests passed after implementation.
+- Code review Standards axis: PASS — the implementation follows plugin-only
+  authority, immutable tags, generated-view ownership, and release metadata rules.
+- Code review Spec axis: PASS — every stable-only, migration, compatibility,
+  workflow, and validation requirement has direct evidence.
+- Spec review: PASS — all eight requirements and five acceptance criteria are
+  implemented and verified.
 
 ## Revision History
 
 | Revision | Date | Change |
 |---|---|---|
 | 1 | 2026-08-05 | Materialized the authorized stable-only release contract. |
+| 2 | 2026-08-05 | Recorded the `0.5.0` migration and complete local validation and Spec review evidence. |

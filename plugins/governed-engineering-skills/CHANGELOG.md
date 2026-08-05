@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.5.0
+
+### Added
+
+- Added risk-triggered Debug Model Packets with visibly marked error paths, first-divergence evidence, and a user-confirmed computation-model gate before root-cause hypotheses or repair comparisons.
+
+### Changed
+
+- Replaced staged prerelease promotion with continuous stable-only SemVer while preserving plugin-only Version pull requests and immutable tags.
+
 ## 0.5.0-beta.6
 
 ### Changed

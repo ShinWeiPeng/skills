@@ -1,8 +1,8 @@
 ---
 spec_version: 1
 spec_id: SPEC-0006
-revision: 1
-status: confirmed
+revision: 2
+status: implemented
 change_set: debug-model-packet
 ---
 
@@ -52,11 +52,11 @@ gate before root-cause or repair discussion.
 
 | ID | Requirements | Criterion | Validation Method | Evidence |
 |---|---|---|---|---|
-| AC-001 | REQ-001, REQ-005 | Phase 2.5 follows minimisation, precedes hypotheses, and blocks premature diagnosis until confirmation. | Skill contract tests. | Pending implementation verification. |
-| AC-002 | REQ-002, REQ-003 | The reference contains every evidence, diagram, contract, equation, and trace requirement. | Skill contract tests and content inspection. | Pending implementation verification. |
-| AC-003 | REQ-004 | Error-path styling and text labels distinguish confirmed and inferred paths and bind the symptom to evidence. | Skill contract tests. | Pending implementation verification. |
-| AC-004 | REQ-006 | Promoted documentation describes the packet and understanding gate. | Documentation contract test. | Pending implementation verification. |
-| AC-005 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006 | Focused tests, complete plugin tests, skill validation, version governance, and diff hygiene pass. | Recorded local commands and exit codes. | Pending implementation verification. |
+| AC-001 | REQ-001, REQ-005 | Phase 2.5 follows minimisation, precedes hypotheses, and blocks premature diagnosis until confirmation. | Skill contract tests. | PASS — 10 diagnosing-bugs contract tests verify phase order, risk trigger, skip rule, and blocking understanding gate. |
+| AC-002 | REQ-002, REQ-003 | The reference contains every evidence, diagram, contract, equation, and trace requirement. | Skill contract tests and content inspection. | PASS — contract tests verify evidence labels, decision/sequence diagrams, counter contracts, reconciliation, trace, and semantic divergence. |
+| AC-003 | REQ-004 | Error-path styling and text labels distinguish confirmed and inferred paths and bind the symptom to evidence. | Skill contract tests. | PASS — the error-path contract test verifies branch values, `FIRST DIVERGENCE`, evidence ID, textual labels, Mermaid classes, and inferred-path handling. |
+| AC-004 | REQ-006 | Promoted documentation describes the packet and understanding gate. | Documentation contract test. | PASS — the promoted-doc contract test reads `docs/engineering/diagnosing-bugs.md` and verifies the packet, error path, and gate. |
+| AC-005 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006 | Focused tests, complete plugin tests, skill validation, version governance, and diff hygiene pass. | Recorded local commands and exit codes. | PASS — 10 focused tests, 129 plugin tests, skill validation, integration validation, version governance, architecture gates, and diff checks pass. |
 
 ## Relationships
 
@@ -80,14 +80,21 @@ None.
 ## Routing/Gates
 
 - Grilling: PASS — the user confirmed the packet workflow and error-path labels.
-- Spec verification: pending strict contract validation.
+- Spec verification: PASS — revisions 1 and 2 have complete requirement-to-AC
+  traceability and no open decision or scope creep.
 - Architecture impact: N/A — skill instructions and documentation change without
   Module, Port, Event, Type, State, dependency, execution, or product-algorithm
   changes.
 - TDD: PASS — contract tests were written with the behavior and pass locally.
+- Code review Standards axis: PASS — the implementation preserves the existing
+  feedback-loop contract, documentation sync rule, and repository standards.
+- Code review Spec axis: PASS — all six requirements and five acceptance
+  criteria are implemented with direct test or inspection evidence.
+- Spec review: PASS — every requirement has verified acceptance evidence.
 
 ## Revision History
 
 | Revision | Date | Change |
 |---|---|---|
 | 1 | 2026-08-05 | Materialized the authorized Debug Model Packet contract. |
+| 2 | 2026-08-05 | Recorded passing implementation, documentation, validation, and Spec review evidence. |
