@@ -86,6 +86,8 @@ modules:
     errors: []
     invariants:
     - Users never need to know or invoke ask-matt for software-engineering work.
+    - Every design or specification decision offers two or three meaningful options,
+      preferring structured choices and falling back to equivalent numbered text.
     - Every repository-modifying change set completes grilling before mutation.
     - Discoverable facts are explored before any unresolved decision is asked.
     - A newly discovered discretionary decision stops execution and returns to grilling.

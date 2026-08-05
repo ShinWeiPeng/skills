@@ -10,15 +10,16 @@ Apply a language-independent modular architecture whose behavior can be read by 
 ## Select the workflow
 
 1. Inspect the repository before asking questions. Look for `AGENTS.md`, `architecture/manifest.yaml`, `architecture/ARCHITECTURE.md`, ADRs, baselines, build files, source paths, and tests.
-2. For a new project whose design is not already confirmed, clarify product features and algorithm screening before finalizing the system flows, L0-L3+ modules, parents, ports, events, delivery semantics, quality constraints, and validation in Plan mode before creating files. If Plan mode or its structured choice tool is unavailable, ask the user to switch modes and stop. A previously confirmed plan plus an explicit implementation request satisfies this checkpoint.
+2. For a new project whose design is not already confirmed, clarify product features and algorithm screening before finalizing the system flows, L0-L3+ modules, parents, ports, events, delivery semantics, quality constraints, and validation before creating files. Use the structured choice tool when available and equivalent numbered text otherwise. Missing structured UI alone never blocks clarification or requires a mode switch. A previously confirmed plan plus an explicit implementation request satisfies this checkpoint.
 3. For an existing project, map the current architecture, every named type, runtime state object, composition root, and every L1/L2 product feature and algorithm first. Derive ownership from actual reads, writes, side effects, lifetime, consumers, and external-technology use. Remediate every discovered violation by default. Use a temporary baseline only when a non-AI developer explicitly defers that exact rule/location with rationale, approval reference, captured revision, review date, and removal condition. Never rewrite the manifest or use an empty baseline to make incomplete adoption appear compliant.
-4. For an architecture proposal, invoke `$clarify-improvement-proposals` and remain in Plan mode. If the current mode is not Plan or the structured choice tool is unavailable, tell the user to switch with `/plan` or `Shift+Tab`, then stop. Do not provide a preliminary architecture unless the user explicitly requests one.
+4. For an architecture proposal, invoke `$clarify-improvement-proposals`. Follow the current mode's mutation boundary, but continue clarification with numbered text when a structured choice tool is unavailable. Do not provide a preliminary architecture unless the user explicitly requests one.
 5. For confirmed implementation in an execution-capable mode, pass the pre-code gate below before editing source. Then update the manifest catalogs, documentation, ADRs, code, and tests together. Run the checker and applicable language analyzers and report evidence.
 
 Do not let implicit invocation bypass clarification, mode checkpoints, approval requirements, or repository instructions.
 
 ## Load the required references
 
+- Read [the shared Decision Question Contract](../ask-matt/references/decision-question-contract.md) before asking the user to select any architecture, algorithm, execution, or validation outcome.
 - Read [references/core-standard.md](references/core-standard.md) before defining levels, modules, dependency direction, or migration policy.
 - Read [references/event-contract.md](references/event-contract.md) before defining ports, callbacks, commands, queries, events, ordering, fan-out, or retries.
 - Read [references/manifest-schema.md](references/manifest-schema.md) before creating or changing `architecture/manifest.yaml` or a baseline.

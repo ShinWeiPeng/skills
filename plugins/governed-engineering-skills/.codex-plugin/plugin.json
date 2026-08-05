@@ -19,6 +19,7 @@
     "defaultPrompt": [
       "Automatically use $ask-matt for every software-engineering request; never require the user to know a skill name.",
       "Explore repository facts read-only, classify intent and dual-axis ProjectState, then apply $engineering-risk-routing gates.",
+      "Ask one design or specification decision at a time with two or three meaningful options; prefer structured choices and use equivalent numbered text when the tool is unavailable.",
       "Before any repository-modifying change set, reconcile one canonical spec, wait for the user's exact 開始執行 authorization, then verify it before implementation."
     ]
   }

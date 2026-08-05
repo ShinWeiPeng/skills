@@ -13,8 +13,8 @@ Separate discovery from recommendation. Resolve every ambiguity before treating 
 2. Resolve discoverable facts from evidence instead of asking the user.
 3. Maintain an exhaustive ambiguity ledger covering goals, success criteria, scope, users, product features, behavior, constraints, compatibility, architecture, algorithm screening, candidate methods, data assumptions, quantitative quality thresholds, delivery, and validation.
 4. Ask about every unresolved decision. Re-evaluate the ledger after each answer because answers can introduce new ambiguities.
-5. Use the structured choice tool whenever it is available. Batch questions only to respect the tool limit; never treat the batch size as a total-question limit.
-6. Stop after each batch and wait for the user. Do not produce a final proposal with unresolved decisions.
+5. Read and enforce [the shared Decision Question Contract](../ask-matt/references/decision-question-contract.md). Use the structured choice tool when available and equivalent numbered text otherwise.
+6. Ask one decision at a time, then stop and wait for the user. Do not produce a final proposal with unresolved decisions.
 
 For every choice, state why it matters, offer mutually exclusive options, explain impacts and tradeoffs, and mark a recommendation only when evidence supports it. Preserve dependencies between decisions.
 
@@ -42,9 +42,12 @@ Do not treat the proposal as decision-complete while the selected method,
 quantitative acceptance thresholds, data assumptions, or a risk-required
 prototype or benchmark remains unresolved.
 
-## Enforce mode checkpoints
+## Enforce presentation and mode checkpoints
 
-Before clarification, verify that the surface provides a structured choice tool. If unavailable, do not replace it with Markdown questions and do not produce the proposal. Tell the user to switch to Plan mode with `/plan` or `Shift+Tab`, invoke this skill again, and wait.
+Before clarification, check whether the surface provides a structured choice tool.
+Use it when available. Otherwise continue with the same two or three options as
+numbered text; missing structured UI alone never blocks clarification or requires a
+mode switch.
 
 After all decisions are resolved:
 

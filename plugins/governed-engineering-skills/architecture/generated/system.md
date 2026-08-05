@@ -66,7 +66,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Users never need to know or invoke ask-matt for software-engineering work.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
+- **Invariants:** Users never need to know or invoke ask-matt for software-engineering work.; Every design or specification decision offers two or three meaningful options, preferring structured choices and falling back to equivalent numbered text.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
 - **Entrypoints:** [`ask-matt`](../../skills/ask-matt/SKILL.md) (skill)<br>[`main`](../../skills/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
 - **Public Symbols:** [`ask-matt`](../../skills/ask-matt/SKILL.md) (skill)<br>[`route`](../../skills/engineering-risk-routing/scripts/guided_workflow_router.py) (function)
 

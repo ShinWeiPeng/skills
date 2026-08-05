@@ -5,6 +5,10 @@ description: Interview engineering work when durable project context exists but 
 
 Run a `/grilling` session, using the `/domain-modeling` skill.
 
+Read and enforce
+[the shared Decision Question Contract](../ask-matt/references/decision-question-contract.md)
+for every decision asked through this wrapper.
+
 Use this wrapper only when ProjectState has `implementation: absent` and
 `stateful_context: present`. Formal specs, PRDs, ADRs, `CONTEXT.md`, and governed
 architecture records count as durable context; a README or template alone does not.
