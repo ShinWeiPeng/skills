@@ -30,10 +30,12 @@ Use `python tools\architecture\architecture_cli.py gate --phase release` in CI. 
 - Keep `package.json`, `.codex-plugin/plugin.json`, `CHANGELOG.md`,
   `.changeset/release-state.json`, and the production fingerprint consistent.
 - Use `python scripts/version_governance.py check` for formal CI validation.
-- MAJOR and MINOR releases pass through beta and RC. High-risk PATCH releases
-  pass through RC; only low-risk PATCH releases may go directly to stable.
-- Stable promotion requires final-RC fingerprint equality, reinstall and
-  new-task evidence, no open blockers, and explicit non-AI approval.
+- Use stable-only `MAJOR.MINOR.PATCH`; formal versions never contain alpha,
+  beta, RC, or general build metadata.
+- Every release-affecting change adds a plugin changeset and the release intent
+  lists the complete pending set. The highest changeset bump wins.
+- Keep stage, release-group, risk-promotion, approval, and validation-evidence
+  fields out of release intent and current release state.
 - A `+codex.local-*` cachebuster is local-only and must never be committed as a
   formal release version.
 

@@ -1,65 +1,80 @@
 # Plugin versioning
 
-The governed plugin uses:
+The governed plugin uses **stable-only SemVer**:
 
 ```text
-MAJOR.MINOR.PATCH[-STAGE.NUMBER]
+MAJOR.MINOR.PATCH
 ```
+
+Formal versions never contain alpha, beta, RC, or general build metadata.
+A local Codex reload may temporarily append exactly one
+`+codex.local-<timestamp>` cachebuster to `.codex-plugin/plugin.json`; CI
+rejects that suffix, and it never changes the package version or release tag.
 
 ## Compatibility numbers
 
 - `MAJOR` changes after `1.0.0` when a public CLI, schema, data contract, or
   behavior becomes incompatible.
-- `MINOR` adds compatible behavior. Before `1.0.0`, incompatible public
-  changes also increment MINOR.
+- `MINOR` adds compatible behavior. Before `1.0.0`, incompatible public changes
+  also increment MINOR.
 - `PATCH` fixes behavior without changing a public contract.
 
-## Maturity stages
+Every release-affecting change declares its bump in a plugin changeset. When a
+release contains multiple changesets, the highest declared bump wins:
+`major > minor > patch`.
 
-- `alpha.n` is experimental and may change its interface.
-- `beta.n` is feature-complete enough for integration testing.
-- `rc.n` freezes features and public interfaces; only release blockers may
-  change.
-- A version without a suffix is stable.
+## Continuous release flow
 
-MAJOR and MINOR releases progress through beta, RC, then stable. A low-risk
-PATCH may release directly to stable. A PATCH that changes schema, public CLI,
-security, persisted data, scheduling/timing, persistent state, or a gate verdict
-must pass through RC.
+The plugin is the repository's only active release unit. Its private
+`.changeset` directory owns release intent, applied changesets, and release
+state; the repository root has no package version, Changesets state, or Node
+release dependencies.
 
-SemVer ordering makes a same-base transition from RC back to beta a downgrade.
-If an RC receives a new feature, open the next release group at `beta.1`
-instead. For example, `0.2.0-rc.1` becomes `0.3.0-beta.1`, not
-`0.2.0-beta.2`.
+Each release-affecting plugin change adds a changeset. One
+`.changeset/release-intent.json` lists:
 
-## Promotion evidence
+- the resulting bump;
+- every pending changeset ID exactly once;
+- a structured changelog summary.
 
-RC requires unit, integration, bootstrap, renderer, skill release-gate, and
-plugin release-gate evidence. Stable requires the exact final-RC production
-fingerprint, reinstall evidence, new-task evidence, no open blocker, and a
-non-AI approval reference. `1.0.0` additionally requires an accepted
-compatibility ADR.
+Stage, release-group, risk-promotion, approval, and validation-evidence fields
+are invalid. Functional, integration, architecture, and release gates still run
+as ordinary change validation; they are not inputs to a maturity-stage state
+machine.
 
-The package version and `.codex-plugin/plugin.json` version are identical in
-formal commits. A local reload may temporarily append exactly one
-`+codex.local-<timestamp>` cachebuster to the plugin manifest; CI rejects that
-suffix as a formal version.
+After a feature change reaches `main`, the Version workflow applies the isolated
+plugin intent and commits the synchronized package version, plugin manifest,
+changelog, release state, production fingerprint, and applied changesets to
+`plugin-release/main`. It creates or updates one open plugin Version pull
+request. After that pull request is merged, the workflow creates
+`governed-engineering-skills@<version>` only when the immutable tag does not
+already exist.
 
-The plugin owns the repository's only active release lifecycle and keeps all
-release records in its private `.changeset` directory. The repository root has no
-package version, Changesets state, or Node release dependencies.
+## One-time migration
 
-Each release-affecting plugin change adds a plugin changeset and
-`.changeset/release-intent.json`. The intent names the bump, target stage,
-risk, changeset IDs, structured changelog summary, and any approval or
-validation evidence. After a feature pull request reaches `main`, the Version
-workflow applies the isolated plugin intent and commits the resulting version,
-changelog, and release state to `plugin-release/main`. It creates or updates one
-open plugin Version pull request. After that pull request is merged, the workflow
-creates `governed-engineering-skills@<version>` only when the tag does not already
-exist. Pushes with no new release safely leave existing tags unchanged.
+The authorized lifecycle migration converts `0.5.0-beta.6` to stable `0.5.0`.
+It does not rewrite or delete historical prerelease tags, changelog entries,
+validation reports, or remote branches. The migration exception is exact;
+other prerelease versions remain invalid.
 
-Resolve a supported Python 3 runtime before invoking
-`scripts/version_governance.py`. CI does this with `actions/setup-python`; an
-older `python` executable already present on a workstation is not a supported
-fallback.
+After migration, releases progress normally:
+
+```text
+0.5.0 --patch--> 0.5.1
+0.5.1 --minor--> 0.6.0
+0.6.0 --major--> 1.0.0
+```
+
+## Validation
+
+Keep `package.json`, `.codex-plugin/plugin.json`, `CHANGELOG.md`,
+`.changeset/release-state.json`, changesets, release intent, and the production
+fingerprint consistent. Run:
+
+```powershell
+python scripts/version_governance.py check
+```
+
+Resolve a supported Python 3 runtime first. CI does this with
+`actions/setup-python`; an older `python` already present on a workstation is
+not a supported fallback.

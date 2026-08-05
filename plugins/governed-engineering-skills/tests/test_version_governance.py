@@ -19,144 +19,57 @@ SPEC.loader.exec_module(MODULE)
 
 
 class SemVerPolicyTests(unittest.TestCase):
-    def test_parse_semver_and_cachebuster(self) -> None:
-        self.assertEqual((0, 2, 0, "beta", 1, None), MODULE.parse_semver("0.2.0-beta.1"))
+    def test_parse_stable_semver_and_local_cachebuster(self) -> None:
+        self.assertEqual((0, 5, 0, None), MODULE.parse_semver("0.5.0"))
         self.assertEqual(
-            (0, 2, 0, "beta", 1, "local-20260731-120000"),
+            (0, 5, 0, "local-20260805-120000"),
             MODULE.parse_semver(
-                "0.2.0-beta.1+codex.local-20260731-120000",
+                "0.5.0+codex.local-20260805-120000",
                 allow_cachebuster=True,
             ),
         )
-        with self.assertRaises(ValueError):
-            MODULE.parse_semver("0.2")
-        with self.assertRaises(ValueError):
-            MODULE.parse_semver("0.2.0-beta.0")
-        with self.assertRaises(ValueError):
-            MODULE.parse_semver(
-                "0.2.0-beta.1+codex.local-20260731-120000",
-                allow_cachebuster=False,
-            )
-        self.assertEqual(
-            "0.2.0-beta.1+codex.local-20260731-120001",
-            MODULE.with_cachebuster(
-                "0.2.0-beta.1+codex.old-token",
-                "local-20260731-120001",
-            ),
-        )
-
-    def test_minor_release_progression(self) -> None:
-        self.assertEqual(
-            "0.2.0-beta.1",
-            MODULE.next_version("0.1.0", bump="minor", target_stage="beta", risk="high"),
-        )
-        self.assertEqual(
-            "0.2.0-beta.2",
-            MODULE.next_version("0.2.0-beta.1", bump="minor", target_stage="beta", risk="high"),
-        )
-        self.assertEqual(
-            "0.2.0-rc.1",
-            MODULE.next_version("0.2.0-beta.2", bump="minor", target_stage="rc", risk="high"),
-        )
-        self.assertEqual(
-            "0.2.0",
-            MODULE.next_version("0.2.0-rc.1", bump="minor", target_stage="stable", risk="high"),
-        )
-
-    def test_rc_feature_change_starts_next_release_group(self) -> None:
-        self.assertEqual(
-            "0.3.0-beta.1",
-            MODULE.next_version("0.2.0-rc.1", bump="minor", target_stage="beta", risk="high"),
-        )
-
-    def test_explicit_minor_prerelease_group_transition(self) -> None:
-        self.assertEqual(
-            "0.3.0-beta.1",
-            MODULE.next_version(
-                "0.2.0-beta.1",
-                bump="minor",
-                target_stage="beta",
-                risk="high",
-                new_release_group=True,
-            ),
-        )
-        for current, bump, stage in (
-            ("0.2.0", "minor", "beta"),
-            ("0.2.0-beta.1", "patch", "beta"),
-            ("0.2.0-beta.1", "minor", "stable"),
+        for invalid in (
+            "0.5",
+            "0.5.0-beta.7",
+            "0.5.0-rc.1",
+            "0.5.0+build.1",
         ):
-            with self.subTest(current=current, bump=bump, stage=stage):
+            with self.subTest(invalid=invalid):
                 with self.assertRaises(ValueError):
-                    MODULE.next_version(
-                        current,
-                        bump=bump,
-                        target_stage=stage,
-                        risk="high",
-                        new_release_group=True,
-                    )
+                    MODULE.parse_semver(invalid)
 
-    def test_patch_policy(self) -> None:
+    def test_cachebuster_preserves_stable_formal_version(self) -> None:
         self.assertEqual(
-            "0.2.1",
-            MODULE.next_version("0.2.0", bump="patch", target_stage="stable", risk="low"),
-        )
-        self.assertEqual(
-            "0.2.1-rc.1",
-            MODULE.next_version("0.2.0", bump="patch", target_stage="rc", risk="high"),
-        )
-        with self.assertRaises(ValueError):
-            MODULE.next_version("0.2.0", bump="patch", target_stage="stable", risk="high")
-
-    def test_patch_in_existing_beta_group_advances_prerelease(self) -> None:
-        self.assertEqual(
-            "0.5.0-beta.3",
-            MODULE.next_version(
-                "0.5.0-beta.2",
-                bump="patch",
-                target_stage="beta",
-                risk="high",
+            "0.5.0+codex.local-20260805-120001",
+            MODULE.with_cachebuster(
+                "0.5.0+codex.old-token",
+                "local-20260805-120001",
             ),
         )
 
-    def test_stable_promotion_requires_matching_rc_evidence(self) -> None:
-        errors = MODULE.validate_promotion_evidence(
-            "0.2.0-rc.1",
-            "0.2.0",
-            risk="high",
-            current_fingerprint="sha256:one",
-            final_rc_fingerprint="sha256:two",
-            approval=None,
-            validation_evidence=[],
-        )
-        self.assertIn("stable promotion fingerprint differs from final RC", errors)
-        self.assertIn("stable promotion requires non-AI approval", errors)
-        self.assertIn("stable promotion requires reinstall and new-task evidence", errors)
+    def test_stable_versions_advance_by_semver_bump(self) -> None:
+        self.assertEqual("1.0.0", MODULE.next_version("0.5.2", bump="major"))
+        self.assertEqual("0.6.0", MODULE.next_version("0.5.2", bump="minor"))
+        self.assertEqual("0.5.3", MODULE.next_version("0.5.2", bump="patch"))
 
-    def test_stable_promotion_accepts_complete_evidence(self) -> None:
-        errors = MODULE.validate_promotion_evidence(
-            "0.2.0-rc.1",
-            "0.2.0",
-            risk="high",
-            current_fingerprint="sha256:same",
-            final_rc_fingerprint="sha256:same",
-            approval={
-                "approved_by": "Hugo Peng",
-                "approval_reference": "review-42",
-                "approved_at": "2026-07-31",
-            },
-            validation_evidence=[
-                {"kind": "reinstall", "reference": "VAL-REINSTALL-42"},
-                {"kind": "new-task", "reference": "VAL-NEW-TASK-42"},
-            ],
+    def test_only_the_authorized_prerelease_can_stabilize(self) -> None:
+        self.assertEqual(
+            "0.5.0",
+            MODULE.next_version("0.5.0-beta.6", bump="minor"),
         )
-        self.assertEqual([], errors)
+        for unsupported in ("0.5.0-beta.5", "0.6.0-beta.1", "0.5.0-rc.1"):
+            with self.subTest(unsupported=unsupported):
+                with self.assertRaises(ValueError):
+                    MODULE.next_version(unsupported, bump="minor")
 
 
 class RepositoryPolicyTests(unittest.TestCase):
     def make_repo(
         self,
-        version: str = "0.2.0-beta.1",
+        version: str = "0.2.0",
         *,
+        previous_version: str = "0.1.0",
+        bump: str = "minor",
         temporary_parent: Path | None = None,
     ) -> Path:
         temporary = tempfile.TemporaryDirectory(dir=temporary_parent)
@@ -165,7 +78,6 @@ class RepositoryPolicyTests(unittest.TestCase):
         root.mkdir()
         (root / ".codex-plugin").mkdir()
         (root / ".changeset").mkdir()
-        (root / "release").mkdir()
         (root / "skills").mkdir()
         (root / ".codex-plugin" / "plugin.json").write_text(
             json.dumps({"name": "governed-engineering-skills", "version": version}),
@@ -182,43 +94,70 @@ class RepositoryPolicyTests(unittest.TestCase):
             encoding="utf-8",
         )
         (root / "CHANGELOG.md").write_text(
-            f"# Governed Engineering Skills\n\n## {version}\n\n### Changed\n\n- Test.\n",
-            encoding="utf-8",
-        )
-        (root / ".changeset" / "release-state.json").write_text(
-            json.dumps(
-                {
-                    "schema_version": "1.0",
-                    "current_version": version,
-                    "previous_version": "0.1.0",
-                    "release_group": "0.2.0",
-                    "bump": "minor",
-                    "risk": "high",
-                    "production_fingerprint": MODULE.production_fingerprint(root),
-                    "final_rc_fingerprint": None,
-                    "applied_changesets": ["test-change"],
-                    "approval": None,
-                    "validation_evidence": [],
-                    "open_blockers": [],
-                }
-            ),
+            f"# Governed Engineering Skills\n\n## {version}\n\n"
+            "### Changed\n\n- Test.\n",
             encoding="utf-8",
         )
         (root / ".changeset" / "test-change.md").write_text(
-            '---\n"governed-engineering-skills": minor\n---\n\nTest change.\n',
+            f'---\n"governed-engineering-skills": {bump}\n---\n\nTest change.\n',
             encoding="utf-8",
         )
+        state = {
+            "schema_version": "2.0",
+            "current_version": version,
+            "previous_version": previous_version,
+            "bump": bump,
+            "production_fingerprint": "",
+            "applied_changesets": ["test-change"],
+        }
         state_path = root / ".changeset" / "release-state.json"
-        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state_path.write_text(json.dumps(state), encoding="utf-8")
         state["production_fingerprint"] = MODULE.production_fingerprint(root)
         state_path.write_text(json.dumps(state), encoding="utf-8")
         return root
+
+    def write_change(
+        self,
+        root: Path,
+        change_id: str,
+        bump: str,
+        *,
+        source_text: str,
+    ) -> None:
+        (root / "skills" / f"{change_id}.md").write_text(
+            source_text,
+            encoding="utf-8",
+        )
+        (root / ".changeset" / f"{change_id}.md").write_text(
+            f'---\n"governed-engineering-skills": {bump}\n---\n\n'
+            f"{source_text}\n",
+            encoding="utf-8",
+        )
+
+    def write_intent(
+        self,
+        root: Path,
+        *,
+        bump: str,
+        changesets: list[str],
+        extra: dict[str, object] | None = None,
+    ) -> Path:
+        intent = {
+            "bump": bump,
+            "changesets": changesets,
+            "summary": {"Changed": ["Applied governed plugin changes."]},
+        }
+        if extra:
+            intent.update(extra)
+        path = root / ".changeset" / "release-intent.json"
+        path.write_text(json.dumps(intent), encoding="utf-8")
+        return path
 
     def test_repository_versions_and_changelog_must_match(self) -> None:
         root = self.make_repo()
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
         package = json.loads((root / "package.json").read_text(encoding="utf-8"))
-        package["version"] = "0.2.0-beta.2"
+        package["version"] = "0.2.1"
         (root / "package.json").write_text(json.dumps(package), encoding="utf-8")
         self.assertIn(
             "package.json and plugin.json versions differ",
@@ -229,7 +168,7 @@ class RepositoryPolicyTests(unittest.TestCase):
         root = self.make_repo()
         manifest_path = root / ".codex-plugin" / "plugin.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["version"] += "+codex.local-20260731-120000"
+        manifest["version"] += "+codex.local-20260805-120000"
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         self.assertIn(
             "formal CI version must not contain a Codex cachebuster",
@@ -241,177 +180,147 @@ class RepositoryPolicyTests(unittest.TestCase):
         root = self.make_repo()
         (root / ".changeset" / "test-change.md").unlink()
         errors = MODULE.validate_repository(root, ci=True)
-        self.assertTrue(any("applied changeset test-change is missing" in error for error in errors))
+        self.assertTrue(
+            any("applied changeset test-change is missing" in error for error in errors)
+        )
 
     def test_source_change_requires_a_new_changeset(self) -> None:
         root = self.make_repo()
         (root / "skills" / "changed.md").write_text("changed", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "requires a new plugin changeset"):
-            MODULE.apply_promotion(
+            MODULE.apply_release(
                 root,
-                bump="minor",
-                target_stage="beta",
-                risk="high",
+                bump="patch",
                 summary={"Changed": ["Changed a governed skill."]},
                 changeset_ids=[],
-                approval=None,
-                validation_evidence=[],
             )
 
-    def test_plugin_promotion_does_not_touch_parent_changesets_context(self) -> None:
+    def test_release_does_not_touch_parent_changesets_context(self) -> None:
         root = self.make_repo()
         parent_changesets = root.parent / ".changeset"
         parent_changesets.mkdir()
         parent_state = parent_changesets / "pre.json"
         parent_state.write_text('{"mode":"pre","tag":"next"}\n', encoding="utf-8")
         before = parent_state.read_bytes()
-        target = MODULE.apply_promotion(
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        target = MODULE.apply_release(
             root,
-            bump="minor",
-            target_stage="beta",
-            risk="high",
-            summary={"Changed": ["Refined beta validation."]},
-            changeset_ids=[],
-            approval=None,
-            validation_evidence=[],
+            bump="patch",
+            summary={"Fixed": ["Fixed stable behavior."]},
+            changeset_ids=["patch-fix"],
         )
-        self.assertEqual("0.2.0-beta.2", target)
+        self.assertEqual("0.2.1", target)
         self.assertEqual(before, parent_state.read_bytes())
 
-    def test_one_dot_zero_requires_accepted_human_approved_adr(self) -> None:
-        errors = MODULE.validate_promotion_evidence(
-            "1.0.0-rc.1",
-            "1.0.0",
-            risk="high",
-            current_fingerprint="sha256:same",
-            final_rc_fingerprint="sha256:same",
-            approval={
-                "approved_by": "Hugo Peng",
-                "approval_reference": "release-review",
-                "approved_at": "2026-07-31",
-            },
-            validation_evidence=[
-                {"kind": "reinstall", "reference": "VAL-REINSTALL"},
-                {"kind": "new-task", "reference": "VAL-NEW-TASK"},
-            ],
-            compatibility_adr={"status": "proposed"},
+    def test_pending_intent_applies_stable_patch(self) -> None:
+        root = self.make_repo()
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        intent_path = self.write_intent(
+            root,
+            bump="patch",
+            changesets=["patch-fix"],
         )
-        self.assertIn("1.0.0 requires an accepted compatibility ADR", errors)
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+        self.assertEqual("0.2.1", MODULE.apply_pending_intent(root))
+        self.assertFalse(intent_path.exists())
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
 
-    def test_stable_promotion_rejects_open_blockers_before_writing(self) -> None:
-        root = self.make_repo("0.2.0-rc.1")
+    def test_intent_bump_matches_highest_pending_changeset(self) -> None:
+        root = self.make_repo()
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        self.write_change(root, "minor-feature", "minor", source_text="minor")
+        self.write_intent(
+            root,
+            bump="patch",
+            changesets=["patch-fix", "minor-feature"],
+        )
+        self.assertIn(
+            "release intent bump must match the highest pending changeset bump",
+            MODULE.validate_repository(root, ci=True),
+        )
+
+    def test_intent_rejects_prerelease_promotion_fields(self) -> None:
+        root = self.make_repo()
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        self.write_intent(
+            root,
+            bump="patch",
+            changesets=["patch-fix"],
+            extra={"target_stage": "beta", "risk": "high"},
+        )
+        self.assertIn(
+            "release intent contains obsolete or unknown fields: risk, target_stage",
+            MODULE.validate_repository(root, ci=True),
+        )
+
+    def test_new_stable_version_archives_previous_changesets(self) -> None:
+        root = self.make_repo()
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        target = MODULE.apply_release(
+            root,
+            bump="patch",
+            summary={"Fixed": ["Fixed patch behavior."]},
+            changeset_ids=["patch-fix"],
+        )
+        self.assertEqual("0.2.1", target)
+        state = json.loads(
+            (root / ".changeset" / "release-state.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(["patch-fix"], state["applied_changesets"])
+        self.assertTrue(
+            (root / ".changeset" / "applied" / "0.2.0" / "test-change.md").is_file()
+        )
+        self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
+    def test_authorized_beta_six_migrates_once_to_stable(self) -> None:
+        root = self.make_repo(
+            "0.5.0-beta.6",
+            previous_version="0.5.0-beta.5",
+            bump="minor",
+        )
         state_path = root / ".changeset" / "release-state.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         state.update(
             {
-                "previous_version": "0.2.0-beta.1",
-                "final_rc_fingerprint": MODULE.production_fingerprint(root),
-                "production_fingerprint": MODULE.production_fingerprint(root),
-                "validation_evidence": [
-                    {"kind": kind, "reference": f"VAL-{kind}"}
-                    for kind in MODULE.RC_EVIDENCE_KINDS
-                ],
-                "open_blockers": ["BLOCK-1"],
+                "schema_version": "1.0",
+                "release_group": "0.5.0",
+                "risk": "high",
+                "final_rc_fingerprint": None,
+                "approval": None,
+                "validation_evidence": [],
+                "open_blockers": [],
+                "new_release_group": False,
             }
         )
         state_path.write_text(json.dumps(state), encoding="utf-8")
-        before = (root / "package.json").read_bytes()
-        with self.assertRaisesRegex(ValueError, "zero open blockers"):
-            MODULE.apply_promotion(
-                root,
-                bump="minor",
-                target_stage="stable",
-                risk="high",
-                summary={"Changed": ["Promoted the release candidate."]},
-                changeset_ids=[],
-                approval={
-                    "approved_by": "Hugo Peng",
-                    "approval_reference": "release-review",
-                    "approved_at": "2026-07-31",
-                },
-                validation_evidence=[
-                    {"kind": "reinstall", "reference": "VAL-REINSTALL"},
-                    {"kind": "new-task", "reference": "VAL-NEW-TASK"},
-                ],
-            )
-        self.assertEqual(before, (root / "package.json").read_bytes())
+        state["production_fingerprint"] = MODULE.production_fingerprint(root)
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        self.write_change(root, "stable-policy", "minor", source_text="stable only")
+        intent_path = self.write_intent(
+            root,
+            bump="minor",
+            changesets=["stable-policy"],
+        )
 
-    def test_pending_changeset_is_applied_by_plugin_version_flow(self) -> None:
-        root = self.make_repo()
-        (root / "skills" / "changed.md").write_text("changed", encoding="utf-8")
-        (root / ".changeset" / "beta-fix.md").write_text(
-            '---\n"governed-engineering-skills": minor\n---\n\nRefine beta behavior.\n',
-            encoding="utf-8",
-        )
-        intent_path = root / ".changeset" / "release-intent.json"
-        intent_path.write_text(
-            json.dumps(
-                {
-                    "bump": "minor",
-                    "target_stage": "beta",
-                    "risk": "high",
-                    "changesets": ["beta-fix"],
-                    "summary": {"Changed": ["Refined beta behavior."]},
-                    "approval": None,
-                    "validation_evidence": [],
-                }
-            ),
-            encoding="utf-8",
-        )
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
-        self.assertEqual("0.2.0-beta.2", MODULE.apply_pending_intent(root))
+        self.assertEqual("0.5.0", MODULE.apply_pending_intent(root))
         self.assertFalse(intent_path.exists())
-        self.assertEqual([], MODULE.validate_repository(root, ci=True))
-
-    def test_successive_plugin_release_intents_advance_to_beta_three(self) -> None:
-        root = self.make_repo()
-        (root / "skills" / "beta-two.md").write_text("beta two", encoding="utf-8")
-        (root / ".changeset" / "beta-two.md").write_text(
-            '---\n"governed-engineering-skills": patch\n---\n\nBeta two.\n',
-            encoding="utf-8",
-        )
+        migrated = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(
-            "0.2.0-beta.2",
-            MODULE.apply_promotion(
-                root,
-                bump="patch",
-                target_stage="beta",
-                risk="high",
-                summary={"Fixed": ["Produced beta two."]},
-                changeset_ids=["beta-two"],
-                approval=None,
-                validation_evidence=[],
-            ),
+            {
+                "schema_version",
+                "current_version",
+                "previous_version",
+                "bump",
+                "production_fingerprint",
+                "applied_changesets",
+            },
+            set(migrated),
         )
-
-        (root / "skills" / "beta-three.md").write_text("beta three", encoding="utf-8")
-        (root / ".changeset" / "beta-three.md").write_text(
-            '---\n"governed-engineering-skills": patch\n---\n\nBeta three.\n',
-            encoding="utf-8",
-        )
-        intent_path = root / ".changeset" / "release-intent.json"
-        intent_path.write_text(
-            json.dumps(
-                {
-                    "bump": "patch",
-                    "target_stage": "beta",
-                    "risk": "high",
-                    "new_release_group": False,
-                    "changesets": ["beta-three"],
-                    "summary": {"Fixed": ["Produced beta three."]},
-                    "approval": None,
-                    "validation_evidence": [],
-                }
-            ),
-            encoding="utf-8",
-        )
-
-        self.assertEqual([], MODULE.validate_repository(root, ci=True))
-        self.assertEqual("0.2.0-beta.3", MODULE.apply_pending_intent(root))
-        self.assertFalse(intent_path.exists())
+        self.assertEqual("2.0", migrated["schema_version"])
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
 
-    def test_tag_cli_never_moves_an_existing_version_tag(self) -> None:
+    def test_tag_cli_never_moves_an_existing_stable_tag(self) -> None:
         root = self.make_repo(temporary_parent=REPOSITORY_ROOT)
         subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True)
         subprocess.run(
@@ -445,8 +354,9 @@ class RepositoryPolicyTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(0, first.returncode, first.stdout + first.stderr)
+        tag = "governed-engineering-skills@0.2.0"
         tagged_commit = subprocess.run(
-            ["git", "rev-list", "-n", "1", "governed-engineering-skills@0.2.0-beta.1"],
+            ["git", "rev-list", "-n", "1", tag],
             cwd=root,
             check=True,
             capture_output=True,
@@ -479,13 +389,7 @@ class RepositoryPolicyTests(unittest.TestCase):
         self.assertEqual(
             tagged_commit,
             subprocess.run(
-                [
-                    "git",
-                    "rev-list",
-                    "-n",
-                    "1",
-                    "governed-engineering-skills@0.2.0-beta.1",
-                ],
+                ["git", "rev-list", "-n", "1", tag],
                 cwd=root,
                 check=True,
                 capture_output=True,
@@ -493,110 +397,23 @@ class RepositoryPolicyTests(unittest.TestCase):
             ).stdout.strip(),
         )
 
-    def test_same_prerelease_group_accepts_historical_changesets_with_different_bumps(
-        self,
-    ) -> None:
-        root = self.make_repo()
-        (root / "skills" / "patch.md").write_text("patch", encoding="utf-8")
-        (root / ".changeset" / "patch-fix.md").write_text(
-            '---\n"governed-engineering-skills": patch\n---\n\nFix beta behavior.\n',
-            encoding="utf-8",
-        )
-
-        target = MODULE.apply_promotion(
-            root,
-            bump="patch",
-            target_stage="beta",
-            risk="high",
-            summary={"Fixed": ["Fixed beta behavior."]},
-            changeset_ids=["patch-fix"],
-            approval=None,
-            validation_evidence=[],
-        )
-
-        self.assertEqual("0.2.0-beta.2", target)
-        state = json.loads(
-            (root / ".changeset" / "release-state.json").read_text(encoding="utf-8")
-        )
-        self.assertEqual(["test-change", "patch-fix"], state["applied_changesets"])
-        self.assertEqual([], MODULE.validate_repository(root, ci=True))
-
-    def test_explicit_new_release_group_is_applied_by_shared_version_flow(self) -> None:
-        root = self.make_repo()
-        (root / "skills" / "changed.md").write_text("changed", encoding="utf-8")
-        (root / ".changeset" / "new-minor.md").write_text(
-            '---\n"governed-engineering-skills": minor\n---\n\nStart a new minor beta.\n',
-            encoding="utf-8",
-        )
-        intent_path = root / ".changeset" / "release-intent.json"
-        intent_path.write_text(
-            json.dumps(
-                {
-                    "bump": "minor",
-                    "target_stage": "beta",
-                    "risk": "high",
-                    "new_release_group": True,
-                    "changesets": ["new-minor"],
-                    "summary": {"Changed": ["Started a new minor beta."]},
-                    "approval": None,
-                    "validation_evidence": [],
-                }
-            ),
-            encoding="utf-8",
-        )
-        self.assertEqual([], MODULE.validate_repository(root, ci=True))
-        self.assertEqual("0.3.0-beta.1", MODULE.apply_pending_intent(root))
-        state = json.loads(
-            (root / ".changeset" / "release-state.json").read_text(encoding="utf-8")
-        )
-        self.assertTrue(state["new_release_group"])
-        self.assertEqual(["new-minor"], state["applied_changesets"])
-        self.assertTrue((root / ".changeset" / "applied" / "0.2.0" / "test-change.md").is_file())
-        self.assertFalse(intent_path.exists())
-        self.assertEqual([], MODULE.validate_repository(root, ci=True))
-
-    def test_new_release_group_archives_previous_changesets(self) -> None:
-        root = self.make_repo("0.2.0")
-        (root / "skills" / "patch.md").write_text("patch", encoding="utf-8")
-        (root / ".changeset" / "patch-fix.md").write_text(
-            '---\n"governed-engineering-skills": patch\n---\n\nFix patch behavior.\n',
-            encoding="utf-8",
-        )
-        target = MODULE.apply_promotion(
-            root,
-            bump="patch",
-            target_stage="stable",
-            risk="low",
-            summary={"Fixed": ["Fixed patch behavior."]},
-            changeset_ids=["patch-fix"],
-            approval=None,
-            validation_evidence=[],
-        )
-        self.assertEqual("0.2.1", target)
-        state = json.loads(
-            (root / ".changeset" / "release-state.json").read_text(encoding="utf-8")
-        )
-        self.assertEqual(["patch-fix"], state["applied_changesets"])
-        self.assertTrue(
-            (root / ".changeset" / "applied" / "0.2.0" / "test-change.md").is_file()
-        )
-        self.assertEqual([], MODULE.validate_repository(root, ci=True))
-
 
 class ReleaseWorkflowContractTests(unittest.TestCase):
-    def _release_tooling_job(self) -> str:
-        workflow = (
+    def _workflow(self) -> str:
+        return (
             REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
         ).read_text(encoding="utf-8")
+
+    def _release_tooling_job(self) -> str:
+        workflow = self._workflow()
         job_marker = "  release-tooling-validation:"
         self.assertIn(job_marker, workflow)
-        _, _, workflow_after_job_marker = workflow.partition(job_marker)
-        release_tooling_job, _, _ = workflow_after_job_marker.partition("\n  release:")
+        _, _, after = workflow.partition(job_marker)
+        release_tooling_job, _, _ = after.partition("\n  release:")
         return release_tooling_job
 
     def test_release_validation_is_plugin_only(self) -> None:
         release_tooling_job = self._release_tooling_job()
-
         self.assertIn(
             "\n      - name: Validate governed plugin release metadata"
             "\n        run: python plugins/governed-engineering-skills/"
@@ -618,94 +435,86 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             REPOSITORY_ROOT / "package.json",
             REPOSITORY_ROOT / "package-lock.json",
         ):
-            self.assertFalse(
-                obsolete_path.exists(),
-                f"obsolete root release artifact remains: {obsolete_path}",
-            )
+            self.assertFalse(obsolete_path.exists())
 
     def test_governed_plugin_text_files_checkout_with_lf(self) -> None:
-        attributes_path = REPOSITORY_ROOT / ".gitattributes"
-        self.assertTrue(attributes_path.is_file())
-        attributes = attributes_path.read_text(encoding="utf-8")
-
+        attributes = (REPOSITORY_ROOT / ".gitattributes").read_text(encoding="utf-8")
         self.assertIn(
             "plugins/governed-engineering-skills/** text=auto eol=lf",
             attributes.splitlines(),
         )
 
     def test_version_step_applies_only_plugin_release_intent(self) -> None:
-        workflow = (
-            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
-        ).read_text(encoding="utf-8")
-        step_marker = "      - name: Apply governed plugin release intent"
-        self.assertIn(step_marker, workflow)
-        _, _, workflow_after_marker = workflow.partition(step_marker)
-        version_step, _, _ = workflow_after_marker.partition("\n      - name:")
-
+        workflow = self._workflow()
+        marker = "      - name: Apply governed plugin release intent"
+        self.assertIn(marker, workflow)
+        _, _, after = workflow.partition(marker)
+        step, _, _ = after.partition("\n      - name:")
         self.assertIn(
             "\n          python plugins/governed-engineering-skills/"
             "scripts/version_governance.py apply-intent"
             "\n          python plugins/governed-engineering-skills/"
             "scripts/version_governance.py check",
-            version_step,
+            step,
         )
-        self.assertNotIn("npm", version_step)
-        self.assertNotIn("GITHUB_TOKEN", version_step)
+        self.assertNotIn("npm", step)
+        self.assertNotIn("GITHUB_TOKEN", step)
 
     def test_version_pull_request_selection_ignores_closed_pull_requests(self) -> None:
-        workflow = (
-            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
-        ).read_text(encoding="utf-8")
-        step_marker = (
-            "      - name: Create or update the governed plugin Version Pull Request"
-        )
-        self.assertIn(step_marker, workflow)
-        _, _, workflow_after_marker = workflow.partition(step_marker)
-        version_pr_step, _, _ = workflow_after_marker.partition("\n      - name:")
-
+        workflow = self._workflow()
+        marker = "      - name: Create or update the governed plugin Version Pull Request"
+        self.assertIn(marker, workflow)
+        _, _, after = workflow.partition(marker)
+        step, _, _ = after.partition("\n      - name:")
         self.assertIn(
             'gh pr list --state open --base main --head "$branch"',
-            version_pr_step,
+            step,
         )
-        self.assertNotIn('gh pr view "$branch"', version_pr_step)
-        self.assertIn('branch="plugin-release/main"', version_pr_step)
+        self.assertIn('branch="plugin-release/main"', step)
         self.assertIn(
             '--title "chore: version governed engineering skills"',
-            version_pr_step,
+            step,
         )
-        self.assertIn(
-            '--body "Automated governed plugin version update."',
-            version_pr_step,
-        )
-        self.assertNotIn("root Changesets", version_pr_step)
-        self.assertNotIn("changeset-release/main", version_pr_step)
+        self.assertNotIn("changeset-release/main", step)
 
     def test_release_tag_is_created_only_when_missing(self) -> None:
-        workflow = (
-            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
-        ).read_text(encoding="utf-8")
-        step_marker = "      - name: Create missing governed plugin release tag"
-        self.assertIn(step_marker, workflow)
-        _, _, workflow_after_marker = workflow.partition(step_marker)
-        tag_step, _, _ = workflow_after_marker.partition("\n      - name:")
-
+        workflow = self._workflow()
+        marker = "      - name: Create missing governed plugin release tag"
+        self.assertIn(marker, workflow)
+        _, _, after = workflow.partition(marker)
+        step, _, _ = after.partition("\n      - name:")
         self.assertIn(
             'tag="$(python plugins/governed-engineering-skills/'
             'scripts/version_governance.py tag)"',
-            tag_step,
+            step,
         )
         self.assertIn(
             'git ls-remote --exit-code --tags origin "refs/tags/$tag"',
-            tag_step,
+            step,
         )
-        self.assertIn(
-            "python plugins/governed-engineering-skills/"
-            "scripts/version_governance.py tag --write",
-            tag_step,
+        self.assertIn('git push origin "refs/tags/$tag"', step)
+        self.assertNotIn("git push origin --tags", step)
+
+    def test_version_contract_is_stable_only(self) -> None:
+        docs = (PLUGIN_ROOT / "docs" / "versioning.md").read_text(encoding="utf-8")
+        rules = (PLUGIN_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        adr = (
+            PLUGIN_ROOT
+            / "architecture"
+            / "decisions"
+            / "ADR-0013-continuous-stable-plugin-versioning.md"
         )
-        self.assertIn('git push origin "refs/tags/$tag"', tag_step)
-        self.assertNotIn("git push origin --tags", tag_step)
-        self.assertNotIn("npm", tag_step)
+        self.assertIn("stable-only", docs)
+        self.assertIn("stable-only", rules)
+        self.assertTrue(adr.is_file())
+        for obsolete in (
+            "## Maturity stages",
+            "## Promotion evidence",
+            "MAJOR and MINOR releases progress through beta",
+            "RC promotion requires",
+        ):
+            with self.subTest(obsolete=obsolete):
+                self.assertNotIn(obsolete, docs)
 
 
 if __name__ == "__main__":

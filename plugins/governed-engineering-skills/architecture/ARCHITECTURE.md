@@ -113,7 +113,7 @@ flowchart TD
     n_local_install_adapter["local_install_adapter (L3+)<br/>註冊本機 marketplace 並開啟 Codex 安裝頁"]
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)<br/>驗證 vendored 技能雜湊並安全同步快照"]
     n_integration_validation_technical["integration_validation_technical (L3+)<br/>驗證外掛清單、技能中繼資料與路徑可攜性"]
-    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>管理外掛 SemVer 預發佈驗證與晉級"]
+    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>管理外掛穩定版 SemVer 驗證與持續發佈"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>以單一公開 CLI 組合架構治理引擎與原生供應器"]
     n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain

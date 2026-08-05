@@ -15,7 +15,7 @@ flowchart TD
     n_local_install_adapter["local_install_adapter (L3+)<br/>註冊本機 marketplace 並開啟 Codex 安裝頁"]
     n_vendor_sync_adapter["vendor_sync_adapter (L3+)<br/>驗證 vendored 技能雜湊並安全同步快照"]
     n_integration_validation_technical["integration_validation_technical (L3+)<br/>驗證外掛清單、技能中繼資料與路徑可攜性"]
-    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>管理外掛 SemVer 預發佈驗證與晉級"]
+    n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>管理外掛穩定版 SemVer 驗證與持續發佈"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>以單一公開 CLI 組合架構治理引擎與原生供應器"]
     n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain
@@ -51,7 +51,7 @@ flowchart TD
 | `local_install_adapter` | L3+ | adapter | `-` | implemented | Register the repo-local marketplace through the supported Codex CLI command and open the governed plugin's Codex Desktop installation page. |
 | `vendor_sync_adapter` | L3+ | adapter | `-` | implemented | Hash vendored skills, refresh unmodified snapshots, and fail closed on overlay drift. |
 | `integration_validation_technical` | L3+ | technical | `-` | implemented | Validate plugin inventory, skill metadata, path portability, and learning-note isolation. |
-| `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and promote the repository's only release unit through isolated plugin SemVer prerelease stages. |
+| `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and release the repository's only release unit through continuous stable-only SemVer. |
 | `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. |
 | `libclang_toolchain_adapter` | L3+ | adapter | `-` | implemented | Provision and verify the official lock-pinned Espressif libclang distribution for target-capable C/C++ governance. |
 
@@ -222,16 +222,16 @@ flowchart TD
 
 ### `plugin_release_governance_technical`
 
-- **Purpose:** Validate and promote the repository's only release unit through isolated plugin SemVer prerelease stages.
+- **Purpose:** Validate and release the repository's only release unit through continuous stable-only SemVer.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
 - **Output Ports:** None
 - **Emitted Events:** None
 - **Owned State:** None
-- **Side Effects:** An explicitly selected promotion updates plugin version metadata, release evidence, and the plugin changelog. (`-`)
+- **Side Effects:** An authorized release intent atomically updates plugin version metadata, the production fingerprint, applied changesets, and the changelog. (`-`)
 - **Errors:** None
-- **Invariants:** Plugin package and Codex manifest versions remain identical.; Plugin release metadata is the repository's sole active version authority.; Local Codex cachebusters never become formal release versions.; Invalid transitions or incomplete evidence are rejected before any release file is modified.; Starting a new major or minor prerelease group from an existing prerelease requires an explicit new-release-group request and a new changeset.
+- **Invariants:** Plugin package and Codex manifest versions remain identical.; Plugin release metadata is the repository's sole active version authority.; Local Codex cachebusters never become formal release versions.; Formal plugin versions contain no prerelease or general build metadata.; Every release intent names the complete pending changeset set, and the highest declared bump determines the next stable version.; Invalid transitions or inconsistent metadata are rejected before any release file is modified.
 - **Entrypoints:** [`main`](../../scripts/version_governance.py) (cli)
 - **Public Symbols:** [`validate_repository`](../../scripts/version_governance.py) (function)
 

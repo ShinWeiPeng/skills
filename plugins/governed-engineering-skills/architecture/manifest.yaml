@@ -544,26 +544,27 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Validate and promote the repository's only release unit through
-      isolated plugin SemVer prerelease stages.
+    purpose: Validate and release the repository's only release unit through
+      continuous stable-only SemVer.
     diagram_summaries:
-      zh-TW: 管理外掛 SemVer 預發佈驗證與晉級
+      zh-TW: 管理外掛穩定版 SemVer 驗證與持續發佈
     input_ports: []
     output_ports: []
     emitted_events: []
     owned_state: []
     side_effects:
-    - description: An explicitly selected promotion updates plugin version metadata,
-        release evidence, and the plugin changelog.
+    - description: An authorized release intent atomically updates plugin version
+        metadata, the production fingerprint, applied changesets, and the changelog.
     errors: []
     invariants:
     - Plugin package and Codex manifest versions remain identical.
     - Plugin release metadata is the repository's sole active version authority.
     - Local Codex cachebusters never become formal release versions.
-    - Invalid transitions or incomplete evidence are rejected before any release
+    - Formal plugin versions contain no prerelease or general build metadata.
+    - Every release intent names the complete pending changeset set, and the highest
+      declared bump determines the next stable version.
+    - Invalid transitions or inconsistent metadata are rejected before any release
       file is modified.
-    - Starting a new major or minor prerelease group from an existing prerelease
-      requires an explicit new-release-group request and a new changeset.
   entrypoints:
   - path: scripts/version_governance.py
     symbol: main

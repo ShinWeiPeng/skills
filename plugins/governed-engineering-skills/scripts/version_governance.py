@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and promote the governed plugin's isolated SemVer lifecycle."""
+"""Validate and release the governed plugin with stable-only SemVer."""
 
 from __future__ import annotations
 
@@ -16,20 +16,24 @@ from typing import Any
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SEMVER_RE = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
-    r"(?:-(alpha|beta|rc)\.([1-9]\d*))?"
     r"(?:\+codex\.([0-9A-Za-z-]+))?$"
 )
-AI_APPROVER_RE = re.compile(r"\b(ai|codex|gpt|chatgpt|assistant|model)\b", re.IGNORECASE)
-CHANGELOG_SECTIONS = ("Breaking Changes", "Added", "Changed", "Fixed")
-RC_EVIDENCE_KINDS = (
-    "unit",
-    "integration",
-    "bootstrap",
-    "renderer",
-    "skill-release-gate",
-    "plugin-release-gate",
+LEGACY_MIGRATION_VERSION = "0.5.0-beta.6"
+LEGACY_MIGRATION_PREVIOUS_VERSION = "0.5.0-beta.5"
+LEGACY_MIGRATION_TARGET = "0.5.0"
+INTENT_FIELDS = frozenset({"bump", "changesets", "summary"})
+STATE_FIELDS = frozenset(
+    {
+        "schema_version",
+        "current_version",
+        "previous_version",
+        "bump",
+        "production_fingerprint",
+        "applied_changesets",
+    }
 )
-STABLE_EVIDENCE_KINDS = ("reinstall", "new-task")
+CHANGELOG_SECTIONS = ("Breaking Changes", "Added", "Changed", "Fixed")
+BUMP_RANK = {"patch": 0, "minor": 1, "major": 2}
 FINGERPRINT_EXCLUDED_PARTS = (
     ".changeset",
     "__pycache__",
@@ -46,175 +50,51 @@ FINGERPRINT_EXCLUDED_FILES = (
 
 def parse_semver(
     text: str, *, allow_cachebuster: bool = False
-) -> tuple[int, int, int, str | None, int | None, str | None]:
-    """Parse the supported SemVer subset and reject ambiguous spellings."""
+) -> tuple[int, int, int, str | None]:
+    """Parse stable SemVer plus the one supported local-only cachebuster."""
     match = SEMVER_RE.fullmatch(text)
     if not match:
-        raise ValueError(f"invalid governed plugin version: {text}")
-    cachebuster = match.group(6)
+        raise ValueError(f"invalid stable governed plugin version: {text}")
+    cachebuster = match.group(4)
     if cachebuster and not allow_cachebuster:
         raise ValueError("formal version must not contain a Codex cachebuster")
     return (
         int(match.group(1)),
         int(match.group(2)),
         int(match.group(3)),
-        match.group(4),
-        int(match.group(5)) if match.group(5) else None,
         cachebuster,
     )
 
 
-def _base_version(parts: tuple[int, int, int, str | None, int | None, str | None]) -> str:
-    return f"{parts[0]}.{parts[1]}.{parts[2]}"
-
-
 def with_cachebuster(version: str, cachebuster: str) -> str:
-    """Return one local-only Codex build suffix without changing the base version."""
+    """Return one local-only Codex build suffix without changing the version."""
     formal = version.split("+", 1)[0]
     parse_semver(formal)
     if not re.fullmatch(r"[0-9a-z]+(?:-[0-9a-z]+)*", cachebuster):
-        raise ValueError("cachebuster must contain lowercase letters, digits, or single hyphens")
+        raise ValueError(
+            "cachebuster must contain lowercase letters, digits, or single hyphens"
+        )
     return f"{formal}+codex.{cachebuster}"
 
 
-def _bumped_base(
-    current: tuple[int, int, int, str | None, int | None, str | None],
-    bump: str,
-) -> tuple[int, int, int]:
+def _bumped_version(current: tuple[int, int, int, str | None], bump: str) -> str:
     major, minor, patch = current[:3]
     if bump == "major":
-        return major + 1, 0, 0
+        return f"{major + 1}.0.0"
     if bump == "minor":
-        return major, minor + 1, 0
+        return f"{major}.{minor + 1}.0"
     if bump == "patch":
-        return major, minor, patch + 1
+        return f"{major}.{minor}.{patch + 1}"
     raise ValueError(f"unknown bump: {bump}")
 
 
-def next_version(
-    current: str,
-    *,
-    bump: str,
-    target_stage: str,
-    risk: str,
-    new_release_group: bool = False,
-) -> str:
-    """Return the next legal version or raise before any file mutation."""
-    parts = parse_semver(current)
-    major, minor, patch, stage, stage_number, _ = parts
-    if not isinstance(new_release_group, bool):
-        raise ValueError("new_release_group must be a boolean")
-    if target_stage not in {"alpha", "beta", "rc", "stable"}:
-        raise ValueError(f"unknown target stage: {target_stage}")
-    if risk not in {"low", "high"}:
-        raise ValueError(f"unknown risk: {risk}")
-    if new_release_group:
-        if stage is None:
-            raise ValueError("new_release_group requires a prerelease current version")
-        if bump not in {"major", "minor"}:
-            raise ValueError("new_release_group requires a major or minor bump")
-        if target_stage not in {"alpha", "beta"}:
-            raise ValueError("new_release_group must enter alpha or beta")
-        next_major, next_minor, next_patch = _bumped_base(parts, bump)
-        return f"{next_major}.{next_minor}.{next_patch}-{target_stage}.1"
-
-    if stage is None:
-        next_major, next_minor, next_patch = _bumped_base(parts, bump)
-        base = f"{next_major}.{next_minor}.{next_patch}"
-        if bump in {"major", "minor"}:
-            if target_stage not in {"alpha", "beta"}:
-                raise ValueError("major/minor releases must enter alpha or beta")
-            return f"{base}-{target_stage}.1"
-        if risk == "high":
-            if target_stage != "rc":
-                raise ValueError("high-risk patch must enter RC")
-            return f"{base}-rc.1"
-        if target_stage != "stable":
-            raise ValueError("low-risk patch releases directly to stable")
-        return base
-
-    base = f"{major}.{minor}.{patch}"
-    assert stage_number is not None
-    if stage == "alpha":
-        if target_stage == "alpha":
-            return f"{base}-alpha.{stage_number + 1}"
-        if target_stage == "beta":
-            return f"{base}-beta.1"
-        raise ValueError("alpha must progress through beta")
-    if stage == "beta":
-        if target_stage == "beta":
-            return f"{base}-beta.{stage_number + 1}"
-        if target_stage == "rc":
-            return f"{base}-rc.1"
-        raise ValueError("beta must progress through RC")
-    if target_stage == "rc":
-        return f"{base}-rc.{stage_number + 1}"
-    if target_stage == "stable":
-        return base
-    if target_stage in {"alpha", "beta"}:
-        next_major, next_minor, next_patch = _bumped_base(parts, bump)
-        next_base = f"{next_major}.{next_minor}.{next_patch}"
-        return f"{next_base}-{target_stage}.1"
-    raise ValueError("illegal release transition")
-
-
-def _is_non_ai_approval(approval: dict[str, Any] | None) -> bool:
-    if not approval:
-        return False
-    approver = str(approval.get("approved_by", "")).strip()
-    reference = str(approval.get("approval_reference", "")).strip()
-    approved_at = str(approval.get("approved_at", "")).strip()
-    return bool(
-        approver
-        and reference
-        and approved_at
-        and not AI_APPROVER_RE.search(approver)
-    )
-
-
-def validate_promotion_evidence(
-    current: str,
-    target: str,
-    *,
-    risk: str,
-    current_fingerprint: str,
-    final_rc_fingerprint: str | None,
-    approval: dict[str, Any] | None,
-    validation_evidence: list[dict[str, Any]],
-    compatibility_adr: dict[str, Any] | None = None,
-) -> list[str]:
-    """Validate evidence that cannot be inferred from the version string."""
-    del risk
-    errors: list[str] = []
-    current_parts = parse_semver(current)
-    target_parts = parse_semver(target)
-    current_stage = current_parts[3]
-    target_stage = target_parts[3]
-    evidence_kinds = {
-        str(item.get("kind", "")).strip()
-        for item in validation_evidence
-        if str(item.get("reference", "")).strip()
-    }
-
-    if target_stage == "rc" and current_stage in {"alpha", "beta"}:
-        missing = sorted(set(RC_EVIDENCE_KINDS) - evidence_kinds)
-        if missing:
-            errors.append(f"RC promotion missing validation evidence: {', '.join(missing)}")
-
-    if target_stage is None and current_stage == "rc":
-        if current_fingerprint != final_rc_fingerprint:
-            errors.append("stable promotion fingerprint differs from final RC")
-        if not _is_non_ai_approval(approval):
-            errors.append("stable promotion requires non-AI approval")
-        if not set(STABLE_EVIDENCE_KINDS).issubset(evidence_kinds):
-            errors.append("stable promotion requires reinstall and new-task evidence")
-
-    if target_parts[:3] == (1, 0, 0) and target_stage is None:
-        if not compatibility_adr or compatibility_adr.get("status") != "accepted":
-            errors.append("1.0.0 requires an accepted compatibility ADR")
-        elif not _is_non_ai_approval(compatibility_adr.get("approval")):
-            errors.append("1.0.0 compatibility ADR requires non-AI approval")
-    return errors
+def next_version(current: str, *, bump: str) -> str:
+    """Return the next stable version, including the one authorized migration."""
+    if bump not in BUMP_RANK:
+        raise ValueError(f"unknown bump: {bump}")
+    if current == LEGACY_MIGRATION_VERSION:
+        return LEGACY_MIGRATION_TARGET
+    return _bumped_version(parse_semver(current), bump)
 
 
 def _fingerprint_path(path: Path, root: Path) -> bool:
@@ -237,7 +117,11 @@ def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
     """Hash release-affecting plugin sources while excluding release metadata."""
     digest = hashlib.sha256()
     for path in sorted(
-        (item for item in root.rglob("*") if item.is_file() and _fingerprint_path(item, root)),
+        (
+            item
+            for item in root.rglob("*")
+            if item.is_file() and _fingerprint_path(item, root)
+        ),
         key=lambda item: item.relative_to(root).as_posix(),
     ):
         relative = path.relative_to(root).as_posix().encode("utf-8")
@@ -254,6 +138,14 @@ def _read_json(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return value
+
+
+def _write_json(path: Path, value: dict[str, Any]) -> None:
+    path.write_text(
+        json.dumps(value, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def _formal_manifest_version(manifest_version: str) -> str:
@@ -277,6 +169,99 @@ def _changeset_bump(path: Path, package_name: str) -> str | None:
     return match.group(1)
 
 
+def _highest_bump(bumps: list[str]) -> str:
+    if not bumps or any(bump not in BUMP_RANK for bump in bumps):
+        raise ValueError("changesets must declare major, minor, or patch")
+    return max(bumps, key=BUMP_RANK.__getitem__)
+
+
+def _render_changelog_entry(version: str, summary: dict[str, list[str]]) -> str:
+    if not isinstance(summary, dict):
+        raise ValueError("release summary must be an object")
+    lines = [f"## {version}", ""]
+    wrote_section = False
+    for section in CHANGELOG_SECTIONS:
+        entries = summary.get(section, [])
+        if not isinstance(entries, list):
+            raise ValueError(f"release summary section {section} must be a list")
+        clean = [str(entry).strip() for entry in entries if str(entry).strip()]
+        if not clean:
+            continue
+        wrote_section = True
+        lines.extend([f"### {section}", ""])
+        lines.extend(f"- {entry}" for entry in clean)
+        lines.append("")
+    if not wrote_section:
+        raise ValueError("release summary must contain at least one changelog section")
+    return "\n".join(lines)
+
+
+def _pending_changesets(
+    root: Path,
+    applied_changesets: list[str],
+) -> set[str]:
+    all_changesets = {
+        path.stem
+        for path in (root / ".changeset").glob("*.md")
+        if path.name.lower() != "readme.md"
+    }
+    return all_changesets - set(applied_changesets)
+
+
+def _validate_intent(
+    root: Path,
+    intent: dict[str, Any],
+    pending_changesets: set[str],
+    package_name: str,
+) -> list[str]:
+    errors: list[str] = []
+    unknown = sorted(set(intent) - INTENT_FIELDS)
+    if unknown:
+        errors.append(
+            "release intent contains obsolete or unknown fields: "
+            + ", ".join(unknown)
+        )
+    intended_value = intent.get("changesets", [])
+    if not isinstance(intended_value, list):
+        errors.append("release intent changesets must be a list")
+        intended: set[str] = set()
+    else:
+        intended = {str(item) for item in intended_value}
+        if len(intended) != len(intended_value):
+            errors.append("release intent changesets must be unique")
+    if intended != pending_changesets:
+        errors.append("release intent changesets do not match pending plugin changesets")
+
+    bumps: list[str] = []
+    for changeset_id in sorted(pending_changesets):
+        try:
+            declared = _changeset_bump(
+                root / ".changeset" / f"{changeset_id}.md",
+                package_name,
+            )
+        except OSError as exc:
+            errors.append(f"changeset {changeset_id} is missing: {exc}")
+            continue
+        if declared is None:
+            errors.append(f"changeset {changeset_id} has an invalid declaration")
+        else:
+            bumps.append(declared)
+    if bumps:
+        expected_bump = _highest_bump(bumps)
+        if intent.get("bump") != expected_bump:
+            errors.append(
+                "release intent bump must match the highest pending changeset bump"
+            )
+    elif intent.get("bump") not in BUMP_RANK:
+        errors.append("release intent bump must be major, minor, or patch")
+
+    try:
+        _render_changelog_entry("0.0.0", intent.get("summary", {}))
+    except ValueError as exc:
+        errors.append(str(exc))
+    return errors
+
+
 def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[str]:
     """Validate repository version metadata without changing files."""
     errors: list[str] = []
@@ -287,30 +272,49 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [f"release metadata unreadable: {exc}"]
 
+    intent_path = root / ".changeset" / "release-intent.json"
+    intent: dict[str, Any] | None = None
+    if intent_path.is_file():
+        try:
+            intent = _read_json(intent_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"release intent unreadable: {exc}")
+
     package_version = str(package.get("version", ""))
     manifest_version = str(manifest.get("version", ""))
+    migration_pending = (
+        package_version == LEGACY_MIGRATION_VERSION and intent is not None
+    )
     try:
         parse_semver(package_version)
     except ValueError as exc:
-        errors.append(str(exc))
+        if not migration_pending:
+            errors.append(str(exc))
+
+    manifest_has_cachebuster = "+codex." in manifest_version
     try:
-        manifest_parts = parse_semver(manifest_version, allow_cachebuster=not ci)
+        parse_semver(manifest_version, allow_cachebuster=not ci)
     except ValueError:
-        if ci and "+codex." in manifest_version:
+        if migration_pending and manifest_version == LEGACY_MIGRATION_VERSION:
+            pass
+        elif ci and manifest_has_cachebuster:
             errors.append("formal CI version must not contain a Codex cachebuster")
         else:
-            errors.append(f"invalid plugin manifest version: {manifest_version}")
-        manifest_parts = None
+            errors.append(f"invalid stable plugin manifest version: {manifest_version}")
 
-    if package.get("name") != "governed-engineering-skills" or not package.get("private"):
-        errors.append("package.json must describe the private governed-engineering-skills package")
+    if package.get("name") != "governed-engineering-skills" or not package.get(
+        "private"
+    ):
+        errors.append(
+            "package.json must describe the private governed-engineering-skills package"
+        )
     if manifest.get("name") != package.get("name"):
         errors.append("package.json and plugin.json names differ")
     if ci:
         if package_version != manifest_version:
             errors.append("package.json and plugin.json versions differ")
     elif package_version != _formal_manifest_version(manifest_version):
-        errors.append("local manifest cachebuster does not preserve package base version")
+        errors.append("local manifest cachebuster does not preserve package version")
 
     changelog_path = root / "CHANGELOG.md"
     try:
@@ -323,142 +327,80 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
 
     if state.get("current_version") != package_version:
         errors.append("release-state current_version differs from package.json")
-    try:
-        package_parts = parse_semver(package_version)
-        expected_group = _base_version(package_parts)
-        if state.get("release_group") != expected_group:
-            errors.append("release-state release_group differs from current base version")
-    except ValueError:
-        pass
-    actual_fingerprint = production_fingerprint(root)
-    previous_version = str(state.get("previous_version", ""))
     bump = str(state.get("bump", ""))
-    risk = str(state.get("risk", ""))
-    state_new_release_group = state.get("new_release_group", False)
-    if not isinstance(state_new_release_group, bool):
-        errors.append("release-state new_release_group must be a boolean")
-        state_new_release_group = False
-    try:
-        current_stage = parse_semver(package_version)[3] or "stable"
-        if next_version(
-            previous_version,
-            bump=bump,
-            target_stage=current_stage,
-            risk=risk,
-            new_release_group=state_new_release_group,
-        ) != package_version:
-            errors.append("release-state does not describe the actual version transition")
-    except ValueError as exc:
-        errors.append(f"release-state transition is invalid: {exc}")
-
-    applied_changesets = state.get("applied_changesets")
-    if not isinstance(applied_changesets, list) or not applied_changesets:
-        errors.append("release-state must name at least one applied changeset")
+    previous_version = str(state.get("previous_version", ""))
+    if migration_pending:
+        if previous_version != LEGACY_MIGRATION_PREVIOUS_VERSION:
+            errors.append("legacy migration state has an unexpected previous version")
     else:
-        for changeset_id in applied_changesets:
-            changeset_path = root / ".changeset" / f"{changeset_id}.md"
-            try:
-                _changeset_bump(changeset_path, str(package.get("name", "")))
-            except OSError as exc:
-                errors.append(f"applied changeset {changeset_id} is missing: {exc}")
-
-    all_changesets = {
-        path.stem
-        for path in (root / ".changeset").glob("*.md")
-        if path.name.lower() != "readme.md"
-    }
-    applied_set = {
-        str(item) for item in applied_changesets
-    } if isinstance(applied_changesets, list) else set()
-    pending_changesets = all_changesets - applied_set
-    intent_path = root / ".changeset" / "release-intent.json"
-    intent: dict[str, Any] | None = None
-    if intent_path.is_file():
+        if state.get("schema_version") != "2.0":
+            errors.append("release-state schema_version must be 2.0")
+        unknown_state = sorted(set(state) - STATE_FIELDS)
+        if unknown_state:
+            errors.append(
+                "release-state contains obsolete or unknown fields: "
+                + ", ".join(unknown_state)
+            )
         try:
-            intent = _read_json(intent_path)
-        except (OSError, ValueError, json.JSONDecodeError) as exc:
-            errors.append(f"release intent unreadable: {exc}")
-        if intent is not None and not isinstance(intent.get("new_release_group", False), bool):
-            errors.append("release intent new_release_group must be a boolean")
+            if next_version(previous_version, bump=bump) != package_version:
+                errors.append(
+                    "release-state does not describe the actual stable version transition"
+                )
+        except ValueError as exc:
+            errors.append(f"release-state transition is invalid: {exc}")
+
+    applied_value = state.get("applied_changesets")
+    if not isinstance(applied_value, list) or not applied_value:
+        errors.append("release-state must name at least one applied changeset")
+        applied_changesets: list[str] = []
+    else:
+        applied_changesets = [str(item) for item in applied_value]
+        for changeset_id in applied_changesets:
+            try:
+                declared = _changeset_bump(
+                    root / ".changeset" / f"{changeset_id}.md",
+                    str(package.get("name", "")),
+                )
+            except OSError as exc:
+                errors.append(
+                    f"applied changeset {changeset_id} is missing: {exc}"
+                )
+            else:
+                if declared is None:
+                    errors.append(
+                        f"applied changeset {changeset_id} has an invalid declaration"
+                    )
+
+    pending_changesets = _pending_changesets(root, applied_changesets)
     if pending_changesets:
         if intent is None:
             errors.append("pending plugin changesets require release-intent.json")
         else:
-            intended = {str(item) for item in intent.get("changesets", [])}
-            if intended != pending_changesets:
-                errors.append("release intent changesets do not match pending plugin changesets")
+            errors.extend(
+                _validate_intent(
+                    root,
+                    intent,
+                    pending_changesets,
+                    str(package.get("name", "")),
+                )
+            )
     elif intent is not None:
         errors.append("release intent exists without pending plugin changesets")
 
+    actual_fingerprint = production_fingerprint(root)
     if state.get("production_fingerprint") != actual_fingerprint and not pending_changesets:
         errors.append("release-state production fingerprint is stale")
-
-    if package_parts[3] == "rc":
-        evidence_kinds = {
-            str(item.get("kind", "")).strip()
-            for item in state.get("validation_evidence", [])
-            if isinstance(item, dict) and str(item.get("reference", "")).strip()
-        }
-        missing = sorted(set(RC_EVIDENCE_KINDS) - evidence_kinds)
-        if missing:
-            errors.append(f"current RC is missing validation evidence: {', '.join(missing)}")
-    if package_parts[3] is None:
-        stable_errors = validate_promotion_evidence(
-            previous_version,
-            package_version,
-            risk=risk,
-            current_fingerprint=actual_fingerprint,
-            final_rc_fingerprint=state.get("final_rc_fingerprint"),
-            approval=state.get("approval"),
-            validation_evidence=state.get("validation_evidence", []),
-            compatibility_adr=state.get("compatibility_adr"),
-        )
-        errors.extend(stable_errors)
-        if state.get("open_blockers"):
-            errors.append("stable release must not contain open blockers")
-    if manifest_parts and manifest_parts[5] and ci:
-        errors.append("formal CI version must not contain a Codex cachebuster")
     return list(dict.fromkeys(errors))
 
 
-def _write_json(path: Path, value: dict[str, Any]) -> None:
-    path.write_text(
-        json.dumps(value, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-        newline="\n",
-    )
-
-
-def _render_changelog_entry(version: str, summary: dict[str, list[str]]) -> str:
-    lines = [f"## {version}", ""]
-    wrote_section = False
-    for section in CHANGELOG_SECTIONS:
-        entries = summary.get(section, [])
-        if not entries:
-            continue
-        wrote_section = True
-        lines.extend([f"### {section}", ""])
-        lines.extend(f"- {entry.strip()}" for entry in entries if entry.strip())
-        lines.append("")
-    if not wrote_section:
-        raise ValueError("release summary must contain at least one changelog section")
-    return "\n".join(lines)
-
-
-def apply_promotion(
+def apply_release(
     root: Path,
     *,
     bump: str,
-    target_stage: str,
-    risk: str,
     summary: dict[str, list[str]],
     changeset_ids: list[str],
-    approval: dict[str, Any] | None,
-    validation_evidence: list[dict[str, Any]],
-    compatibility_adr: dict[str, Any] | None = None,
-    new_release_group: bool = False,
 ) -> str:
-    """Atomically validate inputs in memory, then write one promotion."""
+    """Validate all release inputs in memory, then write one stable release."""
     package_path = root / "package.json"
     manifest_path = root / ".codex-plugin" / "plugin.json"
     state_path = root / ".changeset" / "release-state.json"
@@ -467,75 +409,62 @@ def apply_promotion(
     state = _read_json(state_path)
     current = str(package["version"])
     if current != str(manifest["version"]) or current != str(state["current_version"]):
-        raise ValueError("release metadata must agree before promotion")
-    target = next_version(
-        current,
-        bump=bump,
-        target_stage=target_stage,
-        risk=risk,
-        new_release_group=new_release_group,
-    )
+        raise ValueError("release metadata must agree before release")
+    target = next_version(current, bump=bump)
     fingerprint = production_fingerprint(root)
     applied_changesets = [str(item) for item in state.get("applied_changesets", [])]
-    new_changesets = [item for item in changeset_ids if item not in applied_changesets]
-    if fingerprint != state.get("production_fingerprint") and not new_changesets:
-        raise ValueError("release-affecting source change requires a new plugin changeset")
-    for changeset_id in new_changesets:
+    pending_changesets = _pending_changesets(root, applied_changesets)
+    if fingerprint != state.get("production_fingerprint") and not pending_changesets:
+        raise ValueError(
+            "release-affecting source change requires a new plugin changeset"
+        )
+    if set(changeset_ids) != pending_changesets or len(changeset_ids) != len(
+        pending_changesets
+    ):
+        raise ValueError(
+            "release changesets must exactly match pending plugin changesets"
+        )
+
+    bumps: list[str] = []
+    for changeset_id in changeset_ids:
         changeset_path = root / ".changeset" / f"{changeset_id}.md"
         try:
-            declared_bump = _changeset_bump(changeset_path, str(package["name"]))
+            declared = _changeset_bump(changeset_path, str(package["name"]))
         except OSError as exc:
-            raise ValueError(f"changeset {changeset_id} is missing: {exc}") from exc
-        if declared_bump != bump:
-            raise ValueError(f"changeset {changeset_id} must declare bump {bump}")
-    target_group = _base_version(parse_semver(target))
-    current_group = str(state.get("release_group", ""))
-    if target_group != current_group and not new_changesets:
-        raise ValueError("a new release group requires a new plugin changeset")
-    errors = validate_promotion_evidence(
-        current,
-        target,
-        risk=risk,
-        current_fingerprint=fingerprint,
-        final_rc_fingerprint=state.get("final_rc_fingerprint"),
-        approval=approval,
-        validation_evidence=validation_evidence,
-        compatibility_adr=compatibility_adr,
-    )
-    if parse_semver(target)[3] is None and state.get("open_blockers"):
-        errors.append("stable promotion requires zero open blockers")
-    if errors:
-        raise ValueError("; ".join(errors))
+            raise ValueError(
+                f"changeset {changeset_id} is missing: {exc}"
+            ) from exc
+        if declared is None:
+            raise ValueError(f"changeset {changeset_id} has an invalid declaration")
+        bumps.append(declared)
+    if not bumps:
+        raise ValueError("release requires at least one new plugin changeset")
+    if _highest_bump(bumps) != bump:
+        raise ValueError(
+            "release bump must match the highest pending changeset bump"
+        )
     changelog_entry = _render_changelog_entry(target, summary)
+
+    archive_root = root / ".changeset" / "applied" / current
+    archive_root.mkdir(parents=True, exist_ok=True)
+    for changeset_id in applied_changesets:
+        source = root / ".changeset" / f"{changeset_id}.md"
+        if source.is_file():
+            destination = archive_root / source.name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+            source.unlink()
 
     package["version"] = target
     manifest["version"] = target
-    state["previous_version"] = current
-    state["current_version"] = target
-    state["release_group"] = target_group
-    state["bump"] = bump
-    state["risk"] = risk
-    state["new_release_group"] = new_release_group
-    state["production_fingerprint"] = fingerprint
-    if target_group != current_group:
-        archive_root = root / ".changeset" / "applied" / current_group
-        archive_root.mkdir(parents=True, exist_ok=True)
-        for changeset_id in applied_changesets:
-            source = root / ".changeset" / f"{changeset_id}.md"
-            if source.is_file():
-                destination = archive_root / source.name
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, destination)
-                source.unlink()
-        state["applied_changesets"] = new_changesets
-    else:
-        state["applied_changesets"] = applied_changesets + new_changesets
-    if parse_semver(target)[3] == "rc":
-        state["final_rc_fingerprint"] = fingerprint
-    elif parse_semver(target)[3] in {"alpha", "beta"}:
-        state["final_rc_fingerprint"] = None
-    state["approval"] = approval
-    state["validation_evidence"] = validation_evidence
+    new_state = {
+        "schema_version": "2.0",
+        "current_version": target,
+        "previous_version": current,
+        "bump": bump,
+        "production_fingerprint": fingerprint,
+        "applied_changesets": list(changeset_ids),
+    }
 
     changelog_path = root / "CHANGELOG.md"
     existing = changelog_path.read_text(encoding="utf-8").replace("\r\n", "\n")
@@ -545,39 +474,31 @@ def apply_promotion(
     new_changelog = f"{heading}\n\n{changelog_entry}\n{body.lstrip()}"
     _write_json(package_path, package)
     _write_json(manifest_path, manifest)
-    _write_json(state_path, state)
+    _write_json(state_path, new_state)
     changelog_path.write_text(new_changelog, encoding="utf-8", newline="\n")
     return target
 
 
 def apply_pending_intent(root: Path = PLUGIN_ROOT) -> str | None:
-    """Apply one isolated plugin release intent for the shared Version PR."""
+    """Apply one isolated stable plugin release intent for the Version PR."""
     intent_path = root / ".changeset" / "release-intent.json"
     if not intent_path.is_file():
         return None
+    errors = validate_repository(root, ci=True)
+    if errors:
+        raise ValueError("; ".join(errors))
     intent = _read_json(intent_path)
-    new_release_group = intent.get("new_release_group", False)
-    if not isinstance(new_release_group, bool):
-        raise ValueError("release intent new_release_group must be a boolean")
-    target = apply_promotion(
+    target = apply_release(
         root,
         bump=str(intent.get("bump", "")),
-        target_stage=str(intent.get("target_stage", "")),
-        risk=str(intent.get("risk", "")),
         summary=intent.get("summary", {}),
         changeset_ids=[str(item) for item in intent.get("changesets", [])],
-        approval=intent.get("approval"),
-        validation_evidence=intent.get("validation_evidence", []),
-        compatibility_adr=intent.get("compatibility_adr"),
-        new_release_group=new_release_group,
     )
     intent_path.unlink()
     return target
 
 
-def _load_optional_json(path: str | None, default: Any) -> Any:
-    if not path:
-        return default
+def _load_json(path: str) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
@@ -625,20 +546,22 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("fingerprint")
     commands.add_parser("apply-intent")
     next_parser = commands.add_parser("next")
-    next_parser.add_argument("--bump", choices=("major", "minor", "patch"), required=True)
-    next_parser.add_argument("--stage", choices=("alpha", "beta", "rc", "stable"), required=True)
-    next_parser.add_argument("--risk", choices=("low", "high"), required=True)
-    next_parser.add_argument("--new-release-group", action="store_true")
-    promote_parser = commands.add_parser("promote")
-    promote_parser.add_argument("--bump", choices=("major", "minor", "patch"), required=True)
-    promote_parser.add_argument("--stage", choices=("alpha", "beta", "rc", "stable"), required=True)
-    promote_parser.add_argument("--risk", choices=("low", "high"), required=True)
-    promote_parser.add_argument("--summary", required=True)
-    promote_parser.add_argument("--changeset", action="append", default=[])
-    promote_parser.add_argument("--approval")
-    promote_parser.add_argument("--evidence")
-    promote_parser.add_argument("--compatibility-adr")
-    promote_parser.add_argument("--new-release-group", action="store_true")
+    next_parser.add_argument(
+        "--bump",
+        choices=("major", "minor", "patch"),
+        required=True,
+    )
+    release_parser = commands.add_parser(
+        "promote",
+        help="Apply one stable release; command name retained for compatibility.",
+    )
+    release_parser.add_argument(
+        "--bump",
+        choices=("major", "minor", "patch"),
+        required=True,
+    )
+    release_parser.add_argument("--summary", required=True)
+    release_parser.add_argument("--changeset", action="append", default=[])
     tag_parser = commands.add_parser("tag")
     tag_parser.add_argument("--write", action="store_true")
     args = parser.parse_args(argv)
@@ -664,35 +587,26 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "next":
             current = str(_read_json(root / "package.json")["version"])
-            print(
-                next_version(
-                    current,
-                    bump=args.bump,
-                    target_stage=args.stage,
-                    risk=args.risk,
-                    new_release_group=args.new_release_group,
-                )
-            )
+            print(next_version(current, bump=args.bump))
             return 0
         if args.command == "promote":
-            target = apply_promotion(
+            target = apply_release(
                 root,
                 bump=args.bump,
-                target_stage=args.stage,
-                risk=args.risk,
-                summary=_load_optional_json(args.summary, {}),
+                summary=_load_json(args.summary),
                 changeset_ids=args.changeset,
-                approval=_load_optional_json(args.approval, None),
-                validation_evidence=_load_optional_json(args.evidence, []),
-                compatibility_adr=_load_optional_json(args.compatibility_adr, None),
-                new_release_group=args.new_release_group,
             )
-            print(f"PASS: promoted governed plugin to {target}")
+            print(f"PASS: released governed plugin {target}")
             return 0
         if args.command == "tag":
             print(_create_tag(root, write=args.write))
             return 0
-    except (OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as exc:
+    except (
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+        subprocess.CalledProcessError,
+    ) as exc:
         print(f"ERROR: {exc}")
         return 1
     return 1

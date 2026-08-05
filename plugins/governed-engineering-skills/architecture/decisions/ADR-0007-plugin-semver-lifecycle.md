@@ -1,6 +1,6 @@
 # ADR-0007: Isolated plugin SemVer lifecycle
 
-- **Status:** proposed
+- **Status:** superseded by ADR-0013
 - **Date:** 2026-07-31
 
 ## Context

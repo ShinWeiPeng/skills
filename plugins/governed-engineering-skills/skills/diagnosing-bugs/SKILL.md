@@ -83,6 +83,25 @@ Done when **every remaining element is load-bearing** — removing any one of th
 
 Do not proceed until you have reproduced **and** minimised.
 
+## Phase 2.5 — Align a shared computation model
+
+Before hypotheses, decide whether the bug has **model-alignment risk**. This phase is required when the failure depends on any of:
+
+- multiple counters, accounting identities, quotas, or thresholds;
+- state machines, epochs, retries, resets, locks, or liveness;
+- event ordering, time windows, concurrency, queues, or buffers;
+- multi-stage transformations where accepted, rejected, pending, dropped, or emitted items must reconcile.
+
+A simple stateless condition or direct input/output error may skip this phase, but state the reason explicitly.
+
+When required, read [the Debug Model Packet contract](references/debug-model-packet.md) and build the packet in the conversation from the minimised repro and captured evidence. Its flowchart must visibly mark the observed error path and first divergence from expected behavior, while distinguishing confirmed evidence from an inferred path. A flowchart is useful for branch order, but it never substitutes for counter contracts, equations, or a worked event trace.
+
+### Understanding gate
+
+After presenting the packet, **stop and ask the user to confirm the computation model or identify the first unclear step**. This gate confirms only how the system computes and changes state; it does not ask the user to agree with a root cause or fix.
+
+Do not generate ranked hypotheses, declare a root cause, or compare repairs until the user confirms the model. If the user corrects it, revise the packet and repeat the gate. If the user is unavailable, report the diagnosis as `BLOCKED` at the understanding gate rather than silently treating the model as confirmed.
+
 ## Phase 3 — Hypothesise
 
 Generate **3–5 ranked hypotheses** before testing any of them. Single-hypothesis generation anchors on the first plausible idea.
@@ -134,5 +153,6 @@ Required before declaring done:
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
+- [ ] For model-alignment bugs, the confirmed Debug Model Packet still explains the final evidence, or its correction is recorded
 
 **Then ask: what would have prevented this bug?** If the answer involves architectural change (no good test seam, tangled callers, hidden coupling) hand off to the `/improve-codebase-architecture` skill with the specifics. Make the recommendation **after** the fix is in, not before — you have more information now than when you started.

@@ -100,7 +100,7 @@ newest, model preference, or prompt similarity.
 has no calibration or threshold. The CLI spelling is `--resume-confirmed-spec`.
 Adding the opt-in parameter is source-compatible for existing callers, while changing
 the previous auto-resume behavior is recorded in the current pre-1.0 `0.5.0` minor
-prerelease changeset.
+changeset.
 
 ## Time and space complexity and resource budgets
 
@@ -139,7 +139,7 @@ the real case output `implementation=absent`, `stateful_context=present`,
   the skill contract restricts the flag to explicit no-new-decision requests, and
   execution redecision returns to grilling.
 - Existing integrations may have relied on auto-resume. Mitigation: default false is
-  deliberate fail-safe behavior and the prerelease changeset documents it.
+  deliberate fail-safe behavior and the changeset documents it.
 - Documentation may drift from routing code. Mitigation: contract tests, generated
   Description Views, vendor fingerprints, and architecture gates run in the release
   validation matrix.

@@ -12,9 +12,11 @@ npx skills update diagnosing-bugs
 
 ## What it does
 
-`diagnosing-bugs` runs a disciplined diagnosis loop for hard bugs and performance regressions — building a repro, minimising it, ranking hypotheses, instrumenting, then fixing with a regression test.
+`diagnosing-bugs` runs a disciplined diagnosis loop for hard bugs and performance regressions — building a repro, minimising it, aligning the shared computation model when state or accounting is complex, ranking hypotheses, instrumenting, then fixing with a regression test.
 
 It refuses to hypothesise before you have a **tight feedback loop** — one runnable command that already goes red on *this* bug. Reading code to build a theory before that command exists is the exact failure this skill prevents. No red-capable loop, no diagnosis.
+
+For counter, epoch, state-machine, timing, concurrency, queue, buffer, and accounting failures, it also refuses to jump from evidence directly to root cause. It first returns a **Debug Model Packet**: evidence boundaries, a decision flow, an event sequence when ordering matters, counter/state contracts, conservation equations, and a minimal event-by-event trace. You confirm this computation model before hypothesis ranking or repair comparison begins.
 
 ## When to reach for it
 
@@ -28,10 +30,20 @@ Everything else — bisection, hypothesis-testing, instrumentation — is mechan
 
 It gives you a ladder of ways to build that loop — failing test, curl script, CLI diff, headless browser, replayed trace, throwaway harness, fuzz loop, `git bisect run`, differential run — and, only as a last resort, a human-in-the-loop bash script. For non-deterministic bugs the goal isn't a clean repro but a **higher reproduction rate**: loop the trigger, parallelise, add stress until the flake is debuggable.
 
+## The Debug Model Packet is the shared language
+
+Complex bugs often stay confusing even after they reproduce because words such as “accepted”, “advanced”, “pending”, or “reset” hide different calculations. The packet makes each term auditable: every counter has a unit, scope, update condition, non-update condition, reset rule, threshold or epoch, and a clear statement of what it can and cannot prove.
+
+Mermaid diagrams show branch order and actor timing, while tables and worked traces carry the exact arithmetic. The flowchart visibly marks the observed error path, evaluated branch values, the `FIRST DIVERGENCE`, and the final symptom's evidence ID. Confirmed error paths use error styling plus textual labels; unproven paths must say `INFERRED ERROR PATH` so visual emphasis cannot turn an inference into a fact. A diagram never substitutes for the counter contract or conservation equation. Claims stay labelled as confirmed evidence, inference, or still to verify, and aggregate snapshots are not treated as proof of per-event order.
+
+The understanding gate is risk-based. A direct stateless condition bug can skip it with an explicit reason. A model-alignment bug stops after the packet so you can confirm the calculation or point to the first unclear transition. Confirmation means “this is how the system computes,” not “I agree with the proposed cause or fix.”
+
 ## It's working if
 
 - It builds and runs a repro command *before* theorising — and pastes the invocation and its red output.
 - The loop asserts the symptom you actually reported, not a nearby failure.
+- Model-alignment bugs provide a traceable Debug Model Packet and pause for confirmation before root-cause ranking.
+- Every counter or state claim links to an exact condition, trace step, and evidence item rather than a vague description.
 - Hypotheses arrive as a ranked, falsifiable list shown to you before any are tested.
 - Debug instrumentation is tagged (`[DEBUG-...]`) and grepped away before it declares done.
 

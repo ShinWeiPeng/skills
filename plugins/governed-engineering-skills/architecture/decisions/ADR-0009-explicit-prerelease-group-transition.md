@@ -1,6 +1,6 @@
 # ADR-0009: Require an explicit prerelease-group transition
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0013
 - **Date:** 2026-08-01
 
 ## Context
