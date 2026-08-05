@@ -7,7 +7,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/ask-matt",
       "source_sha256": "e13c68e505a522cdf00908890561efbacb4ecb79ebc0333db4b95f25bbf31e13",
-      "integrated_sha256": "57505502910b968ba08f129a08b64de227bbf3d01806a7c1d32321c9075e14a7",
+      "integrated_sha256": "8711813b85cd3dbc4acbad4d43a1695cd391cd2bdd25107a4df421defb0dbe0a",
       "overlay": true
     },
     {
@@ -23,7 +23,7 @@
       "source_kind": "matt",
       "source_path": "skills/engineering/grill-with-docs",
       "source_sha256": "fc8fbd85be9aed0a61f9410629bcc040f6620d09ffc1fc78b5e63a21bca9ad70",
-      "integrated_sha256": "ceda4d0840ff6c2aba68c2210ba7b81957376352516bedcf996c13247d2c8e53",
+      "integrated_sha256": "0b8cd1ad3a401b0ac1790796451f13e7850afa31d43beec95cf45b9f8d9783b3",
       "overlay": true
     },
     {
@@ -143,7 +143,7 @@
       "source_kind": "matt",
       "source_path": "skills/productivity/grill-me",
       "source_sha256": "38451dd2683eb309b4176ac5b2648ff6f86e320145baed1ac6c2e34367c8cae6",
-      "integrated_sha256": "c4cc845a0189142ed47c34658f05df3bb5af6bd2de33001cac4998df16398128",
+      "integrated_sha256": "27c905c691eaf2d7fd0e1ee4b4c5012f3ca8f9efc42cf45065ff7475340238a1",
       "overlay": true
     },
     {
@@ -151,7 +151,7 @@
       "source_kind": "matt",
       "source_path": "skills/productivity/grilling",
       "source_sha256": "5f8e034b4892cfa8b8c07fd1da21e00cf08aa34b0d0189c6f424410bff7d74ae",
-      "integrated_sha256": "4f91d02d18e61bfe0a0da38b71c66fd2ac0fe120fd49d39f913da2cc1668ac98",
+      "integrated_sha256": "8c7684f3a812276b094a48c5ba46aeedfb781522fb38cc69dff489f90171517a",
       "overlay": true
     },
     {
@@ -183,7 +183,7 @@
       "source_kind": "governance",
       "source_path": "clarify-improvement-proposals",
       "source_sha256": "26171e4d4fa41a1041c5d327dbab9ad3df56c235d33c3a0151f437dd113e1747",
-      "integrated_sha256": "a4194cc07c5369a5a52aa2c77fe6b45d4717ea0cf4c0d92acecb28591400fbc0",
+      "integrated_sha256": "5a3b34e6d9c3b044491797ce149bb9eca34d58569cf092fac896cfd671f69945",
       "overlay": false
     },
     {
@@ -199,7 +199,7 @@
       "source_kind": "governance",
       "source_path": "govern-modular-event-architecture",
       "source_sha256": "adf513489d845cd5989a1016f782696477df007e07877605e402e15661143641",
-      "integrated_sha256": "377c73fbe510d9a8ca505671a9ecd0e88f26a56064f1f97694d1508cdee87a7b",
+      "integrated_sha256": "c9133626151e8eb8ac645a2da538f860311633144242d37f9eb07cd4361958fa",
       "overlay": true
     },
     {

@@ -9,6 +9,11 @@ Use this skill automatically whenever the user's intent is software engineering.
 The user describes the work; never require them to know or invoke `ask-matt`.
 Standalone notes and non-engineering writing remain outside this router.
 
+Before any governed engineering workflow asks the user to choose a design or
+specification outcome, read and enforce
+[the shared Decision Question Contract](references/decision-question-contract.md).
+The contract applies to explicit downstream skills as well as inferred routes.
+
 ## Ordered route
 
 Use this fixed precedence:
@@ -72,7 +77,7 @@ of size or an explicitly requested skill such as `tdd`.
   views, versions, and changelog entries required by that change do not restart it.
 - A bug may complete read-only diagnosis first. Choosing the fix then requires
   grilling.
-- Ask one decision question at a time and recommend an answer.
+- Ask one decision question at a time under the shared Decision Question Contract.
 - Do not ask discoverable facts.
 - Do not modify anything until the plan is decision-complete and the user says
   `開始執行`.

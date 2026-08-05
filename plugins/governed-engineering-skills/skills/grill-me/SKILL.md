@@ -5,6 +5,10 @@ description: Interview a greenfield engineering request when both implementation
 
 Run a `/grilling` session for a project assessed as `absent / absent`.
 
+Read and enforce
+[the shared Decision Question Contract](../ask-matt/references/decision-question-contract.md)
+for every decision asked through this wrapper.
+
 An empty Git repository is no codebase. A README, template, or empty scaffold is
 insufficient evidence and must remain `indeterminate` until one
 conclusion-changing question resolves it.
