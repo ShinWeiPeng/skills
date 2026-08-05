@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.5
+
+### Changed
+
+- Required two or three meaningful options for governed engineering decisions with a numbered-text fallback when structured choices are unavailable.
+
 ## 0.5.0-beta.4
 
 ### Added

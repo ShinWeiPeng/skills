@@ -1,6 +1,6 @@
 {
   "name": "governed-engineering-skills",
-  "version": "0.5.0-beta.4",
+  "version": "0.5.0-beta.5",
   "description": "Automatically route software-engineering work through evidence-backed interviewing, delivery, architecture, and runtime governance.",
   "author": {
     "name": "Hugo Peng"
