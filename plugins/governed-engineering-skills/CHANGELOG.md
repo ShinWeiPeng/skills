@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.5.0-beta.6
+
+### Changed
+
+- Added backward-compatible schema 2.2.0 localized module summaries and function-first Architecture Description Views.
+
 ## 0.5.0-beta.5
 
 ### Changed
