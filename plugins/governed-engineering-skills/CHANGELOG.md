@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.5.1
+
+### Fixed
+
+- Reroute repository design decisions from read-only skills to grilling at the turn boundary and reconcile each answer before resuming.
+
 ## 0.5.0
 
 ### Added
