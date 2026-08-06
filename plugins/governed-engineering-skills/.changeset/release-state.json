@@ -1,11 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.5.0",
-  "previous_version": "0.5.0-beta.6",
-  "bump": "minor",
-  "production_fingerprint": "sha256:67bb121e99e9d4bbafe6579e98859f93dc1d641ee1a3f732ba84e0ab4afad0bd",
+  "current_version": "0.5.1",
+  "previous_version": "0.5.0",
+  "bump": "patch",
+  "production_fingerprint": "sha256:c771de3cc863ee46652b86ab890be27d108890dee0b90fd425236267c9de4519",
   "applied_changesets": [
-    "continuous-stable-plugin-versioning",
-    "shared-debug-computation-model"
+    "turn-boundary-grilling-handoff"
   ]
 }
