@@ -914,7 +914,79 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         )
 
         self.assertEqual("grilling", result["selected_skill"])
-        self.assertEqual("resume-execution", result["resume_target"])
+        self.assertEqual("spec-governance", result["resume_target"])
+        self.assertEqual(
+            "A repository-modifying design or specification decision must be "
+            "resolved before the active workflow continues.",
+            result["reason"],
+        )
+
+    def test_read_only_odr_flow_hands_off_before_design_choice(self) -> None:
+        project_state = PROJECT_STATE.assess_project_state(
+            [{"path": "src/sample_pairer.py", "tracking": "tracked"}]
+        )
+        explanation = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent(
+                "解釋 ODR 資料流與 sample_pairer 怎麼運作"
+            ),
+            project_state,
+            self.RISK,
+            available_skills=self.SKILLS,
+        )
+        before_design_question = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent(
+                "比較 Boot 固定與滑動視窗的設計選項"
+            ),
+            project_state,
+            self.RISK,
+            available_skills=self.SKILLS,
+            has_unresolved_decision=True,
+        )
+        numeric_answer = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("1"),
+            project_state,
+            self.RISK,
+            available_skills=self.SKILLS,
+            has_unresolved_decision=True,
+        )
+
+        self.assertEqual("explain-code-flow", explanation["selected_skill"])
+        self.assertEqual("grilling", before_design_question["selected_skill"])
+        self.assertEqual("grilling", numeric_answer["selected_skill"])
+        self.assertEqual(
+            "spec-governance", before_design_question["resume_target"]
+        )
+        self.assertEqual("spec-governance", numeric_answer["resume_target"])
+
+    def test_decision_complete_clears_signal_and_restores_normal_routing(self) -> None:
+        result = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent(
+                "解釋 GetFIFOData 的 Sequence 怎麼流到 sample_pairer"
+            ),
+            PROJECT_STATE.assess_project_state(
+                [{"path": "src/sample_pairer.py", "tracking": "tracked"}]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS,
+            has_unresolved_decision=False,
+        )
+
+        self.assertEqual("explain-code-flow", result["selected_skill"])
+        self.assertNotEqual("spec-governance", result["resume_target"])
+
+    def test_factual_odr_follow_up_remains_code_understanding(self) -> None:
+        result = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent(
+                "解釋 GetFIFOData 的 Sequence 怎麼流到 sample_pairer"
+            ),
+            PROJECT_STATE.assess_project_state(
+                [{"path": "src/sample_pairer.py", "tracking": "tracked"}]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS,
+        )
+
+        self.assertEqual("explain-code-flow", result["selected_skill"])
 
     def test_modification_grills_before_reporting_blocked_risk_gate(self) -> None:
         risk = {
@@ -1082,6 +1154,18 @@ class GuidedRoutingContractTests(unittest.TestCase):
         )
         options = schema["$defs"]["WorkflowSelectionOptions"]
         self.assertEqual([], options["required"])
+        self.assertFalse(options["properties"]["has_unresolved_decision"]["default"])
+        self.assertIn(
+            "--unresolved-decision",
+            options["properties"]["has_unresolved_decision"]["description"],
+        )
+        unresolved_description = options["properties"][
+            "has_unresolved_decision"
+        ]["description"]
+        self.assertIn("true if and only if", unresolved_description)
+        self.assertIn("short or numeric answers", unresolved_description)
+        self.assertIn("no open decisions remain", unresolved_description)
+        self.assertIn("resume_target spec-governance", unresolved_description)
         self.assertFalse(options["properties"]["resume_confirmed_spec"]["default"])
         decision = schema["$defs"]["GuidedRouteDecision"]
         self.assertIn("DEGRADED", decision["properties"]["status"]["enum"])
@@ -1132,6 +1216,43 @@ class GuidedRoutingContractTests(unittest.TestCase):
         self.assertEqual("grill-me", result["selected_skill"])
         self.assertEqual("absent", result["project_state"]["implementation"])
         self.assertEqual("absent", result["project_state"]["stateful_context"])
+
+    def test_cli_unresolved_decision_routes_to_grilling_then_spec_governance(
+        self,
+    ) -> None:
+        build_root = PLUGIN_ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=build_root) as directory:
+            root = Path(directory)
+            subprocess.run(
+                ["git", "init"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--prompt",
+                    "1",
+                    "--project-root",
+                    str(root),
+                    "--unresolved-decision",
+                    "--json",
+                ],
+                cwd=PLUGIN_ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+
+        result = json.loads(completed.stdout)
+        self.assertEqual("grilling", result["selected_skill"])
+        self.assertEqual("spec-governance", result["resume_target"])
+        self.assertIn("design or specification decision", result["reason"])
 
     def test_cli_requires_explicit_flag_to_resume_a_confirmed_spec(self) -> None:
         build_root = PLUGIN_ROOT / "build"

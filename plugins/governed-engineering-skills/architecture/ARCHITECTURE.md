@@ -37,7 +37,7 @@ flowchart TD
 - **Purpose:** Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
 - **Children:** `risk_routing_domain`, `workflow_routing_domain`, `delivery_workflow_domain`, `governance_workflow_domain`
 - **Related Flows:** [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route)
-- **Protection Rationale:** Users never need to know or invoke ask-matt for software-engineering work.; Every design or specification decision offers two or three meaningful options, preferring structured choices and falling back to equivalent numbered text.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
+- **Protection Rationale:** Users never need to know or invoke ask-matt for software-engineering work.; Every design or specification decision offers two or three meaningful options, preferring structured choices and falling back to equivalent numbered text.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; Every user turn is reassessed, and an active skill reroutes through this module with unresolved-decision evidence before asking a repository-modifying design or specification question.; Unresolved-decision evidence is true exactly while a non-discoverable user choice that shapes the change set remains open; it survives short answers through reconciliation and clears only when no open decisions remain.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
 
 ### `risk_routing_domain`
 
@@ -51,7 +51,7 @@ flowchart TD
 - **Purpose:** Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
 - **Children:** None
 - **Related Flows:** [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route)
-- **Protection Rationale:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
+- **Protection Rationale:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Pending unresolved-decision evidence means a non-discoverable user choice affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold.; Pending unresolved-decision evidence overrides lexical ambiguity in a short follow-up, selects grilling before the question is presented, and resumes at spec-governance for reconciliation.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
 
 ### `delivery_workflow_domain`
 
@@ -93,7 +93,7 @@ flowchart TD
 
 ## End-to-End Flows
 
-- [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
+- [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
 - [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, review material Flow costs and evidence, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
 
 ## Complete Technical Reference

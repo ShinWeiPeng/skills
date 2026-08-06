@@ -72,6 +72,29 @@ class DecisionQuestionContractTests(unittest.TestCase):
                 msg=skill,
             )
 
+    def test_repository_decisions_require_turn_boundary_grilling_handoff(self) -> None:
+        for skill in (
+            "ask-matt",
+            "explain-code-flow",
+            "clarify-improvement-proposals",
+        ):
+            text = read(SKILLS_ROOT / skill / "SKILL.md")
+            normalized = " ".join(text.split())
+            self.assertIn("has_unresolved_decision=true", text, msg=skill)
+            self.assertIn("selected_skill=grilling", text, msg=skill)
+            self.assertIn("spec-governance.reconcile", text, msg=skill)
+            self.assertIn("if and only if", normalized, msg=skill)
+            self.assertIn("short or numeric answers", normalized, msg=skill)
+            self.assertIn("no open decisions", normalized, msg=skill)
+            self.assertIn("resume target", normalized, msg=skill)
+
+        explain = read(SKILLS_ROOT / "explain-code-flow" / "SKILL.md")
+        clarify = read(
+            SKILLS_ROOT / "clarify-improvement-proposals" / "SKILL.md"
+        )
+        self.assertIn("stop before presenting the options", explain)
+        self.assertIn("hand off before showing the options", clarify)
+
     def test_contract_preserves_free_form_and_authorization_boundaries(self) -> None:
         contract = read(CONTRACT)
         ask_matt = read(SKILLS_ROOT / "ask-matt" / "SKILL.md")
@@ -90,6 +113,8 @@ class DecisionQuestionContractTests(unittest.TestCase):
 
         self.assertIn("two or three", default_prompt)
         self.assertIn("numbered text", default_prompt)
+        self.assertIn("Reassess every user turn", default_prompt)
+        self.assertIn("unresolved-decision", default_prompt)
 
 
 if __name__ == "__main__":

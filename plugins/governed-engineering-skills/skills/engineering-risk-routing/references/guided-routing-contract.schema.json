@@ -76,6 +76,11 @@
       "type": "object",
       "required": [],
       "properties": {
+        "has_unresolved_decision": {
+          "type": "boolean",
+          "default": false,
+          "description": "Caller-supplied lifecycle evidence; true if and only if an unresolved user decision is not discoverable from repository facts and affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold. Set it before the first such question, retain it for short or numeric answers through spec-governance reconciliation, and clear it only when no open decisions remain. True selects grilling with resume_target spec-governance. CLI --unresolved-decision."
+        },
         "resume_confirmed_spec": {
           "type": "boolean",
           "default": false,

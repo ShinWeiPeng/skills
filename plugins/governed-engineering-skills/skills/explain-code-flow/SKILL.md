@@ -13,6 +13,23 @@ Treat `architecture/manifest.yaml` as the only editable architecture source of t
 
 Treat every request whose primary intent is to understand existing code as in scope, even when it is phrased as a factual question rather than an explicit request to explain, trace, introduce, or navigate. Keep follow-up questions about the same code or Flow in this skill and preserve their breadcrumb and coverage.
 
+Keep only factual, read-only follow-ups in this skill. Set
+`has_unresolved_decision=true` if and only if an unresolved user decision is not
+discoverable from repository facts and affects the change set's implementation
+behavior, interface, persistent parameter, failure policy, specification scope, or
+acceptance threshold. Set it before the first such question, preserve it for short
+or numeric answers through reconciliation, and clear it only when
+`spec-governance.reconcile` reports no open decisions.
+
+If the user requests a proposal or the explanation is about to present such a
+choice, stop before presenting the options and rerun the authoritative router with
+`has_unresolved_decision=true`. When it returns
+`selected_skill=grilling`, hand off immediately; do not conduct a design interview
+under `explain-code-flow`. Its immediate resume target is `spec-governance`; after
+every answer, `grilling` routes the working specification through
+`spec-governance.reconcile`. Resume code-flow explanation only when the routed
+workflow explicitly returns to it.
+
 Determine the primary intent before selecting the reading level:
 
 - Let the implementation or TDD workflow lead when the user asks to add, fix, refactor, or otherwise change code. Use this skill only as supporting explanation when implementation depends on understanding an existing Flow.

@@ -26,7 +26,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
+- **Invariants:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Pending unresolved-decision evidence means a non-discoverable user choice affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold.; Pending unresolved-decision evidence overrides lexical ambiguity in a short follow-up, selects grilling before the question is presented, and resumes at spec-governance for reconciliation.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
 - **Entrypoints:** [`assess_project_state`](../../skills/engineering-risk-routing/scripts/project_state.py) (function)<br>[`select_workflow`](../../skills/engineering-risk-routing/scripts/workflow_selection.py) (function)
 - **Public Symbols:** [`RepositoryEvidencePort`](../../skills/engineering-risk-routing/scripts/project_state.py) (class)<br>[`assess_project_state`](../../skills/engineering-risk-routing/scripts/project_state.py) (function)<br>[`classify_intent`](../../skills/engineering-risk-routing/scripts/workflow_selection.py) (function)<br>[`select_workflow`](../../skills/engineering-risk-routing/scripts/workflow_selection.py) (function)
 
@@ -35,7 +35,7 @@ flowchart TD
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
 | `workflow-routing.assess-project` | `workflow_routing_domain` | input | query | sync | Convert repository evidence into a three-state implementation and documentation assessment.: Read-only tracked and non-ignored untracked path evidence. | `assess_project_state` |
-| `workflow-routing.select` | `workflow_routing_domain` | input | query | sync | Select the authoritative skill handoff after intent, project state, risk, capability, and complexity checks.: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities, and wayfinder threshold evidence. | `select_workflow` |
+| `workflow-routing.select` | `workflow_routing_domain` | input | query | sync | Select the authoritative skill handoff after intent, project state, risk, capability, and complexity checks.: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities, wayfinder threshold evidence, and caller-supplied unresolved-decision lifecycle evidence for a non-discoverable choice that shapes the change set. | `select_workflow` |
 | `repository-evidence.collect` | `workflow_routing_domain` | output | query | sync | Read repository paths and Git tracking status for project-state assessment.: One project root produces normalized RepositoryEvidence rows. | `RepositoryEvidencePort` |
 
 ## Event Contracts

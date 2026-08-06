@@ -42,7 +42,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Users never need to know or invoke ask-matt for software-engineering work.; Every design or specification decision offers two or three meaningful options, preferring structured choices and falling back to equivalent numbered text.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
+- **Invariants:** Users never need to know or invoke ask-matt for software-engineering work.; Every design or specification decision offers two or three meaningful options, preferring structured choices and falling back to equivalent numbered text.; Every repository-modifying change set completes grilling before mutation.; Discoverable facts are explored before any unresolved decision is asked.; Every user turn is reassessed, and an active skill reroutes through this module with unresolved-decision evidence before asking a repository-modifying design or specification question.; Unresolved-decision evidence is true exactly while a non-discoverable user choice that shapes the change set remains open; it survives short answers through reconciliation and clears only when no open decisions remain.; A newly discovered discretionary decision stops execution and returns to grilling.; A confirmed specification resumes only when the caller supplies explicit resume evidence; discovery alone proves only durable context.; Never route standalone learning-note or HackMD work.
 - **Entrypoints:** [`ask-matt`](../../skills/ask-matt/SKILL.md) (skill)<br>[`main`](../../skills/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
 - **Public Symbols:** [`ask-matt`](../../skills/ask-matt/SKILL.md) (skill)<br>[`route`](../../skills/engineering-risk-routing/scripts/guided_workflow_router.py) (function)
 
@@ -72,7 +72,7 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
+- **Invariants:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Pending unresolved-decision evidence means a non-discoverable user choice affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold.; Pending unresolved-decision evidence overrides lexical ambiguity in a short follow-up, selects grilling before the question is presented, and resumes at spec-governance for reconciliation.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
 - **Entrypoints:** [`assess_project_state`](../../skills/engineering-risk-routing/scripts/project_state.py) (function)<br>[`select_workflow`](../../skills/engineering-risk-routing/scripts/workflow_selection.py) (function)
 - **Public Symbols:** [`RepositoryEvidencePort`](../../skills/engineering-risk-routing/scripts/project_state.py) (class)<br>[`assess_project_state`](../../skills/engineering-risk-routing/scripts/project_state.py) (function)<br>[`classify_intent`](../../skills/engineering-risk-routing/scripts/workflow_selection.py) (function)<br>[`select_workflow`](../../skills/engineering-risk-routing/scripts/workflow_selection.py) (function)
 
@@ -110,10 +110,10 @@ flowchart TD
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
-| `guided-routing.route` | `guided_workflow_router` | input | query | sync | Route one software-engineering request to its safe primary skill.: Task text, project root, explicit skill, available capabilities, risk decision, and wayfinder complexity evidence. | `ask-matt` |
+| `guided-routing.route` | `guided_workflow_router` | input | query | sync | Route one software-engineering request to its safe primary skill.: Task text, project root, explicit skill, available capabilities, risk decision, wayfinder complexity evidence, and caller-supplied unresolved-decision evidence. | `ask-matt` |
 | `risk-routing.classify` | `risk_routing_domain` | input | query | sync | Classify one engineering task and select required gates.: Task text, optional entry skill, available capabilities, and passed gate evidence. | `classify` |
 | `workflow-routing.assess-project` | `workflow_routing_domain` | input | query | sync | Convert repository evidence into a three-state implementation and documentation assessment.: Read-only tracked and non-ignored untracked path evidence. | `assess_project_state` |
-| `workflow-routing.select` | `workflow_routing_domain` | input | query | sync | Select the authoritative skill handoff after intent, project state, risk, capability, and complexity checks.: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities, and wayfinder threshold evidence. | `select_workflow` |
+| `workflow-routing.select` | `workflow_routing_domain` | input | query | sync | Select the authoritative skill handoff after intent, project state, risk, capability, and complexity checks.: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities, wayfinder threshold evidence, and caller-supplied unresolved-decision lifecycle evidence for a non-discoverable choice that shapes the change set. | `select_workflow` |
 | `repository-evidence.collect` | `workflow_routing_domain` | output | query | sync | Read repository paths and Git tracking status for project-state assessment.: One project root produces normalized RepositoryEvidence rows. | `RepositoryEvidencePort` |
 | `delivery-workflow.result` | `delivery_workflow_domain` | output | event | sync | Publish delivery failures that preserve a valid canonical specification.: Canonical specification identity and the pending external delivery action. | `implement` |
 | `libclang_toolchain.resolve` | `governance_workflow_domain` | output | query | sync | Resolve, bind, and verify one lock-pinned target-capable libclang provider.: Toolchain lock and operation mode produce immutable provider evidence or fail-closed CAST diagnostics. | `LibclangToolchainPort` |
@@ -173,7 +173,7 @@ flowchart TD
 
 ### `governed-engineering-route`
 
-Automatically classify every software-engineering request, inspect its project state, preserve risk gates, and select an immediate safe handoff.
+Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
 
 #### Flow Diagram
 
@@ -182,11 +182,11 @@ sequenceDiagram
     participant n_guided_workflow_router as guided_workflow_router<br/>協調工作流程、儲存庫狀態、風險與治理並自動路由工程請求
     participant n_workflow_routing_domain as workflow_routing_domain<br/>分類工程意圖、評估專案狀態並選擇最終技能
     participant n_risk_routing_domain as risk_routing_domain<br/>判定工程風險、必要關卡與安全恢復目標
-    n_guided_workflow_router->>+n_workflow_routing_domain: Classify ordered hard intent and assess implementation and durable context from repository evidence.
+    n_guided_workflow_router->>+n_workflow_routing_domain: Classify ordered hard intent, preserve caller-supplied unresolved-decision evidence from before the first design question through answer reconciliation, and assess implementation and durable context from repository evidence.
     n_workflow_routing_domain-->>-n_guided_workflow_router: step 1
     n_workflow_routing_domain->>+n_risk_routing_domain: Match ordered risk hard triggers and preserve the required governance gates.
     n_risk_routing_domain-->>-n_workflow_routing_domain: step 2
-    n_risk_routing_domain->>+n_workflow_routing_domain: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision.
+    n_risk_routing_domain->>+n_workflow_routing_domain: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision.
     n_workflow_routing_domain-->>-n_risk_routing_domain: step 3
 ```
 
@@ -194,11 +194,11 @@ sequenceDiagram
 
 | # | Module | Action | Receives | Emits | State changes | Side effects |
 |---|---|---|---|---|---|---|
-| 1 | `workflow_routing_domain` | Classify ordered hard intent and assess implementation and durable context from repository evidence. | `workflow-routing.assess-project`, `repository-evidence.collect` | None | None | None |
+| 1 | `workflow_routing_domain` | Classify ordered hard intent, preserve caller-supplied unresolved-decision evidence from before the first design question through answer reconciliation, and assess implementation and durable context from repository evidence. | `workflow-routing.assess-project`, `repository-evidence.collect` | None | None | None |
 | 2 | `risk_routing_domain` | Match ordered risk hard triggers and preserve the required governance gates. | `risk-routing.classify` | None | None | None |
-| 3 | `workflow_routing_domain` | Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision. | `workflow-routing.select` | None | None | None |
+| 3 | `workflow_routing_domain` | Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision. | `workflow-routing.select` | None | None | None |
 
-- **Success:** A PASS or DEGRADED decision selects an immediate safe handoff; unresolved evidence or missing non-substitutable capability returns BLOCKED.
+- **Success:** A PASS or DEGRADED decision selects an immediate safe handoff; pending design or specification decisions select grilling before the previous skill asks them and name spec-governance as the immediate reconciliation target, while invalid evidence or missing non-substitutable capability returns BLOCKED.
 
 #### Execution efficiency
 

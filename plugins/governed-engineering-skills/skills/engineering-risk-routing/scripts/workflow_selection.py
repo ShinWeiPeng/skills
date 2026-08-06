@@ -217,8 +217,11 @@ def select_workflow(
     if has_unresolved_decision:
         return capability_checked(
             "grilling",
-            reason="A new discretionary decision must be resolved before execution.",
-            resume_target="resume-execution",
+            reason=(
+                "A repository-modifying design or specification decision must be "
+                "resolved before the active workflow continues."
+            ),
+            resume_target="spec-governance",
         )
 
     if intent == "indeterminate":
