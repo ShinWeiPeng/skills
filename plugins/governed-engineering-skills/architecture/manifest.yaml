@@ -93,6 +93,12 @@ modules:
       preferring structured choices and falling back to equivalent numbered text.
     - Every repository-modifying change set completes grilling before mutation.
     - Discoverable facts are explored before any unresolved decision is asked.
+    - Every user turn is reassessed, and an active skill reroutes through this
+      module with unresolved-decision evidence before asking a repository-modifying
+      design or specification question.
+    - Unresolved-decision evidence is true exactly while a non-discoverable user
+      choice that shapes the change set remains open; it survives short answers
+      through reconciliation and clears only when no open decisions remain.
     - A newly discovered discretionary decision stops execution and returns to grilling.
     - A confirmed specification resumes only when the caller supplies explicit
       resume evidence; discovery alone proves only durable context.
@@ -176,6 +182,12 @@ modules:
     - Intent selects the primary flow before project state and risk gates are applied.
     - A uniquely resolved confirmed specification does not bypass ProjectState
       interview precedence without explicit resume evidence.
+    - Pending unresolved-decision evidence means a non-discoverable user choice
+      affects implementation behavior, an interface, a persistent parameter,
+      failure policy, specification scope, or an acceptance threshold.
+    - Pending unresolved-decision evidence overrides lexical ambiguity in a short
+      follow-up, selects grilling before the question is presented, and resumes at
+      spec-governance for reconciliation.
     - Resume evidence fails closed unless it identifies one valid confirmed specification.
     - Indeterminate intent or project state is never silently guessed.
     - Risk classification adds gates but never replaces the primary user intent.
@@ -660,7 +672,7 @@ ports:
   description:
     purpose: Route one software-engineering request to its safe primary skill.
     data: Task text, project root, explicit skill, available capabilities, risk decision,
-      and wayfinder complexity evidence.
+      wayfinder complexity evidence, and caller-supplied unresolved-decision evidence.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -708,7 +720,8 @@ ports:
     purpose: Select the authoritative skill handoff after intent, project state, risk,
       capability, and complexity checks.
     data: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities,
-      and wayfinder threshold evidence.
+      wayfinder threshold evidence, and caller-supplied unresolved-decision lifecycle
+      evidence for a non-discoverable choice that shapes the change set.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -1656,19 +1669,22 @@ boundary_mappings:
 flows:
 - id: governed-engineering-route
   owner: guided_workflow_router
-  description: Automatically classify every software-engineering request, inspect
-    its project state, preserve risk gates, and select an immediate safe handoff.
+  description: Automatically classify every software-engineering request and
+    turn-boundary decision handoff, inspect project state, preserve risk gates, and
+    select an immediate safe skill.
   trigger:
     kind: command
     ref: guided-routing.route
-    description: The user states a software-engineering intent; no ask-matt invocation
-      is required.
+    description: The user states a software-engineering intent, answers a new turn,
+      or an active skill is about to ask a repository-modifying design or
+      specification question; no ask-matt invocation is required.
   steps:
   - id: governed-engineering-route.assess
     order: 1
     module: workflow_routing_domain
-    action: Classify ordered hard intent and assess implementation and durable context
-      from repository evidence.
+    action: Classify ordered hard intent, preserve caller-supplied unresolved-decision
+      evidence from before the first design question through answer reconciliation,
+      and assess implementation and durable context from repository evidence.
     receives:
     - workflow-routing.assess-project
     - repository-evidence.collect
@@ -1688,16 +1704,18 @@ flows:
     order: 3
     module: workflow_routing_domain
     action: Apply explicit-skill, intent, project-state, confirmed-spec resume
-      evidence, risk-gate, capability, and wayfinder precedence to produce the
-      authoritative GuidedRouteDecision.
+      evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder
+      precedence to produce the authoritative GuidedRouteDecision.
     receives:
     - workflow-routing.select
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: A PASS or DEGRADED decision selects an immediate safe handoff; unresolved
-      evidence or missing non-substitutable capability returns BLOCKED.
+    result: A PASS or DEGRADED decision selects an immediate safe handoff; pending
+      design or specification decisions select grilling before the previous skill
+      asks them and name spec-governance as the immediate reconciliation target,
+      while invalid evidence or missing non-substitutable capability returns BLOCKED.
     events: []
   errors: []
 - id: governed-change-set-lifecycle

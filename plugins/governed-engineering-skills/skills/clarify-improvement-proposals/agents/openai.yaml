@@ -1,7 +1,7 @@
 interface:
   display_name: "Clarify Improvement Proposals"
   short_description: "Clarify flow, cost, evidence, and tradeoffs."
-  default_prompt: "Use $clarify-improvement-proposals to clarify every ambiguity, compare Flow execution cost and evolution impact, screen algorithms, and produce a proposal that distinguishes estimated, calibrated, validated, and blocked evidence."
+  default_prompt: "Use $clarify-improvement-proposals to clarify every ambiguity, compare Flow execution cost and evolution impact, screen product features for algorithm decisions, and produce a proposal that distinguishes estimated, calibrated, validated, and blocked evidence."
 
 policy:
   allow_implicit_invocation: true

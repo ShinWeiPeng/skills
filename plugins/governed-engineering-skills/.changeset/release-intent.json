@@ -1,0 +1,11 @@
+{
+  "bump": "patch",
+  "changesets": [
+    "turn-boundary-grilling-handoff"
+  ],
+  "summary": {
+    "Fixed": [
+      "Reroute repository design decisions from read-only skills to grilling at the turn boundary and reconcile each answer before resuming."
+    ]
+  }
+}

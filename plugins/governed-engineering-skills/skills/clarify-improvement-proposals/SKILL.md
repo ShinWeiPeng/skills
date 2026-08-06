@@ -16,6 +16,24 @@ Separate discovery from recommendation. Resolve every ambiguity before treating 
 5. Read and enforce [the shared Decision Question Contract](../ask-matt/references/decision-question-contract.md). Use the structured choice tool when available and equivalent numbered text otherwise.
 6. Ask one decision at a time, then stop and wait for the user. Do not produce a final proposal with unresolved decisions.
 
+For a repository-modifying proposal, this skill owns discovery, the ambiguity
+ledger, candidate comparison, and final proposal synthesis, but it does not
+independently own the decision interview. Set `has_unresolved_decision=true` if and
+only if an unresolved user decision is not discoverable from repository facts and
+affects the change set's implementation behavior, interface, persistent parameter,
+failure policy, specification scope, or acceptance threshold. Set it before the
+first such question, preserve it for short or numeric answers through
+reconciliation, and clear it only when `spec-governance.reconcile` reports no open
+decisions.
+
+Before presenting each such choice, rerun the authoritative router with
+`has_unresolved_decision=true`. If it returns `selected_skill=grilling`, stop and
+hand off before showing the options. The immediate resume target is
+`spec-governance`; `grilling` asks the question and routes every answer through
+`spec-governance.reconcile`. Return here only when the change-set interview is
+decision-complete. Keep one working specification for the whole change set rather
+than starting a second proposal interview.
+
 For every choice, state why it matters, offer mutually exclusive options, explain impacts and tradeoffs, and mark a recommendation only when evidence supports it. Preserve dependencies between decisions.
 
 ## Screen product algorithms

@@ -39,6 +39,32 @@ explicit skill
 5. Stop on `BLOCKED`. Continue transparently on `DEGRADED` only when the decision
    names an equivalent primitive.
 
+## Turn-boundary rerouting
+
+Reassess every user turn through the authoritative router. A short reply such as a
+numbered choice inherits a pending governed decision; do not classify it in
+isolation and let the previously active skill retain control.
+
+Set `has_unresolved_decision=true` if and only if an unresolved user decision is not
+discoverable from repository facts and affects the change set's implementation
+behavior, interface, persistent parameter, failure policy, specification scope, or
+acceptance threshold. Set it before the first such question, preserve it for short
+or numeric answers through reconciliation, and clear it only when
+`spec-governance.reconcile` reports no open decisions.
+
+Before any active skill presents such a repository-modifying question, rerun the router with
+`has_unresolved_decision=true` (CLI `--unresolved-decision`). Do this before showing
+the options, not after the user answers. When
+`GuidedRouteDecision.selected_skill=grilling`, the active skill stops leading and
+hands off automatically. The route must name `spec-governance` as the immediate
+resume target.
+
+Keep factual, read-only follow-ups in their existing diagnosis, review, or
+code-understanding flow. Once `grilling` owns a change set, reconcile every answer
+through `spec-governance.reconcile` before asking the next decision, then return to
+the recorded supporting or proposal workflow only after the interview is
+decision-complete.
+
 ## ProjectState
 
 Assess both axes independently as `present`, `absent`, or `indeterminate`:
