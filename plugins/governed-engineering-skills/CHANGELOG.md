@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.7.1
+
+### Fixed
+
+- Fixed Windows installer detection for Codex CLI executables provided through PATH or nested Codex Desktop runtimes.
+
 ## 0.7.0
 
 ### Changed
