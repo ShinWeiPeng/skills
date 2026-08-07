@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.6.0
+
+### Changed
+
+- Persist governed grilling state, separate specification lifecycle writes from product execution authorization, and keep the installed policy independent of user-global AGENTS.md files.
+
 ## 0.5.1
 
 ### Fixed
