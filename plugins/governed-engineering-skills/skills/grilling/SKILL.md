@@ -15,13 +15,15 @@ If a *fact* can be found by exploring the environment (filesystem, tools, etc.),
 Do not implement or perform product, Git, or external actions until I confirm we
 have reached a shared understanding.
 
-For repository-modifying engineering work, start or resolve one persistent working
-bundle under `.codex/spec-governance/<working-id>/` before the first decision
-question. After every answer invoke `spec-governance.reconcile`; persist
-`working.md` and its normalized hash-linked `journal.jsonl` before displaying the
+For repository-modifying engineering work, start or resolve one persistent flat
+`spec-governance/WORKING-SPEC-<id>-<slug>.md` snapshot and same-stem
+`.journal.jsonl` before the first decision question. After every answer invoke
+`spec-governance.reconcile`; persist the human-readable snapshot, structured
+`DISC-###` context, and normalized hash-linked journal before displaying the
 Spec delta, affected stable IDs, relationships, conflicts, open decisions, and
-`PASS/BLOCKED` consistency result or asking another question. Never store raw chat
-or hidden reasoning in the journal.
+`PASS/BLOCKED` consistency result or asking another question. Preserve the visible
+user answer and explicitly stated rationale in DISC records, but never store a full
+transcript, hidden reasoning, secrets, or context prose in the journal.
 
 If a confirmed unimplemented spec may change, invoke `spec-governance.reopen` before
 asking the clarifying question. Preserve its SPEC ID and path. Implemented specs

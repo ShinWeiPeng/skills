@@ -19,15 +19,15 @@
       "properties": {
         "working_id": {
           "type": "string",
-          "pattern": "^WSP-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$"
+          "pattern": "^WORKING-SPEC-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$"
         },
         "snapshot_path": {
           "type": "string",
-          "pattern": "^\\.codex/spec-governance/WSP-[^/]+/working\\.md$"
+          "pattern": "^spec-governance/WORKING-SPEC-[^/]+\\.md$"
         },
         "journal_path": {
           "type": "string",
-          "pattern": "^\\.codex/spec-governance/WSP-[^/]+/journal\\.jsonl$"
+          "pattern": "^spec-governance/WORKING-SPEC-[^/]+\\.journal\\.jsonl$"
         },
         "revision": {"type": "integer", "minimum": 1},
         "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
@@ -40,6 +40,31 @@
         },
         "task_ref": {"type": ["string", "null"]},
         "branch_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "DiscussionContextRecord": {
+      "type": "object",
+      "required": [
+        "discussion_id",
+        "situation",
+        "question",
+        "options_and_tradeoffs",
+        "user_answer",
+        "explicit_rationale",
+        "resulting_impact"
+      ],
+      "properties": {
+        "discussion_id": {"type": "string", "pattern": "^DISC-[0-9]{3}$"},
+        "situation": {"type": "string", "minLength": 1},
+        "question": {"type": "string", "minLength": 1},
+        "options_and_tradeoffs": {"type": "string", "minLength": 1},
+        "user_answer": {"type": "string", "minLength": 1},
+        "explicit_rationale": {"type": "string", "minLength": 1},
+        "resulting_impact": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^(REQ|DEC|AC)-[0-9]{3}$"}
+        }
       },
       "additionalProperties": false
     },

@@ -16,11 +16,13 @@ tracker snapshot rather than repository truth.
 ## Proposed decision
 
 Make `specs/SPEC-####-<slug>.md` the canonical contract for each repository-modifying
-change set. `spec_governance_domain` owns a project-local working bundle under
-`.codex/spec-governance/`, with a human-readable Markdown snapshot and normalized
-hash-linked journal. Reconciliation persists the bundle before the next decision
-question. A decision-complete working contract materializes immediately as a
-canonical specification without authorizing product implementation.
+change set. `spec_governance_domain` owns a project-local flat pair at
+`spec-governance/WORKING-SPEC-<hash>-<slug>.{md,journal.jsonl}`, with a
+human-readable Markdown snapshot and normalized hash-linked journal. The snapshot
+retains structured `DISC-###` discussion context without copying a full transcript,
+hidden reasoning, or secrets. Reconciliation persists the pair before the next
+decision question. A decision-complete working contract materializes immediately as
+a canonical specification without authorizing product implementation.
 
 Retain exact `開始執行` authorization for product files, other governance artifacts,
 Git, and external actions. A confirmed but unimplemented specification may reopen in
@@ -56,9 +58,11 @@ The proposal makes within-task and cross-task routing deterministic and ties
 implementation evidence to stable requirements. Costs are synchronous local file
 writes per answered decision, owner-private working state, stricter modification
 gates, schema and router changes, and additional release validation. The main risks
-are ambiguous working-spec selection and journal discontinuity; resolution fails
-closed on ambiguity, while a missing local journal explicitly starts a discontinuous
-epoch from the authoritative Markdown snapshot.
+are ambiguous working-spec selection, migration collisions, accidental sensitive
+discussion capture, and journal discontinuity. Resolution and migration fail closed
+on ambiguity or collisions, discussion records remain structured and bounded, and a
+missing local journal explicitly starts a discontinuous epoch from the authoritative
+Markdown snapshot.
 
 ## Compatibility and migration impact
 
@@ -84,8 +88,11 @@ may reconstruct them from task history. Pinned upstream snapshots remain unchang
 - Every confirmed requirement has an acceptance criterion; every implemented
   acceptance criterion has PASS evidence and a passing Spec review.
 - Tracker publication failure preserves the local canonical document.
+- A first read transactionally migrates a valid legacy
+  `.codex/spec-governance/WSP-*/{working.md,journal.jsonl}` bundle to the flat pair;
+  a failed or colliding migration preserves the legacy source.
 - Commit preparation asks how to dispose of or archive local journal state and never
-  stages `.codex/spec-governance/**` implicitly.
+  stages `spec-governance/WORKING-SPEC-*` implicitly.
 
 ## Approval
 

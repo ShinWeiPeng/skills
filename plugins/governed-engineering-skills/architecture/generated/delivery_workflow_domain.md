@@ -43,7 +43,7 @@ flowchart TD
 - **Output Ports:** `spec-governance.result`
 - **Emitted Events:** `spec-governance.blocked`
 - **Owned State:** None
-- **Side Effects:** Atomically persist one owner-private working Markdown snapshot and append its normalized local journal. (`-`); Materialize one decision-complete canonical specification under specs/. (`-`)
+- **Side Effects:** Atomically persist one local project-root WORKING-SPEC Markdown snapshot with structured, visibly redacted Discussion Context and append its normalized journal without transcript or hidden-reasoning prose. (`-`); Materialize one decision-complete canonical specification under specs/. (`-`)
 - **Errors:** `specification_unresolved`: Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → `spec-governance.blocked` → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.; `stale_working_spec`: The caller's expected revision or snapshot hash does not match the persisted working specification. → `spec-governance.blocked` → Preserve the persisted snapshot, reload it, and reconcile the answer again without allocating replacement IDs.
 - **Invariants:** Every answered decision is persisted before the next decision question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.
 - **Entrypoints:** [`spec-governance`](../../skills/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/spec-governance/scripts/spec_contract.py) (cli)
@@ -53,11 +53,11 @@ flowchart TD
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
-| `spec-governance.start` | `spec_governance_domain` | input | command | sync | Create or resolve one project-local working specification bundle.: Project root, change-set slug and optional working, task, or branch evidence produce one immutable WorkingSpecReference. | `spec-governance` |
+| `spec-governance.start` | `spec_governance_domain` | input | command | sync | Create, migrate, or resolve one flat project-root working specification pair.: Project root, change-set slug and optional working, task, or branch evidence produce one immutable WorkingSpecReference. | `spec-governance` |
 | `spec-governance.reconcile` | `spec_governance_domain` | input | command | sync | Reconcile and persist one newly confirmed discussion statement before another decision question.: Expected working revision and hash, existing durable context, and one confirmed statement produce a new snapshot, normalized journal event, and consistency verdict. | `spec-governance` |
 | `spec-governance.materialize` | `spec_governance_domain` | input | command | sync | Persist one decision-complete working specification as the canonical repository artifact.: A PASS SpecConsistencyAssessment produces one versioned Markdown specification without granting product execution authority. | `spec-governance` |
-| `spec-governance.reopen` | `spec_governance_domain` | input | command | sync | Reopen a confirmed unimplemented specification in place before clarifying a possible contract change.: Expected canonical revision, reason, and specification path produce a working canonical revision plus a local working bundle. | `spec-governance` |
-| `spec-governance.prepare-commit` | `spec_governance_domain` | input | query | sync | Detect staged local working bundles and require an explicit retention disposition.: Project Git state and known working bundles produce delete, keep-local, or archive choices without performing Git actions. | `spec-governance` |
+| `spec-governance.reopen` | `spec_governance_domain` | input | command | sync | Reopen a confirmed unimplemented specification in place before clarifying a possible contract change.: Expected canonical revision, reason, and specification path produce a working canonical revision plus a local flat WORKING-SPEC pair. | `spec-governance` |
+| `spec-governance.prepare-commit` | `spec_governance_domain` | input | query | sync | Detect staged local WORKING-SPEC pairs and require an explicit retention disposition.: Project Git state and known working pairs produce delete, keep-local, or archive choices without performing Git actions. | `spec-governance` |
 | `spec-governance.verify` | `spec_governance_domain` | input | query | sync | Verify a canonical specification and its requirement-to-validation traceability.: A resolved canonical specification and current request produce a PASS or BLOCKED assessment. | `spec-governance` |
 | `spec-governance.result` | `spec_governance_domain` | output | event | sync | Publish one specification lifecycle result to the delivery parent.: Consistency or traceability verdict with canonical specification identity. | `spec-governance` |
 | `delivery-workflow.result` | `delivery_workflow_domain` | output | event | sync | Publish delivery failures that preserve a valid canonical specification.: Canonical specification identity and the pending external delivery action. | `implement` |
@@ -74,6 +74,7 @@ flowchart TD
 | ID | Owner | Declaration | Visibility | Semantic kind | Consumers | References |
 |---|---|---|---|---|---|---|
 | `working-spec-reference` | `spec_governance_domain` | `WorkingSpecReference` (interface, `skills/spec-governance/references/spec-contract.schema.json`) | module-public | domain-value | `delivery_workflow_domain` | None |
+| `discussion-context-record` | `spec_governance_domain` | `DiscussionContextRecord` (interface, `skills/spec-governance/references/spec-contract.schema.json`) | module-public | domain-value | `delivery_workflow_domain` | None |
 | `spec-consistency-assessment` | `spec_governance_domain` | `SpecConsistencyAssessment` (interface, `skills/spec-governance/references/spec-contract.schema.json`) | module-public | query | `delivery_workflow_domain` | None |
 | `canonical-spec-reference` | `spec_governance_domain` | `CanonicalSpecReference` (interface, `skills/spec-governance/references/spec-contract.schema.json`) | module-public | domain-value | `delivery_workflow_domain` | None |
 | `delivery-spec-context` | `delivery_workflow_domain` | `CanonicalSpecReferenceProjection` (interface, `skills/implement/SKILL.md`) | cross-module | domain-value | `guided_workflow_router` | `canonical-spec-reference` |
@@ -103,7 +104,7 @@ sequenceDiagram
     participant n_delivery_workflow_domain as delivery_workflow_domain<br/>讓工程需求安全通過規劃、實作與審查
     participant n_spec_governance_domain as spec_governance_domain<br/>將討論整理成唯一規格並在實作前驗證追溯性
     participant n_governance_workflow_domain as governance_workflow_domain<br/>管理決策完整性、架構所有權與證據驗證
-    n_delivery_workflow_domain->>+n_spec_governance_domain: Create or resolve one project-local working bundle before the first decision question.
+    n_delivery_workflow_domain->>+n_spec_governance_domain: Create, transactionally migrate, or resolve one project-root flat WORKING-SPEC pair before the first decision question; migration validates a complete temporary pair and restores the legacy source on failure.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: step 1
     n_spec_governance_domain->>+n_spec_governance_domain: Classify the confirmed statement, update stable relationships, and report and persist the working specification delta, conflicts, and open decisions before another decision question.
     n_spec_governance_domain-->>-n_spec_governance_domain: step 2
@@ -127,8 +128,8 @@ sequenceDiagram
 
 | # | Module | Action | Receives | Emits | State changes | Side effects |
 |---|---|---|---|---|---|---|
-| 1 | `spec_governance_domain` | Create or resolve one project-local working bundle before the first decision question. | `spec-governance.start` | None | None | Write one local authoritative working Markdown snapshot and journal epoch. |
-| 2 | `spec_governance_domain` | Classify the confirmed statement, update stable relationships, and report and persist the working specification delta, conflicts, and open decisions before another decision question. | `spec-governance.reconcile` | None | None | Atomically replace the working snapshot and append one normalized journal event. |
+| 1 | `spec_governance_domain` | Create, transactionally migrate, or resolve one project-root flat WORKING-SPEC pair before the first decision question; migration validates a complete temporary pair and restores the legacy source on failure. | `spec-governance.start` | None | None | Write one local authoritative WORKING-SPEC Markdown snapshot with structured Discussion Context and one normalized journal epoch. |
+| 2 | `spec_governance_domain` | Classify the confirmed statement, update stable relationships, and report and persist the working specification delta, conflicts, and open decisions before another decision question. | `spec-governance.reconcile` | None | None | Atomically replace the working snapshot and append one normalized journal event containing affected REQ DEC AC and DISC identities without transcript prose. |
 | 3 | `governance_workflow_domain` | Review every material as-is and target Flow through functional admission, execution and real-time feasibility, maintainability and extensibility change scenarios, and model assurance; keep unresolved load-bearing evidence BLOCKED. | None | None | None | None |
 | 4 | `spec_governance_domain` | Materialize the decision-complete canonical specification under specs/ without granting product execution authorization. | `spec-governance.materialize` | None | None | Write one canonical specification revision. |
 | 5 | `delivery_workflow_domain` | Present the confirmed specification and wait for exact product execution authorization; reopen it before clarification when a possible contract change appears. | `spec-governance.reopen` | None | None | Reopen one confirmed unimplemented specification in place when required. |

@@ -17,6 +17,7 @@ from typing import Any, Callable
 
 SPEC_ID_RE = re.compile(r"^SPEC-(\d{4})$")
 ITEM_ID_RE = re.compile(r"^(REQ|DEC|AC)-(\d{3})$")
+DISCUSSION_ID_RE = re.compile(r"^DISC-(\d{3})$")
 CANONICAL_PATH_RE = re.compile(
     r"(?P<path>specs[/\\]SPEC-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*\.md)",
     re.IGNORECASE,
@@ -34,12 +35,21 @@ REQUIRED_SECTIONS = {
     "routing/gates",
     "revision history",
 }
+WORKING_REQUIRED_SECTIONS = REQUIRED_SECTIONS | {"discussion context"}
 RELATIONS = {"depends_on", "refines", "conflicts_with", "supersedes"}
-WORKING_ID_RE = re.compile(r"^WSP-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$")
-WORKING_ROOT = Path(".codex") / "spec-governance"
-WORKING_SNAPSHOT = "working.md"
-WORKING_JOURNAL = "journal.jsonl"
+WORKING_ID_RE = re.compile(r"^WORKING-SPEC-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$")
+LEGACY_WORKING_ID_RE = re.compile(r"^WSP-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$")
+WORKING_ROOT = Path("spec-governance")
+LEGACY_WORKING_ROOT = Path(".codex") / "spec-governance"
+WORKING_SNAPSHOT_SUFFIX = ".md"
+WORKING_JOURNAL_SUFFIX = ".journal.jsonl"
+LEGACY_WORKING_SNAPSHOT = "working.md"
+LEGACY_WORKING_JOURNAL = "journal.jsonl"
 COMMIT_DISPOSITIONS = {"delete", "keep-local", "archive"}
+REDACTION_MARKERS = {
+    "credential": "[REDACTED: credential]",
+    "personal": "[REDACTED: personal data]",
+}
 
 
 def _metadata(text: str) -> tuple[dict[str, str], list[str]]:
@@ -407,7 +417,8 @@ def _replace_metadata(text: str, **updates: str | int | None) -> str:
 
 def _working_structure_errors(text: str) -> list[str]:
     metadata, errors = _metadata(text)
-    missing_sections = sorted(REQUIRED_SECTIONS - set(_sections(text)))
+    sections = _sections(text)
+    missing_sections = sorted(WORKING_REQUIRED_SECTIONS - set(sections))
     errors.extend(f"missing section: {name}" for name in missing_sections)
     if metadata.get("status") not in {"working", "confirmed"}:
         errors.append("working snapshot status must be working or confirmed")
@@ -422,7 +433,94 @@ def _working_structure_errors(text: str) -> list[str]:
             raise ValueError
     except ValueError:
         errors.append("working snapshot revision must be a positive integer")
+    discussion_ids = [
+        match.group(1)
+        for match in re.finditer(
+            r"(?m)^###\s+(DISC-\d{3})(?::\s+.+)?\s*$",
+            sections.get("discussion context", ""),
+        )
+    ]
+    if len(discussion_ids) != len(set(discussion_ids)):
+        errors.append("discussion context IDs must be unique")
+    for discussion_id in discussion_ids:
+        if not DISCUSSION_ID_RE.fullmatch(discussion_id):
+            errors.append(f"invalid discussion context ID {discussion_id}")
+    for discussion_id, row in _discussion_rows(text).items():
+        for label in (
+            "Situation",
+            "Question",
+            "Options and tradeoffs",
+            "User answer",
+            "Explicit rationale",
+            "Resulting impact",
+        ):
+            if re.search(
+                rf"(?im)^-\s+\*\*{re.escape(label)}:\*\*\s*\S",
+                row["content"],
+            ) is None:
+                errors.append(f"{discussion_id} missing discussion field {label}")
+        impact = re.search(
+            r"(?im)^-\s+\*\*Resulting impact:\*\*\s*(.+)$",
+            row["content"],
+        )
+        affected_ids = re.findall(r"\b(?:REQ|DEC|AC)-\d{3}\b", impact.group(1) if impact else "")
+        known_ids = set(_snapshot_rows(text))
+        if not affected_ids:
+            errors.append(f"{discussion_id} resulting impact must link an affected REQ/DEC/AC ID")
+        for affected_id in affected_ids:
+            if affected_id not in known_ids:
+                errors.append(f"{discussion_id} links unknown affected ID {affected_id}")
+    forbidden_patterns = (
+        (r"(?im)^#{1,6}\s+(?:full\s+)?transcript\b", "full transcript"),
+        (r"(?i)<(?:thinking|reasoning)>", "hidden reasoning"),
+        (r"(?i)\b(?:chain[ -]of[ -]thought|hidden reasoning|internal reasoning)\b", "hidden reasoning"),
+    )
+    for pattern, label in forbidden_patterns:
+        if re.search(pattern, text):
+            errors.append(f"working snapshot contains forbidden {label}")
+    if (
+        re.search(r"(?im)^\s*(?:user|human)\s*:", text)
+        and re.search(r"(?im)^\s*(?:assistant|ai)\s*:", text)
+    ):
+        errors.append("working snapshot contains forbidden full transcript")
+    if _redact_sensitive_content(text) != text:
+        errors.append("working snapshot contains unredacted sensitive data")
     return errors
+
+
+def _redact_sensitive_content(text: str) -> str:
+    """Redact bounded credential and personal-data patterns in a working snapshot."""
+    text = re.sub(
+        r"(?i)\bBearer\s+[A-Za-z0-9._~+/-]+=*\b",
+        f"Bearer {REDACTION_MARKERS['credential']}",
+        text,
+    )
+    text = re.sub(
+        r"(?i)\b(password|passwd|api[_ -]?key|access[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|secret)\s*([:=])\s*(?!\[REDACTED:)[^\s`,;]+",
+        lambda match: f"{match.group(1)}{match.group(2)}{REDACTION_MARKERS['credential']}",
+        text,
+    )
+    text = re.sub(
+        r"(?is)-----BEGIN [^-]*PRIVATE KEY-----.*?-----END [^-]*PRIVATE KEY-----",
+        REDACTION_MARKERS["credential"],
+        text,
+    )
+    text = re.sub(
+        r"\bsk-[A-Za-z0-9_-]{12,}\b",
+        REDACTION_MARKERS["credential"],
+        text,
+    )
+    text = re.sub(
+        r"(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}(?![\w.-])",
+        REDACTION_MARKERS["personal"],
+        text,
+    )
+    text = re.sub(
+        r"(?<!\w)\+?(?:\d[\s().-]?){8,19}\d(?!\w)",
+        REDACTION_MARKERS["personal"],
+        text,
+    )
+    return text
 
 
 def _snapshot_rows(text: str) -> dict[str, dict[str, str]]:
@@ -439,12 +537,27 @@ def _snapshot_rows(text: str) -> dict[str, dict[str, str]]:
     return rows
 
 
+def _discussion_rows(text: str) -> dict[str, dict[str, str]]:
+    section = _sections(text).get("discussion context", "")
+    matches = list(
+        re.finditer(r"(?m)^###\s+(DISC-\d{3})(?::\s+(.+?))?\s*$", section)
+    )
+    rows: dict[str, dict[str, str]] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(section)
+        rows[match.group(1)] = {
+            "title": (match.group(2) or "").strip(),
+            "content": section[match.end() : end].strip(),
+        }
+    return rows
+
+
 def _snapshot_consistency(
     previous_text: str,
     current_text: str,
 ) -> dict[str, Any]:
-    previous_rows = _snapshot_rows(previous_text)
-    current_rows = _snapshot_rows(current_text)
+    previous_rows = {**_snapshot_rows(previous_text), **_discussion_rows(previous_text)}
+    current_rows = {**_snapshot_rows(current_text), **_discussion_rows(current_text)}
     previous_ids = set(previous_rows)
     current_ids = set(current_rows)
     delta = {
@@ -517,8 +630,16 @@ def _confirmed_decision_replacement_errors(
 
 
 def _working_paths(project_root: Path, working_id: str) -> tuple[Path, Path]:
-    bundle = project_root / WORKING_ROOT / working_id
-    return bundle / WORKING_SNAPSHOT, bundle / WORKING_JOURNAL
+    root = project_root / WORKING_ROOT
+    return (
+        root / f"{working_id}{WORKING_SNAPSHOT_SUFFIX}",
+        root / f"{working_id}{WORKING_JOURNAL_SUFFIX}",
+    )
+
+
+def _legacy_working_paths(project_root: Path, working_id: str) -> tuple[Path, Path]:
+    bundle = project_root / LEGACY_WORKING_ROOT / working_id
+    return bundle / LEGACY_WORKING_SNAPSHOT, bundle / LEGACY_WORKING_JOURNAL
 
 
 def _journal_event_hash(event: dict[str, Any]) -> str:
@@ -654,23 +775,148 @@ def _working_reference(
     }
 
 
+def _migrate_legacy_bundle(
+    project_root: Path,
+    legacy_snapshot: Path,
+) -> dict[str, Any]:
+    legacy_id = legacy_snapshot.parent.name
+    snapshot_relative = legacy_snapshot.relative_to(project_root).as_posix()
+
+    def failure(*errors: str) -> dict[str, Any]:
+        return {
+            "state": "invalid",
+            "working_id": legacy_id,
+            "logical_working_id": legacy_id.replace("WSP-", "WORKING-SPEC-", 1),
+            "snapshot_path": snapshot_relative,
+            "errors": [error for error in errors if error],
+        }
+
+    if not LEGACY_WORKING_ID_RE.fullmatch(legacy_id):
+        return failure("legacy working ID is invalid")
+    legacy_journal = legacy_snapshot.with_name(LEGACY_WORKING_JOURNAL)
+    source_snapshot_bytes = legacy_snapshot.read_bytes()
+    source_journal_bytes = legacy_journal.read_bytes() if legacy_journal.is_file() else None
+    source_text = legacy_snapshot.read_text(encoding="utf-8")
+    metadata, metadata_errors = _metadata(source_text)
+    if metadata_errors or metadata.get("working_id") != legacy_id:
+        return failure(
+            *metadata_errors,
+            "legacy snapshot ID does not match its bundle directory",
+        )
+    new_id = legacy_id.replace("WSP-", "WORKING-SPEC-", 1)
+    destination_snapshot, destination_journal = _working_paths(project_root, new_id)
+    if destination_snapshot.exists() or destination_journal.exists():
+        return failure("legacy migration destination collision")
+    rendered = _replace_metadata(source_text, working_id=new_id)
+    if "discussion context" not in _sections(rendered):
+        rendered = re.sub(
+            r"(?m)^##\s+Acceptance Criteria\s*$",
+            "## Discussion Context\n\nNone.\n\n## Acceptance Criteria",
+            rendered,
+            count=1,
+        )
+    errors = _working_structure_errors(rendered)
+    if errors:
+        return failure(*errors)
+    events, continuity = _read_journal(legacy_journal)
+    if legacy_journal.is_file() and continuity != "continuous":
+        return failure("legacy journal chain is invalid")
+    source_snapshot_hash = _sha256_text(source_text)
+    if events and events[-1].get("snapshot_hash") != source_snapshot_hash:
+        return failure("legacy journal snapshot hash is stale")
+    rewritten_events: list[dict[str, Any]] = []
+    previous_event_hash: str | None = None
+    snapshot_hash = _sha256_text(rendered)
+    for index, source_event in enumerate(events):
+        event = {
+            key: value
+            for key, value in source_event.items()
+            if key != "event_hash"
+        }
+        event["working_id"] = new_id
+        event["previous_event_hash"] = previous_event_hash
+        if index == len(events) - 1:
+            event["snapshot_hash"] = snapshot_hash
+        event["event_hash"] = _journal_event_hash(event)
+        rewritten_events.append(event)
+        previous_event_hash = event["event_hash"]
+    journal_text = "".join(_normalized_json(event) + "\n" for event in rewritten_events)
+    destination_snapshot.parent.mkdir(parents=True, exist_ok=True)
+    token = uuid.uuid4().hex
+    temporary_snapshot = destination_snapshot.with_name(f".{destination_snapshot.name}.{token}.tmp")
+    temporary_journal = destination_journal.with_name(f".{destination_journal.name}.{token}.tmp")
+    try:
+        temporary_snapshot.write_text(rendered, encoding="utf-8", newline="\n")
+        temporary_journal.write_text(journal_text, encoding="utf-8", newline="\n")
+        migrated_events, migrated_continuity = _read_journal(temporary_journal)
+        if (
+            _working_structure_errors(temporary_snapshot.read_text(encoding="utf-8"))
+            or (rewritten_events and migrated_continuity != "continuous")
+            or (migrated_events and migrated_events[-1].get("snapshot_hash") != snapshot_hash)
+        ):
+            raise ValueError("migrated working specification verification failed")
+        os.replace(temporary_journal, destination_journal)
+        try:
+            os.replace(temporary_snapshot, destination_snapshot)
+        except OSError:
+            destination_journal.unlink(missing_ok=True)
+            raise
+        if (
+            _working_structure_errors(destination_snapshot.read_text(encoding="utf-8"))
+            or _read_journal(destination_journal)[1] != ("continuous" if rewritten_events else "unavailable")
+        ):
+            raise ValueError("published working specification verification failed")
+        legacy_snapshot.unlink()
+        if legacy_journal.exists():
+            legacy_journal.unlink()
+        legacy_snapshot.parent.rmdir()
+    except (OSError, ValueError) as error:
+        destination_snapshot.unlink(missing_ok=True)
+        destination_journal.unlink(missing_ok=True)
+        legacy_snapshot.parent.mkdir(parents=True, exist_ok=True)
+        legacy_snapshot.write_bytes(source_snapshot_bytes)
+        if source_journal_bytes is not None:
+            legacy_journal.write_bytes(source_journal_bytes)
+        return failure(str(error))
+    finally:
+        temporary_snapshot.unlink(missing_ok=True)
+        temporary_journal.unlink(missing_ok=True)
+    return _working_reference(project_root, destination_snapshot, destination_journal)
+
+
 def _working_candidates(project_root: Path) -> list[dict[str, Any]]:
     root = project_root / WORKING_ROOT
-    if not root.is_dir():
-        return []
     candidates: list[dict[str, Any]] = []
-    for snapshot in sorted(root.glob(f"*/{WORKING_SNAPSHOT}")):
+    legacy_root = project_root / LEGACY_WORKING_ROOT
+    if legacy_root.is_dir():
+        for legacy_snapshot in sorted(legacy_root.glob(f"*/{LEGACY_WORKING_SNAPSHOT}")):
+            migrated = _migrate_legacy_bundle(project_root, legacy_snapshot)
+            if migrated.get("state") == "invalid":
+                candidates.append(migrated)
+    if not root.is_dir():
+        return candidates
+    blocked_logical_ids = {
+        row.get("logical_working_id")
+        for row in candidates
+        if row.get("state") == "invalid"
+    }
+    for snapshot in sorted(root.glob(f"WORKING-SPEC-*{WORKING_SNAPSHOT_SUFFIX}")):
+        if snapshot.name.endswith(WORKING_JOURNAL_SUFFIX):
+            continue
         snapshot_text = snapshot.read_text(encoding="utf-8")
         errors = _working_structure_errors(snapshot_text)
         metadata, _ = _metadata(snapshot_text)
-        if metadata.get("working_id") != snapshot.parent.name:
-            errors.append("working snapshot ID does not match its bundle directory")
-        journal = snapshot.with_name(WORKING_JOURNAL)
+        expected_id = snapshot.name[: -len(WORKING_SNAPSHOT_SUFFIX)]
+        if metadata.get("working_id") != expected_id:
+            errors.append("working snapshot ID does not match its filename")
+        journal = snapshot.with_name(f"{expected_id}{WORKING_JOURNAL_SUFFIX}")
+        if expected_id in blocked_logical_ids:
+            continue
         if errors:
             candidates.append(
                 {
                     "state": "invalid",
-                    "working_id": snapshot.parent.name,
+                    "working_id": expected_id,
                     "snapshot_path": snapshot.relative_to(project_root).as_posix(),
                     "errors": errors,
                 }
@@ -704,13 +950,37 @@ def resolve_working_bundle(
         }
 
     if reference:
-        normalized = reference.replace("\\", "/").casefold()
+        original = reference.replace("\\", "/").casefold()
+        normalized = original
+        if normalized.startswith("wsp-"):
+            normalized = normalized.replace("wsp-", "working-spec-", 1)
         matches = [
             row
             for row in valid
             if str(row.get("working_id", "")).casefold() == normalized
             or str(row.get("snapshot_path", "")).casefold() == normalized
         ]
+        if not matches:
+            invalid_matches = [
+                row
+                for row in invalid
+                if str(row.get("working_id", "")).casefold() in {original, normalized}
+                or str(row.get("logical_working_id", "")).casefold() in {original, normalized}
+                or str(row.get("snapshot_path", "")).casefold() in {original, normalized}
+            ]
+            if invalid_matches:
+                errors = sorted(
+                    {
+                        error
+                        for row in invalid_matches
+                        for error in row.get("errors", [])
+                    }
+                )
+                return result(
+                    "invalid",
+                    invalid_matches,
+                    "; ".join(errors) or "working specification is malformed",
+                )
         return result(
             "working" if len(matches) == 1 else "invalid",
             matches,
@@ -755,7 +1025,20 @@ def start_working_bundle(
     """Create one authoritative Markdown snapshot and normalized journal epoch."""
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
         return {"verdict": "BLOCKED", "reason": "invalid change-set slug"}
-    working_id = working_id or f"WSP-{uuid.uuid4().hex[:12]}-{slug}"
+    discovered = _working_candidates(project_root)
+    invalid = [row for row in discovered if row.get("state") == "invalid"]
+    if invalid:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "working specification discovery or migration failed",
+            "errors": sorted({error for row in invalid for error in row.get("errors", [])}),
+        }
+    matching = [row for row in discovered if row.get("change_set") == slug]
+    if len(matching) == 1:
+        return {"verdict": "PASS", "working_spec": matching[0], "created": False}
+    if len(matching) > 1:
+        return {"verdict": "BLOCKED", "reason": "multiple working specifications match change set"}
+    working_id = working_id or f"WORKING-SPEC-{uuid.uuid4().hex[:12]}-{slug}"
     if not WORKING_ID_RE.fullmatch(working_id):
         return {"verdict": "BLOCKED", "reason": "invalid working ID"}
     snapshot_path, journal_path = _working_paths(project_root, working_id)
@@ -765,7 +1048,7 @@ def start_working_bundle(
     metadata, metadata_errors = _metadata(text)
     if metadata_errors:
         return {"verdict": "BLOCKED", "reason": "invalid working snapshot", "errors": metadata_errors}
-    rendered = _replace_metadata(
+    rendered = _redact_sensitive_content(_replace_metadata(
         text,
         spec_id=metadata.get("spec_id", "SPEC-0000") if preserve_spec_identity else "SPEC-0000",
         revision=1 if not preserve_spec_identity else metadata.get("revision", "1"),
@@ -774,7 +1057,7 @@ def start_working_bundle(
         working_id=working_id,
         task_ref=task_ref,
         branch_ref=branch,
-    )
+    ))
     errors = _working_structure_errors(rendered)
     if errors:
         return {"verdict": "BLOCKED", "reason": "invalid working snapshot", "errors": errors}
@@ -812,11 +1095,15 @@ def reconcile_working_bundle(
     expected_hash: str,
 ) -> dict[str, Any]:
     """Persist a complete next snapshot with optimistic revision/hash checks."""
-    if not WORKING_ID_RE.fullmatch(working_id):
+    if not (WORKING_ID_RE.fullmatch(working_id) or LEGACY_WORKING_ID_RE.fullmatch(working_id)):
         return {"verdict": "BLOCKED", "reason": "invalid working ID"}
-    snapshot_path, journal_path = _working_paths(project_root, working_id)
-    if not snapshot_path.is_file():
-        return {"verdict": "BLOCKED", "reason": "working specification does not exist"}
+    resolved = resolve_working_bundle(project_root, reference=working_id)
+    if resolved["state"] != "working":
+        return {"verdict": "BLOCKED", "reason": resolved["reason"]}
+    reference = resolved["working_spec"]
+    working_id = reference["working_id"]
+    snapshot_path = project_root / reference["snapshot_path"]
+    journal_path = project_root / reference["journal_path"]
     current = snapshot_path.read_text(encoding="utf-8")
     metadata, _ = _metadata(current)
     current_hash = _sha256_text(current)
@@ -827,7 +1114,7 @@ def reconcile_working_bundle(
             "reason": "stale working specification",
             "working_spec": _working_reference(project_root, snapshot_path, journal_path),
         }
-    rendered = _replace_metadata(
+    rendered = _redact_sensitive_content(_replace_metadata(
         next_snapshot,
         spec_id=metadata.get("spec_id"),
         revision=current_revision + 1,
@@ -836,7 +1123,7 @@ def reconcile_working_bundle(
         working_id=working_id,
         task_ref=metadata.get("task_ref") or None,
         branch_ref=metadata.get("branch_ref") or None,
-    )
+    ))
     errors = _working_structure_errors(rendered)
     if errors:
         return {"verdict": "BLOCKED", "reason": "invalid next working snapshot", "errors": errors}
@@ -1025,11 +1312,15 @@ def materialize_working_bundle(
     expected_hash: str,
 ) -> dict[str, Any]:
     """Confirm a decision-complete bundle, creating or updating its canonical spec."""
-    if not WORKING_ID_RE.fullmatch(working_id):
+    if not (WORKING_ID_RE.fullmatch(working_id) or LEGACY_WORKING_ID_RE.fullmatch(working_id)):
         return {"verdict": "BLOCKED", "reason": "invalid working ID"}
-    snapshot_path, journal_path = _working_paths(project_root, working_id)
-    if not snapshot_path.is_file():
-        return {"verdict": "BLOCKED", "reason": "working specification does not exist"}
+    resolved = resolve_working_bundle(project_root, reference=working_id)
+    if resolved["state"] != "working":
+        return {"verdict": "BLOCKED", "reason": resolved["reason"]}
+    reference = resolved["working_spec"]
+    working_id = reference["working_id"]
+    snapshot_path = project_root / reference["snapshot_path"]
+    journal_path = project_root / reference["journal_path"]
     current = snapshot_path.read_text(encoding="utf-8")
     metadata, _ = _metadata(current)
     current_hash = _sha256_text(current)
@@ -1195,10 +1486,17 @@ def prepare_commit(
             "reason": "invalid working bundle disposition",
             "options": sorted(COMMIT_DISPOSITIONS),
         }
-    bundles = [
-        path.parent.relative_to(project_root).as_posix()
-        for path in (project_root / WORKING_ROOT).glob(f"*/{WORKING_SNAPSHOT}")
-    ]
+    discovered = _working_candidates(project_root)
+    invalid = [row for row in discovered if row.get("state") == "invalid"]
+    if invalid:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "working specification discovery or migration failed",
+            "errors": sorted({error for row in invalid for error in row.get("errors", [])}),
+        }
+    bundles = sorted(
+        row["snapshot_path"] for row in discovered if row.get("snapshot_path")
+    )
     if tracked_paths is None or staged_paths is None:
         try:
             tracked = subprocess.run(

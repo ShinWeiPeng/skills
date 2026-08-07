@@ -144,6 +144,7 @@ flowchart TD
 - `guided-route-decision` — `workflow_routing_domain` / `query` / `cross-module`
 - `spec-context-assessment` — `workflow_routing_domain` / `query` / `cross-module`
 - `working-spec-reference` — `spec_governance_domain` / `domain-value` / `module-public`
+- `discussion-context-record` — `spec_governance_domain` / `domain-value` / `module-public`
 - `spec-consistency-assessment` — `spec_governance_domain` / `query` / `module-public`
 - `canonical-spec-reference` — `spec_governance_domain` / `domain-value` / `module-public`
 - `delivery-spec-context` — `delivery_workflow_domain` / `domain-value` / `cross-module`

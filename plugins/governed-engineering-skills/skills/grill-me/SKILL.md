@@ -20,7 +20,7 @@ invoke `spec-governance.reconcile` to persist the Markdown snapshot and normaliz
 journal before showing the Spec delta, consistency verdict, relations, conflicts,
 and open decisions.
 
-During the interview, write only `.codex/spec-governance/**` and the canonical spec
+During the interview, write only local `spec-governance/WORKING-SPEC-*` pairs and the canonical spec
 lifecycle owned by `spec-governance`. When decision-complete, hand off immediately
 to `spec-governance.materialize`; the resulting non-empty confirmed spec makes the
 next task's stateful context present but does not authorize product changes. Show the

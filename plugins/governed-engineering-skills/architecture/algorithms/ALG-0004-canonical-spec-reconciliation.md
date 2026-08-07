@@ -33,17 +33,24 @@ JSONL.
 
 ## Ordered method
 
-1. Start or resolve one working bundle by explicit reference, available task/branch
-   evidence, then unique fallback; ambiguity blocks instead of selecting by recency.
+1. Start or resolve one flat
+   `spec-governance/WORKING-SPEC-<hash>-<slug>.{md,journal.jsonl}` pair by explicit
+   reference, available task/branch evidence, then unique fallback; ambiguity blocks
+   instead of selecting by recency. On first read, transactionally migrate a valid
+   legacy `.codex/spec-governance/WSP-*` bundle and preserve it if migration fails.
 2. Reject a delta when its expected revision or snapshot hash is stale.
 3. Classify each delta as a domain term, change-set contract, ADR candidate, or open
    decision.
-4. Reuse stable `REQ-###`, `DEC-###`, and `AC-###` IDs; assign the next unused ID only
-   to genuinely new statements.
+4. Reuse stable `REQ-###`, `DEC-###`, `AC-###`, and `DISC-###` IDs; assign the next
+   unused ID only to genuinely new statements. Each discussion record captures the
+   situation, question, options and tradeoffs, user answer, explicit rationale, and
+   resulting impact. Redact recognized credentials and sensitive personal data with
+   a visible reason marker, and reject transcript or hidden-reasoning structures.
 5. Compare the working contract with `CONTEXT.md`, accepted ADRs, and the architecture
    manifest; report affected IDs, relations, conflicts, and open decisions.
 6. Atomically replace the authoritative Markdown snapshot, then append a normalized
-   journal event containing the new revision and before/after hashes. A missing
+   journal event containing the new revision, before/after hashes, and affected
+   `DISC-###` IDs only; journal events do not duplicate discussion prose. A missing
    journal starts a new epoch marked `continuity: unavailable` from the Markdown.
 7. Return `BLOCKED` when any conflict, open decision, dangling reference, duplicate
    ID, or uncovered requirement remains.

@@ -50,8 +50,8 @@ user to select an incomplete option.
 This presentation contract does not change the repository's exact `開始執行`
 boundary for product source, tests, configuration, `CONTEXT.md`, ADRs, architecture
 artifacts, generated files, Git, or external actions. The narrow exception is
-`spec-governance`: after governed grilling begins it may persist
-`.codex/spec-governance/**`, and when decision-complete it may create, update, or
+`spec-governance`: after governed grilling begins it may persist local, commit-blocked
+`spec-governance/WORKING-SPEC-*` snapshot/journal pairs, and when decision-complete it may create, update, or
 reopen `specs/SPEC-####-*.md`. These writes never grant product execution authority.
 This boundary is self-contained in the installed plugin; governed workflows never
 require or modify a user-global `AGENTS.md`.

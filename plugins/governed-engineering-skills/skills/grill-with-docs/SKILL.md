@@ -29,7 +29,7 @@ does not bypass this interview.
 Before writing `CONTEXT.md`, ADRs, or other files, read [the shared governed entry gate](../engineering-risk-routing/references/entry-gate.md) and invoke `$engineering-risk-routing`. In Plan mode, describe the intended documentation diff but do not write it.
 
 Documentation created by this wrapper belongs to the same change set and does not
-trigger a second interview. `.codex/spec-governance/**` and decision-complete
+trigger a second interview. Local `spec-governance/WORKING-SPEC-*` pairs and decision-complete
 `specs/SPEC-####-*.md` may be written by `spec-governance` during grilling.
 `CONTEXT.md`, ADRs, architecture artifacts, and all other files still require
 `開始執行`.

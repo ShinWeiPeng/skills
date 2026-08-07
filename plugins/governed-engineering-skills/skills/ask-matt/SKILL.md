@@ -106,9 +106,10 @@ regardless of size or an explicitly requested skill such as `tdd`.
   grilling.
 - Ask one decision question at a time under the shared Decision Question Contract.
 - Do not ask discoverable facts.
-- Before the first governed decision, start or resolve
-  `.codex/spec-governance/<working-id>/working.md` and its normalized hash-linked
-  journal. Persist every answered decision before another question.
+- Before the first governed decision, start or resolve the flat local pair
+  `spec-governance/WORKING-SPEC-<id>-<slug>.md` and
+  `.journal.jsonl`. Persist every answered decision and its structured `DISC-###`
+  context before another question.
 - Invoke `spec-governance.reconcile` after every answer and display its Spec delta,
   affected IDs, relations, conflicts, open decisions, and verdict. Missing journal
   continuity is explicit and never reopens already settled decisions by itself.
