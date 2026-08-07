@@ -43,14 +43,6 @@ function Stop-Install {
 }
 
 function Resolve-CodexCommand {
-    $override = [Environment]::GetEnvironmentVariable('GOVERNED_CODEX_CLI')
-    if (-not [string]::IsNullOrWhiteSpace($override)) {
-        if (-not (Test-Path -LiteralPath $override -PathType Leaf)) {
-            Stop-Install -ExitCode 11 -Message "GOVERNED_CODEX_CLI does not identify an executable file: $override"
-        }
-        return (Resolve-Path -LiteralPath $override).Path
-    }
-
     $command = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($null -ne $command) {
@@ -59,19 +51,30 @@ function Resolve-CodexCommand {
 
     $localAppData = [Environment]::GetEnvironmentVariable('LOCALAPPDATA')
     if (-not [string]::IsNullOrWhiteSpace($localAppData)) {
+        $desktopBin = Join-Path $localAppData 'OpenAI\Codex\bin'
         foreach ($fileName in @('codex.exe', 'codex.cmd')) {
-            $desktopCandidate = Join-Path $localAppData (
-                'OpenAI\Codex\bin\' + $fileName
-            )
+            $desktopCandidate = Join-Path $desktopBin $fileName
             if (Test-Path -LiteralPath $desktopCandidate -PathType Leaf) {
                 Write-InstallLog -Message "Codex CLI resolved from the Codex Desktop runtime: $desktopCandidate"
                 return (Resolve-Path -LiteralPath $desktopCandidate).Path
             }
         }
+
+        if (Test-Path -LiteralPath $desktopBin -PathType Container) {
+            $nestedDesktopCandidate = Get-ChildItem -LiteralPath $desktopBin `
+                -File -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -in @('codex.exe', 'codex.cmd') } |
+                Sort-Object LastWriteTimeUtc -Descending |
+                Select-Object -First 1
+            if ($null -ne $nestedDesktopCandidate) {
+                Write-InstallLog -Message "Codex CLI resolved from the Codex Desktop runtime: $($nestedDesktopCandidate.FullName)"
+                return $nestedDesktopCandidate.FullName
+            }
+        }
     }
 
     Stop-Install -ExitCode 11 -Message (
-        'Codex CLI was not found in PATH or the Codex Desktop runtime under ' +
+        'Codex CLI was not found in PATH or the Codex Desktop runtime below ' +
         '%LOCALAPPDATA%\OpenAI\Codex\bin. Install or repair Codex, then ' +
         'double-click the launcher again.'
     )

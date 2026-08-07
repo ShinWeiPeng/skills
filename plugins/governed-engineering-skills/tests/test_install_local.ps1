@@ -15,6 +15,7 @@ $installLog = Join-Path ([System.IO.Path]::GetTempPath()) (
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) (
     'governed-installer-test-' + [Guid]::NewGuid().ToString('N')
 )
+$fakePathBin = Join-Path $testRoot 'path-bin'
 $originalLocalAppData = $env:LOCALAPPDATA
 $originalPath = $env:PATH
 
@@ -38,7 +39,6 @@ function Invoke-InstallerScenario {
 
     $fakeLog = Join-Path $testRoot "$Scenario.log"
     $uriCapture = Join-Path $testRoot "$Scenario.uri"
-    $env:GOVERNED_CODEX_CLI = $fakeCodex
     $env:FAKE_CODEX_SCENARIO = $Scenario
     $env:FAKE_CODEX_LOG = $fakeLog
     $env:GOVERNED_PLUGIN_URI_CAPTURE = $uriCapture
@@ -113,8 +113,18 @@ try {
         throw 'Launcher must describe the required Codex Desktop install action.'
     }
 
+    New-Item -ItemType Directory -Path $fakePathBin | Out-Null
+    Copy-Item -LiteralPath $fakeCodex -Destination (
+        Join-Path $fakePathBin 'codex.cmd'
+    )
+    $env:PATH = "$fakePathBin;$originalPath"
+
     Invoke-InstallerScenario -Scenario 'success' -ExpectedExit 0 `
         -ExpectPluginPage $true
+    $pathResolutionLog = Get-Content -Raw -Encoding utf8 -LiteralPath $installLog
+    if ($pathResolutionLog -match 'resolved from the Codex Desktop runtime') {
+        throw 'Codex Desktop fallback was used even though codex was available in PATH.'
+    }
     Invoke-InstallerScenario -Scenario 'duplicate-marketplace' -ExpectedExit 0 `
         -ExpectPluginPage $true
     Invoke-InstallerScenario -Scenario 'marketplace-failure' -ExpectedExit 20 `
@@ -139,7 +149,6 @@ try {
     Copy-Item -LiteralPath $fakeCodex -Destination (
         Join-Path $desktopBin 'codex.cmd'
     )
-    Remove-Item Env:\GOVERNED_CODEX_CLI -ErrorAction SilentlyContinue
     $env:LOCALAPPDATA = $desktopLocalAppData
     $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
     $env:FAKE_CODEX_SCENARIO = 'success'
@@ -156,6 +165,66 @@ try {
         Get-Content -Encoding Default -LiteralPath $env:FAKE_CODEX_LOG
     ).Count -Context 'Codex Desktop fallback call count'
 
+    $nestedDesktopLocalAppData = Join-Path $testRoot 'nested-desktop-localappdata'
+    $nestedDesktopBin = Join-Path $nestedDesktopLocalAppData (
+        'OpenAI\Codex\bin\desktop-runtime-hash'
+    )
+    New-Item -ItemType Directory -Path $nestedDesktopBin | Out-Null
+    Copy-Item -LiteralPath $fakeCodex -Destination (
+        Join-Path $nestedDesktopBin 'codex.cmd'
+    )
+    $env:LOCALAPPDATA = $nestedDesktopLocalAppData
+    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'nested-desktop-fallback.log'
+    $env:GOVERNED_PLUGIN_URI_CAPTURE = Join-Path $testRoot (
+        'nested-desktop-fallback.uri'
+    )
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $installer *> $null
+    Assert-Equal -Expected 0 -Actual $LASTEXITCODE -Context (
+        'Nested Codex Desktop CLI fallback'
+    )
+    Assert-Equal -Expected 1 -Actual @(
+        Get-Content -Encoding Default -LiteralPath $env:FAKE_CODEX_LOG
+    ).Count -Context 'Nested Codex Desktop fallback call count'
+
+    $multipleDesktopLocalAppData = Join-Path $testRoot (
+        'multiple-desktop-localappdata'
+    )
+    $olderDesktopBin = Join-Path $multipleDesktopLocalAppData (
+        'OpenAI\Codex\bin\older-runtime'
+    )
+    $newerDesktopBin = Join-Path $multipleDesktopLocalAppData (
+        'OpenAI\Codex\bin\newer-runtime'
+    )
+    New-Item -ItemType Directory -Path $olderDesktopBin | Out-Null
+    New-Item -ItemType Directory -Path $newerDesktopBin | Out-Null
+    Copy-Item -LiteralPath $fakeCodex -Destination (
+        Join-Path $olderDesktopBin 'codex.cmd'
+    )
+    Copy-Item -LiteralPath $fakeCodex -Destination (
+        Join-Path $newerDesktopBin 'codex.cmd'
+    )
+    (Get-Item -LiteralPath (Join-Path $olderDesktopBin 'codex.cmd')).LastWriteTimeUtc = (
+        Get-Date
+    ).ToUniversalTime().AddMinutes(-2)
+    (Get-Item -LiteralPath (Join-Path $newerDesktopBin 'codex.cmd')).LastWriteTimeUtc = (
+        Get-Date
+    ).ToUniversalTime()
+    $env:LOCALAPPDATA = $multipleDesktopLocalAppData
+    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'multiple-desktop-fallback.log'
+    $env:GOVERNED_PLUGIN_URI_CAPTURE = Join-Path $testRoot (
+        'multiple-desktop-fallback.uri'
+    )
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $installer *> $null
+    Assert-Equal -Expected 0 -Actual $LASTEXITCODE -Context (
+        'Newest Codex Desktop CLI fallback'
+    )
+    $multipleDesktopLog = Get-Content -Raw -Encoding utf8 -LiteralPath (
+        $installLog
+    )
+    if ($multipleDesktopLog -notmatch [regex]::Escape($newerDesktopBin)) {
+        throw 'Desktop fallback did not select the newest Codex runtime.'
+    }
+
     $env:LOCALAPPDATA = Join-Path $testRoot 'missing-localappdata'
     $env:FAKE_CODEX_SCENARIO = 'missing-cli'
     $env:FAKE_CODEX_LOG = Join-Path $testRoot 'missing-cli.log'
@@ -165,13 +234,12 @@ try {
 
     $launcherLog = Join-Path $testRoot 'launcher.log'
     $launcherUri = Join-Path $testRoot 'launcher.uri'
-    $env:GOVERNED_CODEX_CLI = $fakeCodex
     $env:FAKE_CODEX_SCENARIO = 'success'
     $env:FAKE_CODEX_LOG = $launcherLog
     $env:GOVERNED_PLUGIN_URI_CAPTURE = $launcherUri
     $env:GOVERNED_INSTALLER_NO_DELAY = '1'
     $env:LOCALAPPDATA = $originalLocalAppData
-    $env:PATH = $originalPath
+    $env:PATH = "$fakePathBin;$originalPath"
     & $env:ComSpec /d /c "call `"$launcher`"" *> $null
     Assert-Equal -Expected 0 -Actual $LASTEXITCODE -Context (
         'double-click launcher'
@@ -186,7 +254,6 @@ try {
     Write-Host 'PASS: marketplace registration and Codex Desktop launch scenarios'
 }
 finally {
-    Remove-Item Env:\GOVERNED_CODEX_CLI -ErrorAction SilentlyContinue
     Remove-Item Env:\FAKE_CODEX_SCENARIO -ErrorAction SilentlyContinue
     Remove-Item Env:\FAKE_CODEX_LOG -ErrorAction SilentlyContinue
     Remove-Item Env:\GOVERNED_PLUGIN_URI_CAPTURE -ErrorAction SilentlyContinue
