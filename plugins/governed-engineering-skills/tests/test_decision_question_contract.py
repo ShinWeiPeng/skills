@@ -106,7 +106,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
         self.assertIn("開始執行", contract)
         self.assertIn("native system permission", contract)
         self.assertIn("`開始執行`", ask_matt)
-        self.assertIn(".codex/spec-governance/**", contract)
+        self.assertIn("spec-governance/WORKING-SPEC-*", contract)
         self.assertIn("specs/SPEC-####-*.md", contract)
         self.assertIn("never grant product execution authority", contract)
         self.assertIn(
@@ -124,9 +124,10 @@ class DecisionQuestionContractTests(unittest.TestCase):
         ask_matt = read(SKILLS_ROOT / "ask-matt" / "SKILL.md")
 
         for text in (grilling, governance, ask_matt):
-            self.assertIn(".codex/spec-governance", text)
+            self.assertIn("spec-governance/WORKING-SPEC", text)
             self.assertIn("spec-governance.reconcile", text)
             self.assertIn("spec-governance.materialize", text)
+            self.assertIn("DISC", text)
         self.assertIn("before the first decision", grilling)
         self.assertIn("before another question", governance)
         self.assertIn("without waiting for `開始執行`", governance)

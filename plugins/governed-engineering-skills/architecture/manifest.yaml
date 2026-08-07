@@ -306,8 +306,9 @@ modules:
     - spec-governance.blocked
     owned_state: []
     side_effects:
-    - description: Atomically persist one owner-private working Markdown snapshot and
-        append its normalized local journal.
+    - description: Atomically persist one local project-root WORKING-SPEC Markdown
+        snapshot with structured, visibly redacted Discussion Context and append its
+        normalized journal without transcript or hidden-reasoning prose.
     - description: Materialize one decision-complete canonical specification under specs/.
     errors:
     - id: specification_unresolved
@@ -769,7 +770,7 @@ ports:
   contract: skills/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Create or resolve one project-local working specification bundle.
+    purpose: Create, migrate, or resolve one flat project-root working specification pair.
     data: Project root, change-set slug and optional working, task, or branch evidence
       produce one immutable WorkingSpecReference.
     timing: sync
@@ -823,7 +824,7 @@ ports:
     purpose: Reopen a confirmed unimplemented specification in place before clarifying
       a possible contract change.
     data: Expected canonical revision, reason, and specification path produce a working
-      canonical revision plus a local working bundle.
+      canonical revision plus a local flat WORKING-SPEC pair.
     timing: sync
     immediate_rejections:
     - code: implemented
@@ -839,13 +840,13 @@ ports:
   contract: skills/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Detect staged local working bundles and require an explicit retention disposition.
-    data: Project Git state and known working bundles produce delete, keep-local, or
+    purpose: Detect staged local WORKING-SPEC pairs and require an explicit retention disposition.
+    data: Project Git state and known working pairs produce delete, keep-local, or
       archive choices without performing Git actions.
     timing: sync
     immediate_rejections:
     - code: staged-local-state
-      condition: A path under .codex/spec-governance is tracked or staged.
+      condition: A path under project-root spec-governance is tracked or staged.
   symbols:
   - spec-governance
 - id: spec-governance.verify
@@ -1204,8 +1205,8 @@ types:
     kind: interface
   visibility: module-public
   semantic_kind: domain-value
-  description: Stable identity, revision, hash, paths, and continuity epoch for one
-    persisted working specification bundle.
+  description: Stable identity, revision, hash, flat project-root paths, and continuity
+    epoch for one persisted working specification pair.
   lifetime: One change set from first grilling question through commit disposition.
   mutability: immutable
   mutation_authority: []
@@ -1257,6 +1258,30 @@ types:
     type: string-or-null
     role: metadata
     meaning: Optional branch evidence used after task evidence.
+- id: discussion-context-record
+  owner: spec_governance_domain
+  language: json-schema
+  declaration:
+    path: skills/spec-governance/references/spec-contract.schema.json
+    symbol: DiscussionContextRecord
+    kind: interface
+  visibility: module-public
+  semantic_kind: domain-value
+  description: Human-readable context for one conclusion-changing discussion decision.
+  lifetime: One change set from the decision through commit disposition.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - delivery_workflow_domain
+  references: []
+  fields:
+  - {name: discussion_id, type: string, role: domain-identity, meaning: Stable DISC-### identity.}
+  - {name: situation, type: string, role: domain-value, meaning: Decision context visible to the user.}
+  - {name: question, type: string, role: domain-value, meaning: Conclusion-changing question.}
+  - {name: options_and_tradeoffs, type: string, role: policy, meaning: Considered choices and material tradeoffs.}
+  - {name: user_answer, type: string, role: domain-value, meaning: Visible original user answer after required redaction.}
+  - {name: explicit_rationale, type: string, role: domain-value, meaning: User-stated rationale or not stated.}
+  - {name: resulting_impact, type: string-array, role: metadata, meaning: Affected REQ DEC and AC identities.}
 - id: spec-consistency-assessment
   owner: spec_governance_domain
   language: json-schema
@@ -1866,14 +1891,16 @@ flows:
   - id: governed-change-set-lifecycle.start
     order: 1
     module: spec_governance_domain
-    action: Create or resolve one project-local working bundle before the first
-      decision question.
+    action: Create, transactionally migrate, or resolve one project-root flat
+      WORKING-SPEC pair before the first decision question; migration validates a
+      complete temporary pair and restores the legacy source on failure.
     receives:
     - spec-governance.start
     emits: []
     state_changes: []
     side_effects:
-    - Write one local authoritative working Markdown snapshot and journal epoch.
+    - Write one local authoritative WORKING-SPEC Markdown snapshot with structured
+      Discussion Context and one normalized journal epoch.
   - id: governed-change-set-lifecycle.reconcile
     order: 2
     module: spec_governance_domain
@@ -1885,7 +1912,8 @@ flows:
     emits: []
     state_changes: []
     side_effects:
-    - Atomically replace the working snapshot and append one normalized journal event.
+    - Atomically replace the working snapshot and append one normalized journal event
+      containing affected REQ DEC AC and DISC identities without transcript prose.
   - id: governed-change-set-lifecycle.review-flow-cost
     order: 3
     module: governance_workflow_domain

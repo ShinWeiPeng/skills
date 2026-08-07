@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -73,6 +74,17 @@ Use one bounded retry policy.
 | ID | Decision |
 |---|---|
 | DEC-001 | Use exponential backoff. |
+
+## Discussion Context
+
+### DISC-001: Select retry policy
+
+- **Situation:** Retry behavior is inconsistent.
+- **Question:** Which retry policy should be used?
+- **Options and tradeoffs:** Bounded retries prevent indefinite work.
+- **User answer:** `Use exponential backoff.`
+- **Explicit rationale:** not stated
+- **Resulting impact:** REQ-001, DEC-001, AC-001.
 
 ## Acceptance Criteria
 
@@ -354,6 +366,18 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
 
             reference = started["working_spec"]
             self.assertEqual("PASS", started["verdict"])
+            self.assertRegex(
+                reference["working_id"],
+                r"^WORKING-SPEC-[0-9a-f]{12}-payment-retry$",
+            )
+            self.assertEqual(
+                f"spec-governance/{reference['working_id']}.md",
+                reference["snapshot_path"],
+            )
+            self.assertEqual(
+                f"spec-governance/{reference['working_id']}.journal.jsonl",
+                reference["journal_path"],
+            )
             self.assertEqual("continuous", reference["continuity"])
             self.assertTrue((root / reference["snapshot_path"]).is_file())
             journal_path = root / reference["journal_path"]
@@ -398,6 +422,302 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual(events[0]["event_hash"], events[1]["previous_event_hash"])
             self.assertEqual(["REQ-001"], events[1]["affected_ids"])
 
+    def test_reconcile_tracks_discussion_context_ids_without_journal_prose(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            started = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )
+            reference = started["working_spec"]
+            current = (root / reference["snapshot_path"]).read_text(encoding="utf-8")
+            changed = current.replace(
+                "## Acceptance Criteria",
+                """### DISC-002: Select retry owner
+
+- **Situation:** Retry ownership is not explicit.
+- **Question:** Which module owns retries?
+- **Options and tradeoffs:** Domain ownership keeps policy local.
+- **User answer:** `The payment domain.`
+- **Explicit rationale:** not stated
+- **Resulting impact:** REQ-001.
+
+## Acceptance Criteria""",
+            )
+
+            result = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                changed,
+                {"raw_answer": "The payment domain."},
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("PASS", result["verdict"])
+            self.assertEqual(["DISC-002"], result["delta"]["added_ids"])
+            event = json.loads(
+                (root / reference["journal_path"]).read_text(encoding="utf-8").splitlines()[-1]
+            )
+            self.assertEqual(["DISC-002"], event["affected_ids"])
+            self.assertNotIn("The payment domain.", json.dumps(event))
+
+    def test_first_read_transactionally_migrates_legacy_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
+            legacy_dir = root / ".codex" / "spec-governance" / legacy_id
+            legacy_dir.mkdir(parents=True)
+            legacy_snapshot = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "change_set: payment-retry",
+                f"change_set: payment-retry\nworking_id: {legacy_id}"
+                "\ntask_ref: TASK-42\nbranch_ref: feature/payment-retry",
+            )
+            snapshot_path = legacy_dir / "working.md"
+            snapshot_path.write_text(legacy_snapshot, encoding="utf-8")
+            journal_path = legacy_dir / "journal.jsonl"
+            SPEC_CONTRACT._append_journal_event(
+                journal_path,
+                event_type="start",
+                working_id=legacy_id,
+                revision=1,
+                previous_snapshot_hash=None,
+                snapshot_hash=SPEC_CONTRACT._sha256_text(legacy_snapshot),
+                continuity="continuous",
+                verdict="PASS",
+            )
+
+            result = SPEC_CONTRACT.resolve_working_bundle(root, reference=legacy_id)
+
+            self.assertEqual("working", result["state"])
+            migrated = result["working_spec"]
+            self.assertEqual(
+                "WORKING-SPEC-aaaaaaaaaaaa-payment-retry",
+                migrated["working_id"],
+            )
+            self.assertFalse(legacy_dir.exists())
+            migrated_snapshot = root / migrated["snapshot_path"]
+            migrated_journal = root / migrated["journal_path"]
+            self.assertTrue(migrated_snapshot.is_file())
+            self.assertTrue(migrated_journal.is_file())
+            self.assertEqual(
+                legacy_snapshot.replace(legacy_id, migrated["working_id"]),
+                migrated_snapshot.read_text(encoding="utf-8"),
+            )
+            events, continuity = SPEC_CONTRACT._read_journal(migrated_journal)
+            self.assertEqual("continuous", continuity)
+            self.assertEqual(1, len(events))
+            self.assertEqual("start", events[0]["event_type"])
+            self.assertEqual(1, events[0]["revision"])
+            self.assertEqual(migrated["snapshot_hash"], events[0]["snapshot_hash"])
+            self.assertEqual("TASK-42", migrated["task_ref"])
+            self.assertEqual("feature/payment-retry", migrated["branch_ref"])
+
+    def test_start_discovers_legacy_bundle_instead_of_creating_second_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
+            legacy_dir = root / ".codex" / "spec-governance" / legacy_id
+            legacy_dir.mkdir(parents=True)
+            legacy_snapshot = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "change_set: payment-retry",
+                f"change_set: payment-retry\nworking_id: {legacy_id}",
+            )
+            (legacy_dir / "working.md").write_text(legacy_snapshot, encoding="utf-8")
+
+            result = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )
+
+            self.assertEqual("PASS", result["verdict"])
+            self.assertFalse(result["created"])
+            self.assertEqual(
+                "WORKING-SPEC-aaaaaaaaaaaa-payment-retry",
+                result["working_spec"]["working_id"],
+            )
+            self.assertFalse(legacy_dir.exists())
+            self.assertEqual(
+                1,
+                len(list((root / "spec-governance").glob("WORKING-SPEC-*.md"))),
+            )
+
+    def test_legacy_migration_collision_preserves_source_and_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
+            legacy_dir = root / ".codex" / "spec-governance" / legacy_id
+            legacy_dir.mkdir(parents=True)
+            legacy_snapshot = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "change_set: payment-retry",
+                f"change_set: payment-retry\nworking_id: {legacy_id}",
+            )
+            (legacy_dir / "working.md").write_text(legacy_snapshot, encoding="utf-8")
+            destination = (
+                root
+                / "spec-governance"
+                / "WORKING-SPEC-aaaaaaaaaaaa-payment-retry.md"
+            )
+            destination.parent.mkdir(parents=True)
+            destination_text = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "change_set: payment-retry",
+                "change_set: payment-retry\nworking_id: WORKING-SPEC-aaaaaaaaaaaa-payment-retry",
+            )
+            destination.write_text(destination_text, encoding="utf-8")
+
+            result = SPEC_CONTRACT.resolve_working_bundle(root, reference=legacy_id)
+
+            self.assertEqual("invalid", result["state"])
+            self.assertIn("destination collision", result["reason"])
+            self.assertTrue((legacy_dir / "working.md").is_file())
+            self.assertEqual(destination_text, destination.read_text(encoding="utf-8"))
+
+    def test_legacy_stale_snapshot_hash_blocks_migration_and_preserves_source(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
+            legacy_dir = root / ".codex" / "spec-governance" / legacy_id
+            legacy_dir.mkdir(parents=True)
+            legacy_snapshot = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "change_set: payment-retry",
+                f"change_set: payment-retry\nworking_id: {legacy_id}",
+            )
+            snapshot_path = legacy_dir / "working.md"
+            snapshot_path.write_text(legacy_snapshot, encoding="utf-8")
+            journal_path = legacy_dir / "journal.jsonl"
+            SPEC_CONTRACT._append_journal_event(
+                journal_path,
+                event_type="start",
+                working_id=legacy_id,
+                revision=1,
+                previous_snapshot_hash=None,
+                snapshot_hash="stale",
+                continuity="continuous",
+                verdict="PASS",
+            )
+            snapshot_before = snapshot_path.read_bytes()
+            journal_before = journal_path.read_bytes()
+
+            result = SPEC_CONTRACT.resolve_working_bundle(root, reference=legacy_id)
+
+            self.assertEqual("invalid", result["state"])
+            self.assertIn("snapshot hash is stale", result["reason"])
+            self.assertEqual(snapshot_before, snapshot_path.read_bytes())
+            self.assertEqual(journal_before, journal_path.read_bytes())
+            self.assertFalse((root / "spec-governance").exists())
+
+    def test_legacy_partial_publish_failure_rolls_back_and_restores_source(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
+            legacy_dir = root / ".codex" / "spec-governance" / legacy_id
+            legacy_dir.mkdir(parents=True)
+            legacy_snapshot = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "change_set: payment-retry",
+                f"change_set: payment-retry\nworking_id: {legacy_id}",
+            )
+            snapshot_path = legacy_dir / "working.md"
+            snapshot_path.write_text(legacy_snapshot, encoding="utf-8")
+            journal_path = legacy_dir / "journal.jsonl"
+            SPEC_CONTRACT._append_journal_event(
+                journal_path,
+                event_type="start",
+                working_id=legacy_id,
+                revision=1,
+                previous_snapshot_hash=None,
+                snapshot_hash=SPEC_CONTRACT._sha256_text(legacy_snapshot),
+                continuity="continuous",
+                verdict="PASS",
+            )
+            snapshot_before = snapshot_path.read_bytes()
+            journal_before = journal_path.read_bytes()
+            real_replace = SPEC_CONTRACT.os.replace
+
+            def fail_snapshot_publish(source: Path, destination: Path) -> None:
+                if str(destination).endswith(".md"):
+                    raise OSError("simulated snapshot publish failure")
+                real_replace(source, destination)
+
+            with patch.object(SPEC_CONTRACT.os, "replace", side_effect=fail_snapshot_publish):
+                result = SPEC_CONTRACT.resolve_working_bundle(root, reference=legacy_id)
+
+            self.assertEqual("invalid", result["state"])
+            self.assertIn("simulated snapshot publish failure", result["reason"])
+            self.assertEqual(snapshot_before, snapshot_path.read_bytes())
+            self.assertEqual(journal_before, journal_path.read_bytes())
+            destination_root = root / "spec-governance"
+            self.assertFalse(
+                any(destination_root.glob("WORKING-SPEC-*")) if destination_root.exists() else False
+            )
+
+    def test_sensitive_discussion_values_are_visibly_redacted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = confirmed_spec(spec_id="SPEC-0000", status="working").replace(
+                "**User answer:** `Use exponential backoff.`",
+                "**User answer:** `password=hunter2; owner@example.com`",
+            ).replace(
+                "Retries are inconsistent.",
+                "Retries are inconsistent. Authorization: Bearer abc.def.ghi; call +886 912 345 678.",
+            )
+
+            result = SPEC_CONTRACT.start_working_bundle(root, "payment-retry", source)
+
+            self.assertEqual("PASS", result["verdict"])
+            snapshot = (root / result["working_spec"]["snapshot_path"]).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("[REDACTED: credential]", snapshot)
+            self.assertIn("[REDACTED: personal data]", snapshot)
+            self.assertNotIn("hunter2", snapshot)
+            self.assertNotIn("owner@example.com", snapshot)
+            self.assertNotIn("abc.def.ghi", snapshot)
+            self.assertNotIn("+886 912 345 678", snapshot)
+
+    def test_discussion_context_rejects_unknown_impact_and_transcript(self) -> None:
+        source = confirmed_spec(spec_id="SPEC-0000", status="working").replace(
+            "**Resulting impact:** REQ-001, DEC-001, AC-001.",
+            "**Resulting impact:** REQ-999.",
+        ).replace(
+            "## Acceptance Criteria",
+            """# Full Transcript
+
+User: first
+Assistant: first
+
+## Acceptance Criteria""",
+        )
+
+        errors = SPEC_CONTRACT._working_structure_errors(
+            source.replace(
+                "change_set: payment-retry",
+                "change_set: payment-retry\nworking_id: WORKING-SPEC-aaaaaaaaaaaa-payment-retry",
+            )
+        )
+
+        self.assertTrue(any("unknown affected ID REQ-999" in error for error in errors))
+        self.assertTrue(any("forbidden full transcript" in error for error in errors))
+
     def test_stale_working_writer_is_rejected_without_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -430,7 +750,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                 root,
                 "payment-retry",
                 confirmed_spec(spec_id="SPEC-0000", status="working"),
-                working_id="WSP-aaaaaaaaaaaa-payment-retry",
+                working_id="WORKING-SPEC-aaaaaaaaaaaa-payment-retry",
                 task_ref="task-payment",
                 branch="feature/payment",
             )["working_spec"]
@@ -442,7 +762,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                     slug="invoice-export",
                     status="working",
                 ),
-                working_id="WSP-bbbbbbbbbbbb-invoice-export",
+                working_id="WORKING-SPEC-bbbbbbbbbbbb-invoice-export",
                 task_ref="task-invoice",
                 branch="feature/invoice",
             )["working_spec"]
@@ -760,8 +1080,8 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
         result = SPEC_CONTRACT.prepare_commit(
             Path("."),
             disposition="keep-local",
-            tracked_paths=[".codex/spec-governance/WSP-x/working.md"],
-            staged_paths=[".codex/spec-governance/WSP-x/working.md"],
+            tracked_paths=["spec-governance/WORKING-SPEC-aaaaaaaaaaaa-x.md"],
+            staged_paths=["spec-governance/WORKING-SPEC-aaaaaaaaaaaa-x.md"],
         )
 
         self.assertEqual("BLOCKED", result["verdict"])

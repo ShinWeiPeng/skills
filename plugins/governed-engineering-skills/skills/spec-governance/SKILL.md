@@ -10,10 +10,11 @@ verified implementation and commit disposition.
 
 ## Public interfaces
 
-- `spec-governance.start`: resolve an existing bundle by explicit reference,
-  task/branch evidence, then unique fallback, or create
-  `.codex/spec-governance/<working-id>/working.md` plus `journal.jsonl`. Ambiguity is
-  `BLOCKED`.
+- `spec-governance.start`: resolve existing state by explicit reference,
+  task/branch evidence, then unique fallback, or create the flat local pair
+  `spec-governance/WORKING-SPEC-<id>-<slug>.md` plus same-stem
+  `.journal.jsonl`. First-read legacy `.codex/spec-governance/WSP-*/` migration is
+  transactional and fail-closed. Ambiguity is `BLOCKED`.
 - `spec-governance.reconcile`: classify each new statement as a domain term,
   change-set contract, ADR candidate, or open decision; preserve stable IDs; reject
   stale revision/hash writers; atomically persist the Markdown snapshot and append
@@ -43,13 +44,16 @@ canonical resolution.
 
 Before the first decision, invoke `start` or `status`. After each user answer:
 
-1. Reload the authoritative `working.md`; reuse unchanged REQ, DEC, and AC IDs.
+1. Reload the authoritative WORKING-SPEC Markdown; reuse unchanged REQ, DEC, AC,
+   and DISC IDs.
 2. Compare it with non-empty `CONTEXT.md`, accepted ADRs, and the architecture
    manifest.
 3. Reconcile using its expected revision and SHA-256. Atomically replace the complete
-   human-readable Markdown snapshot, then append only normalized delta, IDs,
+   human-readable Markdown snapshot with structured Discussion Context, then append only normalized delta, IDs,
    relations, conflicts, open decisions, verdict, revision, and hashes to JSONL.
-   Never persist raw chat or hidden reasoning.
+   Preserve the visible user answer and explicitly stated rationale in DISC records.
+   Never persist a full transcript, hidden reasoning, secrets, or context prose in
+   the journal.
 4. Render the Spec delta, affected IDs, explicit relations, conflicts, open
    decisions, and consistency verdict.
 5. When blocked, ask exactly one conclusion-changing question.
@@ -57,14 +61,15 @@ Before the first decision, invoke `start` or `status`. After each user answer:
    the confirmed spec and intended non-spec diff, then wait for exact product
    execution authorization.
 
-If the journal is missing or its chain is invalid, trust `working.md`, start a new
+If the journal is missing or its chain is invalid, trust the WORKING-SPEC Markdown, start a new
 epoch marked `continuity: unavailable`, and continue from settled IDs. Do not turn
 journal loss alone into reopened decisions.
 
 Route domain vocabulary to `CONTEXT.md`, change-set requirements and acceptance to
 the canonical spec, qualifying architectural decisions to a **proposed** ADR, and
-unconfirmed content only to the working spec. During grilling, only
-`.codex/spec-governance/**` and `specs/SPEC-####-*.md` lifecycle writes are allowed.
+unconfirmed content only to the working spec. During grilling, only local,
+commit-blocked `spec-governance/WORKING-SPEC-*` pairs and
+`specs/SPEC-####-*.md` lifecycle writes are allowed.
 `CONTEXT.md`, ADRs, architecture artifacts, tests, generated views, implementation,
 Git, and external actions still require exact `開始執行`. These outputs are one
 change set; do not recursively start another interview.
@@ -100,7 +105,7 @@ the local path. If publication fails after local materialization, keep the file 
 report `BLOCKED: tracker publication pending`; retry publication by spec ID without
 rewriting the canonical document.
 
-At commit preparation, a tracked or staged `.codex/spec-governance/**` path is
+At commit preparation, a tracked or staged `spec-governance/WORKING-SPEC-*` path is
 `BLOCKED`. Even when the bundle is untracked, ask exactly one disposition question:
 delete it, keep it local, or archive only the normalized journal to
 `specs/history/`. Do not auto-delete, auto-archive, stage, commit, or alter ignore
