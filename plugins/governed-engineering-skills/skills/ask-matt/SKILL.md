@@ -60,10 +60,11 @@ hands off automatically. The route must name `spec-governance` as the immediate
 resume target.
 
 Keep factual, read-only follow-ups in their existing diagnosis, review, or
-code-understanding flow. Once `grilling` owns a change set, reconcile every answer
-through `spec-governance.reconcile` before asking the next decision, then return to
-the recorded supporting or proposal workflow only after the interview is
-decision-complete.
+code-understanding flow. Once `grilling` owns a change set, start or resolve its
+persistent working bundle and reconcile every answer through
+`spec-governance.reconcile` before asking the next decision. Return to the recorded
+supporting or proposal workflow only after the interview is decision-complete and
+the confirmed canonical spec has materialized.
 
 ## ProjectState
 
@@ -96,8 +97,8 @@ of a codebase or durable project knowledge.
 
 ## Change-set interview contract
 
-Every repository-modifying change set completes grilling before mutation, regardless
-of size or an explicitly requested skill such as `tdd`.
+Every repository-modifying change set completes grilling before product mutation,
+regardless of size or an explicitly requested skill such as `tdd`.
 
 - Interview the whole change set once. Source, tests, docs, migrations, generated
   views, versions, and changelog entries required by that change do not restart it.
@@ -105,19 +106,35 @@ of size or an explicitly requested skill such as `tdd`.
   grilling.
 - Ask one decision question at a time under the shared Decision Question Contract.
 - Do not ask discoverable facts.
-- Do not modify anything until the plan is decision-complete and the user says
-  `開始執行`.
+- Before the first governed decision, start or resolve
+  `.codex/spec-governance/<working-id>/working.md` and its normalized hash-linked
+  journal. Persist every answered decision before another question.
 - Invoke `spec-governance.reconcile` after every answer and display its Spec delta,
-  affected IDs, relations, conflicts, open decisions, and verdict.
-- After authorization, materialize one canonical `specs/SPEC-####-<slug>.md`. Every
-  modifying path must complete the `spec-verified` stage before TDD or implementation.
+  affected IDs, relations, conflicts, open decisions, and verdict. Missing journal
+  continuity is explicit and never reopens already settled decisions by itself.
+- When decision-complete, invoke `spec-governance.materialize` immediately to create
+  one canonical `specs/SPEC-####-<slug>.md`. This spec-only lifecycle write does not
+  authorize product changes.
+- Do not modify product source, tests, configuration, `CONTEXT.md`, ADRs,
+  architecture artifacts, generated files, Git, or external state until the user
+  says exact `開始執行`. Every modifying path must complete `spec-verified` before
+  TDD or implementation.
+- Enforce this boundary from the plugin's bundled contracts. Never require, create,
+  edit, or depend on a user-global `AGENTS.md` to make spec governance work.
 - On a later task, resolve and verify a confirmed spec only with explicit
   `resume_confirmed_spec` evidence. Resume its TDD/implementation target without
   repeating grilling when there is no new decision or conflict.
-- If execution exposes any new discretionary decision, stop immediately, return to
-  grilling one question at a time, update the plan, and wait for authorization again.
-  Compiler errors and test failures that can be investigated are facts, not user
-  decisions.
+- If execution exposes any possible contract-changing discretionary decision, invoke
+  `spec-governance.reopen` before clarification, suspend the existing execution
+  authorization, and return to grilling one question at a time. Reconfirming with no
+  actual contract delta retains the authorization; an actual delta requires a new
+  exact `開始執行`. Compiler errors and test failures that can be investigated are
+  facts, not user decisions.
+
+Before commit, invoke `spec-governance.prepare-commit`. Staged or tracked local
+working state blocks commit. Ask whether to delete the bundle, keep it local, or
+archive its normalized journal under `specs/history/`; never perform that disposition
+or Git action implicitly.
 
 Resolve active specs by explicit path, tracker canonical path, branch match, then the
 unique confirmed spec. Multiple candidates are `BLOCKED`; never select the newest.

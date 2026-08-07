@@ -51,21 +51,21 @@ flowchart TD
 - **Purpose:** Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
 - **Children:** None
 - **Related Flows:** [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route)
-- **Protection Rationale:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Pending unresolved-decision evidence means a non-discoverable user choice affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold.; Pending unresolved-decision evidence overrides lexical ambiguity in a short follow-up, selects grilling before the question is presented, and resumes at spec-governance for reconciliation.; Resume evidence fails closed unless it identifies one valid confirmed specification.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
+- **Protection Rationale:** Explicit skills outrank inferred intent.; Intent selects the primary flow before project state and risk gates are applied.; A uniquely resolved confirmed specification does not bypass ProjectState interview precedence without explicit resume evidence.; Pending unresolved-decision evidence means a non-discoverable user choice affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold.; Pending unresolved-decision evidence overrides lexical ambiguity in a short follow-up, selects grilling before the question is presented, and resumes at spec-governance for reconciliation.; Resume evidence fails closed unless it identifies one valid confirmed specification.; A reopened working canonical specification blocks execution even when completed stages contain evidence from its prior confirmed revision.; Indeterminate intent or project state is never silently guessed.; Risk classification adds gates but never replaces the primary user intent.
 
 ### `delivery_workflow_domain`
 
 - **Purpose:** Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
 - **Children:** `spec_governance_domain`
 - **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
-- **Protection Rationale:** Mutation and commits require task and repository authorization.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
+- **Protection Rationale:** Product mutation and commits require task and repository authorization; specification lifecycle writes do not grant that authority.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
 
 ### `spec_governance_domain`
 
-- **Purpose:** Reconcile engineering discussion into one canonical change-set specification, materialize it only after authorization, and verify traceability before implementation.
+- **Purpose:** Persist and reconcile engineering discussion into one canonical change-set specification, materialize it when decision-complete, and verify traceability before implementation.
 - **Children:** None
 - **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
-- **Protection Rationale:** Discussion updates remain an in-conversation working specification until explicit authorization.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.; Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.
+- **Protection Rationale:** Every answered decision is persisted before the next decision question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.; Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.; The caller's expected revision or snapshot hash does not match the persisted working specification. → Preserve the persisted snapshot, reload it, and reconcile the answer again without allocating replacement IDs.
 
 ### `governance_workflow_domain`
 
@@ -94,7 +94,7 @@ flowchart TD
 ## End-to-End Flows
 
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
-- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Reconcile one modifying change set into a canonical specification, review material Flow costs and evidence, materialize it after authorization, verify traceability, implement it, and close it only after Spec review passes.
+- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass.
 
 ## Complete Technical Reference
 
@@ -143,6 +143,7 @@ flowchart TD
 - `workflow-selection-options` — `workflow_routing_domain` / `domain-value` / `cross-module`
 - `guided-route-decision` — `workflow_routing_domain` / `query` / `cross-module`
 - `spec-context-assessment` — `workflow_routing_domain` / `query` / `cross-module`
+- `working-spec-reference` — `spec_governance_domain` / `domain-value` / `module-public`
 - `spec-consistency-assessment` — `spec_governance_domain` / `query` / `module-public`
 - `canonical-spec-reference` — `spec_governance_domain` / `domain-value` / `module-public`
 - `delivery-spec-context` — `delivery_workflow_domain` / `domain-value` / `cross-module`

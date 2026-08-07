@@ -1,0 +1,11 @@
+{
+  "bump": "minor",
+  "changesets": [
+    "persistent-grilling-spec-lifecycle"
+  ],
+  "summary": {
+    "Changed": [
+      "Persist governed grilling state, separate specification lifecycle writes from product execution authorization, and keep the installed policy independent of user-global AGENTS.md files."
+    ]
+  }
+}

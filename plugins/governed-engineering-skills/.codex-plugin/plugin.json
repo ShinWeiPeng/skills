@@ -21,7 +21,9 @@
       "Explore repository facts read-only, classify intent and dual-axis ProjectState, then apply $engineering-risk-routing gates.",
       "Reassess every user turn and reroute with unresolved-decision evidence before any active skill asks a repository-modifying design or specification question.",
       "Ask one design or specification decision at a time with two or three meaningful options; prefer structured choices and use equivalent numbered text when the tool is unavailable.",
-      "Before any repository-modifying change set, reconcile one canonical spec, wait for the user's exact 開始執行 authorization, then verify it before implementation."
+      "During governed grilling, persist the working bundle after every answer and materialize a decision-complete canonical spec without treating either write as product execution authorization.",
+      "Require the user's exact 開始執行 authorization before product source, tests, configuration, non-spec governance artifacts, generated files, Git, or external actions; then verify the confirmed spec before implementation.",
+      "Enforce governance from this plugin's bundled contracts without requiring or modifying a user-global AGENTS.md."
     ]
   }
 }

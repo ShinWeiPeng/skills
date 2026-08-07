@@ -58,6 +58,8 @@ prompt wording.
 - `resume_confirmed_spec=false` must never bypass ProjectState interview precedence.
 - `resume_confirmed_spec=true` requires exactly one valid `confirmed` spec; every
   other spec state must return `BLOCKED`.
+- A `working` canonical spec always returns `BLOCKED` through `spec-governance`,
+  even when completed stages contain evidence from its prior confirmed revision.
 - All routing tests and the complete plugin regression suite must pass with zero
   failures.
 - A multi-turn fixture must preserve a pure read-only follow-up and must reroute a
@@ -90,7 +92,9 @@ target to `spec-governance`. Keep the existing optional
 `resume_confirmed_spec` boolean at the Python and CLI boundaries, defaulting to
 `false`. Treat a resolved confirmed spec as durable context only. With explicit
 resume evidence, verify and resume exactly one valid confirmed spec; otherwise apply
-ProjectState interview precedence or fail closed.
+ProjectState interview precedence or fail closed. A reopened `working` canonical
+spec routes to `spec-governance` with `grilling` as its resume target until it is
+confirmed again.
 
 Prompt inference is rejected because it is not deterministic or independently
 auditable. Unconditional unique-spec resume is rejected because spec discovery does
@@ -114,12 +118,14 @@ not prove that a request continues the same change set.
    confirmed fallback; never select the newest.
 6. If resume evidence is true and spec state is not `confirmed`, return `BLOCKED`
    through `spec-governance`.
-7. If resume evidence is true and the confirmed spec is not yet verified, select
+7. If spec state is `working`, return `BLOCKED` through `spec-governance` with
+   `resume_target=grilling`, regardless of prior completed stages.
+8. If resume evidence is true and the confirmed spec is not yet verified, select
    `spec-governance`; after `spec-verified`, resume the recorded target.
-8. If resume evidence is false, a confirmed spec contributes only
+9. If resume evidence is false, a confirmed spec contributes only
    `stateful_context=present`; choose `grill-me`, `grill-with-docs`, or `grilling`
    from ProjectState.
-9. Preserve diagnosis, read-only, risk-gate, wayfinder, capability, and
+10. Preserve diagnosis, read-only, risk-gate, wayfinder, capability, and
    execution-redecision precedence.
 
 Ordered rules are the tie-breaker. Ambiguous or invalid evidence never falls back to
@@ -153,6 +159,9 @@ invalid, working, or implemented spec context returns `BLOCKED`. Missing
 `grill-me` may degrade only to `grilling`; other missing required capabilities
 remain blocked. A new discretionary decision returns to general grilling, and its
 answer returns immediately to `spec-governance` rather than execution.
+
+A reopened `working` spec remains blocked even if old completed-stage evidence
+contains `grilling` and `spec-verified`.
 
 It is forbidden to infer resume evidence, auto-select the newest spec, bypass
 ProjectState interviewing from discovery alone, bypass `spec-verified`, or downgrade

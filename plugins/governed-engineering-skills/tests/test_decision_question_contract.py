@@ -98,12 +98,40 @@ class DecisionQuestionContractTests(unittest.TestCase):
     def test_contract_preserves_free_form_and_authorization_boundaries(self) -> None:
         contract = read(CONTRACT)
         ask_matt = read(SKILLS_ROOT / "ask-matt" / "SKILL.md")
+        normalized_contract = " ".join(contract.split())
+        normalized_ask_matt = " ".join(ask_matt.split())
 
         self.assertIn("combined", contract)
         self.assertIn("premise-correcting", contract)
         self.assertIn("開始執行", contract)
         self.assertIn("native system permission", contract)
         self.assertIn("`開始執行`", ask_matt)
+        self.assertIn(".codex/spec-governance/**", contract)
+        self.assertIn("specs/SPEC-####-*.md", contract)
+        self.assertIn("never grant product execution authority", contract)
+        self.assertIn(
+            "never require or modify a user-global `AGENTS.md`",
+            normalized_contract,
+        )
+        self.assertIn(
+            "Never require, create, edit, or depend on a user-global",
+            normalized_ask_matt,
+        )
+
+    def test_grilling_persists_and_materializes_before_product_authorization(self) -> None:
+        grilling = read(SKILLS_ROOT / "grilling" / "SKILL.md")
+        governance = read(SKILLS_ROOT / "spec-governance" / "SKILL.md")
+        ask_matt = read(SKILLS_ROOT / "ask-matt" / "SKILL.md")
+
+        for text in (grilling, governance, ask_matt):
+            self.assertIn(".codex/spec-governance", text)
+            self.assertIn("spec-governance.reconcile", text)
+            self.assertIn("spec-governance.materialize", text)
+        self.assertIn("before the first decision", grilling)
+        self.assertIn("before another question", governance)
+        self.assertIn("without waiting for `開始執行`", governance)
+        self.assertIn("spec-governance.reopen", ask_matt)
+        self.assertIn("spec-governance.prepare-commit", ask_matt)
 
     def test_plugin_entry_metadata_advertises_cross_mode_choices(self) -> None:
         manifest = json.loads(

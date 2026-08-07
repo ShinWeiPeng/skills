@@ -30,9 +30,10 @@ Before presenting each such choice, rerun the authoritative router with
 `has_unresolved_decision=true`. If it returns `selected_skill=grilling`, stop and
 hand off before showing the options. The immediate resume target is
 `spec-governance`; `grilling` asks the question and routes every answer through
-`spec-governance.reconcile`. Return here only when the change-set interview is
-decision-complete. Keep one working specification for the whole change set rather
-than starting a second proposal interview.
+`spec-governance.reconcile`, which persists the working bundle before the next
+question. Return here only when the change-set interview is decision-complete and
+the confirmed canonical spec has materialized. Keep one working specification for
+the whole change set rather than starting a second proposal interview.
 
 For every choice, state why it matters, offer mutually exclusive options, explain impacts and tradeoffs, and mark a recommendation only when evidence supports it. Preserve dependencies between decisions.
 
@@ -69,10 +70,12 @@ mode switch.
 
 After all decisions are resolved:
 
-1. Produce the confirmed proposal in Markdown.
+1. Produce the confirmed proposal in Markdown and invoke
+   `spec-governance.materialize`; this spec-only write does not authorize product
+   execution.
 2. Do not implement while in Plan mode.
 3. Tell the user to switch to Default mode or another named execution-capable mode.
-4. Ask the user to send `Implement the confirmed plan.`
+4. Ask the user to send the repository's exact `開始執行` authorization.
 5. Begin implementation only after the mode change and explicit confirmation can be verified.
 
 If the user explicitly requests a preliminary proposal, label every assumption and unresolved decision. Do not present it as final.

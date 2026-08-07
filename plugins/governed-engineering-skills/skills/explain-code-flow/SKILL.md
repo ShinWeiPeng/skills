@@ -27,7 +27,8 @@ choice, stop before presenting the options and rerun the authoritative router wi
 `selected_skill=grilling`, hand off immediately; do not conduct a design interview
 under `explain-code-flow`. Its immediate resume target is `spec-governance`; after
 every answer, `grilling` routes the working specification through
-`spec-governance.reconcile`. Resume code-flow explanation only when the routed
+`spec-governance.reconcile` and persists the bundle before another question. Resume
+code-flow explanation only when the routed
 workflow explicitly returns to it.
 
 Determine the primary intent before selecting the reading level:

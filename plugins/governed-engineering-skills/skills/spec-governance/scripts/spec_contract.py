@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Validate, materialize, resolve, and verify canonical change-set specs."""
+"""Persist, validate, materialize, resolve, and verify change-set specs."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import re
-from datetime import date
+import subprocess
+import uuid
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -31,6 +35,11 @@ REQUIRED_SECTIONS = {
     "revision history",
 }
 RELATIONS = {"depends_on", "refines", "conflicts_with", "supersedes"}
+WORKING_ID_RE = re.compile(r"^WSP-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$")
+WORKING_ROOT = Path(".codex") / "spec-governance"
+WORKING_SNAPSHOT = "working.md"
+WORKING_JOURNAL = "journal.jsonl"
+COMMIT_DISPOSITIONS = {"delete", "keep-local", "archive"}
 
 
 def _metadata(text: str) -> tuple[dict[str, str], list[str]]:
@@ -352,6 +361,526 @@ def reconcile_working_spec(
     }
 
 
+def _sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _normalized_json(value: Any) -> str:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
+def _atomic_write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        temporary.write_text(text, encoding="utf-8", newline="\n")
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _replace_metadata(text: str, **updates: str | int | None) -> str:
+    metadata, errors = _metadata(text)
+    if errors or not metadata:
+        raise ValueError("working snapshot requires valid YAML-style metadata")
+    rendered = text
+    for key, value in updates.items():
+        pattern = rf"(?m)^{re.escape(key)}:\s*.*$"
+        if value is None:
+            rendered = re.sub(pattern + r"\n?", "", rendered, count=1)
+        elif re.search(pattern, rendered):
+            rendered = re.sub(pattern, f"{key}: {value}", rendered, count=1)
+        else:
+            closing = re.search(r"(?m)^---\s*$", rendered[4:])
+            if closing is None:
+                raise ValueError("working snapshot metadata fence is malformed")
+            insert_at = closing.start() + 4
+            rendered = rendered[:insert_at] + f"{key}: {value}\n" + rendered[insert_at:]
+    return rendered
+
+
+def _working_structure_errors(text: str) -> list[str]:
+    metadata, errors = _metadata(text)
+    missing_sections = sorted(REQUIRED_SECTIONS - set(_sections(text)))
+    errors.extend(f"missing section: {name}" for name in missing_sections)
+    if metadata.get("status") not in {"working", "confirmed"}:
+        errors.append("working snapshot status must be working or confirmed")
+    if not SPEC_ID_RE.fullmatch(metadata.get("spec_id", "")):
+        errors.append("working snapshot spec_id must match SPEC-####")
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", metadata.get("change_set", "")):
+        errors.append("working snapshot change_set must be lowercase kebab-case")
+    if not WORKING_ID_RE.fullmatch(metadata.get("working_id", "")):
+        errors.append("working snapshot working_id is invalid")
+    try:
+        if int(metadata.get("revision", "0")) < 1:
+            raise ValueError
+    except ValueError:
+        errors.append("working snapshot revision must be a positive integer")
+    return errors
+
+
+def _snapshot_rows(text: str) -> dict[str, dict[str, str]]:
+    sections = _sections(text)
+    rows: dict[str, dict[str, str]] = {}
+    for section_name in ("requirements", "decisions", "acceptance criteria"):
+        for row in _table(sections.get(section_name, "")):
+            item_id = _field(row, "ID")
+            if item_id:
+                rows[item_id] = {
+                    key.strip().casefold(): value.strip()
+                    for key, value in row.items()
+                }
+    return rows
+
+
+def _snapshot_consistency(
+    previous_text: str,
+    current_text: str,
+) -> dict[str, Any]:
+    previous_rows = _snapshot_rows(previous_text)
+    current_rows = _snapshot_rows(current_text)
+    previous_ids = set(previous_rows)
+    current_ids = set(current_rows)
+    delta = {
+        "added_ids": sorted(current_ids - previous_ids),
+        "changed_ids": sorted(
+            item_id
+            for item_id in current_ids & previous_ids
+            if current_rows[item_id] != previous_rows[item_id]
+        ),
+        "removed_ids": sorted(previous_ids - current_ids),
+    }
+    sections = _sections(current_text)
+    relationships = [
+        {
+            "source": _field(row, "Source"),
+            "relation": _field(row, "Relation"),
+            "target": _field(row, "Target"),
+        }
+        for row in _table(sections.get("relationships", ""))
+    ]
+    conflicts = [
+        {"source": row["source"], "target": row["target"]}
+        for row in relationships
+        if row["relation"] == "conflicts_with"
+    ]
+    open_section = sections.get("open decisions", "")
+    if _open_decisions_are_empty(open_section):
+        open_decisions: list[str] = []
+    else:
+        open_decisions = [
+            re.sub(r"^\s*(?:[-*+]|\d+[.)])\s*", "", line).strip()
+            for line in open_section.splitlines()
+            if line.strip()
+        ]
+    return {
+        "verdict": "BLOCKED" if conflicts or open_decisions else "PASS",
+        "delta": delta,
+        "relationships": relationships,
+        "conflicts": conflicts,
+        "open_decisions": open_decisions,
+    }
+
+
+def _confirmed_decision_replacement_errors(
+    previous_text: str,
+    current_text: str,
+) -> list[str]:
+    previous = {
+        item_id: row
+        for item_id, row in _snapshot_rows(previous_text).items()
+        if item_id.startswith("DEC-")
+    }
+    current = {
+        item_id: row
+        for item_id, row in _snapshot_rows(current_text).items()
+        if item_id.startswith("DEC-")
+    }
+    replaced = sorted(
+        item_id
+        for item_id, row in previous.items()
+        if item_id not in current or current[item_id] != row
+    )
+    return [
+        (
+            f"{item_id} is confirmed history; preserve it and add a new DEC "
+            "with an explicit supersedes relationship"
+        )
+        for item_id in replaced
+    ]
+
+
+def _working_paths(project_root: Path, working_id: str) -> tuple[Path, Path]:
+    bundle = project_root / WORKING_ROOT / working_id
+    return bundle / WORKING_SNAPSHOT, bundle / WORKING_JOURNAL
+
+
+def _journal_event_hash(event: dict[str, Any]) -> str:
+    payload = {key: value for key, value in event.items() if key != "event_hash"}
+    return hashlib.sha256(_normalized_json(payload).encode("utf-8")).hexdigest()
+
+
+def _read_journal(path: Path) -> tuple[list[dict[str, Any]], str]:
+    if not path.is_file():
+        return [], "unavailable"
+    events: list[dict[str, Any]] = []
+    previous_hash: str | None = None
+    try:
+        for raw_line in path.read_text(encoding="utf-8").splitlines():
+            if not raw_line.strip():
+                continue
+            event = json.loads(raw_line)
+            if event.get("previous_event_hash") != previous_hash:
+                return events, "unavailable"
+            if event.get("event_hash") != _journal_event_hash(event):
+                return events, "unavailable"
+            events.append(event)
+            previous_hash = event["event_hash"]
+    except (OSError, ValueError, TypeError):
+        return events, "unavailable"
+    return events, "continuous" if events else "unavailable"
+
+
+def _append_journal_event(
+    path: Path,
+    *,
+    event_type: str,
+    working_id: str,
+    revision: int,
+    previous_snapshot_hash: str | None,
+    snapshot_hash: str,
+    continuity: str,
+    delta: dict[str, Any] | None = None,
+    relationships: list[dict[str, Any]] | None = None,
+    conflicts: list[dict[str, Any]] | None = None,
+    open_decisions: list[str] | None = None,
+    verdict: str = "BLOCKED",
+    baseline_contract_hash: str | None = None,
+) -> dict[str, Any]:
+    journal_exists = path.is_file()
+    events, journal_continuity = _read_journal(path)
+    if journal_continuity != "continuous":
+        events = []
+        if event_type != "start" or journal_exists:
+            continuity = "unavailable"
+    elif events:
+        continuity = events[-1].get("continuity", continuity)
+    event: dict[str, Any] = {
+        "event_version": 1,
+        "event_type": event_type,
+        "working_id": working_id,
+        "epoch": events[-1]["epoch"] if events else uuid.uuid4().hex,
+        "revision": revision,
+        "previous_snapshot_hash": previous_snapshot_hash,
+        "snapshot_hash": snapshot_hash,
+        "previous_event_hash": events[-1]["event_hash"] if events else None,
+        "continuity": continuity,
+        "delta": delta or {
+            "added_ids": [],
+            "changed_ids": [],
+            "removed_ids": [],
+        },
+        "affected_ids": sorted(
+            set(
+                (delta or {}).get("added_ids", [])
+                + (delta or {}).get("changed_ids", [])
+                + (delta or {}).get("removed_ids", [])
+            )
+        ),
+        "relationships": relationships or [],
+        "conflicts": conflicts or [],
+        "open_decisions": open_decisions or [],
+        "verdict": verdict,
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if baseline_contract_hash is not None:
+        event["baseline_contract_hash"] = baseline_contract_hash
+    event["event_hash"] = _journal_event_hash(event)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(_normalized_json(event) + "\n")
+    return event
+
+
+def _contract_hash(text: str) -> str:
+    rendered = _replace_metadata(
+        text,
+        revision=1,
+        status="confirmed",
+        working_id=None,
+        task_ref=None,
+        branch_ref=None,
+    )
+    sections = _sections(rendered)
+    revision_history = sections.get("revision history")
+    if revision_history is not None:
+        heading = re.search(r"(?m)^##\s+Revision History\s*$", rendered)
+        if heading:
+            rendered = rendered[: heading.end()] + "\n"
+    return _sha256_text(rendered.strip() + "\n")
+
+
+def _working_reference(
+    project_root: Path,
+    snapshot_path: Path,
+    journal_path: Path,
+) -> dict[str, Any]:
+    text = snapshot_path.read_text(encoding="utf-8")
+    metadata, _ = _metadata(text)
+    events, continuity = _read_journal(journal_path)
+    snapshot_hash = _sha256_text(text)
+    if not events or events[-1].get("snapshot_hash") != snapshot_hash:
+        continuity = "unavailable"
+    elif events[-1].get("continuity") == "unavailable":
+        continuity = "unavailable"
+    return {
+        "working_id": metadata.get("working_id"),
+        "snapshot_path": snapshot_path.relative_to(project_root).as_posix(),
+        "journal_path": journal_path.relative_to(project_root).as_posix(),
+        "revision": int(metadata["revision"]),
+        "snapshot_hash": snapshot_hash,
+        "continuity": continuity,
+        "status": metadata.get("status"),
+        "spec_id": metadata.get("spec_id"),
+        "change_set": metadata.get("change_set"),
+        "task_ref": metadata.get("task_ref") or None,
+        "branch_ref": metadata.get("branch_ref") or None,
+    }
+
+
+def _working_candidates(project_root: Path) -> list[dict[str, Any]]:
+    root = project_root / WORKING_ROOT
+    if not root.is_dir():
+        return []
+    candidates: list[dict[str, Any]] = []
+    for snapshot in sorted(root.glob(f"*/{WORKING_SNAPSHOT}")):
+        snapshot_text = snapshot.read_text(encoding="utf-8")
+        errors = _working_structure_errors(snapshot_text)
+        metadata, _ = _metadata(snapshot_text)
+        if metadata.get("working_id") != snapshot.parent.name:
+            errors.append("working snapshot ID does not match its bundle directory")
+        journal = snapshot.with_name(WORKING_JOURNAL)
+        if errors:
+            candidates.append(
+                {
+                    "state": "invalid",
+                    "working_id": snapshot.parent.name,
+                    "snapshot_path": snapshot.relative_to(project_root).as_posix(),
+                    "errors": errors,
+                }
+            )
+        else:
+            candidates.append(_working_reference(project_root, snapshot, journal))
+    return candidates
+
+
+def resolve_working_bundle(
+    project_root: Path,
+    *,
+    reference: str | None = None,
+    task_ref: str | None = None,
+    branch: str | None = None,
+) -> dict[str, Any]:
+    """Resolve a working bundle explicitly, by task/branch evidence, then uniquely."""
+    candidates = _working_candidates(project_root)
+    invalid = [row for row in candidates if row.get("state") == "invalid"]
+    valid = [row for row in candidates if row.get("state") != "invalid"]
+
+    def result(state: str, matches: list[dict[str, Any]], reason: str) -> dict[str, Any]:
+        return {
+            "state": state,
+            "working_spec": matches[0] if len(matches) == 1 else None,
+            "candidates": [
+                row.get("snapshot_path") or row.get("working_id")
+                for row in matches
+            ],
+            "reason": reason,
+        }
+
+    if reference:
+        normalized = reference.replace("\\", "/").casefold()
+        matches = [
+            row
+            for row in valid
+            if str(row.get("working_id", "")).casefold() == normalized
+            or str(row.get("snapshot_path", "")).casefold() == normalized
+        ]
+        return result(
+            "working" if len(matches) == 1 else "invalid",
+            matches,
+            "explicit working reference" if matches else "explicit working reference does not exist",
+        )
+    if task_ref:
+        matches = [row for row in valid if row.get("task_ref") == task_ref]
+        if matches:
+            return result(
+                "working" if len(matches) == 1 else "ambiguous",
+                matches,
+                "task reference",
+            )
+    if branch:
+        matches = [row for row in valid if row.get("branch_ref") == branch]
+        if matches:
+            return result(
+                "working" if len(matches) == 1 else "ambiguous",
+                matches,
+                "branch reference",
+            )
+    if len(valid) == 1:
+        return result("working", valid, "unique working fallback")
+    if len(valid) > 1:
+        return result("ambiguous", valid, "multiple working specifications require an explicit reference")
+    if invalid:
+        return result("invalid", invalid, "working specification is malformed")
+    return result("absent", [], "no working specification exists")
+
+
+def start_working_bundle(
+    project_root: Path,
+    slug: str,
+    text: str,
+    *,
+    working_id: str | None = None,
+    task_ref: str | None = None,
+    branch: str | None = None,
+    preserve_spec_identity: bool = False,
+    baseline_contract_hash: str | None = None,
+) -> dict[str, Any]:
+    """Create one authoritative Markdown snapshot and normalized journal epoch."""
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
+        return {"verdict": "BLOCKED", "reason": "invalid change-set slug"}
+    working_id = working_id or f"WSP-{uuid.uuid4().hex[:12]}-{slug}"
+    if not WORKING_ID_RE.fullmatch(working_id):
+        return {"verdict": "BLOCKED", "reason": "invalid working ID"}
+    snapshot_path, journal_path = _working_paths(project_root, working_id)
+    if snapshot_path.exists():
+        reference = _working_reference(project_root, snapshot_path, journal_path)
+        return {"verdict": "PASS", "working_spec": reference, "created": False}
+    metadata, metadata_errors = _metadata(text)
+    if metadata_errors:
+        return {"verdict": "BLOCKED", "reason": "invalid working snapshot", "errors": metadata_errors}
+    rendered = _replace_metadata(
+        text,
+        spec_id=metadata.get("spec_id", "SPEC-0000") if preserve_spec_identity else "SPEC-0000",
+        revision=1 if not preserve_spec_identity else metadata.get("revision", "1"),
+        status="working",
+        change_set=slug,
+        working_id=working_id,
+        task_ref=task_ref,
+        branch_ref=branch,
+    )
+    errors = _working_structure_errors(rendered)
+    if errors:
+        return {"verdict": "BLOCKED", "reason": "invalid working snapshot", "errors": errors}
+    _atomic_write(snapshot_path, rendered)
+    snapshot_hash = _sha256_text(rendered)
+    initial_consistency = _snapshot_consistency(rendered, rendered)
+    _append_journal_event(
+        journal_path,
+        event_type="start",
+        working_id=working_id,
+        revision=int(_metadata(rendered)[0]["revision"]),
+        previous_snapshot_hash=None,
+        snapshot_hash=snapshot_hash,
+        continuity="continuous",
+        relationships=initial_consistency["relationships"],
+        conflicts=initial_consistency["conflicts"],
+        open_decisions=initial_consistency["open_decisions"],
+        verdict=initial_consistency["verdict"],
+        baseline_contract_hash=baseline_contract_hash,
+    )
+    return {
+        "verdict": "PASS",
+        "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+        "created": True,
+    }
+
+
+def reconcile_working_bundle(
+    project_root: Path,
+    working_id: str,
+    next_snapshot: str,
+    normalized_delta: dict[str, Any],
+    *,
+    expected_revision: int,
+    expected_hash: str,
+) -> dict[str, Any]:
+    """Persist a complete next snapshot with optimistic revision/hash checks."""
+    if not WORKING_ID_RE.fullmatch(working_id):
+        return {"verdict": "BLOCKED", "reason": "invalid working ID"}
+    snapshot_path, journal_path = _working_paths(project_root, working_id)
+    if not snapshot_path.is_file():
+        return {"verdict": "BLOCKED", "reason": "working specification does not exist"}
+    current = snapshot_path.read_text(encoding="utf-8")
+    metadata, _ = _metadata(current)
+    current_hash = _sha256_text(current)
+    current_revision = int(metadata.get("revision", "0"))
+    if expected_revision != current_revision or expected_hash != current_hash:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "stale working specification",
+            "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+        }
+    rendered = _replace_metadata(
+        next_snapshot,
+        spec_id=metadata.get("spec_id"),
+        revision=current_revision + 1,
+        status="working",
+        change_set=metadata.get("change_set"),
+        working_id=working_id,
+        task_ref=metadata.get("task_ref") or None,
+        branch_ref=metadata.get("branch_ref") or None,
+    )
+    errors = _working_structure_errors(rendered)
+    if errors:
+        return {"verdict": "BLOCKED", "reason": "invalid next working snapshot", "errors": errors}
+    if metadata.get("spec_id") != "SPEC-0000":
+        replacement_errors = _confirmed_decision_replacement_errors(current, rendered)
+        if replacement_errors:
+            return {
+                "verdict": "BLOCKED",
+                "reason": "confirmed decisions must be superseded, not rewritten",
+                "errors": replacement_errors,
+            }
+    consistency = _snapshot_consistency(current, rendered)
+    delta = consistency["delta"]
+    relationships = consistency["relationships"]
+    conflicts = consistency["conflicts"]
+    open_decisions = consistency["open_decisions"]
+    verdict = consistency["verdict"]
+    _, continuity = _read_journal(journal_path)
+    _atomic_write(snapshot_path, rendered)
+    snapshot_hash = _sha256_text(rendered)
+    _append_journal_event(
+        journal_path,
+        event_type="reconcile",
+        working_id=working_id,
+        revision=current_revision + 1,
+        previous_snapshot_hash=current_hash,
+        snapshot_hash=snapshot_hash,
+        continuity=continuity,
+        delta=delta,
+        relationships=relationships,
+        conflicts=conflicts,
+        open_decisions=open_decisions,
+        verdict=verdict,
+    )
+    return {
+        "verdict": verdict,
+        "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+        "delta": delta,
+        "relationships": relationships,
+        "conflicts": conflicts,
+        "open_decisions": open_decisions,
+    }
+
+
 def _next_spec_id(project_root: Path) -> str:
     numbers: list[int] = []
     for path in (project_root / "specs").glob("SPEC-[0-9][0-9][0-9][0-9]-*.md"):
@@ -407,20 +936,40 @@ def _apply_identity_errors(
     return assessment
 
 
+def _append_revision_history(text: str, revision: int, change: str) -> str:
+    lines = text.rstrip().splitlines()
+    heading = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip().casefold() == "## revision history"
+        ),
+        None,
+    )
+    if heading is None:
+        return text
+    insert_at = len(lines)
+    for index in range(heading + 1, len(lines)):
+        if lines[index].startswith("## "):
+            insert_at = index
+            break
+    while insert_at > heading + 1 and not lines[insert_at - 1].strip():
+        insert_at -= 1
+    lines.insert(
+        insert_at,
+        f"| {revision} | {date.today().isoformat()} | {change} |",
+    )
+    return "\n".join(lines) + "\n"
+
+
 def materialize_spec(
     project_root: Path,
     slug: str,
     text: str,
     *,
-    authorized: bool,
+    authorized: bool | None = None,
 ) -> dict[str, Any]:
-    """Write one validated canonical spec only after explicit authorization."""
-    if not authorized:
-        return {
-            "verdict": "BLOCKED",
-            "reason": "explicit authorization required",
-            "canonical_spec": None,
-        }
+    """Write one decision-complete canonical spec without product authorization."""
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
         return {"verdict": "BLOCKED", "reason": "invalid change-set slug", "canonical_spec": None}
     spec_id = _next_spec_id(project_root)
@@ -458,10 +1007,254 @@ def materialize_spec(
     specs_dir.mkdir(parents=True, exist_ok=True)
     relative = Path("specs") / f"{spec_id}-{slug}.md"
     destination = project_root / relative
-    destination.write_text(rendered, encoding="utf-8", newline="\n")
+    _atomic_write(destination, rendered)
     reference = assessment["canonical_spec"]
     reference["path"] = relative.as_posix()
-    return {"verdict": "PASS", "canonical_spec": reference}
+    return {
+        "verdict": "PASS",
+        "canonical_spec": reference,
+        "product_execution_authorized": False,
+    }
+
+
+def materialize_working_bundle(
+    project_root: Path,
+    working_id: str,
+    *,
+    expected_revision: int,
+    expected_hash: str,
+) -> dict[str, Any]:
+    """Confirm a decision-complete bundle, creating or updating its canonical spec."""
+    if not WORKING_ID_RE.fullmatch(working_id):
+        return {"verdict": "BLOCKED", "reason": "invalid working ID"}
+    snapshot_path, journal_path = _working_paths(project_root, working_id)
+    if not snapshot_path.is_file():
+        return {"verdict": "BLOCKED", "reason": "working specification does not exist"}
+    current = snapshot_path.read_text(encoding="utf-8")
+    metadata, _ = _metadata(current)
+    current_hash = _sha256_text(current)
+    current_revision = int(metadata.get("revision", "0"))
+    if current_revision != expected_revision or current_hash != expected_hash:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "stale working specification",
+            "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+        }
+    rendered = _replace_metadata(
+        current,
+        status="confirmed",
+        working_id=None,
+        task_ref=None,
+        branch_ref=None,
+    )
+    spec_id = metadata.get("spec_id", "")
+    slug = metadata.get("change_set", "")
+    existing = spec_id != "SPEC-0000"
+    if not existing:
+        spec_id = _next_spec_id(project_root)
+        rendered = _replace_metadata(rendered, spec_id=spec_id)
+    assessment = validate_spec_text(
+        rendered,
+        known_spec_ids=_repository_spec_ids(project_root) | {spec_id},
+    )
+    if assessment["verdict"] != "PASS":
+        return {
+            "verdict": "BLOCKED",
+            "reason": "working specification is not decision-complete",
+            "errors": assessment["errors"],
+        }
+    destination = project_root / "specs" / f"{spec_id}-{slug}.md"
+    if existing and not destination.is_file():
+        return {
+            "verdict": "BLOCKED",
+            "reason": "reopened canonical specification path is missing",
+        }
+    if existing:
+        existing_metadata, _ = _metadata(destination.read_text(encoding="utf-8"))
+        if existing_metadata.get("status") == "implemented":
+            return {"verdict": "BLOCKED", "reason": "implemented specification cannot reopen"}
+    events, _ = _read_journal(journal_path)
+    baseline_hash = next(
+        (
+            event.get("baseline_contract_hash")
+            for event in events
+            if event.get("baseline_contract_hash")
+        ),
+        None,
+    )
+    actual_delta = baseline_hash is not None and baseline_hash != _contract_hash(rendered)
+    _atomic_write(destination, rendered)
+    working_rendered = _replace_metadata(
+        rendered,
+        working_id=working_id,
+        task_ref=metadata.get("task_ref") or None,
+        branch_ref=metadata.get("branch_ref") or None,
+    )
+    _atomic_write(snapshot_path, working_rendered)
+    final_hash = _sha256_text(working_rendered)
+    _append_journal_event(
+        journal_path,
+        event_type="materialize",
+        working_id=working_id,
+        revision=current_revision,
+        previous_snapshot_hash=current_hash,
+        snapshot_hash=final_hash,
+        continuity=_read_journal(journal_path)[1],
+        verdict="PASS",
+    )
+    reference = assessment["canonical_spec"]
+    reference["path"] = destination.relative_to(project_root).as_posix()
+    return {
+        "verdict": "PASS",
+        "canonical_spec": reference,
+        "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+        "actual_contract_delta": actual_delta,
+        "authorization_retained": bool(existing and not actual_delta),
+        "product_execution_authorized": False,
+    }
+
+
+def reopen_spec(
+    project_root: Path,
+    spec_path: Path,
+    *,
+    expected_revision: int,
+    reason: str,
+    task_ref: str | None = None,
+    branch: str | None = None,
+) -> dict[str, Any]:
+    """Reopen a confirmed unimplemented canonical spec before clarification."""
+    path = spec_path if spec_path.is_absolute() else project_root / spec_path
+    if not path.is_file():
+        return {"verdict": "BLOCKED", "reason": "canonical specification does not exist"}
+    try:
+        relative = path.resolve().relative_to(project_root.resolve())
+    except ValueError:
+        return {"verdict": "BLOCKED", "reason": "canonical specification is outside the project"}
+    if relative.parent.as_posix().casefold() != "specs":
+        return {"verdict": "BLOCKED", "reason": "canonical specification must be directly under specs/"}
+    text = path.read_text(encoding="utf-8")
+    metadata, errors = _metadata(text)
+    if errors:
+        return {"verdict": "BLOCKED", "reason": "canonical metadata is invalid", "errors": errors}
+    if metadata.get("status") == "implemented":
+        return {"verdict": "BLOCKED", "reason": "implemented specification cannot reopen"}
+    if metadata.get("status") != "confirmed":
+        return {"verdict": "BLOCKED", "reason": "only confirmed specifications can reopen"}
+    identity_errors = _canonical_identity_errors(project_root, path, text)
+    if identity_errors:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical identity validation failed",
+            "errors": identity_errors,
+        }
+    revision = int(metadata.get("revision", "0"))
+    if revision != expected_revision:
+        return {"verdict": "BLOCKED", "reason": "stale canonical specification"}
+    baseline_hash = _contract_hash(text)
+    reopened = _replace_metadata(text, revision=revision + 1, status="working")
+    reopened = _append_revision_history(
+        reopened,
+        revision + 1,
+        f"Reopened before clarification: {reason.strip()}",
+    )
+    _atomic_write(path, reopened)
+    result = start_working_bundle(
+        project_root,
+        metadata["change_set"],
+        reopened,
+        task_ref=task_ref,
+        branch=branch,
+        preserve_spec_identity=True,
+        baseline_contract_hash=baseline_hash,
+    )
+    if result["verdict"] != "PASS":
+        _atomic_write(path, text)
+        return result
+    result["canonical_spec"] = {
+        "spec_id": metadata["spec_id"],
+        "path": path.relative_to(project_root).as_posix(),
+        "revision": revision + 1,
+        "status": "working",
+    }
+    result["authorization_suspended"] = True
+    return result
+
+
+def prepare_commit(
+    project_root: Path,
+    *,
+    disposition: str | None = None,
+    tracked_paths: list[str] | None = None,
+    staged_paths: list[str] | None = None,
+) -> dict[str, Any]:
+    """Inspect local working state and require an explicit retention disposition."""
+    if disposition is not None and disposition not in COMMIT_DISPOSITIONS:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "invalid working bundle disposition",
+            "options": sorted(COMMIT_DISPOSITIONS),
+        }
+    bundles = [
+        path.parent.relative_to(project_root).as_posix()
+        for path in (project_root / WORKING_ROOT).glob(f"*/{WORKING_SNAPSHOT}")
+    ]
+    if tracked_paths is None or staged_paths is None:
+        try:
+            tracked = subprocess.run(
+                ["git", "-C", str(project_root), "ls-files", "--", WORKING_ROOT.as_posix()],
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+            staged = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(project_root),
+                    "diff",
+                    "--cached",
+                    "--name-only",
+                    "--",
+                    WORKING_ROOT.as_posix(),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+            tracked_paths = [line for line in tracked.stdout.splitlines() if line]
+            staged_paths = [line for line in staged.stdout.splitlines() if line]
+        except (OSError, subprocess.CalledProcessError) as error:
+            return {
+                "verdict": "BLOCKED",
+                "reason": "Git working bundle evidence unavailable",
+                "error": str(error),
+            }
+    if staged_paths:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "local working bundle is staged",
+            "staged_paths": staged_paths,
+            "tracked_paths": tracked_paths,
+            "options": sorted(COMMIT_DISPOSITIONS),
+        }
+    if bundles and disposition is None:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "working bundle disposition required before commit",
+            "bundles": bundles,
+            "tracked_paths": tracked_paths,
+            "options": sorted(COMMIT_DISPOSITIONS),
+        }
+    return {
+        "verdict": "PASS",
+        "disposition": disposition,
+        "bundles": bundles,
+        "tracked_paths": tracked_paths,
+        "action_performed": False,
+    }
 
 
 def publish_tracker_snapshot(
@@ -748,11 +1541,56 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
     validate_parser = subparsers.add_parser("validate")
     validate_parser.add_argument("--spec", type=Path, required=True)
+
     resolve_parser = subparsers.add_parser("resolve")
     resolve_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     resolve_parser.add_argument("--prompt", default="")
     resolve_parser.add_argument("--tracker-path")
     resolve_parser.add_argument("--branch")
+
+    start_parser = subparsers.add_parser("start")
+    start_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    start_parser.add_argument("--slug", required=True)
+    start_parser.add_argument("--snapshot", type=Path, required=True)
+    start_parser.add_argument("--working-id")
+    start_parser.add_argument("--task-ref")
+    start_parser.add_argument("--branch")
+
+    status_parser = subparsers.add_parser("status")
+    status_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    status_parser.add_argument("--reference")
+    status_parser.add_argument("--task-ref")
+    status_parser.add_argument("--branch")
+
+    reconcile_parser = subparsers.add_parser("reconcile")
+    reconcile_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    reconcile_parser.add_argument("--working-id", required=True)
+    reconcile_parser.add_argument("--snapshot", type=Path, required=True)
+    reconcile_parser.add_argument("--delta", type=Path, required=True)
+    reconcile_parser.add_argument("--expected-revision", type=int, required=True)
+    reconcile_parser.add_argument("--expected-hash", required=True)
+
+    materialize_parser = subparsers.add_parser("materialize")
+    materialize_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    materialize_parser.add_argument("--working-id", required=True)
+    materialize_parser.add_argument("--expected-revision", type=int, required=True)
+    materialize_parser.add_argument("--expected-hash", required=True)
+
+    reopen_parser = subparsers.add_parser("reopen")
+    reopen_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    reopen_parser.add_argument("--spec", type=Path, required=True)
+    reopen_parser.add_argument("--expected-revision", type=int, required=True)
+    reopen_parser.add_argument("--reason", required=True)
+    reopen_parser.add_argument("--task-ref")
+    reopen_parser.add_argument("--branch")
+
+    commit_parser = subparsers.add_parser("prepare-commit")
+    commit_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    commit_parser.add_argument(
+        "--disposition",
+        choices=sorted(COMMIT_DISPOSITIONS),
+    )
+
     args = parser.parse_args()
     if args.command == "validate":
         project_root = (
@@ -777,12 +1615,58 @@ def main() -> int:
             if args.spec.parent.name.casefold() == "specs"
             else None
         )
-    else:
+    elif args.command == "resolve":
         result = resolve_spec_context(
             args.project_root,
             args.prompt,
             tracker_path=args.tracker_path,
             branch=args.branch,
+        )
+    elif args.command == "start":
+        result = start_working_bundle(
+            args.project_root,
+            args.slug,
+            args.snapshot.read_text(encoding="utf-8"),
+            working_id=args.working_id,
+            task_ref=args.task_ref,
+            branch=args.branch,
+        )
+    elif args.command == "status":
+        result = resolve_working_bundle(
+            args.project_root,
+            reference=args.reference,
+            task_ref=args.task_ref,
+            branch=args.branch,
+        )
+    elif args.command == "reconcile":
+        result = reconcile_working_bundle(
+            args.project_root,
+            args.working_id,
+            args.snapshot.read_text(encoding="utf-8"),
+            json.loads(args.delta.read_text(encoding="utf-8")),
+            expected_revision=args.expected_revision,
+            expected_hash=args.expected_hash,
+        )
+    elif args.command == "materialize":
+        result = materialize_working_bundle(
+            args.project_root,
+            args.working_id,
+            expected_revision=args.expected_revision,
+            expected_hash=args.expected_hash,
+        )
+    elif args.command == "reopen":
+        result = reopen_spec(
+            args.project_root,
+            args.spec,
+            expected_revision=args.expected_revision,
+            reason=args.reason,
+            task_ref=args.task_ref,
+            branch=args.branch,
+        )
+    else:
+        result = prepare_commit(
+            args.project_root,
+            disposition=args.disposition,
         )
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0 if result.get("verdict", "PASS") == "PASS" and result.get("state") not in {"ambiguous", "invalid"} else 2

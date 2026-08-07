@@ -189,6 +189,8 @@ modules:
       follow-up, selects grilling before the question is presented, and resumes at
       spec-governance for reconciliation.
     - Resume evidence fails closed unless it identifies one valid confirmed specification.
+    - A reopened working canonical specification blocks execution even when completed
+      stages contain evidence from its prior confirmed revision.
     - Indeterminate intent or project state is never silently guessed.
     - Risk classification adds gates but never replaces the primary user intent.
   entrypoints:
@@ -256,7 +258,8 @@ modules:
     side_effects: []
     errors: []
     invariants:
-    - Mutation and commits require task and repository authorization.
+    - Product mutation and commits require task and repository authorization;
+      specification lifecycle writes do not grant that authority.
     - Every repository-modifying change set has one canonical specification before implementation.
     - A confirmed specification is verified rather than re-interviewed only with
       explicit resume evidence and no new decision or conflict.
@@ -285,13 +288,17 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Reconcile engineering discussion into one canonical change-set specification,
-      materialize it only after authorization, and verify traceability before implementation.
+    purpose: Persist and reconcile engineering discussion into one canonical change-set
+      specification, materialize it when decision-complete, and verify traceability
+      before implementation.
     diagram_summaries:
       zh-TW: 將討論整理成唯一規格並在實作前驗證追溯性
     input_ports:
+    - spec-governance.start
     - spec-governance.reconcile
     - spec-governance.materialize
+    - spec-governance.reopen
+    - spec-governance.prepare-commit
     - spec-governance.verify
     output_ports:
     - spec-governance.result
@@ -299,7 +306,9 @@ modules:
     - spec-governance.blocked
     owned_state: []
     side_effects:
-    - description: Materialize one authorized canonical specification under specs/.
+    - description: Atomically persist one owner-private working Markdown snapshot and
+        append its normalized local journal.
+    - description: Materialize one decision-complete canonical specification under specs/.
     errors:
     - id: specification_unresolved
       condition: Conflicts, open decisions, invalid references, or missing requirement-to-acceptance
@@ -307,10 +316,19 @@ modules:
       event: spec-governance.blocked
       handling: Preserve the last confirmed specification and return to grilling with
         exactly one conclusion-changing question.
+    - id: stale_working_spec
+      condition: The caller's expected revision or snapshot hash does not match the
+        persisted working specification.
+      event: spec-governance.blocked
+      handling: Preserve the persisted snapshot, reload it, and reconcile the answer
+        again without allocating replacement IDs.
     invariants:
-    - Discussion updates remain an in-conversation working specification until explicit authorization.
+    - Every answered decision is persisted before the next decision question.
+    - Specification lifecycle writes never authorize product, Git, or external mutations.
     - Confirmed specifications have unique stable IDs, resolved relations, no open decisions,
         and at least one acceptance criterion per requirement.
+    - Confirmed unimplemented specifications reopen in place before a possible contract
+        change; implemented specifications never reopen.
     - Implemented specifications record PASS evidence for every acceptance criterion
         and a passing Spec review.
   entrypoints:
@@ -744,20 +762,39 @@ ports:
       condition: The root is unreadable or Git evidence collection fails.
   symbols:
   - RepositoryEvidencePort
-- id: spec-governance.reconcile
+- id: spec-governance.start
   owner: spec_governance_domain
   direction: input
-  kind: query
+  kind: command
   contract: skills/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Reconcile one newly confirmed discussion statement into the working specification.
-    data: Existing durable context, the working specification, and one confirmed statement
-      produce a classified delta and consistency verdict.
+    purpose: Create or resolve one project-local working specification bundle.
+    data: Project root, change-set slug and optional working, task, or branch evidence
+      produce one immutable WorkingSpecReference.
+    timing: sync
+    immediate_rejections:
+    - code: ambiguous
+      condition: More than one working specification matches without an explicit reference.
+  symbols:
+  - spec-governance
+- id: spec-governance.reconcile
+  owner: spec_governance_domain
+  direction: input
+  kind: command
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Reconcile and persist one newly confirmed discussion statement before
+      another decision question.
+    data: Expected working revision and hash, existing durable context, and one confirmed
+      statement produce a new snapshot, normalized journal event, and consistency verdict.
     timing: sync
     immediate_rejections:
     - code: invalid
       condition: The statement or working specification is malformed.
+    - code: stale
+      condition: Expected revision or snapshot hash differs from persisted state.
   symbols:
   - spec-governance
 - id: spec-governance.materialize
@@ -768,13 +805,47 @@ ports:
   implemented_by: []
   description:
     purpose: Persist one decision-complete working specification as the canonical repository artifact.
-    data: An authorized PASS SpecConsistencyAssessment produces one versioned Markdown specification.
+    data: A PASS SpecConsistencyAssessment produces one versioned Markdown specification
+      without granting product execution authority.
     timing: sync
     immediate_rejections:
-    - code: unauthorized
-      condition: The user has not supplied the repository's exact execution authorization.
     - code: unresolved
       condition: Conflicts, open decisions, invalid relations, or uncovered requirements remain.
+  symbols:
+  - spec-governance
+- id: spec-governance.reopen
+  owner: spec_governance_domain
+  direction: input
+  kind: command
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Reopen a confirmed unimplemented specification in place before clarifying
+      a possible contract change.
+    data: Expected canonical revision, reason, and specification path produce a working
+      canonical revision plus a local working bundle.
+    timing: sync
+    immediate_rejections:
+    - code: implemented
+      condition: The specification has already reached implemented status.
+    - code: stale
+      condition: Expected revision differs from the canonical specification.
+  symbols:
+  - spec-governance
+- id: spec-governance.prepare-commit
+  owner: spec_governance_domain
+  direction: input
+  kind: query
+  contract: skills/spec-governance/references/spec-contract.schema.json
+  implemented_by: []
+  description:
+    purpose: Detect staged local working bundles and require an explicit retention disposition.
+    data: Project Git state and known working bundles produce delete, keep-local, or
+      archive choices without performing Git actions.
+    timing: sync
+    immediate_rejections:
+    - code: staged-local-state
+      condition: A path under .codex/spec-governance is tracked or staged.
   symbols:
   - spec-governance
 - id: spec-governance.verify
@@ -1124,6 +1195,68 @@ types:
     type: string
     role: metadata
     meaning: Evidence-backed explanation of selection or ambiguity.
+- id: working-spec-reference
+  owner: spec_governance_domain
+  language: json-schema
+  declaration:
+    path: skills/spec-governance/references/spec-contract.schema.json
+    symbol: WorkingSpecReference
+    kind: interface
+  visibility: module-public
+  semantic_kind: domain-value
+  description: Stable identity, revision, hash, paths, and continuity epoch for one
+    persisted working specification bundle.
+  lifetime: One change set from first grilling question through commit disposition.
+  mutability: immutable
+  mutation_authority: []
+  consumers:
+  - delivery_workflow_domain
+  references: []
+  fields:
+  - name: working_id
+    type: string
+    role: domain-identity
+    meaning: Project-local opaque identity for the working change set.
+  - name: snapshot_path
+    type: string
+    role: metadata
+    meaning: Project-relative authoritative Markdown snapshot path.
+  - name: journal_path
+    type: string
+    role: metadata
+    meaning: Project-relative normalized JSONL journal path.
+  - name: revision
+    type: integer
+    role: metadata
+    meaning: Monotonically increasing working revision.
+  - name: snapshot_hash
+    type: string
+    role: contract-control
+    meaning: SHA-256 digest required for optimistic concurrency.
+  - name: continuity
+    type: string
+    role: policy
+    meaning: continuous or unavailable journal-history status.
+  - name: status
+    type: string
+    role: policy
+    meaning: working while interviewing or confirmed after materialization.
+  - name: spec_id
+    type: string
+    role: domain-identity
+    meaning: SPEC-0000 before first materialization or the preserved canonical SPEC ID.
+  - name: change_set
+    type: string
+    role: metadata
+    meaning: Stable lowercase change-set slug.
+  - name: task_ref
+    type: string-or-null
+    role: metadata
+    meaning: Optional task evidence used after an explicit reference.
+  - name: branch_ref
+    type: string-or-null
+    role: metadata
+    meaning: Optional branch evidence used after task evidence.
 - id: spec-consistency-assessment
   owner: spec_governance_domain
   language: json-schema
@@ -1189,7 +1322,8 @@ types:
   - name: status
     type: string
     role: policy
-    meaning: confirmed or implemented lifecycle state.
+    meaning: working, confirmed, or implemented lifecycle state; only confirmed may
+      enter implementation verification.
 - id: delivery-spec-context
   owner: delivery_workflow_domain
   language: markdown
@@ -1720,26 +1854,40 @@ flows:
   errors: []
 - id: governed-change-set-lifecycle
   owner: delivery_workflow_domain
-  description: Reconcile one modifying change set into a canonical specification,
-    review material Flow costs and evidence, materialize it after authorization,
-    verify traceability, implement it, and close it only after Spec review passes.
+  description: Persist and reconcile one modifying change set into a canonical
+    specification, materialize it when decision-complete, wait for product execution
+    authorization, verify traceability, implement it, and close it only after Spec
+    review and commit disposition pass.
   trigger:
     kind: command
     ref: spec-governance.reconcile
     description: A modifying engineering discussion confirms one new statement.
   steps:
-  - id: governed-change-set-lifecycle.reconcile
+  - id: governed-change-set-lifecycle.start
     order: 1
     module: spec_governance_domain
+    action: Create or resolve one project-local working bundle before the first
+      decision question.
+    receives:
+    - spec-governance.start
+    emits: []
+    state_changes: []
+    side_effects:
+    - Write one local authoritative working Markdown snapshot and journal epoch.
+  - id: governed-change-set-lifecycle.reconcile
+    order: 2
+    module: spec_governance_domain
     action: Classify the confirmed statement, update stable relationships, and report
-      the working specification delta, conflicts, and open decisions.
+      and persist the working specification delta, conflicts, and open decisions
+      before another decision question.
     receives:
     - spec-governance.reconcile
     emits: []
     state_changes: []
-    side_effects: []
+    side_effects:
+    - Atomically replace the working snapshot and append one normalized journal event.
   - id: governed-change-set-lifecycle.review-flow-cost
-    order: 2
+    order: 3
     module: governance_workflow_domain
     action: Review every material as-is and target Flow through functional
       admission, execution and real-time feasibility, maintainability and
@@ -1749,28 +1897,31 @@ flows:
     emits: []
     state_changes: []
     side_effects: []
-  - id: governed-change-set-lifecycle.authorize
-    order: 3
-    module: delivery_workflow_domain
-    action: Present the decision-complete specification and wait for exact repository
-      execution authorization without writing files.
-    receives: []
-    emits: []
-    state_changes: []
-    side_effects: []
   - id: governed-change-set-lifecycle.materialize
     order: 4
     module: spec_governance_domain
-    action: Materialize the authorized canonical specification under specs/ and
-      preserve it if tracker publication later fails.
+    action: Materialize the decision-complete canonical specification under specs/
+      without granting product execution authorization.
     receives:
     - spec-governance.materialize
     emits: []
     state_changes: []
     side_effects:
     - Write one canonical specification revision.
-  - id: governed-change-set-lifecycle.publish
+  - id: governed-change-set-lifecycle.authorize
     order: 5
+    module: delivery_workflow_domain
+    action: Present the confirmed specification and wait for exact product execution
+      authorization; reopen it before clarification when a possible contract change
+      appears.
+    receives:
+    - spec-governance.reopen
+    emits: []
+    state_changes: []
+    side_effects:
+    - Reopen one confirmed unimplemented specification in place when required.
+  - id: governed-change-set-lifecycle.publish
+    order: 6
     module: delivery_workflow_domain
     action: Publish a tracker snapshot that names the repository specification as canonical.
     receives: []
@@ -1779,7 +1930,7 @@ flows:
     side_effects:
     - Create or update one tracker Issue when configured.
   - id: governed-change-set-lifecycle.verify
-    order: 6
+    order: 7
     module: spec_governance_domain
     action: Verify requirement-to-acceptance-to-validation traceability and return
       to grilling only when the request introduces a new decision or conflict.
@@ -1789,7 +1940,7 @@ flows:
     state_changes: []
     side_effects: []
   - id: governed-change-set-lifecycle.implement-review
-    order: 7
+    order: 8
     module: delivery_workflow_domain
     action: Implement through the agreed test seams, run two-axis review, and mark
       the canonical specification implemented only after the Spec axis passes.
@@ -1798,6 +1949,16 @@ flows:
     state_changes: []
     side_effects:
     - Update the canonical specification with PASS evidence and implemented status.
+  - id: governed-change-set-lifecycle.prepare-commit
+    order: 9
+    module: spec_governance_domain
+    action: Reject staged local working state and require delete, keep-local, or
+      archive disposition before the delivery workflow commits.
+    receives:
+    - spec-governance.prepare-commit
+    emits: []
+    state_changes: []
+    side_effects: []
   success:
     result: The implemented behavior is traceable to one canonical specification
       whose requirements and acceptance criteria have verified PASS evidence.
@@ -1814,6 +1975,9 @@ flows:
   - condition: Canonical materialization succeeds but tracker publication fails.
     event: delivery.tracker-publication-pending
     handling: Preserve the canonical specification and report BLOCKED with a retry target.
+  - condition: Local working state is staged or its retention disposition is missing.
+    event: spec-governance.blocked
+    handling: Preserve the bundle, block commit, and ask exactly one disposition question.
 adr_exceptions: []
 c_analyzer:
   ast:
@@ -1847,13 +2011,15 @@ workloads:
 - id: governed-change-set-workload
   flow: governed-change-set-lifecycle
   steps:
+  - governed-change-set-lifecycle.start
   - governed-change-set-lifecycle.reconcile
   - governed-change-set-lifecycle.review-flow-cost
-  - governed-change-set-lifecycle.authorize
   - governed-change-set-lifecycle.materialize
+  - governed-change-set-lifecycle.authorize
   - governed-change-set-lifecycle.publish
   - governed-change-set-lifecycle.verify
   - governed-change-set-lifecycle.implement-review
+  - governed-change-set-lifecycle.prepare-commit
   timing_class: best-effort
   activation:
     kind: command

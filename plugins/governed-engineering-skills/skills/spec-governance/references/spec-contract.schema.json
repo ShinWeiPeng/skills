@@ -3,6 +3,46 @@
   "$id": "urn:governed-engineering-skills:spec-contract",
   "title": "Canonical specification governance contracts",
   "$defs": {
+    "WorkingSpecReference": {
+      "type": "object",
+      "required": [
+        "working_id",
+        "snapshot_path",
+        "journal_path",
+        "revision",
+        "snapshot_hash",
+        "continuity",
+        "status",
+        "spec_id",
+        "change_set"
+      ],
+      "properties": {
+        "working_id": {
+          "type": "string",
+          "pattern": "^WSP-[0-9a-f]{12}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$"
+        },
+        "snapshot_path": {
+          "type": "string",
+          "pattern": "^\\.codex/spec-governance/WSP-[^/]+/working\\.md$"
+        },
+        "journal_path": {
+          "type": "string",
+          "pattern": "^\\.codex/spec-governance/WSP-[^/]+/journal\\.jsonl$"
+        },
+        "revision": {"type": "integer", "minimum": 1},
+        "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "continuity": {"type": "string", "enum": ["continuous", "unavailable"]},
+        "status": {"type": "string", "enum": ["working", "confirmed"]},
+        "spec_id": {"type": "string", "pattern": "^SPEC-[0-9]{4}$"},
+        "change_set": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "task_ref": {"type": ["string", "null"]},
+        "branch_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
     "CanonicalSpecReference": {
       "type": "object",
       "required": ["spec_id", "path", "revision", "status"],
@@ -10,7 +50,10 @@
         "spec_id": {"type": "string", "pattern": "^SPEC-[0-9]{4}$"},
         "path": {"type": "string", "pattern": "^specs/SPEC-[0-9]{4}-[a-z0-9-]+\\.md$"},
         "revision": {"type": "integer", "minimum": 1},
-        "status": {"type": "string", "enum": ["confirmed", "implemented"]}
+        "status": {
+          "type": "string",
+          "enum": ["working", "confirmed", "implemented"]
+        }
       },
       "additionalProperties": false
     },
@@ -32,6 +75,27 @@
         "relationships": {"type": "array"},
         "conflicts": {"type": "array"},
         "open_decisions": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "CommitPreparationResult": {
+      "type": "object",
+      "required": ["verdict"],
+      "properties": {
+        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "disposition": {
+          "type": ["string", "null"],
+          "enum": ["delete", "keep-local", "archive", null]
+        },
+        "bundles": {"type": "array", "items": {"type": "string"}},
+        "tracked_paths": {"type": "array", "items": {"type": "string"}},
+        "staged_paths": {"type": "array", "items": {"type": "string"}},
+        "action_performed": {"type": "boolean"},
+        "reason": {"type": "string"},
+        "options": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["delete", "keep-local", "archive"]}
+        }
       },
       "additionalProperties": true
     },
