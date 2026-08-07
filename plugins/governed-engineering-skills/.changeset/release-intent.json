@@ -1,0 +1,11 @@
+{
+  "bump": "patch",
+  "changesets": [
+    "codex-desktop-cli-detection"
+  ],
+  "summary": {
+    "Fixed": [
+      "Fixed Windows installer detection for Codex CLI executables provided through PATH or nested Codex Desktop runtimes."
+    ]
+  }
+}
