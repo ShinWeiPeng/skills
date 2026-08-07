@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.7.0
+
+### Changed
+
+- Moved working specifications to flat project-root pairs with structured discussion context and fail-closed legacy migration.
+
 ## 0.6.0
 
 ### Changed

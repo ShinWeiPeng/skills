@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.6.0",
-  "previous_version": "0.5.1",
+  "current_version": "0.7.0",
+  "previous_version": "0.6.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:6f460cb95bb4973a59c67e1a1d3f16fc4ec3694e821593912ca677e913de6bfe",
+  "production_fingerprint": "sha256:836a052b22b0f4b38e26faf8735d32c5acafdafeabf1f082121c0b42b0764ab3",
   "applied_changesets": [
-    "persistent-grilling-spec-lifecycle"
+    "flat-working-spec-storage"
   ]
 }
