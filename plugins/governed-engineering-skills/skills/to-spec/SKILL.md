@@ -10,8 +10,10 @@ Read [the shared governed entry gate](../engineering-risk-routing/references/ent
 
 The repository file `specs/SPEC-####-<slug>.md` is authoritative; the tracker stores
 its complete snapshot and canonical local path. Materialize through
-`spec-governance.materialize` only after `開始執行`, then validate the file before
-publication.
+`spec-governance.materialize` as soon as the working contract is decision-complete,
+then validate the file before publication. Local spec materialization does not grant
+product execution or external publication authority. Tracker publication remains an
+external action and requires `開始執行`.
 
 The issue tracker and triage label vocabulary should have been provided to you — run
 `/setup-matt-pocock-skills` if not.

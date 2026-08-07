@@ -242,6 +242,16 @@ def select_workflow(
             resume_target="spec-context-decision",
         ) | {"status": "BLOCKED"}
 
+    if modifies and spec_state == "working":
+        return capability_checked(
+            "spec-governance",
+            reason=(
+                "A reopened canonical specification must be reconciled and "
+                "confirmed before execution can continue."
+            ),
+            resume_target="grilling",
+        ) | {"status": "BLOCKED"}
+
     if modifies and spec_state in {"ambiguous", "invalid"}:
         return capability_checked(
             "spec-governance",

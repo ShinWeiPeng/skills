@@ -793,6 +793,36 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         self.assertEqual("tdd", resume["selected_skill"])
         self.assertNotIn(resume["selected_skill"], {"grilling", "grill-with-docs"})
 
+    def test_reopened_working_spec_blocks_stale_completed_stage_resume(self) -> None:
+        spec_context = {
+            "state": "working",
+            "selected_path": "specs/SPEC-0001-payment-retry.md",
+            "candidates": ["specs/SPEC-0001-payment-retry.md"],
+            "reason": "explicit reopened canonical specification",
+        }
+
+        result = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("繼續修改付款重試規則"),
+            PROJECT_STATE.assess_project_state(
+                [
+                    {"path": "src/payment.py", "tracking": "tracked", "size_bytes": 10},
+                    {
+                        "path": spec_context["selected_path"],
+                        "tracking": "tracked",
+                        "size_bytes": 100,
+                    },
+                ]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS,
+            spec_context=spec_context,
+            completed_stages={"grilling", "spec-verified"},
+        )
+
+        self.assertEqual("BLOCKED", result["status"])
+        self.assertEqual("spec-governance", result["selected_skill"])
+        self.assertEqual("grilling", result["resume_target"])
+
     def test_resume_requires_exactly_one_valid_confirmed_spec(self) -> None:
         contexts = {
             "none": None,

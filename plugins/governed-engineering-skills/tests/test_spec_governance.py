@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import tempfile
 import unittest
 from datetime import date
@@ -8,6 +9,9 @@ from pathlib import Path
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+TEST_TEMP_ROOT = PLUGIN_ROOT / ".tmp" / "test-spec-governance"
+TEST_TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+tempfile.tempdir = str(TEST_TEMP_ROOT)
 MODULE_PATH = (
     PLUGIN_ROOT
     / "skills"
@@ -297,7 +301,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
         self.assertEqual(["Choose retry owner."], second["open_decisions"])
         self.assertEqual(first["conflicts"], second["conflicts"])
 
-    def test_materialization_requires_authorization_and_uses_next_number(self) -> None:
+    def test_materialization_does_not_require_product_authorization_and_uses_next_number(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             specs = root / "specs"
@@ -307,24 +311,17 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            blocked = SPEC_CONTRACT.materialize_spec(
+            created = SPEC_CONTRACT.materialize_spec(
                 root,
                 "payment-retry",
                 confirmed_spec(spec_id="SPEC-0000"),
                 authorized=False,
             )
-            self.assertEqual("BLOCKED", blocked["verdict"])
-            self.assertFalse((specs / "SPEC-0008-payment-retry.md").exists())
 
-            created = SPEC_CONTRACT.materialize_spec(
-                root,
-                "payment-retry",
-                confirmed_spec(spec_id="SPEC-0000"),
-                authorized=True,
-            )
-
+            self.assertEqual("PASS", created["verdict"])
             self.assertEqual("SPEC-0008", created["canonical_spec"]["spec_id"])
             self.assertTrue((root / created["canonical_spec"]["path"]).is_file())
+            self.assertFalse(created["product_execution_authorized"])
 
     def test_materialization_rejects_working_and_implemented_input(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -340,10 +337,435 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                         evidence="PASS: test" if status == "implemented" else "pending",
                         review="PASS" if status == "implemented" else "pending",
                     ),
-                    authorized=True,
                 )
                 self.assertEqual("BLOCKED", result["verdict"])
             self.assertFalse((root / "specs").exists())
+
+    def test_working_bundle_persists_snapshot_and_normalized_hash_linked_journal(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            started = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+                task_ref="task-123",
+                branch="feature/payment-retry",
+            )
+
+            reference = started["working_spec"]
+            self.assertEqual("PASS", started["verdict"])
+            self.assertEqual("continuous", reference["continuity"])
+            self.assertTrue((root / reference["snapshot_path"]).is_file())
+            journal_path = root / reference["journal_path"]
+            first_event = json.loads(journal_path.read_text(encoding="utf-8").splitlines()[0])
+            self.assertEqual("start", first_event["event_type"])
+            self.assertEqual(reference["snapshot_hash"], first_event["snapshot_hash"])
+            self.assertIn("event_hash", first_event)
+
+            next_snapshot = confirmed_spec(
+                spec_id="SPEC-0000",
+                status="working",
+            ).replace(
+                "Retry at most three times.",
+                "Retry failed payments at most three times.",
+            )
+            reconciled = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                next_snapshot,
+                {
+                    "changed_ids": ["REQ-001"],
+                    "relationships": [
+                        {
+                            "source": "REQ-001",
+                            "relation": "depends_on",
+                            "target": "DEC-001",
+                        }
+                    ],
+                    "conflicts": [],
+                    "open_decisions": [],
+                    "raw_answer": "this must never reach the journal",
+                },
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("PASS", reconciled["verdict"])
+            self.assertEqual(2, reconciled["working_spec"]["revision"])
+            journal = journal_path.read_text(encoding="utf-8")
+            self.assertNotIn("this must never reach the journal", journal)
+            events = [json.loads(line) for line in journal.splitlines()]
+            self.assertEqual(events[0]["event_hash"], events[1]["previous_event_hash"])
+            self.assertEqual(["REQ-001"], events[1]["affected_ids"])
+
+    def test_stale_working_writer_is_rejected_without_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            started = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )
+            reference = started["working_spec"]
+            snapshot_path = root / reference["snapshot_path"]
+            before = snapshot_path.read_text(encoding="utf-8")
+
+            result = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                before,
+                {},
+                expected_revision=99,
+                expected_hash="stale",
+            )
+
+            self.assertEqual("BLOCKED", result["verdict"])
+            self.assertEqual("stale working specification", result["reason"])
+            self.assertEqual(before, snapshot_path.read_text(encoding="utf-8"))
+
+    def test_working_resolution_is_explicit_then_task_then_branch_then_unique(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+                working_id="WSP-aaaaaaaaaaaa-payment-retry",
+                task_ref="task-payment",
+                branch="feature/payment",
+            )["working_spec"]
+            second = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "invoice-export",
+                confirmed_spec(
+                    spec_id="SPEC-0000",
+                    slug="invoice-export",
+                    status="working",
+                ),
+                working_id="WSP-bbbbbbbbbbbb-invoice-export",
+                task_ref="task-invoice",
+                branch="feature/invoice",
+            )["working_spec"]
+
+            ambiguous = SPEC_CONTRACT.resolve_working_bundle(root)
+            explicit = SPEC_CONTRACT.resolve_working_bundle(
+                root,
+                reference=first["snapshot_path"],
+                task_ref="task-invoice",
+                branch="feature/invoice",
+            )
+            by_task = SPEC_CONTRACT.resolve_working_bundle(
+                root,
+                task_ref="task-invoice",
+                branch="feature/payment",
+            )
+            by_branch = SPEC_CONTRACT.resolve_working_bundle(
+                root,
+                branch="feature/payment",
+            )
+
+            self.assertEqual("ambiguous", ambiguous["state"])
+            self.assertEqual(first["working_id"], explicit["working_spec"]["working_id"])
+            self.assertEqual(second["working_id"], by_task["working_spec"]["working_id"])
+            self.assertEqual(first["working_id"], by_branch["working_spec"]["working_id"])
+
+    def test_invalid_journal_chain_marks_continuity_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )["working_spec"]
+            journal_path = root / reference["journal_path"]
+            event = json.loads(journal_path.read_text(encoding="utf-8"))
+            event["snapshot_hash"] = "0" * 64
+            journal_path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+
+            resolved = SPEC_CONTRACT.resolve_working_bundle(
+                root,
+                reference=reference["working_id"],
+            )
+
+            self.assertEqual("working", resolved["state"])
+            self.assertEqual(
+                "unavailable",
+                resolved["working_spec"]["continuity"],
+            )
+
+    def test_reconcile_derives_blocking_state_from_authoritative_markdown(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )["working_spec"]
+            next_snapshot = (
+                (root / reference["snapshot_path"])
+                .read_text(encoding="utf-8")
+                .replace(
+                    "None.\n\n## Routing/Gates",
+                    "- Choose retry owner.\n\n## Routing/Gates",
+                )
+            )
+
+            result = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                next_snapshot,
+                {
+                    "conflicts": [],
+                    "open_decisions": [],
+                },
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("BLOCKED", result["verdict"])
+            self.assertEqual(["Choose retry owner."], result["open_decisions"])
+
+    def test_missing_journal_starts_unavailable_continuity_epoch_from_markdown(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            started = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )
+            reference = started["working_spec"]
+            (root / reference["journal_path"]).unlink()
+            next_snapshot = (
+                (root / reference["snapshot_path"])
+                .read_text(encoding="utf-8")
+                .replace(
+                    "None.\n\n## Routing/Gates",
+                    "- Choose retry owner.\n\n## Routing/Gates",
+                )
+            )
+
+            result = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                next_snapshot,
+                {"open_decisions": ["Choose retry owner."]},
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("BLOCKED", result["verdict"])
+            self.assertEqual("unavailable", result["working_spec"]["continuity"])
+            event = json.loads(
+                (root / reference["journal_path"]).read_text(encoding="utf-8")
+            )
+            self.assertEqual("unavailable", event["continuity"])
+            self.assertIsNone(event["previous_event_hash"])
+
+    def test_decision_complete_bundle_materializes_before_product_authorization(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            started = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )
+            reference = started["working_spec"]
+
+            result = SPEC_CONTRACT.materialize_working_bundle(
+                root,
+                reference["working_id"],
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("PASS", result["verdict"])
+            self.assertTrue((root / result["canonical_spec"]["path"]).is_file())
+            self.assertFalse(result["product_execution_authorized"])
+
+    def test_confirmed_spec_reopens_same_identity_and_no_delta_retains_authorization(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "specs" / "SPEC-0001-payment-retry.md"
+            path.parent.mkdir()
+            path.write_text(confirmed_spec(), encoding="utf-8")
+
+            reopened = SPEC_CONTRACT.reopen_spec(
+                root,
+                Path("specs/SPEC-0001-payment-retry.md"),
+                expected_revision=1,
+                reason="Check whether retry ownership changed.",
+            )
+            reference = reopened["working_spec"]
+            self.assertIn("status: working", path.read_text(encoding="utf-8"))
+            reconfirmed = SPEC_CONTRACT.materialize_working_bundle(
+                root,
+                reference["working_id"],
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("SPEC-0001", reopened["canonical_spec"]["spec_id"])
+            self.assertEqual("PASS", reconfirmed["verdict"])
+            self.assertTrue(reconfirmed["authorization_retained"])
+            self.assertFalse(reconfirmed["actual_contract_delta"])
+            self.assertIn("status: confirmed", path.read_text(encoding="utf-8"))
+
+    def test_reopened_contract_delta_invalidates_authorization(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "specs" / "SPEC-0001-payment-retry.md"
+            path.parent.mkdir()
+            path.write_text(confirmed_spec(), encoding="utf-8")
+            reopened = SPEC_CONTRACT.reopen_spec(
+                root,
+                path,
+                expected_revision=1,
+                reason="Retry limit might change.",
+            )
+            reference = reopened["working_spec"]
+            changed = (root / reference["snapshot_path"]).read_text(encoding="utf-8").replace(
+                "Retry at most three times.",
+                "Retry at most four times.",
+            ).replace(
+                "A fourth attempt is never made.",
+                "A fifth attempt is never made.",
+            )
+            reconciled = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                changed,
+                {"changed_ids": ["REQ-001", "AC-001"]},
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+            reconfirmed = SPEC_CONTRACT.materialize_working_bundle(
+                root,
+                reference["working_id"],
+                expected_revision=reconciled["working_spec"]["revision"],
+                expected_hash=reconciled["working_spec"]["snapshot_hash"],
+            )
+
+            self.assertEqual("PASS", reconfirmed["verdict"])
+            self.assertTrue(reconfirmed["actual_contract_delta"])
+            self.assertFalse(reconfirmed["authorization_retained"])
+
+    def test_reopened_confirmed_decision_must_be_preserved_and_superseded(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "specs" / "SPEC-0001-payment-retry.md"
+            path.parent.mkdir()
+            path.write_text(confirmed_spec(), encoding="utf-8")
+            reference = SPEC_CONTRACT.reopen_spec(
+                root,
+                path,
+                expected_revision=1,
+                reason="Backoff policy may change.",
+            )["working_spec"]
+            current = (root / reference["snapshot_path"]).read_text(encoding="utf-8")
+            rewritten = current.replace(
+                "Use exponential backoff.",
+                "Use linear backoff.",
+            )
+
+            blocked = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                rewritten,
+                {},
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+            preserved = current.replace(
+                "| DEC-001 | Use exponential backoff. |",
+                "| DEC-001 | Use exponential backoff. |\n"
+                "| DEC-002 | Use linear backoff. |",
+            ).replace(
+                "| REQ-001 | depends_on | DEC-001 |",
+                "| REQ-001 | depends_on | DEC-001 |\n"
+                "| DEC-002 | supersedes | DEC-001 |",
+            )
+            passed = SPEC_CONTRACT.reconcile_working_bundle(
+                root,
+                reference["working_id"],
+                preserved,
+                {},
+                expected_revision=reference["revision"],
+                expected_hash=reference["snapshot_hash"],
+            )
+
+            self.assertEqual("BLOCKED", blocked["verdict"])
+            self.assertIn("superseded", blocked["reason"])
+            self.assertEqual("PASS", passed["verdict"])
+            self.assertEqual(["DEC-002"], passed["delta"]["added_ids"])
+            self.assertIn(
+                {
+                    "source": "DEC-002",
+                    "relation": "supersedes",
+                    "target": "DEC-001",
+                },
+                passed["relationships"],
+            )
+
+    def test_implemented_spec_cannot_reopen(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "specs" / "SPEC-0001-payment-retry.md"
+            path.parent.mkdir()
+            path.write_text(
+                confirmed_spec(
+                    status="implemented",
+                    evidence="PASS: test_retry_limit",
+                    review="PASS",
+                ),
+                encoding="utf-8",
+            )
+
+            result = SPEC_CONTRACT.reopen_spec(
+                root,
+                path,
+                expected_revision=1,
+                reason="Try to change a closed contract.",
+            )
+
+            self.assertEqual("BLOCKED", result["verdict"])
+            self.assertIn("cannot reopen", result["reason"])
+
+    def test_commit_preparation_requires_disposition_and_never_performs_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+            )
+
+            blocked = SPEC_CONTRACT.prepare_commit(
+                root,
+                tracked_paths=[],
+                staged_paths=[],
+            )
+            passed = SPEC_CONTRACT.prepare_commit(
+                root,
+                disposition="keep-local",
+                tracked_paths=[],
+                staged_paths=[],
+            )
+
+            self.assertEqual("BLOCKED", blocked["verdict"])
+            self.assertCountEqual(["archive", "delete", "keep-local"], blocked["options"])
+            self.assertEqual("PASS", passed["verdict"])
+            self.assertFalse(passed["action_performed"])
+
+    def test_commit_preparation_blocks_staged_local_bundle_even_with_disposition(self) -> None:
+        result = SPEC_CONTRACT.prepare_commit(
+            Path("."),
+            disposition="keep-local",
+            tracked_paths=[".codex/spec-governance/WSP-x/working.md"],
+            staged_paths=[".codex/spec-governance/WSP-x/working.md"],
+        )
+
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual("local working bundle is staged", result["reason"])
 
     def test_tracker_failure_preserves_local_canonical_spec(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
