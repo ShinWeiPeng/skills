@@ -1,26 +1,20 @@
-Quickstart:
+Availability:
 
-```bash
-npx skills add mattpocock/skills --skill=ask-matt
-```
-
-```bash
-npx skills update ask-matt
-```
+Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/ask-matt)
 
 ## What it does
 
-`ask-matt` is the router over the skills in this repo. You describe the situation you're in; it tells you which skill or flow fits and in what order to run them.
+`ask-matt` is the automatic router over the engineering skills in this repo. It assesses the repository state and risk, starts the canonical spec when work will modify the project, then sends the request into the required workflow.
 
-It **does no work itself**. It doesn't grill, write a spec, or fix anything — it only orients. It exists for the **user-invoked** skills above all: nothing fires those for you, so *you* have to remember they exist, and `ask-matt` is the memory you offload that to. It also points at the model-invoked skills you'd reach for by name — `/tdd`, `/diagnosing-bugs`, `/prototype`, `/code-review`, and the two vocabulary references, `/domain-modeling` and `/codebase-design`. It answers "which one, and when", then hands you off to the skill that actually does the job.
+It does not replace the focused skills. Its work is orchestration: determine the entry state, preserve required governance gates, and invoke the focused skill that performs the diagnosis, interview, implementation, review, or validation. Read-only questions remain read-only; only modifying work with an unresolved decision enters `grilling`.
 
 ## When to reach for it
 
-You invoke this by typing `/ask-matt` — the agent won't reach for it on its own.
+The model reaches for `ask-matt` automatically on software-engineering requests; you may still invoke it explicitly. Use an explicit invocation when you want to inspect or discuss the routing decision itself.
 
-Reach for it whenever you're unsure which skill or flow a situation calls for: you have an idea and don't know where to start, a pile of bug reports and don't know if they're for `/triage`, or two skills that look interchangeable and you can't tell them apart. If you already know the skill you want, skip the router and invoke it directly.
+In a new task, exact `開始執行` resumes a sole confirmed specification without repeating the interview. Add its canonical `specs/SPEC-####-<slug>.md` path when more than one confirmed specification exists. Quoted or negated uses of the phrase do not authorize execution.
 
 ## Flows, not just skills
 

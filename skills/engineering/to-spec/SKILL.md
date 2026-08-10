@@ -1,12 +1,23 @@
 ---
 name: to-spec
-description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
 disable-model-invocation: true
+description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec (you may know this document as a PRD). Do NOT interview the user — just synthesize what you already know.
+This skill publishes an already reconciled canonical spec. Do NOT interview the user
+or create an independent PRD.
 
-The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
+Invoke `$engineering-risk-routing` and follow its shared governed entry gate before publishing. Include the RoutingDecision, required gates, acceptance evidence, and return target in the spec; do not present an unresolved or BLOCKED governance decision as implementation-ready.
+
+The repository file `specs/SPEC-####-<slug>.md` is authoritative; the tracker stores
+its complete snapshot and canonical local path. Materialize through
+`spec-governance.materialize` as soon as the working contract is decision-complete,
+then validate the file before publication. Local spec materialization does not grant
+product execution or external publication authority. Tracker publication remains an
+external action and requires `開始執行`.
+
+The issue tracker and triage label vocabulary should have been provided to you — run
+`/setup-matt-pocock-skills` if not.
 
 ## Process
 
@@ -16,7 +27,13 @@ The issue tracker and triage label vocabulary should have been provided to you �
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Publish the complete canonical Markdown snapshot and its local path to the project
+   issue tracker. Apply the `ready-for-agent` triage label. If publication fails,
+   preserve the local file and return `BLOCKED: tracker publication pending`; retry
+   by spec ID without rematerializing it.
+
+The canonical template is defined by `spec-governance`; the following prose sections
+remain inputs to it, not a second document.
 
 <spec-template>
 

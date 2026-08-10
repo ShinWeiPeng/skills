@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:governed-engineering-skills:guided-routing-contract",
+  "title": "Automatic engineering workflow routing contracts",
+  "$defs": {
+    "RepositoryArtifact": {
+      "type": "object",
+      "required": ["path", "tracking", "size_bytes", "exclusion_reason"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "tracking": {"type": "string", "enum": ["tracked", "untracked"]},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "exclusion_reason": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "RepositoryEvidence": {
+      "type": "object",
+      "required": ["path", "tracking", "size_bytes", "classification", "reason"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "tracking": {"type": "string", "enum": ["tracked", "untracked"]},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "classification": {
+          "type": "string",
+          "enum": ["implementation", "stateful-context", "ambiguous", "excluded"]
+        },
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "ProjectStateAssessment": {
+      "type": "object",
+      "required": ["implementation", "stateful_context", "evidence"],
+      "properties": {
+        "implementation": {
+          "type": "string",
+          "enum": ["present", "absent", "indeterminate"]
+        },
+        "stateful_context": {
+          "type": "string",
+          "enum": ["present", "absent", "indeterminate"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/RepositoryEvidence"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "IntentAssessment": {
+      "type": "object",
+      "required": ["intent", "explicit_skill", "matched_terms", "requires_modification"],
+      "properties": {
+        "intent": {
+          "type": "string",
+          "enum": [
+            "explicit-skill",
+            "confirmed-spec-resume",
+            "code-understanding",
+            "diagnosis",
+            "review",
+            "implementation-design",
+            "indeterminate"
+          ]
+        },
+        "explicit_skill": {"type": ["string", "null"]},
+        "matched_terms": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "requires_modification": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "WorkflowSelectionOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "has_unresolved_decision": {
+          "type": "boolean",
+          "default": false,
+          "description": "Caller-supplied lifecycle evidence; true if and only if an unresolved user decision is not discoverable from repository facts and affects implementation behavior, an interface, a persistent parameter, failure policy, specification scope, or an acceptance threshold. Set it before the first such question, retain it for short or numeric answers through spec-governance reconciliation, and clear it only when no open decisions remain. True selects grilling with resume_target spec-governance. CLI --unresolved-decision."
+        },
+        "resume_confirmed_spec": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mapped workflow-domain evidence for confirmed-spec continuation."
+        }
+      },
+      "additionalProperties": false
+    },
+    "SpecContextAssessment": {
+      "type": "object",
+      "required": ["state", "selected_path", "candidates", "reason"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["none", "ambiguous", "working", "confirmed", "implemented", "invalid"]
+        },
+        "selected_path": {"type": ["string", "null"]},
+        "candidates": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "GuidedRouteDecision": {
+      "type": "object",
+      "required": [
+        "selected_skill",
+        "project_state",
+        "intent_assessment",
+        "spec_context",
+        "required_gates",
+        "status",
+        "fallback",
+        "reason",
+        "resume_target"
+      ],
+      "properties": {
+        "selected_skill": {"type": ["string", "null"]},
+        "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},
+        "intent_assessment": {"$ref": "#/$defs/IntentAssessment"},
+        "spec_context": {"$ref": "#/$defs/SpecContextAssessment"},
+        "required_gates": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "DEGRADED", "BLOCKED"]
+        },
+        "fallback": {"type": ["string", "null"]},
+        "reason": {"type": "string", "minLength": 1},
+        "resume_target": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}

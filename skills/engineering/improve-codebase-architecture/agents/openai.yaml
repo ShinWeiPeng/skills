@@ -1,5 +1,6 @@
 interface:
   display_name: "Improve Codebase Architecture"
-  short_description: "Find and grill architecture improvements"
+  short_description: "Compare architecture, flow cost, and evidence"
+  default_prompt: "Use $improve-codebase-architecture to find deepening and Flow improvements, compare execution cost and evolution scenarios, and distinguish estimated, calibrated, validated, and blocked evidence."
 policy:
   allow_implicit_invocation: false

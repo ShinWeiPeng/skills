@@ -1,12 +1,6 @@
-Quickstart:
+Availability:
 
-```bash
-npx skills add mattpocock/skills --skill=wayfinder
-```
-
-```bash
-npx skills update wayfinder
-```
+Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/wayfinder)
 
@@ -16,7 +10,7 @@ npx skills update wayfinder
 
 ## When to reach for it
 
-You invoke this by typing `/wayfinder` — the agent won't reach for it on its own.
+`ask-matt` may select `wayfinder` automatically after grilling shows that the work is too large for one session and its route is still unclear; you may also invoke it explicitly.
 
 Reach for it when an effort is **more than one agent session can hold** and the route to its **destination** is still foggy — you can feel the shape of the work but can't yet write it down as a spec or a plan. For turning an *already-clear* thread into a spec, use [to-spec](https://aihero.dev/skills-to-spec); for slicing an already-understood plan into buildable tickets, use [to-tickets](https://aihero.dev/skills-to-tickets). Wayfinder sits upstream of both: it's what you run when there's too much fog to spec directly.
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spec Governance"
+  short_description: "Govern canonical change-set specs and traceability"
+  default_prompt: "Reconcile or verify the active canonical change-set specification."

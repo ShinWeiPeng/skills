@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ShinWeiPeng/skills/distribution/personal-marketplace-release-evidence.schema.json",
+  "title": "Personal Marketplace cross-surface release evidence",
+  "type": "object",
+  "required": ["schema_version", "status", "marketplace", "artifact", "invocations"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "status": {"const": "accepted"},
+    "marketplace": {
+      "type": "object",
+      "required": ["repository_url", "git_ref", "branch_commit", "source_commit", "source_tag", "marketplace_path", "sparse_paths"],
+      "properties": {
+        "repository_url": {"const": "https://github.com/ShinWeiPeng/skills.git"},
+        "git_ref": {"const": "marketplace-release"},
+        "branch_commit": {"pattern": "^[0-9a-f]{40}$"},
+        "source_commit": {"pattern": "^[0-9a-f]{40}$"},
+        "source_tag": {"pattern": "^governed-engineering-skills@[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "marketplace_path": {"const": ".agents/plugins/marketplace.json"},
+        "sparse_paths": {
+          "type": "array",
+          "minItems": 2,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["name", "version", "content_fingerprint"],
+      "properties": {
+        "name": {"const": "governed-engineering-skills"},
+        "version": {"type": "string", "minLength": 1},
+        "content_fingerprint": {"pattern": "^sha256:[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "invocations": {
+      "type": "object",
+      "required": ["chatgpt-work-web", "codex"],
+      "properties": {
+        "chatgpt-work-web": {
+          "type": "object",
+          "required": ["engineering", "productivity"],
+          "properties": {
+            "engineering": {"type": "object"},
+            "productivity": {"type": "object"}
+          },
+          "additionalProperties": false
+        },
+        "codex": {
+          "type": "object",
+          "required": ["engineering", "productivity"],
+          "properties": {
+            "engineering": {"type": "object"},
+            "productivity": {"type": "object"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

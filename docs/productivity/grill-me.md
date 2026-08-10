@@ -1,26 +1,18 @@
-Quickstart:
+Availability:
 
-```bash
-npx skills add mattpocock/skills --skill=grill-me
-```
-
-```bash
-npx skills update grill-me
-```
+Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me)
 
 ## What it does
 
-`grill-me` runs a relentless interview about a plan or design, walking every branch of the decision tree until you and the agent reach a **shared understanding**.
+`grill-me` is the greenfield wrapper for the shared grilling workflow. `ask-matt` selects it when both implementation and durable project context are absent.
 
 It asks **one question at a time** and waits. It never dumps a batch of questions at you — that is bewildering — and where a question can be answered by reading the codebase, it goes and reads rather than asking. Each question comes with the agent's own recommended answer, so you are reacting to a proposal, not staring at a blank prompt.
 
 ## When to reach for it
 
-You invoke this by typing `/grill-me` — the agent won't reach for it on its own.
-
-Reach for it before you build, when a plan feels roughly right but you can sense unresolved decisions hiding in it — the moment you want the soft spots found and forced into the open. If you want that same interrogation to also leave a paper trail of ADRs and a glossary behind, use [grill-with-docs](https://aihero.dev/skills-grill-with-docs) instead. And if the effort is too big to hold in one session and the route to the goal is still foggy — a greenfield project, a huge feature build — start further upstream with [wayfinder](https://aihero.dev/skills-wayfinder), which charts it as a map of decisions first and then merges back into this flow.
+The router reaches for it automatically for a greenfield engineering request; you may also invoke it explicitly. If durable project context already exists, use [grill-with-docs](https://aihero.dev/skills-grill-with-docs) instead. If the effort is too large for one session and the route is still unclear, [wayfinder](https://aihero.dev/skills-wayfinder) maps the decisions first.
 
 ## The decision tree
 
@@ -30,4 +22,4 @@ The session walks the plan as a tree of decisions, resolving dependencies betwee
 
 ## Where it fits
 
-`grill-me` is a reach-for-it-anytime standalone — the pre-build stress test you run whenever a plan needs hardening. It is the stateless, user-invoked front door to the [grilling](https://aihero.dev/skills-grilling) primitive; its closest neighbour is [grill-with-docs](https://aihero.dev/skills-grill-with-docs), the stateful sibling that runs the same interview but additionally records the decisions as ADRs and a glossary. If the outcome is a spec you want written down, hand off to [to-spec](https://aihero.dev/skills-to-spec), which synthesises the settled understanding into a spec without re-interviewing you. When you're unsure which flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+`grill-me` is the stateless greenfield entry to the [grilling](https://aihero.dev/skills-grilling) primitive. Its closest neighbour is [grill-with-docs](https://aihero.dev/skills-grill-with-docs), which uses durable project context and records domain decisions. The automatic [ask-matt](https://aihero.dev/skills-ask-matt) router chooses between them.

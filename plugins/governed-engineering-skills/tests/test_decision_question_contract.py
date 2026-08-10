@@ -5,7 +5,8 @@ import unittest
 from pathlib import Path
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
 CONTRACT = (
     SKILLS_ROOT
@@ -47,11 +48,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
     def test_interview_entrypoints_reinforce_the_shared_contract(self) -> None:
         for skill in ("grilling", "grill-me", "grill-with-docs"):
             text = read(SKILLS_ROOT / skill / "SKILL.md")
-            self.assertIn(
-                "decision-question-contract.md",
-                text,
-                msg=skill,
-            )
+            self.assertIn("`/ask-matt`", text, msg=skill)
 
     def test_default_mode_uses_numbered_fallback_instead_of_stopping(self) -> None:
         for skill in (

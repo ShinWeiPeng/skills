@@ -9,8 +9,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-TEST_TEMP_ROOT = PLUGIN_ROOT / ".tmp" / "test-spec-governance"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
+TEST_TEMP_ROOT = REPOSITORY_ROOT / ".test-tmp" / "test-spec-governance"
 TEST_TEMP_ROOT.mkdir(parents=True, exist_ok=True)
 tempfile.tempdir = str(TEST_TEMP_ROOT)
 MODULE_PATH = (

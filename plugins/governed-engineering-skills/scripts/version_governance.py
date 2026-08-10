@@ -14,6 +14,7 @@ from typing import Any
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = PLUGIN_ROOT.parents[1]
 SEMVER_RE = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:\+codex\.([0-9A-Za-z-]+))?$"
@@ -114,17 +115,21 @@ def _fingerprint_path(path: Path, root: Path) -> bool:
 
 
 def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
-    """Hash release-affecting plugin sources while excluding release metadata."""
+    """Hash the logical Plugin sources independent of their repository location."""
+    entries: list[tuple[str, Path]] = []
+    for item in root.rglob("*"):
+        if item.is_file() and _fingerprint_path(item, root) and item.name != "artifact-inventory.json":
+            entries.append((item.relative_to(root).as_posix(), item))
+    if root.resolve() == PLUGIN_ROOT.resolve() and not (root / "skills").exists():
+        for bucket_name in ("engineering", "productivity"):
+            bucket = REPOSITORY_ROOT / "skills" / bucket_name
+            for item in bucket.rglob("*"):
+                if item.is_file() and _fingerprint_path(item, REPOSITORY_ROOT):
+                    relative = item.relative_to(bucket)
+                    entries.append(((Path("skills") / relative).as_posix(), item))
     digest = hashlib.sha256()
-    for path in sorted(
-        (
-            item
-            for item in root.rglob("*")
-            if item.is_file() and _fingerprint_path(item, root)
-        ),
-        key=lambda item: item.relative_to(root).as_posix(),
-    ):
-        relative = path.relative_to(root).as_posix().encode("utf-8")
+    for logical_path, path in sorted(entries, key=lambda item: item[0]):
+        relative = logical_path.encode("utf-8")
         digest.update(len(relative).to_bytes(4, "big"))
         digest.update(relative)
         content = path.read_bytes()

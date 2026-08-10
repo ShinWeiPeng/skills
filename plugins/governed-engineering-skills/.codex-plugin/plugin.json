@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Governed Engineering Skills",
     "shortDescription": "Automatically govern every engineering workflow.",
-    "longDescription": "A Codex-only engineering router that users enter through ordinary requests. It assesses intent, project state, and canonical spec context, then applies delivery, architecture, code-flow, and runtime-evidence gates.",
+    "longDescription": "A shared engineering and productivity Skill bundle for supported ChatGPT Work and Codex surfaces. Codex applies additional repository, architecture, code-flow, and runtime-evidence gates when those host capabilities are required.",
     "developerName": "Hugo Peng",
     "category": "Developer Tools",
     "capabilities": [

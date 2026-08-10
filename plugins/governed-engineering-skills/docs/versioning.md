@@ -67,6 +67,21 @@ After migration, releases progress normally:
 
 ## Validation
 
+The formal version belongs to the tracked Plugin shell, while the release
+candidate is assembled from that shell plus the repository-root promoted Skill
+buckets. Before version validation or publication, run from the repository root:
+
+```powershell
+python scripts/assemble_plugin.py assemble --marketplace-publication
+python scripts/validate_distribution.py
+python scripts/assemble_plugin.py validate
+```
+
+The artifact inventory fingerprint is the identity shared by manual maintainer
+testing and the generated personal Git Marketplace candidate. The release
+workflow publishes that validated candidate to `marketplace-release`; users add
+the Marketplace independently on ChatGPT Work web and Codex Desktop.
+
 Keep `package.json`, `.codex-plugin/plugin.json`, `CHANGELOG.md`,
 `.changeset/release-state.json`, changesets, release intent, and the production
 fingerprint consistent. Run:

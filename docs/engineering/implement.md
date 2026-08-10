@@ -1,12 +1,6 @@
-Quickstart:
+Availability:
 
-```bash
-npx skills add mattpocock/skills --skill=implement
-```
-
-```bash
-npx skills update implement
-```
+Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/implement)
 

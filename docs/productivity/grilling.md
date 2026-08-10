@@ -1,12 +1,6 @@
-Quickstart:
+Availability:
 
-```bash
-npx skills add mattpocock/skills --skill=grilling
-```
-
-```bash
-npx skills update grilling
-```
+Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling)
 
@@ -28,7 +22,7 @@ The mental model is a **decision tree**: every plan branches into decisions, and
 
 ## Pulled out on purpose
 
-`grilling` is the **single source of truth** for the interview technique, split out as a model-invoked **primitive** so every skill that needs an interview can reach it instead of reinventing one. [grill-me](https://aihero.dev/skills-grill-me) and [grill-with-docs](https://aihero.dev/skills-grill-with-docs) are its two user-invoked front doors, but [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) and [triage](https://aihero.dev/skills-triage) also lean on it to pressure-test their own decisions.
+`grilling` is the **single source of truth** for the interview technique, split out as a model-invoked **primitive** so every skill that needs an interview can reach it instead of reinventing one. [grill-me](https://aihero.dev/skills-grill-me) and [grill-with-docs](https://aihero.dev/skills-grill-with-docs) are model-invoked wrappers selected by the engineering router, while [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) and [triage](https://aihero.dev/skills-triage) can also use the same questioning discipline.
 
 Keeping the technique in one place means you can also reach for it directly when you just want the interview — without the ADR-writing or ticket-shaping that its wrappers add on top.
 

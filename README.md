@@ -22,64 +22,31 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 
 [Sign Up To The Newsletter](https://www.aihero.dev/s/skills-newsletter)
 
-## Installation (30-second setup)
+## Installation
 
-Two ways in, two philosophies. **The [Claude Code plugin](https://code.claude.com/docs/en/plugins)** installs the whole set as a managed, read-only bundle that updates when I ship — you subscribe rather than fork. **[skills.sh](https://skills.sh/mattpocock/skills)** copies editable skill files into your project, so you can hack on them and make them your own. Pick one — installing both leaves you with every skill twice.
+The supported user installation channel is the generated personal Git
+Marketplace. Add the Marketplace independently in ChatGPT Work web and Codex
+Desktop with these identical values:
 
-### 1. Get the skills
+- Source: `https://github.com/ShinWeiPeng/skills.git`
+- Git reference: `marketplace-release`
+- Sparse paths: `.agents/plugins` and `plugins/governed-engineering-skills`
 
-<details>
-<summary><strong>Claude Code</strong></summary>
+Install **Governed Engineering Skills** on each surface, then start a new chat
+or Codex task so the installed Skills are discovered. Installation state is not
+automatically synchronized; the shared Git reference and Plugin fingerprint are
+the cross-surface identity.
 
-```bash
-claude plugins install mattpocock-skills
-```
+The repository does not ship a one-click local installer. The local Marketplace
+metadata on `main` is retained only for maintainers performing deliberate Codex
+tests and is not the supported user installation source.
 
-Or, from inside a session:
-
-```
-/plugin install mattpocock-skills
-```
-
-It's in Claude Code's official marketplace, so there's nothing to add first, and updates arrive automatically.
-
-</details>
-
-<details>
-<summary><strong>Codex, and other agents</strong></summary>
-
-```bash
-npx skills@latest add mattpocock/skills
-```
-
-Pick the skills you want, and which coding agents to install them on. **The installer lets you choose which skills to take — make sure `setup-matt-pocock-skills` is one of them.**
-
-A native Codex plugin is on the roadmap — see [`.agents/adr/0002-ship-as-a-claude-code-plugin.md`](./.agents/adr/0002-ship-as-a-claude-code-plugin.md).
-
-</details>
-
-<details>
-<summary><strong>For tinkerers</strong></summary>
-
-Use the same installer, on any agent — including Claude Code:
-
-```bash
-npx skills@latest add mattpocock/skills
-```
-
-It writes the skills into your repo as ordinary files you own and can edit. Nothing updates behind your back; pull my latest changes when you want them with `npx skills update`.
-
-</details>
-
-### 2. Run `/setup-matt-pocock-skills`
-
-In your agent, run it once per repo. It will:
-
-- Ask you which issue tracker you want to use (GitHub, Linear, or local files)
-- Ask you what labels you apply to tickets when you triage them (`/triage` uses labels)
-- Ask you where you want to save any docs we create
-
-### 3. Bam - you're ready to go.
+In Codex, run `/setup-matt-pocock-skills` once per repository when using the
+repository-governed engineering workflows. It configures the
+local issue tracker, triage labels, and documentation locations used by the
+Codex-only engineering workflows. ChatGPT Work web can use the Skills classified
+as `cross-product` in `distribution/skill-compatibility.json`; it does not perform
+this repository setup step.
 
 ## Why These Skills Exist
 
@@ -183,7 +150,7 @@ Software engineering fundamentals matter more than ever. These skills are my bes
 
 ## Reference
 
-These split on one axis — who can invoke them. **User-invoked** skills are reachable only when you type them (e.g. `/grill-me`); their job is to orchestrate. **Model-invoked** skills can be invoked by you _or_ reached for automatically by the agent when the task fits; they hold the reusable discipline. A user-invoked skill may invoke model-invoked skills, but never another user-invoked one.
+These split on one axis — who can invoke them. **User-invoked** skills are reachable only when you type them (e.g. `/implement`). **Model-invoked** skills can be invoked by you _or_ reached for automatically by the agent when the task fits. A user-invoked skill may invoke model-invoked skills, but never another user-invoked one.
 
 ### Engineering
 
@@ -191,18 +158,23 @@ Skills I use daily for code work.
 
 **User-invoked**
 
-- **[ask-matt](./skills/engineering/ask-matt/SKILL.md)** — Ask which skill or flow fits your situation. A router over the user-invoked skills in this repo.
-- **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Grilling session that also builds your project's domain model, sharpening terminology and updating `CONTEXT.md` and ADRs inline.
 - **[triage](./skills/engineering/triage/SKILL.md)** — Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./skills/engineering/improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 - **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)** — Configure this repo for the engineering skills (issue tracker, triage labels, domain doc layout). Run once per repo before using the other engineering skills.
 - **[to-spec](./skills/engineering/to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker. No interview — just synthesizes what you've already discussed.
 - **[to-tickets](./skills/engineering/to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — written as text in a local file, or as native blocking links on a real tracker.
 - **[implement](./skills/engineering/implement/SKILL.md)** — Build the work described by a spec or set of tickets, driving `/tdd` at pre-agreed seams and closing out with `/code-review` before committing.
-- **[wayfinder](./skills/engineering/wayfinder/SKILL.md)** — Plan a huge chunk of work, more than one agent session can hold, as a shared map of investigation tickets on the issue tracker — resolve them one at a time until the way to the destination is clear.
 
 **Model-invoked**
 
+- **[ask-matt](./skills/engineering/ask-matt/SKILL.md)** — Automatically route software-engineering requests to the appropriate governed workflow.
+- **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Interview engineering work when durable project context exists but implementation is absent.
+- **[clarify-improvement-proposals](./skills/engineering/clarify-improvement-proposals/SKILL.md)** — Resolve ambiguities and compare proposal tradeoffs before recommending a change.
+- **[engineering-risk-routing](./skills/engineering/engineering-risk-routing/SKILL.md)** — Classify engineering risk and preserve required governance gates.
+- **[explain-code-flow](./skills/engineering/explain-code-flow/SKILL.md)** — Guide code understanding from governed system flows to implementation details.
+- **[govern-modular-event-architecture](./skills/engineering/govern-modular-event-architecture/SKILL.md)** — Govern architecture boundaries, owned types and state, algorithms, and scheduling evidence.
+- **[spec-governance](./skills/engineering/spec-governance/SKILL.md)** — Persist and verify the canonical specification for modifying work.
+- **[validate-on-device](./skills/engineering/validate-on-device/SKILL.md)** — Collect bounded device and operating-system runtime evidence.
 - **[prototype](./skills/engineering/prototype/SKILL.md)** — Build a throwaway prototype to answer a design question — a runnable terminal app for state/logic questions, or several radically different UI variations toggleable from one route.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)** — Disciplined diagnosis loop for hard bugs and performance regressions: reproduce → minimise → hypothesise → instrument → fix → regression-test.
 - **[research](./skills/engineering/research/SKILL.md)** — Investigate a question against high-trust primary sources and capture the findings as a cited Markdown file in the repo, run as a background agent.
@@ -211,6 +183,7 @@ Skills I use daily for code work.
 - **[codebase-design](./skills/engineering/codebase-design/SKILL.md)** — Shared discipline and vocabulary for designing deep modules: a lot of behaviour behind a small interface, placed at a clean seam, testable through that interface.
 - **[code-review](./skills/engineering/code-review/SKILL.md)** — Two-axis review of the diff since a fixed point: **Standards** (does it follow the repo's coding standards, plus a Fowler smell baseline?) and **Spec** (does it faithfully implement the originating issue/PRD?), run as parallel sub-agents so neither pollutes the other.
 - **[resolving-merge-conflicts](./skills/engineering/resolving-merge-conflicts/SKILL.md)** — Work through an in-progress git merge or rebase conflict hunk by hunk, resolving by intent traced to each side's primary source, then finish the operation — never `--abort`.
+- **[wayfinder](./skills/engineering/wayfinder/SKILL.md)** — Map a large effort as decision tickets on the issue tracker.
 
 ### Productivity
 
@@ -218,11 +191,11 @@ General workflow tools, not code-specific.
 
 **User-invoked**
 
-- **[grill-me](./skills/productivity/grill-me/SKILL.md)** — Get relentlessly interviewed about a plan or design until every branch of the decision tree is resolved.
 - **[handoff](./skills/productivity/handoff/SKILL.md)** — Compact the current conversation into a handoff document so another agent can continue the work.
 - **[teach](./skills/productivity/teach/SKILL.md)** — Teach the user a new skill or concept over multiple sessions, using the current directory as a stateful teaching workspace.
 - **[writing-great-skills](./skills/productivity/writing-great-skills/SKILL.md)** — Reference for writing and editing skills well: the vocabulary and principles that make a skill predictable.
 
 **Model-invoked**
 
+- **[grill-me](./skills/productivity/grill-me/SKILL.md)** — Interview greenfield work when both implementation and durable context are absent.
 - **[grilling](./skills/productivity/grilling/SKILL.md)** — Interview the user relentlessly about a plan, decision, or idea until every branch of the decision tree is resolved. The reusable loop behind `grill-me` and `grill-with-docs`.

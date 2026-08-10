@@ -16,15 +16,10 @@ Fill the template below. The **fixed frame** (Quickstart block, source link, `##
 
 <page-template>
 
-Quickstart:
+Availability:
 
-```bash
-npx skills add mattpocock/skills --skill=<name>
-```
-
-```bash
-npx skills update <name>
-```
+Install **Governed Engineering Skills** from the personal Git Marketplace on
+each product surface, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/<bucket>/<name>)
 
@@ -72,7 +67,7 @@ Always present. Situate the skill in the system in a sentence or two:
 ## Done when
 
 - The page exists at `docs/<bucket>/<name>.md`, and no stale page survives a rename or bucket move.
-- The Quickstart block and source link name the correct bucket and skill; the update line names the skill.
+- The personal Marketplace availability statement and source link name the correct distribution and skill.
 - `## What it does` states the defining constraint, as plain prose rather than a labelled aside.
 - `## When to reach for it` states invocation mode and the trigger boundary.
 - `## Where it fits` names the role and links to `ask-matt`.

@@ -6,7 +6,8 @@ import unittest
 from pathlib import Path
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
 CLASSIFIER_PATH = PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "scripts" / "classify_risk.py"
 SPEC = importlib.util.spec_from_file_location("classify_risk", CLASSIFIER_PATH)
 assert SPEC and SPEC.loader

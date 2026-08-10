@@ -7,6 +7,13 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      validate_marketplace_acceptance:
+        description: Validate personal Marketplace installation and invocation evidence
+        required: true
+        type: boolean
+        default: true
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -33,7 +40,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install pinned governance dependencies
-        run: python -m pip install -r plugins/governed-engineering-skills/skills/govern-modular-event-architecture/requirements-architecture.txt
+        run: python -m pip install -r skills/engineering/govern-modular-event-architecture/requirements-architecture.txt
 
       - name: Cache official Espressif libclang provider
         uses: actions/cache@v4
@@ -45,40 +52,49 @@ jobs:
 
       - name: Install official Espressif libclang provider
         run: >-
-          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          python skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
           toolchain install
-          --lock plugins/governed-engineering-skills/skills/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
+          --lock skills/engineering/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
 
       - name: Verify official Espressif libclang provider
         run: >-
-          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          python skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
           toolchain verify
-          --lock plugins/governed-engineering-skills/skills/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
+          --lock skills/engineering/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
 
       - name: Run governance unit tests
-        run: python -m unittest discover -s plugins/governed-engineering-skills/skills/govern-modular-event-architecture/tests -p "test_*.py" -v
+        run: python -m unittest discover -s skills/engineering/govern-modular-event-architecture/tests -p "test_*.py" -v
+
+      - name: Assemble and validate shared Plugin distribution
+        run: >-
+          python scripts/assemble_plugin.py assemble
+          && python scripts/validate_distribution.py
+          && python scripts/assemble_plugin.py validate
+
+      - name: Run shared distribution contract tests
+        run: python -m unittest tests.test_shared_skill_distribution -v
 
       - name: Run plugin integration validation
-        run: python plugins/governed-engineering-skills/scripts/validate_integration.py
+        run: python dist/governed-engineering-skills/scripts/validate_integration.py
 
-      - name: Run plugin version-governance tests
-        run: python -m unittest discover -s plugins/governed-engineering-skills/tests -p "test_version_governance.py" -v
+      - name: Run assembled Plugin contract tests
+        run: python -m unittest discover -s plugins/governed-engineering-skills/tests -p "test_*.py" -v
 
       - name: Run skill release gate
         run: >-
-          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          python skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
           gate --phase release
-          --manifest plugins/governed-engineering-skills/skills/govern-modular-event-architecture/architecture/manifest.yaml
-          --adoption plugins/governed-engineering-skills/skills/govern-modular-event-architecture/architecture/adoption.yaml
-          --baseline plugins/governed-engineering-skills/skills/govern-modular-event-architecture/architecture/baseline.yaml
+          --manifest skills/engineering/govern-modular-event-architecture/architecture/manifest.yaml
+          --adoption skills/engineering/govern-modular-event-architecture/architecture/adoption.yaml
+          --baseline skills/engineering/govern-modular-event-architecture/architecture/baseline.yaml
 
       - name: Run plugin release gate
         run: >-
-          python plugins/governed-engineering-skills/skills/govern-modular-event-architecture/scripts/architecture_cli.py
+          python tools/architecture/architecture_cli.py
           gate --phase release
-          --manifest plugins/governed-engineering-skills/architecture/manifest.yaml
-          --adoption plugins/governed-engineering-skills/architecture/adoption.yaml
-          --baseline plugins/governed-engineering-skills/architecture/baseline.yaml
+          --manifest architecture/manifest.yaml
+          --adoption architecture/adoption.yaml
+          --baseline architecture/baseline.yaml
 
   release-tooling-validation:
     name: Release tooling / Governed plugin
@@ -95,7 +111,10 @@ jobs:
           python-version: "3.13"
 
       - name: Validate governed plugin release metadata
-        run: python plugins/governed-engineering-skills/scripts/version_governance.py check
+        run: >-
+          python scripts/assemble_plugin.py assemble
+          && python scripts/validate_distribution.py
+          && python plugins/governed-engineering-skills/scripts/version_governance.py check
 
   release:
     name: Version
@@ -117,6 +136,26 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Resolve Marketplace rollback target
+        id: marketplace-base
+        shell: bash
+        run: |
+          previous="$(git ls-remote origin refs/heads/marketplace-release | awk '{print $1}')"
+          if [ -z "$previous" ]; then
+            previous="none:first-publication"
+          fi
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+
+      - name: Rebuild the exact release and Marketplace candidates
+        shell: bash
+        run: |
+          python scripts/assemble_plugin.py assemble \
+            --marketplace-publication \
+            --source-commit "$GITHUB_SHA" \
+            --previous-publication-commit "${{ steps.marketplace-base.outputs.previous }}"
+          python scripts/validate_distribution.py
+          python scripts/assemble_plugin.py validate
 
       - name: Apply governed plugin release intent
         id: version
@@ -166,9 +205,69 @@ jobs:
         shell: bash
         run: |
           tag="$(python plugins/governed-engineering-skills/scripts/version_governance.py tag)"
-          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
-            echo "Tag $tag already exists; no release tag is needed."
+          remote_tag_commit="$(git ls-remote --tags origin "refs/tags/$tag" | awk '{print $1}')"
+          if [ -n "$remote_tag_commit" ] && [ "$remote_tag_commit" != "$GITHUB_SHA" ]; then
+            echo "ERROR: Tag $tag points to stale commit $remote_tag_commit, expected $GITHUB_SHA."
+            exit 1
+          elif [ -n "$remote_tag_commit" ]; then
+            echo "Tag $tag already identifies $GITHUB_SHA; no release tag is needed."
           else
             python plugins/governed-engineering-skills/scripts/version_governance.py tag --write
             git push origin "refs/tags/$tag"
           fi
+
+      - name: Publish the generated personal Marketplace branch
+        if: steps.version.outputs.changed == 'false'
+        shell: bash
+        run: |
+          staging="$RUNNER_TEMP/marketplace-release"
+          publication_worktree="$RUNNER_TEMP/marketplace-worktree"
+          cp -R dist/marketplace-release "$staging"
+          git worktree add --detach "$publication_worktree"
+          git -C "$publication_worktree" switch --orphan marketplace-release-publication
+          git -C "$publication_worktree" rm -rf .
+          cp -R "$staging"/. "$publication_worktree"/
+          git -C "$publication_worktree" add -A
+          git -C "$publication_worktree" config user.name "github-actions[bot]"
+          git -C "$publication_worktree" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$publication_worktree" commit -m "chore: publish governed engineering skills marketplace"
+          previous="${{ steps.marketplace-base.outputs.previous }}"
+          if [ "$previous" = "none:first-publication" ]; then
+            git -C "$publication_worktree" push origin HEAD:refs/heads/marketplace-release
+          else
+            git -C "$publication_worktree" push --force-with-lease="refs/heads/marketplace-release:$previous" \
+              origin HEAD:refs/heads/marketplace-release
+          fi
+
+  marketplace-acceptance:
+    name: Personal Marketplace acceptance
+    if: github.event_name == 'workflow_dispatch' && inputs.validate_marketplace_acceptance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout evidence and validators
+        uses: actions/checkout@v4
+        with:
+          path: source
+
+      - name: Checkout generated Marketplace publication
+        uses: actions/checkout@v4
+        with:
+          ref: marketplace-release
+          path: publication
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Validate personal Marketplace release and invocation evidence
+        shell: bash
+        run: |
+          branch_commit="$(git -C publication rev-parse HEAD)"
+          python source/scripts/validate_personal_marketplace_release.py \
+            --repo-root source \
+            --artifact publication/plugins/governed-engineering-skills \
+            --publication publication/publication-record.json \
+            --branch-commit "$branch_commit"

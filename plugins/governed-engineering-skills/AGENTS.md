@@ -1,14 +1,20 @@
 # Architecture governance
 
+This directory is the tracked Plugin shell, not the architecture root. In a
+source checkout, repository-wide governance lives at `../../architecture` and
+the only public CLI lives at `../../tools/architecture/architecture_cli.py`.
+An assembled distribution is read-only release output and intentionally does
+not carry the repository's formal architecture files.
+
 Before changing architecture, named types, runtime state, modules, dependencies, ports, callbacks, or events:
 
-1. Read `architecture/manifest.yaml`, `architecture/adoption.yaml`, `architecture/ARCHITECTURE.md`, accepted ADRs, and the baseline if present.
+1. From the repository root, read `architecture/manifest.yaml`, `architecture/adoption.yaml`, `architecture/ARCHITECTURE.md`, accepted ADRs, and the baseline if present.
 2. Before editing source, build the Boundary Design Table, Type Ownership Matrix, State Object Ownership Matrix, actual/intended dependency edges, and parent mappings.
 3. Validate the planned manifest. An unresolved owner, authority, dependency, or mapping is `BLOCKED`.
 4. Preserve every schema 1.0 through 2.1.0 requirement under schema 2.2.0, while retaining exact 2.1.0 compatibility.
 5. Do not mark an ADR accepted without explicit user approval.
 6. Update governance files, source, and tests together.
-7. Treat `architecture/manifest.yaml` as the only editable description source. Do not hand-edit generated Architecture Description Views.
+7. Treat the repository-root `architecture/manifest.yaml` as the only editable description source. Do not hand-edit generated Architecture Description Views.
 8. Use schema 2.2.0 for new projects (2.1.0 remains supported) and describe logical source sets, composition roots, modules, ports, events, named types and references, state objects, boundary mappings, source paths, symbols, L0/L1 flows, workloads, execution profiles/units/channels, workload-driven real-time scheduling studies, data access, microarchitecture, validation profiles, assurance scope, and any exact localized diagram summaries. Then run `python tools\architecture\architecture_cli.py render`.
 9. For C/C++, require pinned libclang, a complete compilation database and target, all governed translation units, and AST PASS. Lexical scanning alone is not PASS.
 10. Run every gate through the single `architecture_cli.py`; legacy checker, renderer, bootstrap, and analyzer scripts are internal and cannot be invoked directly.

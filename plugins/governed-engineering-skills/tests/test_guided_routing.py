@@ -10,7 +10,10 @@ from pathlib import Path
 from unittest import mock
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
+ARCHITECTURE_ROOT = REPOSITORY_ROOT / "architecture"
+TEST_BUILD_ROOT = REPOSITORY_ROOT / ".test-tmp" / "guided-routing"
 SCRIPTS_ROOT = (
     PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "scripts"
 )
@@ -231,7 +234,7 @@ class ProjectStateAssessmentTests(unittest.TestCase):
 
 class RepositoryEvidenceAdapterTests(unittest.TestCase):
     def test_collects_tracked_and_untracked_but_not_ignored_artifacts(self) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             root = Path(directory)
@@ -287,7 +290,7 @@ class RepositoryEvidenceAdapterTests(unittest.TestCase):
         self.assertTrue(all(row["size_bytes"] > 0 for row in included))
 
     def test_ignored_artifacts_only_are_equivalent_to_empty_repository(self) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             root = Path(directory)
@@ -496,6 +499,19 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         "to-spec",
         "wayfinder",
     }
+
+    def test_exact_start_execution_phrase_is_confirmed_spec_resume_intent(self) -> None:
+        result = WORKFLOW_SELECTION.classify_intent("開始執行")
+
+        self.assertEqual("confirmed-spec-resume", result["intent"])
+        self.assertEqual(["開始執行"], result["matched_terms"])
+        self.assertTrue(result["requires_modification"])
+
+    def test_quoted_or_negated_start_execution_phrase_is_not_resume_intent(self) -> None:
+        for prompt in ("請解釋「開始執行」的意思", "不要開始執行"):
+            with self.subTest(prompt=prompt):
+                result = WORKFLOW_SELECTION.classify_intent(prompt)
+                self.assertNotEqual("confirmed-spec-resume", result["intent"])
 
     def test_greenfield_modification_starts_with_grill_me(self) -> None:
         intent = WORKFLOW_SELECTION.classify_intent(
@@ -792,6 +808,27 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         self.assertEqual("tdd", verify["resume_target"])
         self.assertEqual("tdd", resume["selected_skill"])
         self.assertNotIn(resume["selected_skill"], {"grilling", "grill-with-docs"})
+
+    def test_resume_intent_derives_resume_evidence_without_caller_flag(self) -> None:
+        spec_context = {
+            "state": "confirmed",
+            "selected_path": "specs/SPEC-0001-payment-retry.md",
+            "candidates": ["specs/SPEC-0001-payment-retry.md"],
+            "reason": "unique confirmed specification",
+        }
+        result = WORKFLOW_SELECTION.select_workflow(
+            WORKFLOW_SELECTION.classify_intent("開始執行"),
+            PROJECT_STATE.assess_project_state(
+                [{"path": spec_context["selected_path"], "tracking": "tracked", "size_bytes": 100}]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS,
+            spec_context=spec_context,
+        )
+
+        self.assertEqual("spec-governance", result["selected_skill"])
+        self.assertEqual("tdd", result["resume_target"])
+        self.assertNotIn(result["selected_skill"], {"grilling", "grill-with-docs"})
 
     def test_reopened_working_spec_blocks_stale_completed_stage_resume(self) -> None:
         spec_context = {
@@ -1106,7 +1143,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
 
 
 class GuidedRoutingContractTests(unittest.TestCase):
-    def test_automatic_route_skills_allow_implicit_invocation(self) -> None:
+    def test_automatic_route_skills_use_default_implicit_invocation(self) -> None:
         for skill in (
             "ask-matt",
             "grill-me",
@@ -1116,11 +1153,8 @@ class GuidedRoutingContractTests(unittest.TestCase):
             metadata = (
                 PLUGIN_ROOT / "skills" / skill / "agents" / "openai.yaml"
             ).read_text(encoding="utf-8")
-            self.assertIn(
-                "allow_implicit_invocation: true",
-                metadata,
-                msg=skill,
-            )
+            self.assertNotIn("allow_implicit_invocation: false", metadata, msg=skill)
+            self.assertNotIn("allow_implicit_invocation: true", metadata, msg=skill)
 
     def test_resume_documentation_requires_explicit_evidence(self) -> None:
         ask_matt = (PLUGIN_ROOT / "skills" / "ask-matt" / "SKILL.md").read_text(
@@ -1133,18 +1167,16 @@ class GuidedRoutingContractTests(unittest.TestCase):
             PLUGIN_ROOT / "skills" / "grill-with-docs" / "SKILL.md"
         ).read_text(encoding="utf-8")
         algorithm = (
-            PLUGIN_ROOT
-            / "architecture"
+            ARCHITECTURE_ROOT
             / "algorithms"
             / "ALG-0003-ordered-workflow-selection.md"
         ).read_text(encoding="utf-8")
         canonical_spec_adr = (
-            PLUGIN_ROOT
-            / "architecture"
+            ARCHITECTURE_ROOT
             / "decisions"
             / "ADR-0011-canonical-change-set-specification.md"
         ).read_text(encoding="utf-8")
-        manifest = (PLUGIN_ROOT / "architecture" / "manifest.yaml").read_text(
+        manifest = (ARCHITECTURE_ROOT / "manifest.yaml").read_text(
             encoding="utf-8"
         )
 
@@ -1214,7 +1246,7 @@ class GuidedRoutingContractTests(unittest.TestCase):
         self.assertIn("mixed_action_connectors", intent_rules)
 
     def test_cli_routes_an_empty_repository_to_grill_me(self) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             root = Path(directory)
@@ -1250,7 +1282,7 @@ class GuidedRoutingContractTests(unittest.TestCase):
     def test_cli_unresolved_decision_routes_to_grilling_then_spec_governance(
         self,
     ) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             root = Path(directory)
@@ -1285,7 +1317,7 @@ class GuidedRoutingContractTests(unittest.TestCase):
         self.assertIn("design or specification decision", result["reason"])
 
     def test_cli_requires_explicit_flag_to_resume_a_confirmed_spec(self) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             root = Path(directory)
@@ -1351,8 +1383,77 @@ class GuidedRoutingContractTests(unittest.TestCase):
             json.loads(resume_route.stdout)["selected_skill"],
         )
 
+    def test_cli_exact_start_execution_resolves_one_many_zero_and_explicit_path(self) -> None:
+        build_root = TEST_BUILD_ROOT
+        build_root.mkdir(exist_ok=True)
+
+        def invoke(root: Path, prompt: str) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--prompt",
+                    prompt,
+                    "--project-root",
+                    str(root),
+                    "--branch",
+                    "unrelated",
+                    "--json",
+                ],
+                cwd=PLUGIN_ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+
+        with tempfile.TemporaryDirectory(dir=build_root) as directory:
+            root = Path(directory)
+            specs_dir = root / "specs"
+            specs_dir.mkdir()
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+
+            zero = invoke(root, "開始執行")
+
+            first_path = specs_dir / "SPEC-0001-payment-retry.md"
+            first_path.write_text(CONFIRMED_SPEC_TEXT, encoding="utf-8")
+            subprocess.run(["git", "add", first_path.as_posix()], cwd=root, check=True, capture_output=True, text=True)
+            one = invoke(root, "開始執行")
+
+            second_path = specs_dir / "SPEC-0002-order-retry.md"
+            second_path.write_text(
+                CONFIRMED_SPEC_TEXT.replace("SPEC-0001", "SPEC-0002").replace(
+                    "payment-retry", "order-retry"
+                ),
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "add", second_path.as_posix()], cwd=root, check=True, capture_output=True, text=True)
+            many = invoke(root, "開始執行")
+            explicit = invoke(root, "開始執行 specs/SPEC-0002-order-retry.md")
+
+        zero_result = json.loads(zero.stdout)
+        self.assertEqual(2, zero.returncode)
+        self.assertEqual("none", zero_result["spec_context"]["state"])
+        self.assertEqual("spec-context-decision", zero_result["resume_target"])
+        self.assertIn("create and confirm one", zero_result["reason"])
+
+        one_result = json.loads(one.stdout)
+        self.assertEqual(0, one.returncode)
+        self.assertEqual("spec-governance", one_result["selected_skill"])
+        self.assertEqual("specs/SPEC-0001-payment-retry.md", one_result["spec_context"]["selected_path"])
+
+        many_result = json.loads(many.stdout)
+        self.assertEqual(2, many.returncode)
+        self.assertEqual("ambiguous", many_result["spec_context"]["state"])
+        self.assertEqual(2, len(many_result["spec_context"]["candidates"]))
+        self.assertIn("select exactly one", many_result["reason"])
+
+        explicit_result = json.loads(explicit.stdout)
+        self.assertEqual(0, explicit.returncode)
+        self.assertEqual("specs/SPEC-0002-order-retry.md", explicit_result["spec_context"]["selected_path"])
+
     def test_cli_pass_output_is_one_summary_line(self) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             completed = subprocess.run(
@@ -1376,7 +1477,7 @@ class GuidedRoutingContractTests(unittest.TestCase):
         self.assertIn("grill-me", completed.stdout)
 
     def test_cli_degraded_output_expands_evidence(self) -> None:
-        build_root = PLUGIN_ROOT / "build"
+        build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=build_root) as directory:
             completed = subprocess.run(

@@ -4,9 +4,10 @@ import unittest
 from pathlib import Path
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
-ARCHITECTURE_ROOT = PLUGIN_ROOT / "architecture"
+ARCHITECTURE_ROOT = REPOSITORY_ROOT / "architecture"
 
 
 def read(path: Path) -> str:
@@ -121,14 +122,12 @@ class SharedFlowCostContractTests(unittest.TestCase):
 
 class SkillIntegrationContractTests(unittest.TestCase):
     def test_three_skills_route_through_the_shared_contract(self) -> None:
-        expected = {
-            "improve-codebase-architecture": "flow-cost-review.md",
-            "clarify-improvement-proposals": "flow-cost-review.md",
-            "govern-modular-event-architecture": "flow-cost-review.md",
-        }
-        for skill, reference in expected.items():
+        for skill in ("improve-codebase-architecture", "clarify-improvement-proposals"):
             text = read(SKILLS_ROOT / skill / "SKILL.md")
-            self.assertIn(reference, text, skill)
+            self.assertIn("$govern-modular-event-architecture", text, skill)
+            self.assertIn("Flow cost review", text, skill)
+        governance = read(SKILLS_ROOT / "govern-modular-event-architecture" / "SKILL.md")
+        self.assertIn("flow-cost-review.md", governance)
 
     def test_architecture_report_requires_execution_and_evolution_evidence(self) -> None:
         report = collapse_whitespace(

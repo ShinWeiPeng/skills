@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
+
+sys.dont_write_bytecode = True
 
 from version_governance import validate_repository
 
@@ -62,10 +65,13 @@ def main() -> int:
             errors.append(f"{name}: missing agents/openai.yaml")
         elif name in IMPLICIT_ROUTE_SKILLS:
             metadata = openai_yaml.read_text(encoding="utf-8")
-            if not re.search(
-                r"^\s*allow_implicit_invocation:\s*true\s*$",
-                metadata,
-                re.MULTILINE,
+            if (
+                "disable-model-invocation: true" in text
+                or re.search(
+                    r"^\s*allow_implicit_invocation:\s*false\s*$",
+                    metadata,
+                    re.MULTILINE,
+                )
             ):
                 errors.append(
                     f"{name}: automatic route requires implicit invocation"

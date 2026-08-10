@@ -8,7 +8,7 @@
       "name": "governed-engineering-skills",
       "source": {
         "source": "local",
-        "path": "./plugins/governed-engineering-skills"
+        "path": "./dist/governed-engineering-skills"
       },
       "policy": {
         "installation": "AVAILABLE",

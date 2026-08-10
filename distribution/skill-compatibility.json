@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "supported_surfaces": ["chatgpt-work-web", "codex"],
+  "skills": {
+    "ask-matt": {"classification": "codex-only", "reason": "Automatically routes repository engineering work through Codex governance capabilities.", "host_dependencies": ["repository inspection", "Codex engineering router"]},
+    "clarify-improvement-proposals": {"classification": "codex-only", "reason": "Its governed proposal gate depends on repository evidence and Codex architecture routing.", "host_dependencies": ["repository inspection", "architecture governance"]},
+    "code-review": {"classification": "codex-only", "reason": "The review contract requires Git evidence and parallel review sub-agents.", "host_dependencies": ["Git repository", "parallel sub-agents"]},
+    "codebase-design": {"classification": "cross-product", "reason": "Its read-only deep-module vocabulary is host-independent; requests to change repository architecture hand off to Codex governance.", "host_dependencies": []},
+    "diagnosing-bugs": {"classification": "codex-only", "reason": "The workflow requires repository inspection, instrumentation, and regression-test execution.", "host_dependencies": ["repository filesystem", "test execution"]},
+    "domain-modeling": {"classification": "codex-only", "reason": "The workflow persists CONTEXT.md and ADR changes in the project repository.", "host_dependencies": ["repository filesystem"]},
+    "engineering-risk-routing": {"classification": "codex-only", "reason": "The classifier selects Codex-only proposal, architecture, code-flow, and runtime-evidence gates.", "host_dependencies": ["Codex skill inventory", "repository evidence"]},
+    "explain-code-flow": {"classification": "codex-only", "reason": "Formal System and Parent explanations require repository architecture manifests and generated views.", "host_dependencies": ["repository filesystem", "architecture views"]},
+    "govern-modular-event-architecture": {"classification": "codex-only", "reason": "The gate executes repository-local architecture tooling and may require a native libclang provider.", "host_dependencies": ["terminal execution", "repository filesystem", "native toolchain"]},
+    "grill-me": {"classification": "codex-only", "reason": "The greenfield wrapper persists a canonical repository spec and returns through the Codex engineering router.", "host_dependencies": ["repository filesystem", "Codex engineering router"]},
+    "grill-with-docs": {"classification": "codex-only", "reason": "The interview reads project context and writes CONTEXT.md and ADRs into the repository.", "host_dependencies": ["repository filesystem"]},
+    "grilling": {"classification": "codex-only", "reason": "For engineering work the loop persists and reconciles repository spec-governance state before continuing.", "host_dependencies": ["repository filesystem", "spec governance"]},
+    "handoff": {"classification": "codex-only", "reason": "The handoff must be written to the operating system temporary directory.", "host_dependencies": ["local filesystem"]},
+    "implement": {"classification": "codex-only", "reason": "The workflow edits repository files and executes governed tests and review gates.", "host_dependencies": ["repository filesystem", "test execution"]},
+    "improve-codebase-architecture": {"classification": "codex-only", "reason": "The workflow scans a repository and writes a local visual report.", "host_dependencies": ["repository filesystem", "local artifact generation"]},
+    "prototype": {"classification": "codex-only", "reason": "The workflow builds and runs repository-local prototype artifacts.", "host_dependencies": ["repository filesystem", "runtime execution"]},
+    "research": {"classification": "codex-only", "reason": "The workflow delegates research and saves the cited result into the repository.", "host_dependencies": ["repository filesystem", "sub-agent execution"]},
+    "resolving-merge-conflicts": {"classification": "codex-only", "reason": "The workflow operates on an in-progress Git merge or rebase.", "host_dependencies": ["Git repository"]},
+    "setup-matt-pocock-skills": {"classification": "codex-only", "reason": "Setup creates repository configuration, labels, and domain-document structure.", "host_dependencies": ["repository filesystem", "issue tracker"]},
+    "spec-governance": {"classification": "codex-only", "reason": "Canonical spec reconciliation and commit disposition require repository-local files and Git evidence.", "host_dependencies": ["repository filesystem", "Git evidence"]},
+    "tdd": {"classification": "codex-only", "reason": "The red-green-refactor loop requires editing code and executing the repository test runner.", "host_dependencies": ["repository filesystem", "test execution"]},
+    "teach": {"classification": "codex-only", "reason": "The multi-session course stores state in the current workspace directory.", "host_dependencies": ["workspace filesystem"]},
+    "to-spec": {"classification": "codex-only", "reason": "The workflow reconciles repository spec files and publishes to the configured issue tracker.", "host_dependencies": ["repository filesystem", "issue tracker"]},
+    "to-tickets": {"classification": "codex-only", "reason": "The workflow writes local ticket files or creates native issue-tracker dependencies.", "host_dependencies": ["repository filesystem or issue tracker"]},
+    "triage": {"classification": "codex-only", "reason": "The state machine reads and updates issues and pull requests through a configured tracker.", "host_dependencies": ["issue tracker"]},
+    "validate-on-device": {"classification": "codex-only", "reason": "Runtime acceptance requires physical-device or operating-system access, permissions, and native capture tools.", "host_dependencies": ["device or OS access", "native capture tools", "runtime permissions"]},
+    "wayfinder": {"classification": "codex-only", "reason": "The workflow creates and resolves a durable map of issue-tracker decision tickets.", "host_dependencies": ["issue tracker"]},
+    "writing-great-skills": {"classification": "cross-product", "reason": "The writing guidance is instruction-only and has no host dependency.", "host_dependencies": []}
+  },
+  "representative_invocations": {
+    "engineering": "codebase-design",
+    "productivity": "writing-great-skills"
+  }
+}

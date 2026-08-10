@@ -11,6 +11,12 @@ Every skill also carries an `agents/openai.yaml` beside its `SKILL.md`. It holds
 
 Bucket `README.md`s and the top-level `README.md` group entries into **User-invoked** and **Model-invoked**.
 
+The two bullets above are the only valid cross-host combinations. Never write
+`policy.allow_implicit_invocation: true`: model invocation is the default and the
+field adds a second, unnecessary source of policy. Distribution assembly rejects a
+manual flag without the matching Codex `false`, a Codex `false` without the manual
+flag, and every explicit `true`.
+
 ## Dependencies between them
 
 Dependencies are expressed as **`/skill`-style prose invocation** ("Run the `/grilling` skill"), not deep `../other-skill/FILE.md` cross-references. Shared reference docs live inside the skill that owns them; other skills reach that material by invoking the skill, not by linking across folders.

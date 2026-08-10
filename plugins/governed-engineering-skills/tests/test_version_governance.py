@@ -412,14 +412,14 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         release_tooling_job, _, _ = after.partition("\n  release:")
         return release_tooling_job
 
-    def test_release_validation_is_plugin_only(self) -> None:
+    def test_release_validation_assembles_one_plugin_candidate(self) -> None:
         release_tooling_job = self._release_tooling_job()
-        self.assertIn(
-            "\n      - name: Validate governed plugin release metadata"
-            "\n        run: python plugins/governed-engineering-skills/"
-            "scripts/version_governance.py check",
-            release_tooling_job,
-        )
+        for required in (
+            "python scripts/assemble_plugin.py assemble",
+            "python scripts/validate_distribution.py",
+            "python plugins/governed-engineering-skills/scripts/version_governance.py check",
+        ):
+            self.assertIn(required, release_tooling_job)
         for forbidden in (
             "Prepare Changesets base branch",
             "Setup Node.js",
@@ -477,7 +477,7 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         )
         self.assertNotIn("changeset-release/main", step)
 
-    def test_release_tag_is_created_only_when_missing(self) -> None:
+    def test_release_tag_is_created_only_when_missing_and_stale_tags_block(self) -> None:
         workflow = self._workflow()
         marker = "      - name: Create missing governed plugin release tag"
         self.assertIn(marker, workflow)
@@ -489,9 +489,11 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             step,
         )
         self.assertIn(
-            'git ls-remote --exit-code --tags origin "refs/tags/$tag"',
+            'git ls-remote --tags origin "refs/tags/$tag"',
             step,
         )
+        self.assertIn('"$remote_tag_commit" != "$GITHUB_SHA"', step)
+        self.assertIn("exit 1", step)
         self.assertIn('git push origin "refs/tags/$tag"', step)
         self.assertNotIn("git push origin --tags", step)
 
@@ -499,7 +501,7 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         docs = (PLUGIN_ROOT / "docs" / "versioning.md").read_text(encoding="utf-8")
         rules = (PLUGIN_ROOT / "AGENTS.md").read_text(encoding="utf-8")
         adr = (
-            PLUGIN_ROOT
+            REPOSITORY_ROOT
             / "architecture"
             / "decisions"
             / "ADR-0013-continuous-stable-plugin-versioning.md"

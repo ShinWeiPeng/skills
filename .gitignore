@@ -41,3 +41,10 @@ htmlcov/
 .DS_Store
 Thumbs.db
 Desktop.ini
+dist/
+.codex-arch-deps/
+.tmp-arch-deps/
+.validation-deps/
+.test-tmp/
+__pycache__/
+*.pyc

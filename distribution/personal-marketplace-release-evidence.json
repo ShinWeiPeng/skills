@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "status": "pending",
+  "marketplace": {
+    "repository_url": "https://github.com/ShinWeiPeng/skills.git",
+    "git_ref": "marketplace-release",
+    "branch_commit": "EVIDENCE_MUST_SUPPLY",
+    "source_commit": "EVIDENCE_MUST_SUPPLY",
+    "source_tag": "EVIDENCE_MUST_SUPPLY",
+    "marketplace_path": ".agents/plugins/marketplace.json",
+    "sparse_paths": [
+      ".agents/plugins",
+      "plugins/governed-engineering-skills"
+    ]
+  },
+  "artifact": {
+    "name": "EVIDENCE_MUST_SUPPLY",
+    "version": "EVIDENCE_MUST_SUPPLY",
+    "content_fingerprint": "EVIDENCE_MUST_SUPPLY"
+  },
+  "invocations": {
+    "chatgpt-work-web": {
+      "engineering": {"skill": "codebase-design", "evidence": {"kind": "repository-file", "path": "EVIDENCE_MUST_SUPPLY", "sha256": "EVIDENCE_MUST_SUPPLY"}},
+      "productivity": {"skill": "writing-great-skills", "evidence": {"kind": "repository-file", "path": "EVIDENCE_MUST_SUPPLY", "sha256": "EVIDENCE_MUST_SUPPLY"}}
+    },
+    "codex": {
+      "engineering": {"skill": "codebase-design", "evidence": {"kind": "repository-file", "path": "EVIDENCE_MUST_SUPPLY", "sha256": "EVIDENCE_MUST_SUPPLY"}},
+      "productivity": {"skill": "writing-great-skills", "evidence": {"kind": "repository-file", "path": "EVIDENCE_MUST_SUPPLY", "sha256": "EVIDENCE_MUST_SUPPLY"}}
+    }
+  }
+}

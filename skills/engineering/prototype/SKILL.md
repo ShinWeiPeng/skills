@@ -7,6 +7,8 @@ description: Build a throwaway prototype to answer a design question. Use when t
 
 A prototype is **throwaway code that answers a question**. The question decides the shape.
 
+Before creating prototype files, invoke `$engineering-risk-routing` and follow its shared governed entry gate. An R2/R3 prototype still requires its governance gates; throwaway status does not cancel hardware, contract, architecture, or safety risk.
+
 ## Pick a branch
 
 Identify which question is being answered — from the user's prompt, the surrounding code, or by asking if the user is around:

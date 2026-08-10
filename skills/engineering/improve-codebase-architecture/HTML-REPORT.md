@@ -47,12 +47,27 @@ Each candidate is one `<article>`:
 - **Badge row** — recommendation strength (`Strong` = emerald, `Worth exploring` = amber, `Speculative` = slate), plus a tag for the dependency category (`in-process`, `local-substitutable`, `ports & adapters`, `mock`).
 - **Files** — monospaced list, `font-mono text-sm`.
 - **Before / After diagram** — the centrepiece. Two columns, side by side. See patterns below.
+- **Flow execution evidence** — an as-is/target sequence with the critical path,
+  timing class, model status (`estimated`, `calibrated`, `validated`, or
+  `BLOCKED`), confidence basis, predicted and observed values, prediction error,
+  scenario coverage, uncovered risks, reserve source, and resource headroom.
+- **Evolution evidence** — a compact change-scenario matrix for adding a source,
+  subscriber, adapter, processing stage, or platform variant, naming affected
+  Modules, interfaces, mappings, tests, execution profiles, and deployment.
+- **Candidate comparison** — hard constraint failures first, followed by a
+  Pareto comparison of execution, reliability, locality, leverage,
+  compatibility, and migration tradeoffs. Never show a universal weighted
+  score.
 - **Problem** — one sentence. What hurts.
 - **Solution** — one sentence. What changes.
 - **Wins** — bullets, ≤6 words each. e.g. "Tests hit one interface", "Pricing logic stops leaking", "Delete 4 shallow wrappers".
 - **ADR callout** (if applicable) — one line in an amber-tinted box.
 
 No paragraphs of explanation. If the diagram needs a paragraph to be understood, redraw the diagram.
+
+Do not render an evidence field as zero when it was not measured. Use `not
+measured` or `BLOCKED` with the exact missing evidence. A performance winner
+requires calibrated evidence whenever measurement can change the selection.
 
 ## Diagram patterns
 
@@ -74,6 +89,33 @@ Use a Mermaid `flowchart` or `graph` when the point is "X calls Y calls Z, and l
   </pre>
 </div>
 ```
+
+### Execution timeline (critical path and runtime hops)
+
+Use a sequence diagram when execution order, callbacks, Queue waits,
+re-entry, state commit, or Task/core hops explain the cost. Mark the critical
+path and distinguish predicted from observed costs. Show stack/payload lifetime
+where it changes the recommendation.
+
+### Model assurance and resource headroom
+
+Render a compact evidence table:
+
+| Metric | Budget/source | Predicted | Observed | Error | Reserve/headroom | Coverage | Status | Confidence basis |
+|---|---|---:|---:|---:|---:|---|---|---|
+
+Include build composition and evidence references below the table. For
+real-time Flows, show WCET/response bound, deadline, jitter, blocking, channel,
+context-switch, core, and interrupt assumptions. Average-only results remain
+`BLOCKED`. Confidence is a short evidence-grounded explanation of calibration,
+coverage, prediction error, and remaining risk; do not invent a numeric score.
+
+### Maintainability change-scenario matrix
+
+Render scenarios as rows and candidates as columns. Each cell names the
+affected owner Modules, public interfaces, mappings, Flows, tests, execution
+profiles, migration, and deployment artifacts. Prefer evidence of locality,
+leverage, and stable contract tests over subjective labels such as "cleaner."
 
 ### Hand-built boxes-and-arrows (when Mermaid's layout fights you)
 
@@ -101,7 +143,10 @@ Before: a tree of function calls rendered as nested boxes. After: the same tree 
 
 ## Top recommendation section
 
-One larger card. Candidate name, one sentence on why, anchor link to its card. That's it.
+One larger card. Candidate name, one sentence on why, model status, decisive
+constraints/evidence, sacrifices, and an anchor link to its card. If
+load-bearing evidence is missing, label the recommendation directional and
+show `BLOCKED`; do not imply a validated winner.
 
 ## Tone
 

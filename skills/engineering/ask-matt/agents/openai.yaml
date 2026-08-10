@@ -1,5 +1,4 @@
 interface:
   display_name: "Ask Matt"
-  short_description: "Find the right skill or workflow"
-policy:
-  allow_implicit_invocation: false
+  short_description: "Automatically route every engineering request"
+  default_prompt: "Automatically assess this engineering request with $ask-matt; do not require the user to name a skill."
