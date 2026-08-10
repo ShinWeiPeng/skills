@@ -1,5 +1,22 @@
 # Governed Engineering Skills
 
+## 0.8.0
+
+### Added
+
+- Deterministic single-source Plugin assembly and generated personal Git Marketplace publication
+- Cross-product Skill compatibility inventory and validation
+
+### Changed
+
+- Promoted engineering and productivity buckets now own all Plugin Skills
+- Formal architecture governance now lives at the repository root
+
+### Fixed
+
+- Removed the unsupported one-click local installer and its Codex Desktop launcher
+- Bound assembled Plugin release-state fingerprints to the final generated artifact
+
 ## 0.7.1
 
 ### Fixed
