@@ -20,13 +20,13 @@ flowchart TD
 - **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
-- **Input Ports:** None
+- **Input Ports:** `plugin-release.synchronize-artifact`
 - **Output Ports:** `plugin-distribution.result`
 - **Emitted Events:** `plugin-distribution.blocked`
 - **Owned State:** None
 - **Side Effects:** Replace only selected ignored output directories with a deterministic Plugin artifact and Marketplace publication tree. (`-`)
 - **Errors:** `plugin_distribution_invalid`: Source metadata, artifact inventory, publication identity, tree fingerprint, cross-surface evidence, or output ownership is invalid. → `plugin-distribution.blocked` → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
-- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Local maintainer testing and `marketplace-release` publication consume the same artifact identity.; ChatGPT Work web and Codex Desktop install independently from one Git-backed release.; `marketplace-release` is generated and never becomes an editable Skill source.
+- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; Local maintainer testing and `marketplace-release` publication consume the same artifact identity.; ChatGPT Work web and Codex Desktop install independently from one Git-backed release.; `marketplace-release` is generated and never becomes an editable Skill source.
 - **Entrypoints:** [`main`](../../scripts/assemble_plugin.py) (cli)
 - **Public Symbols:** [`assemble`](../../scripts/assemble_plugin.py) (function)<br>[`validate_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`write_marketplace_publication`](../../scripts/assemble_plugin.py) (function)<br>[`validate`](../../scripts/validate_distribution.py) (function)<br>[`validate`](../../scripts/validate_personal_marketplace_release.py) (function)
 
@@ -34,6 +34,7 @@ flowchart TD
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
+| `plugin-release.synchronize-artifact` | `plugin_assembly_composition` | input | command | sync | Ask Plugin release governance to bind an assembled Plugin release-state to that artifact's current production fingerprint.: Assembled Plugin root path whose release-state fingerprint must match its logical production files. | `assemble` |
 | `plugin-distribution.result` | `plugin_assembly_composition` | output | event | sync | Publish a fail-closed Plugin assembly or Marketplace validation result.: Artifact identity, publication identity, and bounded validation diagnostics. | `validate_artifact` |
 
 ## Event Contracts

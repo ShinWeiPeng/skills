@@ -485,6 +485,7 @@ modules:
   parent: null
   depends_on:
   - codex_plugin_adapter
+  - plugin_release_governance_technical
   implements_ports: []
   public_headers: []
   description:
@@ -494,7 +495,8 @@ modules:
       publication tree and identity record.
     diagram_summaries:
       zh-TW: 組裝單一外掛並產生個人 Git 市集發佈樹
-    input_ports: []
+    input_ports:
+    - plugin-release.synchronize-artifact
     output_ports:
     - plugin-distribution.result
     emitted_events:
@@ -514,6 +516,7 @@ modules:
     - Root engineering and productivity buckets are the only editable Skill source.
     - The tracked Plugin shell never contains a skills directory.
     - Every artifact records one complete file inventory and SHA-256 content fingerprint.
+    - Assembled release-state mutation is delegated to Plugin release governance before inventory creation.
     - "Local maintainer testing and `marketplace-release` publication consume the same artifact identity."
     - ChatGPT Work web and Codex Desktop install independently from one Git-backed release.
     - "`marketplace-release` is generated and never becomes an editable Skill source."
@@ -585,7 +588,8 @@ modules:
   - plugins/governed-engineering-skills/scripts/version_governance.py
   parent: null
   depends_on: []
-  implements_ports: []
+  implements_ports:
+  - plugin-release.synchronize-artifact
   public_headers: []
   description:
     purpose: Validate and release the repository's only release unit through
@@ -601,6 +605,8 @@ modules:
     side_effects:
     - description: An authorized release intent atomically updates plugin version
         metadata, the production fingerprint, applied changesets, and the changelog.
+    - description: Artifact synchronization updates only the assembled Plugin release-state
+        fingerprint before its immutable inventory is generated.
     errors:
     - id: plugin_release_identity_invalid
       condition: Version, changelog, changeset, tag, or release intent is inconsistent.
@@ -616,6 +622,8 @@ modules:
       declared bump determines the next stable version.
     - Invalid transitions or inconsistent metadata are rejected before any release
       file is modified.
+    - Production fingerprint synchronization rejects the tracked incomplete Plugin
+      shell and accepts only a populated assembled Skill tree.
   entrypoints:
   - path: plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: main
@@ -623,6 +631,9 @@ modules:
   public_symbols:
   - path: plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: validate_repository
+    kind: function
+  - path: plugins/governed-engineering-skills/scripts/version_governance.py
+    symbol: synchronize_production_fingerprint
     kind: function
 - id: architecture_governance_cli
   level: L0
@@ -702,6 +713,26 @@ composition_roots:
   source_set: repository-production
   kind: release
 ports:
+- id: plugin-release.synchronize-artifact
+  owner: plugin_assembly_composition
+  direction: input
+  kind: command
+  contract: plugins/governed-engineering-skills/scripts/version_governance.py
+  implemented_by:
+  - plugin_release_governance_technical
+  description:
+    purpose: Ask Plugin release governance to bind an assembled Plugin release-state
+      to that artifact's current production fingerprint.
+    data: Assembled Plugin root path whose release-state fingerprint must match its
+      logical production files.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: The target lacks a populated assembled Skill tree, or its release-state
+        is missing, malformed, or lacks its fingerprint field.
+    - code: unavailable
+      condition: The assembled Plugin fingerprint cannot be calculated.
+  symbols: [assemble]
 - id: plugin-distribution.result
   owner: plugin_assembly_composition
   direction: output

@@ -9,6 +9,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -186,6 +187,22 @@ def _inventory(artifact: Path) -> dict[str, object]:
     return identity
 
 
+def _synchronize_release_state_fingerprint(artifact: Path) -> None:
+    version_tool = artifact / "scripts" / "version_governance.py"
+    completed = subprocess.run(
+        [sys.executable, str(version_tool), "sync-fingerprint"],
+        cwd=artifact,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip()
+        raise DistributionError(
+            f"unable to synchronize assembled Plugin release state: {detail}"
+        )
+
+
 def assemble(repo_root: Path, output: Path) -> dict[str, object]:
     repo_root = repo_root.resolve()
     output = output.resolve()
@@ -208,6 +225,7 @@ def assemble(repo_root: Path, output: Path) -> dict[str, object]:
     _copy_repository_tree(repo_root, SHELL_PATH, output)
     for name, source in skills.items():
         _copy_skill(source, output / "skills" / name)
+    _synchronize_release_state_fingerprint(output)
     result = _inventory(output)
     (output / INVENTORY_NAME).write_bytes(_json_bytes(result))
     return result

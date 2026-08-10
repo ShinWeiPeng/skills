@@ -30,6 +30,7 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
+    n_plugin_assembly_composition -.->|depends| n_plugin_release_governance_technical
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
@@ -179,13 +180,13 @@ flowchart TD
 - **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
-- **Input Ports:** None
+- **Input Ports:** `plugin-release.synchronize-artifact`
 - **Output Ports:** `plugin-distribution.result`
 - **Emitted Events:** `plugin-distribution.blocked`
 - **Owned State:** None
 - **Side Effects:** Replace only selected ignored output directories with a deterministic Plugin artifact and Marketplace publication tree. (`-`)
 - **Errors:** `plugin_distribution_invalid`: Source metadata, artifact inventory, publication identity, tree fingerprint, cross-surface evidence, or output ownership is invalid. → `plugin-distribution.blocked` → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
-- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Local maintainer testing and `marketplace-release` publication consume the same artifact identity.; ChatGPT Work web and Codex Desktop install independently from one Git-backed release.; `marketplace-release` is generated and never becomes an editable Skill source.
+- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; Local maintainer testing and `marketplace-release` publication consume the same artifact identity.; ChatGPT Work web and Codex Desktop install independently from one Git-backed release.; `marketplace-release` is generated and never becomes an editable Skill source.
 - **Entrypoints:** [`main`](../../scripts/assemble_plugin.py) (cli)
 - **Public Symbols:** [`assemble`](../../scripts/assemble_plugin.py) (function)<br>[`validate_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`write_marketplace_publication`](../../scripts/assemble_plugin.py) (function)<br>[`validate`](../../scripts/validate_distribution.py) (function)<br>[`validate`](../../scripts/validate_personal_marketplace_release.py) (function)
 
@@ -213,11 +214,11 @@ flowchart TD
 - **Output Ports:** `plugin-release.result`
 - **Emitted Events:** `plugin-release.blocked`
 - **Owned State:** None
-- **Side Effects:** An authorized release intent atomically updates plugin version metadata, the production fingerprint, applied changesets, and the changelog. (`-`)
+- **Side Effects:** An authorized release intent atomically updates plugin version metadata, the production fingerprint, applied changesets, and the changelog. (`-`); Artifact synchronization updates only the assembled Plugin release-state fingerprint before its immutable inventory is generated. (`-`)
 - **Errors:** `plugin_release_identity_invalid`: Version, changelog, changeset, tag, or release intent is inconsistent. → `plugin-release.blocked` → Stop before tagging or Marketplace publication and report the stale release identity.
-- **Invariants:** Plugin package and Codex manifest versions remain identical.; Plugin release metadata is the repository's sole active version authority.; Local Codex cachebusters never become formal release versions.; Formal plugin versions contain no prerelease or general build metadata.; Every release intent names the complete pending changeset set, and the highest declared bump determines the next stable version.; Invalid transitions or inconsistent metadata are rejected before any release file is modified.
+- **Invariants:** Plugin package and Codex manifest versions remain identical.; Plugin release metadata is the repository's sole active version authority.; Local Codex cachebusters never become formal release versions.; Formal plugin versions contain no prerelease or general build metadata.; Every release intent names the complete pending changeset set, and the highest declared bump determines the next stable version.; Invalid transitions or inconsistent metadata are rejected before any release file is modified.; Production fingerprint synchronization rejects the tracked incomplete Plugin shell and accepts only a populated assembled Skill tree.
 - **Entrypoints:** [`main`](../../plugins/governed-engineering-skills/scripts/version_governance.py) (cli)
-- **Public Symbols:** [`validate_repository`](../../plugins/governed-engineering-skills/scripts/version_governance.py) (function)
+- **Public Symbols:** [`validate_repository`](../../plugins/governed-engineering-skills/scripts/version_governance.py) (function)<br>[`synchronize_production_fingerprint`](../../plugins/governed-engineering-skills/scripts/version_governance.py) (function)
 
 ### `architecture_governance_cli`
 
@@ -253,6 +254,7 @@ flowchart TD
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
+| `plugin-release.synchronize-artifact` | `plugin_assembly_composition` | input | command | sync | Ask Plugin release governance to bind an assembled Plugin release-state to that artifact's current production fingerprint.: Assembled Plugin root path whose release-state fingerprint must match its logical production files. | `assemble` |
 | `plugin-distribution.result` | `plugin_assembly_composition` | output | event | sync | Publish a fail-closed Plugin assembly or Marketplace validation result.: Artifact identity, publication identity, and bounded validation diagnostics. | `validate_artifact` |
 | `plugin-integration.result` | `integration_validation_technical` | output | event | sync | Publish the assembled Plugin integration-validation result.: Inventory, metadata, portability, and isolation diagnostics. | `main` |
 | `plugin-release.result` | `plugin_release_governance_technical` | output | event | sync | Publish the stable Plugin release-identity validation result.: Version, changeset, tag, and release-intent diagnostics. | `validate_repository` |

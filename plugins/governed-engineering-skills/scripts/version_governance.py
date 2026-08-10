@@ -153,6 +153,36 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     )
 
 
+def synchronize_production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
+    """Bind one assembled Plugin release state to its own production files."""
+    skills_root = root / "skills"
+    assembled_skills = (
+        sorted(skills_root.glob("*/SKILL.md")) if skills_root.is_dir() else []
+    )
+    if not assembled_skills:
+        raise ValueError(
+            "production fingerprint synchronization requires an assembled Plugin "
+            "with a populated skills tree"
+        )
+    state_path = root / ".changeset" / "release-state.json"
+    state = _read_json(state_path)
+    if set(state) != STATE_FIELDS:
+        missing = sorted(STATE_FIELDS - set(state))
+        extra = sorted(set(state) - STATE_FIELDS)
+        detail = []
+        if missing:
+            detail.append(f"missing={','.join(missing)}")
+        if extra:
+            detail.append(f"extra={','.join(extra)}")
+        raise ValueError(
+            "release-state fields are invalid: " + "; ".join(detail)
+        )
+    fingerprint = production_fingerprint(root)
+    state["production_fingerprint"] = fingerprint
+    _write_json(state_path, state)
+    return fingerprint
+
+
 def _formal_manifest_version(manifest_version: str) -> str:
     return manifest_version.split("+codex.", 1)[0]
 
@@ -549,6 +579,7 @@ def main(argv: list[str] | None = None) -> int:
     check_parser = commands.add_parser("check")
     check_parser.add_argument("--local", action="store_true")
     commands.add_parser("fingerprint")
+    commands.add_parser("sync-fingerprint")
     commands.add_parser("apply-intent")
     next_parser = commands.add_parser("next")
     next_parser.add_argument(
@@ -582,6 +613,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "fingerprint":
             print(production_fingerprint(root))
+            return 0
+        if args.command == "sync-fingerprint":
+            fingerprint = synchronize_production_fingerprint(root)
+            print(f"PASS: synchronized production fingerprint {fingerprint}")
             return 0
         if args.command == "apply-intent":
             target = apply_pending_intent(root)

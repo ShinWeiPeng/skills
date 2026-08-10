@@ -30,6 +30,7 @@
 - `SYM004` `spec_governance_domain` — `active`: one or more symbols have no installed language analyzer
 - `SYM004` `governance_workflow_domain` — `active`: one or more symbols have no installed language analyzer
 - `SYM004` `codex_plugin_adapter` — `active`: one or more symbols have no installed language analyzer
+- `FLW014` `plugin-release.synchronize-artifact` — `active`: public command is not referenced by a flow
 - `FLW015` `plugin-distribution.blocked` — `active`: event is not referenced by a flow
 - `FLW015` `plugin-integration.blocked` — `active`: event is not referenced by a flow
 - `FLW015` `plugin-release.blocked` — `active`: event is not referenced by a flow

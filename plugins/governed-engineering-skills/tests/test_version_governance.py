@@ -195,6 +195,17 @@ class RepositoryPolicyTests(unittest.TestCase):
                 changeset_ids=[],
             )
 
+    def test_sync_fingerprint_rejects_an_incomplete_plugin_shell(self) -> None:
+        root = self.make_repo()
+        state_path = root / ".changeset" / "release-state.json"
+        before = state_path.read_bytes()
+        (root / "skills").rmdir()
+
+        with self.assertRaisesRegex(ValueError, "assembled Plugin"):
+            MODULE.synchronize_production_fingerprint(root)
+
+        self.assertEqual(before, state_path.read_bytes())
+
     def test_release_does_not_touch_parent_changesets_context(self) -> None:
         root = self.make_repo()
         parent_changesets = root.parent / ".changeset"

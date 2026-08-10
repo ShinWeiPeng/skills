@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -125,6 +126,52 @@ class SharedSkillDistributionTests(unittest.TestCase):
             first = module.assemble(REPO_ROOT, artifact)
             second = module.assemble(REPO_ROOT, artifact)
             self.assertEqual(first["content_fingerprint"], second["content_fingerprint"])
+
+    def test_versioned_artifact_passes_its_own_integration_validation(self) -> None:
+        module = load_assembler()
+        with tempfile.TemporaryDirectory() as output_dir:
+            temporary_root = Path(output_dir)
+            repository = temporary_root / "repository"
+            shell = repository / "plugins" / "governed-engineering-skills"
+            shutil.copytree(PLUGIN_SHELL, shell)
+            for promoted_root in PROMOTED_ROOTS:
+                shutil.copytree(
+                    promoted_root,
+                    repository / promoted_root.relative_to(REPO_ROOT),
+                )
+            subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
+            subprocess.run(["git", "add", "-A"], cwd=repository, check=True)
+
+            applied = subprocess.run(
+                [
+                    sys.executable,
+                    str(shell / "scripts" / "version_governance.py"),
+                    "apply-intent",
+                ],
+                cwd=repository,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(0, applied.returncode, applied.stdout + applied.stderr)
+
+            artifact = temporary_root / "governed-engineering-skills"
+            module.assemble(repository, artifact)
+            integrated = subprocess.run(
+                [
+                    sys.executable,
+                    str(artifact / "scripts" / "validate_integration.py"),
+                ],
+                cwd=repository,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(
+                0,
+                integrated.returncode,
+                integrated.stdout + integrated.stderr,
+            )
 
     def test_assembly_removes_claude_only_invocation_metadata(self) -> None:
         module = load_assembler()

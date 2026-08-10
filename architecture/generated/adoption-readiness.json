@@ -123,6 +123,14 @@
       {
         "configuration": false,
         "disposition": "active",
+        "location": "plugin-release.synchronize-artifact",
+        "message": "public command is not referenced by a flow",
+        "rule_id": "FLW014",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
         "location": "plugin-distribution.blocked",
         "message": "event is not referenced by a flow",
         "rule_id": "FLW015",

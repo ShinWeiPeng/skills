@@ -14,7 +14,8 @@
       "Formal architecture governance now lives at the repository root"
     ],
     "Fixed": [
-      "Removed the unsupported one-click local installer and its Codex Desktop launcher"
+      "Removed the unsupported one-click local installer and its Codex Desktop launcher",
+      "Bound assembled Plugin release-state fingerprints to the final generated artifact"
     ]
   }
 }
