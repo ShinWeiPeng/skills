@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.7.1",
-  "previous_version": "0.7.0",
-  "bump": "patch",
-  "production_fingerprint": "sha256:6fecbf6b5abf5a7571e841724112d996fad22c55d94856d2faa1d4fcceb918f4",
+  "current_version": "0.8.0",
+  "previous_version": "0.7.1",
+  "bump": "minor",
+  "production_fingerprint": "sha256:10f861cfe91f472a9bb0e707df382b40026213281b0beaf1351735ea45e8e34d",
   "applied_changesets": [
-    "codex-desktop-cli-detection"
+    "shared-skill-distribution"
   ]
 }
