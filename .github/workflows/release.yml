@@ -225,7 +225,7 @@ jobs:
           cp -R dist/marketplace-release "$staging"
           git worktree add --detach "$publication_worktree"
           git -C "$publication_worktree" switch --orphan marketplace-release-publication
-          git -C "$publication_worktree" rm -rf .
+          git -C "$publication_worktree" rm -rf --ignore-unmatch .
           cp -R "$staging"/. "$publication_worktree"/
           git -C "$publication_worktree" add -A
           git -C "$publication_worktree" config user.name "github-actions[bot]"

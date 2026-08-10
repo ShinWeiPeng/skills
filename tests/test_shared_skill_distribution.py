@@ -368,11 +368,98 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertLess(version_at, publish_at)
         self.assertLess(publish_at, evidence_at)
         self.assertIn('git worktree add --detach "$publication_worktree"', release_job)
+        self.assertIn(
+            'git -C "$publication_worktree" rm -rf --ignore-unmatch .',
+            release_job,
+        )
         self.assertIn('git -C "$publication_worktree" add -A', release_job)
         self.assertIn('"$remote_tag_commit" != "$GITHUB_SHA"', release_job)
         self.assertIn('exit 1', release_job)
         self.assertIn('--branch-commit "$branch_commit"', release_job)
         self.assertNotIn("Workspace publication", release_job)
+
+    def test_marketplace_publication_can_populate_an_empty_orphan_worktree(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository = root / "repository"
+            publication_worktree = root / "publication-worktree"
+
+            def run_git(*args: str) -> subprocess.CompletedProcess[str]:
+                return subprocess.run(
+                    ["git", *args],
+                    cwd=root,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+
+            initialized = run_git("init", "--initial-branch", "main", str(repository))
+            self.assertEqual(0, initialized.returncode, initialized.stdout + initialized.stderr)
+            (repository / "seed.txt").write_text("seed\n", encoding="utf-8")
+            staged = run_git("-C", str(repository), "add", "seed.txt")
+            self.assertEqual(0, staged.returncode, staged.stdout + staged.stderr)
+            committed = run_git(
+                "-C",
+                str(repository),
+                "-c",
+                "user.name=Marketplace Test",
+                "-c",
+                "user.email=marketplace@example.invalid",
+                "commit",
+                "-m",
+                "seed",
+            )
+            self.assertEqual(0, committed.returncode, committed.stdout + committed.stderr)
+            detached = run_git(
+                "-C",
+                str(repository),
+                "worktree",
+                "add",
+                "--detach",
+                str(publication_worktree),
+            )
+            self.assertEqual(0, detached.returncode, detached.stdout + detached.stderr)
+            orphaned = run_git(
+                "-C",
+                str(publication_worktree),
+                "switch",
+                "--orphan",
+                "marketplace-release-publication",
+            )
+            self.assertEqual(0, orphaned.returncode, orphaned.stdout + orphaned.stderr)
+
+            cleaned = run_git(
+                "-C",
+                str(publication_worktree),
+                "rm",
+                "-rf",
+                "--ignore-unmatch",
+                ".",
+            )
+            self.assertEqual(0, cleaned.returncode, cleaned.stdout + cleaned.stderr)
+            (publication_worktree / "plugins" / "governed-engineering-skills").mkdir(
+                parents=True
+            )
+            (publication_worktree / "publication-record.json").write_text(
+                "{}\n", encoding="utf-8"
+            )
+            (
+                publication_worktree
+                / "plugins"
+                / "governed-engineering-skills"
+                / "artifact-inventory.json"
+            ).write_text("{}\n", encoding="utf-8")
+            published = run_git("-C", str(publication_worktree), "add", "-A")
+            self.assertEqual(0, published.returncode, published.stdout + published.stderr)
+            tracked = run_git("-C", str(publication_worktree), "ls-files")
+            self.assertEqual(0, tracked.returncode, tracked.stdout + tracked.stderr)
+            self.assertEqual(
+                [
+                    "plugins/governed-engineering-skills/artifact-inventory.json",
+                    "publication-record.json",
+                ],
+                tracked.stdout.splitlines(),
+            )
 
     def test_release_acceptance_is_blocked_while_personal_evidence_is_pending(self) -> None:
         completed = subprocess.run(
