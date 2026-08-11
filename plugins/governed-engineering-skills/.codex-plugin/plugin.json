@@ -1,6 +1,6 @@
 {
   "name": "governed-engineering-skills",
-  "version": "0.8.1",
+  "version": "0.7.2",
   "description": "Automatically route software-engineering work through evidence-backed interviewing, delivery, architecture, and runtime governance.",
   "author": {
     "name": "Hugo Peng"
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Governed Engineering Skills",
     "shortDescription": "Automatically govern every engineering workflow.",
-    "longDescription": "A shared engineering and productivity Skill bundle for supported ChatGPT Work and Codex surfaces. Codex applies additional repository, architecture, code-flow, and runtime-evidence gates when those host capabilities are required.",
+    "longDescription": "A Codex Desktop and CLI engineering and productivity Skill bundle with automatic routing plus repository, architecture, code-flow, and runtime-evidence governance.",
     "developerName": "Hugo Peng",
     "category": "Developer Tools",
     "capabilities": [

@@ -80,7 +80,7 @@ python scripts/assemble_plugin.py validate
 The artifact inventory fingerprint is the identity shared by manual maintainer
 testing and the generated personal Git Marketplace candidate. The release
 workflow publishes that validated candidate to `marketplace-release`; users add
-the Marketplace independently on ChatGPT Work web and Codex Desktop.
+the Marketplace as an optional Codex-only distribution source.
 
 Keep `package.json`, `.codex-plugin/plugin.json`, `CHANGELOG.md`,
 `.changeset/release-state.json`, changesets, release intent, and the production

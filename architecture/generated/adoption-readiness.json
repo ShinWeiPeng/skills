@@ -42,7 +42,6 @@
           "plugins/governed-engineering-skills/scripts/version_governance.py",
           "scripts/assemble_plugin.py",
           "scripts/validate_distribution.py",
-          "scripts/validate_personal_marketplace_release.py",
           "skills/engineering/engineering-risk-routing/scripts/classify_risk.py",
           "skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py",
           "skills/engineering/engineering-risk-routing/scripts/project_state.py",
@@ -123,17 +122,25 @@
       {
         "configuration": false,
         "disposition": "active",
-        "location": "plugin-release.synchronize-artifact",
-        "message": "public command is not referenced by a flow",
-        "rule_id": "FLW014",
+        "location": "plugin_assembly_composition",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
         "severity": "SHOULD"
       },
       {
         "configuration": false,
         "disposition": "active",
-        "location": "plugin-distribution.blocked",
-        "message": "event is not referenced by a flow",
-        "rule_id": "FLW015",
+        "location": "local_install_adapter",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
+        "location": "plugin-release.synchronize-artifact",
+        "message": "public command is not referenced by a flow",
+        "rule_id": "FLW014",
         "severity": "SHOULD"
       },
       {

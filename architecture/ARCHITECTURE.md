@@ -9,8 +9,8 @@
 
 - `guided_workflow_router` — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
   - Entrypoints: [`ask-matt`](../skills/engineering/ask-matt/SKILL.md) (skill)<br>[`main`](../skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
-- `plugin_assembly_composition` — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record.
-  - Entrypoints: [`main`](../scripts/assemble_plugin.py) (cli)
+- `plugin_assembly_composition` — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
+  - Entrypoints: [`main`](../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../scripts/install-local.ps1) (script)
 - `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI.
   - Entrypoints: [`main`](../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
 
@@ -79,10 +79,10 @@ flowchart TD
 
 ### `plugin_assembly_composition`
 
-- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record.
+- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - **Children:** None
-- **Related Flows:** None
-- **Protection Rationale:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; Local maintainer testing and `marketplace-release` publication consume the same artifact identity.; ChatGPT Work web and Codex Desktop install independently from one Git-backed release.; `marketplace-release` is generated and never becomes an editable Skill source.; Source metadata, artifact inventory, publication identity, tree fingerprint, cross-surface evidence, or output ownership is invalid. → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
+- **Related Flows:** [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation)
+- **Protection Rationale:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; `marketplace-release` is generated and never becomes an editable Skill source.; Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
 
 ### `architecture_governance_cli`
 
@@ -99,11 +99,12 @@ flowchart TD
 - [`workflow_routing_domain`](generated/workflow_routing_domain.md) — Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
 - [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
 - [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
-- [`plugin_assembly_composition`](generated/plugin_assembly_composition.md) — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record.
+- [`plugin_assembly_composition`](generated/plugin_assembly_composition.md) — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
 
 ## End-to-End Flows
 
+- [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation) — Assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
 - [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass.
 
@@ -122,6 +123,7 @@ flowchart TD
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
+    n_local_install_adapter["local_install_adapter (L3+)<br/>註冊本機 Marketplace、安裝外掛並開啟 Codex 詳情頁"]
     n_integration_validation_technical["integration_validation_technical (L3+)<br/>驗證外掛清單、叫用政策、可攜性與內容隔離"]
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>以穩定語意版本治理唯一外掛發佈單元"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>透過單一命令列介面執行架構治理與原生分析"]
@@ -139,6 +141,7 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
+    n_plugin_assembly_composition -.->|depends| n_local_install_adapter
     n_plugin_assembly_composition -.->|depends| n_plugin_release_governance_technical
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
@@ -150,7 +153,6 @@ flowchart TD
 
 - `plugin-distribution-error` — `plugin_assembly_composition` / `domain-value` / `cross-module`
 - `personal-marketplace-publication-record` — `plugin_assembly_composition` / `domain-value` / `cross-module`
-- `personal-marketplace-release-evidence` — `plugin_assembly_composition` / `domain-value` / `cross-module`
 - `repository-artifact` — `workflow_routing_domain` / `domain-value` / `cross-module`
 - `repository-evidence` — `workflow_routing_domain` / `domain-value` / `cross-module`
 - `project-state-assessment` — `workflow_routing_domain` / `query` / `cross-module`

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate single-source Plugin assembly and cross-product release metadata."""
+"""Validate single-source Plugin assembly and Codex distribution metadata."""
 
 from __future__ import annotations
 
@@ -25,34 +25,6 @@ from assemble_plugin import (  # noqa: E402
 )
 
 
-CODEX_ONLY = {
-    "ask-matt",
-    "clarify-improvement-proposals",
-    "code-review",
-    "diagnosing-bugs",
-    "domain-modeling",
-    "engineering-risk-routing",
-    "explain-code-flow",
-    "govern-modular-event-architecture",
-    "grill-me",
-    "grill-with-docs",
-    "grilling",
-    "handoff",
-    "implement",
-    "improve-codebase-architecture",
-    "prototype",
-    "research",
-    "resolving-merge-conflicts",
-    "setup-matt-pocock-skills",
-    "spec-governance",
-    "tdd",
-    "teach",
-    "to-spec",
-    "to-tickets",
-    "triage",
-    "validate-on-device",
-    "wayfinder",
-}
 MANDATORY_CAPABILITY_EVIDENCE = {
     "code-review": ("git diff", "sub-agent"),
     "diagnosing-bugs": ("regression",),
@@ -74,8 +46,9 @@ MANDATORY_CAPABILITY_EVIDENCE = {
     "triage": ("issue tracker",),
     "wayfinder": ("issue tracker",),
 }
-REMOVED_INSTALLER_PATHS = (
+REQUIRED_INSTALLER_PATHS = (
     "Install Governed Engineering Skills.cmd",
+    "scripts/install-local.ps1",
     "plugins/governed-engineering-skills/scripts/install-local.ps1",
     "plugins/governed-engineering-skills/tests/test_install_local.ps1",
 )
@@ -83,20 +56,15 @@ REMOVED_INSTALLER_PATHS = (
 
 def compatibility_dependency_errors(entries: dict, skills: dict[str, Path]) -> list[str]:
     errors: list[str] = []
-    classifications = {name: entry.get("classification") for name, entry in entries.items()}
     for name, entry in entries.items():
         dependencies = entry.get("host_dependencies")
         if not isinstance(dependencies, list):
             errors.append(f"{name}: host_dependencies must be a list")
-        elif classifications.get(name) == "cross-product" and dependencies:
-            errors.append(f"{name}: cross-product Skill cannot require a host-specific dependency")
     for name, markers in MANDATORY_CAPABILITY_EVIDENCE.items():
         skill_text = (skills[name] / "SKILL.md").read_text(encoding="utf-8", errors="ignore")
         missing = [marker for marker in markers if marker.casefold() not in skill_text.casefold()]
         if missing:
             errors.append(f"{name}: mandatory capability evidence changed; missing markers {missing}")
-        if classifications.get(name) != "codex-only":
-            errors.append(f"{name}: mandatory host capability cannot be cross-product")
     return errors
 
 
@@ -109,17 +77,17 @@ def validate(repo_root: Path) -> list[str]:
     plugin_shell = repo_root / "plugins" / PLUGIN_NAME
     if (plugin_shell / "skills").exists():
         errors.append("plugin shell contains a duplicate skills tree")
-    for relative in REMOVED_INSTALLER_PATHS:
-        if (repo_root / relative).exists():
-            errors.append(f"removed installer surface still exists: {relative}")
+    for relative in REQUIRED_INSTALLER_PATHS:
+        if not (repo_root / relative).is_file():
+            errors.append(f"required installer surface is missing: {relative}")
 
     manifest_path = repo_root / "architecture" / "manifest.yaml"
     if not manifest_path.is_file():
         errors.append("repository-root architecture/manifest.yaml is missing")
     else:
         architecture_text = manifest_path.read_text(encoding="utf-8")
-        if "local_install_adapter" in architecture_text:
-            errors.append("formal architecture still declares local_install_adapter")
+        if "local_install_adapter" not in architecture_text:
+            errors.append("formal architecture does not declare local_install_adapter")
     if (plugin_shell / "architecture").exists():
         errors.append("formal architecture still exists inside the plugin shell")
 
@@ -158,7 +126,7 @@ def validate(repo_root: Path) -> list[str]:
         if set(entries) != set(skills):
             errors.append("compatibility inventory does not exactly match promoted skills")
         classifications = {name: entry.get("classification") for name, entry in entries.items()}
-        invalid = {name: value for name, value in classifications.items() if value not in {"cross-product", "codex-only", "blocked"}}
+        invalid = {name: value for name, value in classifications.items() if value not in {"codex-compatible", "blocked"}}
         if invalid:
             errors.append(f"invalid compatibility classifications: {invalid}")
         for name, entry in entries.items():
@@ -168,14 +136,11 @@ def validate(repo_root: Path) -> list[str]:
         blocked = sorted(name for name, value in classifications.items() if value == "blocked")
         if blocked:
             errors.append("release-blocked compatibility entries: " + ", ".join(blocked))
-        actual_codex_only = {name for name, value in classifications.items() if value == "codex-only"}
-        if actual_codex_only != CODEX_ONLY:
-            errors.append("Codex-only compatibility inventory is incomplete or unexpected")
         representatives = compatibility["representative_invocations"]
         for bucket in ("engineering", "productivity"):
             name = representatives.get(bucket)
-            if classifications.get(name) != "cross-product":
-                errors.append(f"{bucket} representative must be cross-product")
+            if classifications.get(name) != "codex-compatible":
+                errors.append(f"{bucket} representative must be Codex-compatible")
     except (OSError, KeyError, json.JSONDecodeError) as exc:
         errors.append(f"invalid compatibility inventory: {exc}")
 
@@ -194,12 +159,11 @@ def validate(repo_root: Path) -> list[str]:
 
     user_docs = [repo_root / "README.md"] + list((repo_root / "docs").rglob("*.md"))
     forbidden = re.compile(
-        r"(?i)(install-local\.ps1|Install Governed Engineering Skills\.cmd|codex://plugins|"
-        r"administrator-approved private Workspace|Workspace administrator)"
+        r"(?i)(administrator-approved private Workspace|Workspace administrator)"
     )
     for path in user_docs:
         if path.is_file() and forbidden.search(path.read_text(encoding="utf-8", errors="ignore")):
-            errors.append(f"user-facing document advertises removed local installation: {path.relative_to(repo_root)}")
+            errors.append(f"user-facing document advertises an unsupported Workspace installation: {path.relative_to(repo_root)}")
 
     try:
         with tempfile.TemporaryDirectory(prefix="distribution-validation-") as temporary:
@@ -233,7 +197,7 @@ def main() -> int:
     if errors:
         print("\n".join(f"ERROR: {error}" for error in errors))
         return 1
-    print("PASS: single-source assembly, compatibility inventory, and personal Git Marketplace publication")
+    print("PASS: single-source assembly, Codex compatibility inventory, and optional Git Marketplace publication")
     return 0
 
 

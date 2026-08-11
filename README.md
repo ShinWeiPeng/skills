@@ -24,29 +24,24 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 
 ## Installation
 
-The supported user installation channel is the generated personal Git
-Marketplace. Add the Marketplace independently in ChatGPT Work web and Codex
-Desktop with these identical values:
+For Codex Desktop or Codex CLI on Windows, clone this repository and
+double-click **`Install Governed Engineering Skills.cmd`**. The launcher builds
+the complete Plugin from the authoritative Skill folders, validates it, refreshes
+only the local Codex cache identity, registers the local Marketplace, and
+installs the Plugin. Start a new Codex task afterward so the refreshed Skills are
+loaded.
 
-- Source: `https://github.com/ShinWeiPeng/skills.git`
-- Git reference: `marketplace-release`
-- Sparse paths: `.agents/plugins` and `plugins/governed-engineering-skills`
-
-Install **Governed Engineering Skills** on each surface, then start a new chat
-or Codex task so the installed Skills are discovered. Installation state is not
-automatically synchronized; the shared Git reference and Plugin fingerprint are
-the cross-surface identity.
-
-The repository does not ship a one-click local installer. The local Marketplace
-metadata on `main` is retained only for maintainers performing deliberate Codex
-tests and is not the supported user installation source.
+The generated `marketplace-release` Git branch remains an optional Codex-only
+distribution source. It is not required by the one-click installer. ChatGPT web
+does not provide this personal account with Git Marketplace installation, so it
+is not a supported installation surface for this Plugin.
 
 In Codex, run `/setup-matt-pocock-skills` once per repository when using the
 repository-governed engineering workflows. It configures the
 local issue tracker, triage labels, and documentation locations used by the
-Codex-only engineering workflows. ChatGPT Work web can use the Skills classified
-as `cross-product` in `distribution/skill-compatibility.json`; it does not perform
-this repository setup step.
+Codex engineering workflows. The compatibility inventory records required Codex,
+repository, terminal, and device capabilities; it is not a ChatGPT web support
+matrix.
 
 ## Why These Skills Exist
 

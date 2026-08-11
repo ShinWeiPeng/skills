@@ -1,15 +1,15 @@
-# ADR-0014: Personal Git Marketplace publication
+# ADR-0014: Optional Codex Git Marketplace publication
 
 - **Status:** accepted
 - **Date:** 2026-08-10
-- **Supersedes:** the private Workspace publication lane in SPEC-0013 revisions 10-17
+- **Superseded in part by:** the local Codex installer decision in SPEC-0013 revision 25
 
 ## Context and problem
 
 The assembled governed Plugin is ignored under `dist/`, so GitHub `main` cannot be
-consumed directly by the personal Marketplace form. The selected product scope is
-one personal account using the same Plugin release in ChatGPT Work web and Codex
-Desktop, without a managed Workspace administrator or private listing.
+consumed directly as a complete Plugin. Product-surface verification later showed
+that this personal ChatGPT web account exposes MCP Plugin creation but not Git
+Marketplace installation. The supported scope is therefore Codex Desktop and CLI.
 
 The repository already reserves `plugin-release/main` for automated Version Pull
 Requests. A consumer branch must remain distinct from that release-authoring state
@@ -17,7 +17,7 @@ and from the editable root Skill sources.
 
 ## Decision
 
-Publish a deterministic consumer tree to `marketplace-release` in the existing
+Optionally publish a deterministic consumer tree to `marketplace-release` in the existing
 `https://github.com/ShinWeiPeng/skills.git` repository after stable release gates
 pass. The branch contains `.agents/plugins/marketplace.json`, the complete
 `plugins/governed-engineering-skills` package, and publication identity metadata.
@@ -26,8 +26,10 @@ pass. The branch contains `.agents/plugins/marketplace.json`, the complete
 Skill source. `plugin-release/main` remains the Version Pull Request branch.
 `marketplace-release` is generated and must not be edited manually.
 
-ChatGPT Work web and Codex Desktop install the same Git source independently.
-Automatic synchronization of installation or enablement state is not required.
+The repository-root launcher is the primary installation path: it assembles and
+validates the same source, applies a local-only cachebuster, registers the local
+Marketplace, and installs the Plugin. The generated branch remains a Codex-only
+alternative and is not required for installation.
 
 ## Alternatives considered
 
@@ -36,21 +38,22 @@ Automatic synchronization of installation or enablement state is not required.
   reference without an access-isolation requirement.
 - Committing the complete generated Plugin tree on `main` was rejected because it
   reintroduces duplicate editable-looking Skill copies and source drift.
-- A managed private Workspace listing was superseded because it does not match the
-  selected personal-account scope and requires administrator evidence.
+- ChatGPT web publication was rejected because the available personal-account UI
+  creates MCP connections and cannot add this private Git Marketplace.
 - Naming the consumer branch `plugin-release` was rejected because it is easily
   confused with the existing `plugin-release/main` Version Pull Request branch.
 
 ## Architecture and compatibility impact
 
-The L0 `plugin_assembly_composition` module retains ownership. No runtime Port,
-Event, named Type, mutable State Object, dependency edge, execution unit, queue,
-callback, or installed Plugin contract changes. The release workflow performs the
-external Git branch update after local assembly and validation.
+The L0 `plugin_assembly_composition` module retains assembly ownership and the L3+
+`local_install_adapter` owns Marketplace registration, Plugin reinstall, stable
+failure statuses, and the Codex Desktop page handoff. The release workflow may
+perform the external Git branch update after local assembly and validation.
 
 Plugin ID, root Skill ownership, stable SemVer authority, immutable version tags,
 bundled paths, and invocation behavior remain compatible. Only the distribution
-channel, evidence schema, and user installation instructions change.
+channel and user installation instructions change. Web release-evidence schemas
+and acceptance gates are removed.
 
 ## Flow and failure behavior
 
@@ -60,8 +63,8 @@ updates the consumer branch. Validation failure, stale source identity, fingerpr
 mismatch, incomplete tree, or publication race leaves the previous branch commit
 available as the rollback target.
 
-No performance or real-time claim is made; Flow assurance is `estimated` until the
-functional publication and two-surface installation evidence passes.
+No performance or real-time claim is made. The local installation flow is verified
+through bounded Windows fixtures; optional branch publication remains best effort.
 
 ## Validation
 
@@ -69,7 +72,8 @@ functional publication and two-surface installation evidence passes.
 - Negative path, mutation, stale identity, and fingerprint fixtures.
 - Complete distribution, Plugin, version, and architecture gates.
 - Generated branch tree comparison against the assembled release candidate.
-- Matching identity and four representative cross-surface invocation records.
+- Positive, repeated, missing-runtime, incomplete-artifact, cache-refresh, and
+  simulated partial-failure local installer fixtures.
 
 ## Approval
 

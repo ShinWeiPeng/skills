@@ -8,12 +8,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      validate_marketplace_acceptance:
-        description: Validate personal Marketplace installation and invocation evidence
-        required: true
-        type: boolean
-        default: true
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -79,6 +73,13 @@ jobs:
 
       - name: Run assembled Plugin contract tests
         run: python -m unittest discover -s plugins/governed-engineering-skills/tests -p "test_*.py" -v
+
+      - name: Run local installer contract tests
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: >-
+          powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass
+          -File plugins/governed-engineering-skills/tests/test_install_local.ps1
 
       - name: Run skill release gate
         run: >-
@@ -238,36 +239,3 @@ jobs:
             git -C "$publication_worktree" push --force-with-lease="refs/heads/marketplace-release:$previous" \
               origin HEAD:refs/heads/marketplace-release
           fi
-
-  marketplace-acceptance:
-    name: Personal Marketplace acceptance
-    if: github.event_name == 'workflow_dispatch' && inputs.validate_marketplace_acceptance
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout evidence and validators
-        uses: actions/checkout@v4
-        with:
-          path: source
-
-      - name: Checkout generated Marketplace publication
-        uses: actions/checkout@v4
-        with:
-          ref: marketplace-release
-          path: publication
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Validate personal Marketplace release and invocation evidence
-        shell: bash
-        run: |
-          branch_commit="$(git -C publication rev-parse HEAD)"
-          python source/scripts/validate_personal_marketplace_release.py \
-            --repo-root source \
-            --artifact publication/plugins/governed-engineering-skills \
-            --publication publication/publication-record.json \
-            --branch-commit "$branch_commit"

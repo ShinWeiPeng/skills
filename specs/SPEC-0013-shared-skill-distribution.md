@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0013
-revision: 21
+revision: 28
 status: confirmed
 change_set: shared-skill-distribution
 ---
@@ -18,13 +18,13 @@ Treat root `skills/engineering` and `skills/productivity` as the only editable S
 
 After the existing stable-release gates pass, generate an installable Marketplace tree from that exact artifact and publish only the generated catalog and complete Plugin package to the `marketplace-release` branch of `https://github.com/ShinWeiPeng/skills.git`. The `main` branch remains the only editable source, `plugin-release/main` remains the Version Pull Request branch, and `marketplace-release` is a generated consumer branch that must never be edited manually.
 
-ChatGPT Work web and Codex Desktop each add and install the same Git Marketplace independently. Both use the same repository URL, `marketplace-release` Git reference, Marketplace catalog, Plugin name, semantic version, and content fingerprint. Automatic synchronization of installation or enablement state is outside the contract. The retained local Marketplace remains maintainer-only development tooling and is not a supported user installation path.
+The supported user path restores the `0.7.1` local one-click installer: it assembles the Plugin from the authoritative root Skills, installs the resulting local Marketplace for Codex Desktop and Codex CLI, and applies a local-only cachebuster without changing the formal release version. The generated `marketplace-release` branch may remain as an optional Codex distribution source, but it is not required for local installation. ChatGPT web does not expose Git Marketplace installation for this personal account and is not a supported distribution surface.
 
 ## User Stories
 
 - As the maintainer, I want to edit each shared skill in one authoritative root location.
 - As a contributor, I want Skill PRs to avoid duplicate generated-file diffs.
-- As the owner of one personal account, I want independently installed ChatGPT Work web and Codex Desktop surfaces to consume the same Git-backed Plugin release.
+- As the owner of one personal account, I want Codex Desktop and Codex CLI to consume the same Git-backed Plugin release without claiming unsupported ChatGPT web installation.
 
 ## Requirements
 
@@ -32,29 +32,31 @@ ChatGPT Work web and Codex Desktop each add and install the same Git Marketplace
 |---|---|
 | REQ-001 | Root `skills/engineering` and `skills/productivity` MUST be the authoritative editable source for all shared skills. |
 | REQ-002 | Plugin skill trees MUST be generated reproducibly, and validation MUST reject source or inventory drift. |
-| REQ-003 | One Git-backed Plugin release MUST provide the selected Skill set to independently installed ChatGPT Work web and Codex Desktop surfaces for the same personal account. |
+| REQ-003 | One Git-backed Plugin release MUST provide the selected Skill set to Codex Desktop and Codex CLI for the same personal account. |
 | REQ-004 | The shared plugin MUST include both promoted buckets and MUST exclude `misc`, `personal`, `in-progress`, and `deprecated`. |
 | REQ-005 | The six governance and integration skills MUST move into root `skills/engineering` and follow promoted documentation and routing rules. |
 | REQ-006 | The tracked plugin shell MUST remain directly maintainable while the complete assembled artifact and generated skill tree remain untracked under `dist/`. |
 | REQ-007 | Installation, validation, and release commands MUST assemble the artifact before consuming it and MUST NOT install from an incomplete shell. |
 | REQ-008 | Repository guidance, manifests, inventories, ADRs, and release documentation MUST describe the unified source and generated-artifact lifecycle. |
 | REQ-009 | Formal architecture governance MUST cover every moved governance/integration production source without forbidden parent traversal or an ungoverned production gap. |
-| REQ-010 | The repository MUST distinguish the maintainer-only local Marketplace from the personal Git Marketplace and MUST NOT describe a local filesystem source as web-accessible. |
-| REQ-011 | Local validation and the `marketplace-release` publication MUST consume the same assembled Plugin name, version, inventory, and content fingerprint. |
-| REQ-012 | The release flow MUST generate and validate a personal Marketplace publication record containing repository URL, Git reference, catalog and Plugin paths, source tag/commit, version, fingerprint, installation steps, rollback reference, and evidence checklist. |
-| REQ-013 | Cross-product compatibility validation MUST identify host-dependent Skills or resources and MUST prove representative engineering and productivity workflows on both ChatGPT Work web and Codex before release acceptance. |
+| REQ-010 | The repository MUST distinguish the primary local Codex Marketplace from the optional generated Git Marketplace and MUST NOT describe a local filesystem source as web-accessible. |
+| REQ-011 | Local validation and optional `marketplace-release` publication MUST derive from the same formal assembled Plugin name, version, inventory, and content fingerprint before the local-only cachebuster is applied. |
+| REQ-012 | When the optional Git Marketplace is generated, the release flow MUST validate a publication record containing repository URL, Git reference, catalog and Plugin paths, source tag/commit, version, fingerprint, installation steps, rollback reference, and evidence checklist. |
+| REQ-013 | Codex compatibility validation MUST classify every packaged Skill with its host dependencies and MUST exercise representative engineering and productivity packaging plus invocation-policy contracts before release acceptance; signed-in Codex Desktop and CLI invocation remains post-install user acceptance. |
 
-| REQ-014 | The repository MUST remove the one-click local installer, desktop launcher, installer-specific tests, and user-facing local-install instructions while retaining local Marketplace metadata for manual maintainer testing. |
-| REQ-015 | User-facing installation guidance MUST identify the personal Git Marketplace on `marketplace-release` as the supported installation source and MUST explain that each surface installs it independently. |
-| REQ-016 | Formal architecture MUST remove the `local_install_adapter`; manual developer Marketplace testing remains development tooling rather than a supported production installation module. |
+| REQ-014 | The repository MUST restore the one-click local installer, desktop launcher, installer contract tests, and user-facing local-install instructions from the `0.7.1` installation behavior while consuming the current assembled single-source Plugin. |
+| REQ-015 | User-facing installation guidance MUST identify the local one-click installer as the primary Codex Desktop and Codex CLI path, MAY retain `marketplace-release` as an optional Codex source, and MUST state that ChatGPT web is unsupported. |
+| REQ-016 | Formal architecture MUST restore a `local_install_adapter` that owns local Marketplace registration, Plugin installation, Codex page launch, and retry-safe failure handling. If Plugin installation fails after Marketplace registration, the adapter MUST report that the registration remains available for retry and MUST NOT request removal of a prior installed Plugin. `plugin_assembly_composition` MUST own artifact cache refresh and the boundary between formal version metadata and local-only cachebusters. |
 | REQ-017 | When a promoted root Skill and the previously installed Codex Plugin Skill shared a name but differed in behavior, the unified root source MUST preserve the governed Codex workflow behavior so unification does not silently regress existing Codex use. |
 | REQ-018 | Invocation metadata MUST have one deterministic two-harness contract: user-invoked Skills carry both Claude's `disable-model-invocation: true` and Codex's `policy.allow_implicit_invocation: false`; model-invoked Skills omit both restrictions and MUST NOT spell the default as `allow_implicit_invocation: true`. |
 | REQ-019 | In a fresh task, the exact authorization phrase `開始執行`, optionally accompanied by an explicit canonical Spec path, MUST be classified as confirmed-Spec resume intent rather than a new generic modification request. One confirmed candidate proceeds to verification, multiple candidates require exactly one user selection, and no candidate fails closed with a specific remediation. |
 | REQ-020 | The installed Plugin MUST remain the self-contained authority for automatic engineering routing. Repository `AGENTS.md` guidance MUST directly instruct Codex to read and follow the repository rules instead of relying on a bare filename pointer, but router correctness MUST NOT depend on `AGENTS.md`. |
 | REQ-021 | Every engineering request MAY enter the model-invoked `ask-matt` router, but only repository-modifying requests or unresolved change-set decisions MUST enter `grilling`; factual explanation, diagnosis, and review remain read-only until modification intent is present. |
-| REQ-022 | Personal cross-surface sharing MUST mean that ChatGPT Work web and Codex Desktop install the same Git-backed Plugin source and release identity independently; automatic synchronization of installation state is not required. |
+| REQ-022 | Personal Codex sharing MUST mean that Codex Desktop and Codex CLI install the same Git-backed Plugin source and release identity; ChatGPT web installation is outside the supported scope. |
 | REQ-023 | The complete installable Marketplace tree MUST be generated from `main` into a dedicated publication branch in this repository after stable-release validation; the publication branch MUST NOT become an editable Skill source. |
 | REQ-024 | The dedicated personal Marketplace publication branch MUST be named `marketplace-release` and MUST remain distinct from the existing Version Pull Request branch `plugin-release/main`. |
+| REQ-025 | The rollback release MUST retain the implemented single-source assembly and governed routing behavior, restore the local installer, remove unsupported ChatGPT web claims and gates, and publish as `0.7.2` without reusing the immutable `0.7.1` tag. Failed automated `0.8.0` and `0.8.1` release tags MUST be removed only with separate explicit maintainer authorization, and remote absence of both tags MUST be verified before the corrected commit is pushed. |
+| REQ-026 | The installer MUST assemble before installation, reject an incomplete or stale Plugin shell, preserve formal version `0.7.2`, apply any cachebuster only to the local installed manifest, and provide actionable recovery on partial failure. |
 
 ## Decisions
 
@@ -78,31 +80,37 @@ ChatGPT Work web and Codex Desktop each add and install the same Git Marketplace
 | DEC-015 | Define personal cross-surface sharing as two independent installations from one Git-backed Plugin source and the same release identity; do not require one surface to synchronize installation state to the other. |
 | DEC-016 | Publish the generated Marketplace catalog and complete Plugin tree on a dedicated branch of `ShinWeiPeng/skills`, while retaining `main` root Skills as the only editable source. |
 | DEC-017 | Name the generated installation branch `marketplace-release`; retain `plugin-release/main` exclusively for automated version-update Pull Requests. |
+| DEC-018 | Supersede the personal ChatGPT-web interpretation of DEC-015 through DEC-017: retain `marketplace-release` only for Codex Desktop and Codex CLI distribution. |
+| DEC-019 | Preserve the current single-source Skill assembly and governed router improvements rather than reverting the repository tree to the `0.7.1` tag. |
+| DEC-020 | Publish the corrected rollback release as `0.7.2`; the existing immutable `0.7.1` tag remains unchanged and no `0.8.0` tag is created. |
+| DEC-021 | Restore the `0.7.1` local one-click installation experience on top of the current single-source assembly; the remote Marketplace remains optional and ChatGPT web remains unsupported. |
+| DEC-022 | Supersede DEC-020's assumption that no `0.8.0` tag was created: the failed release did create a remote tag, the maintainer explicitly authorized deleting it, and remote inspection MUST prove it absent before `0.7.2` is committed and pushed. |
+| DEC-023 | Refine DEC-022 for the concurrent Version PR: after the first correction, automation merged `0.8.1` and created its tag; the maintainer separately authorized deleting `0.8.1`, retaining the latest remote `main` history, and resolving its version state to `0.7.2` without force-pushing. |
 
 ## Architecture Impact
 
-- **Affected level and module:** retain the L0 `plugin_assembly_composition` owner and revise its purpose from Workspace handoff generation to personal Git Marketplace publication-tree generation and validation.
+- **Affected level and module:** retain the L0 `plugin_assembly_composition` owner, restore the L3+ `local_install_adapter`, and keep remote Marketplace publication as an optional Codex-only channel.
 - **Technical release authority:** retain L3+ `plugin_release_governance_technical`; a publication candidate is admitted only after its stable SemVer, immutable tag intent, assembled inventory, and fingerprint pass existing release governance.
-- **Ports, Events, Types, and State:** add architecture-description records for the synchronous distribution, integration, and release-validation outcomes plus the two existing JSON Schema contracts. These are CI/tooling contracts, not installed Plugin runtime ports; no mutable State Object, runtime dependency edge, execution unit, queue, callback, or public Plugin runtime contract is introduced.
-- **Source and Description Views:** replace Workspace-specific validator and distribution-record paths in `architecture/manifest.yaml`; update `plugin_assembly_composition` paths, public symbols, side effects, invariants, System page, Parent page, and architecture overview; regenerate all marker-owned views deterministically.
+- **Ports, Events, Types, and State:** restore the installer request/result and rollback outcome contracts. `plugin_assembly_composition` owns the ignored artifact and formal-version/local-cachebuster invariant; `local_install_adapter` owns Codex Marketplace registration and Plugin-installation side effects. No queue, callback, execution unit, or long-lived mutable runtime State Object is introduced.
+- **Source and Description Views:** add the restored launcher and installer paths, entrypoint, public symbols, side effects, invariants, and failure outcomes to `architecture/manifest.yaml`; update System, Parent, and architecture overview pages and regenerate marker-owned views deterministically.
 - **Compatibility boundary:** preserve Plugin ID, bundled Skill paths, invocation policy, stable SemVer authority, immutable release tags, and root-only editable Skill ownership. Replace only the user distribution channel and its evidence schema.
-- **ADR:** add `ADR-0014-personal-git-marketplace-publication.md` recording the selected same-repository generated branch and the rejected separate-repository and managed-Workspace alternatives. The user's selections in DISC-011 through DISC-013 are the human decision evidence; no architecture-rule exception is requested.
+- **ADR:** revise `ADR-0014-personal-git-marketplace-publication.md` so the generated branch is a Codex distribution channel rather than a ChatGPT-web channel. DISC-014 and DISC-015 are the correcting human decision evidence; no architecture-rule exception is requested.
 
 ## Flow Execution Impact
 
 - **As-is candidate:** local validation produces an ignored artifact, then release acceptance waits for a managed Workspace handoff and administrator evidence. This cannot satisfy the personal-account target and is rejected by functional admission.
-- **Selected candidate:** stable-release validation assembles one artifact, builds a deterministic Marketplace tree, verifies catalog-relative paths and identity, then atomically replaces `marketplace-release`. ChatGPT Work web and Codex Desktop independently fetch that same branch and install the same Plugin release.
+- **Selected candidate:** the one-click launcher assembles and validates one formal artifact, applies a local-only cachebuster, registers the repository Marketplace, and installs it in Codex. Stable-release validation may additionally build and publish the identity-equivalent formal Marketplace tree to `marketplace-release`.
 - **Rejected candidate:** publishing the generated tree to a second repository also satisfies functional delivery, but adds another repository authority, credential boundary, synchronization step, rollback reference, and deployment artifact without a selected access-isolation requirement.
 - **Execution assurance:** `estimated`. The CI flow is best-effort and has no latency, throughput, memory, power, or real-time product budget. No new thread, queue, retry loop, serialization boundary, or target runtime is introduced. Functional publication and rollback evidence, not performance measurement, determines acceptance.
 - **Failure policy:** validation, fingerprint mismatch, stale source tag, incomplete sparse tree, non-fast-forward publication race, or missing credentials blocks publication and leaves the previous `marketplace-release` commit available. A failed user installation is recorded separately from a failed release candidate.
 
 ## Evolution Impact
 
-- **Add or modify a Skill:** change only the root promoted bucket; assembly, catalog generation, tests, and the next stable publication carry it to both surfaces.
+- **Add or modify a Skill:** change only the root promoted bucket; assembly, catalog generation, tests, and the next stable publication carry it to Codex Desktop and Codex CLI.
 - **Add an adapter or bundled resource:** update the tracked Plugin shell or authoritative root Skill resource, then validate its generated inventory and relative references before publication.
 - **Add another consumer surface:** reuse the same immutable release identity when the surface supports repo Marketplaces; add surface-specific installation evidence without creating another editable Skill tree.
 - **Rollback:** repoint `marketplace-release` to the previously validated generated commit through an explicit workflow input, while retaining immutable version tags and leaving `main` untouched.
-- **Platform variant:** no installed-runtime platform mapping changes; surface differences remain in the compatibility inventory and cross-surface evidence.
+- **Platform variant:** no installed-runtime platform mapping changes; Codex host differences remain in the compatibility inventory and acceptance evidence.
 
 ## Algorithm Impact
 
@@ -116,16 +124,16 @@ ChatGPT Work web and Codex Desktop each add and install the same Git Marketplace
 ### Improvement 1: Generate a remote personal Marketplace tree
 
 - **Change:** add a deterministic staging operation that writes `.agents/plugins/marketplace.json` plus the complete `plugins/governed-engineering-skills` tree from the validated artifact, with the catalog source set to `./plugins/governed-engineering-skills`.
-- **Expected impact:** both product surfaces can resolve one web-accessible package instead of depending on a Windows path or managed Workspace listing.
-- **Benefits:** one editable source, one release identity, no administrator publication dependency, and auditable branch contents.
-- **Costs and disadvantages:** generated branch storage, workflow logic, and separate first-time installation on each surface.
+- **Expected impact:** Codex users may choose a generated Git source without making it the primary installation dependency.
+- **Benefits:** one editable source, one formal release identity, no administrator publication dependency, and auditable branch contents.
+- **Costs and disadvantages:** generated branch storage, workflow logic, and an additional optional installation path.
 - **Risks:** stale generated content, incorrect sparse paths, or accidental branch editing.
 - **Mitigation:** exact inventory/fingerprint comparison, protected generated branch, clean temporary-repository tests, and fail-closed publication.
 
-### Improvement 2: Replace Workspace release evidence with personal cross-surface evidence
+### Improvement 2: Replace unsupported web evidence with Codex installation evidence
 
-- **Change:** replace Workspace listing/admin schemas and validation with repository/ref/path identity, independent installation records, and four representative invocation records.
-- **Expected impact:** release acceptance measures the user's actual goal instead of an unavailable managed-Workspace workflow.
+- **Change:** retain repository/ref/path identity while replacing ChatGPT-web evidence with Codex Desktop and Codex CLI installation and invocation records.
+- **Expected impact:** release acceptance measures supported Codex behavior instead of an unavailable personal-account web workflow.
 - **Benefits:** evidence is tied to the current artifact and each product surface.
 - **Costs and disadvantages:** the final four invocation records remain user-visible external checks and cannot be fabricated by repository tests.
 - **Risks:** screenshots alone may not prove artifact identity.
@@ -146,45 +154,47 @@ ChatGPT Work web and Codex Desktop each add and install the same Git Marketplace
 |---|---|---|---|---|
 | AC-001 | REQ-001, REQ-005 | Editing any shared skill requires changing only its root source directory; all six governance/integration skills exist under root engineering and no tracked plugin skill copy remains. | Source inventory, tracked-file inspection, promoted README and manifest checks. | PASS — 28 root Skills; no Plugin-shell Skill tree. |
 | AC-002 | REQ-002 | Two clean assembly runs produce byte-equivalent skill inventories, and validation rejects missing, extra, or modified generated skills. | Automated deterministic-assembly and bounded drift-fixture tests. | PASS — deterministic and missing/extra/modified fixtures pass. |
-| AC-003 | REQ-003 | One validated Git-backed release can be installed independently by the same personal account on ChatGPT Work web and Codex Desktop and exposes representative explicit and implicit Skill invocations. | Install the same `marketplace-release` candidate on both surfaces and record matching identity plus invocation results. | Expected external evidence pending publication and two-surface installation. |
+| AC-003 | REQ-003 | One validated assembled release can be installed locally for Codex Desktop and Codex CLI and exposes representative explicit and implicit Skill invocations. | Run the restored installer, inspect the registered local Marketplace and installed manifest, then record matching identity plus invocation results in both Codex hosts. | POST-INSTALL USER ACCEPTANCE — repository fixtures prove the install contract; signed-in host evidence is collected after delivery. |
 | AC-004 | REQ-004 | Generated inventory contains every promoted engineering and productivity Skill and no non-promoted Skill. | Compare generated paths against both promoted bucket inventories and negative-list fixtures. | PASS — exact 28-Skill inventory comparison. |
 | AC-005 | REQ-005, REQ-008 | Promoted READMEs, top-level README, Claude manifest, router references, docs, and replacement ADR consistently describe all 28 root-source Skills. | Manifest and documentation inventory tests plus repository-wide stale-contract search. | PASS — docs, manifests, invocation metadata, and grouping checks pass. |
 | AC-006 | REQ-006 | The tracked shell retains manifest and release infrastructure, while `dist/governed-engineering-skills` stays ignored and reproducible from a clean checkout. | Git-status assertions before and after clean assembly plus plugin artifact validation. | PASS — Git status is unchanged and Plugin ingestion passes. |
 | AC-007 | REQ-007 | Every supported install, validation, and release entrypoint assembles first or fails clearly when the artifact is absent or stale. | Entrypoint tests covering clean, absent, current, and stale artifact states. | PASS — state fixtures and job-local release ordering pass. |
 | AC-008 | REQ-008 | No active document states that the native Codex/OpenAI plugin is deferred or that packaged Skills are maintained as an independent vendored source. | Repository-wide contract search and documented-command verification. | PASS — active contracts describe root ownership and assembly. |
 | AC-009 | REQ-009 | The selected architecture root and source sets validate every governed Python production path after the Skill migration, with no parent traversal and no missing moved source. | Architecture design/development gates and source-set inventory validation. | PASS — both architecture release gates are VERIFIED. |
-| AC-010 | REQ-010, REQ-012 | Maintainer documentation identifies local testing as development-only, while the personal publication record validates the Git repository, `marketplace-release` reference, catalog and Plugin paths, release identity, rollback, and user-owned installation steps. | Rendered documentation review, Marketplace schema/path validation, and publication-record schema validation. | PASS locally — both schemas reject malformed identities; user and maintainer channels are distinct in README and distribution guidance. |
-| AC-011 | REQ-011 | The locally tested artifact and `marketplace-release` publication candidate have the same Plugin name, semantic version, complete file inventory, and SHA-256 content fingerprint. | Deterministic assembly, manifest validation, inventory comparison, and checksum comparison. | PASS locally — Plugin 0.7.1, 252 files, `sha256:b7b253e42eaa92029652ad3512a60d511474d16dd69a0496b01556cd5c40ed6a`; remote branch comparison awaits publication. |
-| AC-012 | REQ-003, REQ-013 | The personal Git Marketplace is visible on ChatGPT Work web and Codex Desktop, and a new chat/task can invoke one representative engineering Skill and one representative productivity Skill on each surface. | Two independent personal-account installations followed by a four-case cross-surface invocation checklist with screenshots or exported task evidence and matching release identity. | Expected external evidence pending generated-branch publication and four auditable invocation records. |
-| AC-013 | REQ-013 | Every packaged Skill is classified as cross-product, Codex-only, or blocked with a specific reason; release is blocked if a Skill advertised as shared depends on an unavailable local path, executable, tool, or permission on ChatGPT Work web. | Static portability inventory plus representative negative fixtures and cross-surface tests. | PASS locally — conservative inventory and negative fixtures pass. |
+| AC-010 | REQ-010, REQ-012 | User documentation identifies the one-click local installer as primary, while the optional publication record validates the Git repository, `marketplace-release` reference, catalog and Plugin paths, release identity, rollback, and Codex installation steps. | Rendered documentation review, Marketplace schema/path validation, and publication-record schema validation. | PASS — README and distribution guidance distinguish the local primary path and optional Git branch; malformed publication identities fail closed. |
+| AC-011 | REQ-011 | The validated formal artifact and optional `marketplace-release` publication candidate have the same Plugin name, semantic version, complete file inventory, and SHA-256 content fingerprint before local cache localization. | Deterministic assembly, manifest validation, inventory comparison, and checksum comparison. | PASS locally — Plugin 0.7.2 has 257 files; localize preserves the formal 0.7.2 prefix and refreshes inventory after adding the cachebuster. |
+| AC-012 | REQ-003, REQ-013 | The locally installed Plugin is visible in Codex Desktop and Codex CLI, and a new task/session can invoke one representative engineering Skill and one representative productivity Skill in each host. | One local installation followed by a four-case Codex-host invocation checklist with matching formal release identity. | POST-INSTALL USER ACCEPTANCE — not a repository release or push gate. |
+| AC-013 | REQ-013 | Every packaged Skill is classified as Codex-compatible or blocked with a specific host-dependency reason. | Static compatibility inventory plus representative negative fixtures and packaging-policy tests. | PASS — all 28 packaged Skills are Codex-compatible with explicit host-dependency lists; malformed inventory fixtures fail. |
 
-| AC-014 | REQ-014, REQ-015 | The repository contains no one-click local installer, launcher, or installer-specific test, and no user-facing document advertises local installation; the retained local Marketplace manifest still passes schema and path validation for manual maintainer use. | Tracked-file inventory, stale-reference search, Marketplace validation, and rendered documentation review. | PASS — installer removed; maintainer Marketplace targets assembled artifact. |
-| AC-015 | REQ-016 | The repository-root architecture contains no `local_install_adapter` module, entrypoint, public symbol, or generated Description View reference after migration. | Architecture manifest diff, deterministic rendering, and the single development/release architecture gate. | PASS — no local installer module remains. |
-| AC-016 | REQ-017 | Existing governed router, spec, architecture, runtime-evidence, and review contracts remain present after duplicate Skill reconciliation, and all Plugin contract tests pass against the assembled root-derived artifact. | Assembled Plugin integration validation, invocation-policy checks, and Plugin contract suite. | PASS — integration validation and 157 Plugin contract tests pass. |
+| AC-014 | REQ-014, REQ-015 | The restored launcher and installer assemble the current root-owned Plugin, register a local Marketplace, refresh the local Plugin cache, and present actionable success or failure guidance without advertising ChatGPT-web support. | Temp-profile installer integration tests, tracked-file inventory, Marketplace validation, and rendered documentation review. | PASS — the isolated PowerShell suite covers the launcher, installation phases, installed tree, repeated refresh, and actionable failures. |
+| AC-015 | REQ-016 | The repository-root architecture contains a governed `local_install_adapter` module with declared installer entrypoint, public symbols, local filesystem side effects, retry-safe outcomes, and generated Description View references. | Architecture manifest diff, deterministic rendering, installer failure fixtures, and development/release architecture gates. | PASS — Plugin assembly owns cache refresh; the adapter owns Codex registration, installation, page launch, and explicit retry guidance; the Plugin-failure fixture preserves the prior installed tree; generated views are current; both architecture release gates are VERIFIED. |
+| AC-016 | REQ-017 | Existing governed router, spec, architecture, runtime-evidence, and review contracts remain present after duplicate Skill reconciliation, and all Plugin contract tests pass against the assembled root-derived artifact. | Assembled Plugin integration validation, invocation-policy checks, and Plugin contract suite. | PASS — integration validation and 162 Plugin contract tests pass. |
 | AC-017 | REQ-018 | Every promoted source Skill and assembled Plugin Skill passes a classification matrix proving that manual restrictions are paired, automatic restrictions are omitted, redundant `true` policy is absent, and OpenAI assembly removes only Claude-specific frontmatter. | Source/artifact metadata matrix tests with positive and negative fixtures. | PASS — source/artifact matrix, all three invalid metadata fixtures, and body-content preservation fixture pass in `tests.test_shared_skill_distribution`. |
 | AC-018 | REQ-019, REQ-021 | Fresh-task routing tests prove exact `開始執行` with one, many, or zero confirmed Specs; an explicit Spec path; negated or quoted phrases; ordinary read-only discussion; and a modifying request that must enter `grilling`. | Deterministic guided-router unit and integration tests asserting selected Skill, status, candidate evidence, and resume target. | PASS — exact phrase one/many/zero/path, specific zero-candidate remediation, exactly-one selection instruction, and negative phrase fixtures pass; the complete 161-test Plugin suite preserves read-only and modifying routes. |
 | AC-019 | REQ-020 | `AGENTS.md` directly instructs Codex to load repository rules, while an assembled-Plugin test with no repository `AGENTS.md` still routes a modifying engineering request through `ask-matt` and the governed decision gate. | Repository instruction-content assertion plus isolated assembled-Plugin routing test. | PASS — repository instruction assertion and isolated assembled-Plugin modifying route pass without consumer `AGENTS.md`. |
-| AC-020 | REQ-022 | The personal account can install the same Plugin release identity from the same Git Marketplace source independently in ChatGPT Work web and Codex Desktop; no assertion depends on automatic synchronization of installation state. | Two-surface installation record plus matching Plugin name, version, source reference, content fingerprint, and representative invocation evidence. | Expected evidence pending implementation and cross-surface testing. |
+| AC-020 | REQ-022 | The personal account can install the same Plugin release identity in Codex Desktop and Codex CLI, with no ChatGPT-web availability assertion. | Two-host installation record plus matching Plugin name, formal version, source reference, and representative invocation evidence. | POST-INSTALL USER ACCEPTANCE — not a repository release or push gate. |
 | AC-021 | REQ-023 | A validated stable release produces a dedicated-branch Marketplace tree containing `.agents/plugins/marketplace.json` and the complete `plugins/governed-engineering-skills` package, and regeneration from the same source tag is byte-equivalent. | CI publication fixture, clean-checkout assembly, branch-tree inventory, manifest/path validation, fingerprint comparison, and mutation rejection. | PASS locally — repeated candidates have identical Git tree IDs; unsafe output, mutation, stale fingerprint, stale tag, and branch-commit mismatch fail closed. Actual branch publication remains an external release action. |
 | AC-022 | REQ-024 | Marketplace documentation, workflow fixtures, and user evidence consistently use `marketplace-release`, while version-governance fixtures continue to use `plugin-release/main` only for the Version Pull Request. | Repository-wide structured search and workflow contract tests. | PASS locally — structured search and release/version workflow contracts preserve the two distinct branch identities. |
+| AC-023 | REQ-025 | Version metadata, changelog, release state, and Plugin manifest identify `0.7.2`; `0.7.1` remains bound to its existing tag; failed remote `0.8.0` and `0.8.1` tags are absent; no active documentation or gate claims ChatGPT web can add the Git Marketplace. | Version-governance checks, remote tag inspection, stale-contract search, focused distribution tests, and clean Git diff. | PASS — formal metadata identifies 0.7.2; the immutable 0.7.1 tag remains; each destructive deletion received explicit maintainer authorization; subsequent `git ls-remote --tags` queries returned no 0.8.0 or 0.8.1 ref. |
+| AC-024 | REQ-026 | Positive, repeated-install, missing-runtime, incomplete-artifact, stale-cache, and simulated partial-failure fixtures prove assembly-first installation, idempotence, formal-version preservation, local-only cachebusting, and recovery guidance. | Isolated temporary-home PowerShell integration tests with fake Codex CLI fixtures and exact installed-tree assertions. | PASS — success, repeated refresh, duplicate Marketplace, missing runtime, incomplete artifact, cachebuster replacement, assembly failure, CLI failures, recovery logs, and exact copied inventory all pass. |
 
 ## Alternatives Comparison
 
 | Alternative | Observable result | Benefits | Costs and risks | Decision |
 |---|---|---|---|---|
-| Generated `marketplace-release` branch in this repository | Both surfaces install from one repository/ref and matching Plugin identity. | One repository authority; no second editable tree or extra credential boundary. | Generated branch must be protected and publication tested. | Selected. |
-| Separate generated distribution repository | Both surfaces install from a clean consumer-only repository. | Stronger repository/access isolation. | Extra repository, credentials, rollback reference, and synchronization state. | Rejected because no isolation requirement exists. |
+| Generated `marketplace-release` branch in this repository | Codex Desktop and Codex CLI install from one repository/ref and matching Plugin identity. | One repository authority; no second editable tree or extra credential boundary. | Generated branch must be protected and publication tested. | Selected. |
+| Separate generated distribution repository | Codex hosts install from a clean consumer-only repository. | Stronger repository/access isolation. | Extra repository, credentials, rollback reference, and synchronization state. | Rejected because no isolation requirement exists. |
 | Commit the assembled Plugin tree on `main` | The current default branch becomes directly installable. | Simplest consumer URL. | Duplicates generated Skills in normal source history and reintroduces source drift. | Rejected by root-only ownership and ignored-artifact requirements. |
 | Managed private Workspace listing | Administrator publishes once for a managed workspace. | Central workspace policy and listing. | Does not match the selected personal-account scope and requires unavailable admin/listing evidence. | Superseded. |
 
 ## Implementation Order
 
-1. Replace Workspace-specific schemas, validators, documentation, and architecture declarations with personal Marketplace publication contracts while preserving stable IDs and release identity rules.
-2. Add deterministic Marketplace-tree assembly and temp-repository contract tests before changing the release workflow.
-3. Extend the release workflow to build and validate the generated tree, then publish `marketplace-release` only after every local release gate passes.
-4. Regenerate architecture Description Views, run the complete local validation matrix, and confirm the generated branch tree from a clean checkout.
-5. Add the Git Marketplace independently on ChatGPT Work web and Codex Desktop using repository `https://github.com/ShinWeiPeng/skills.git`, ref `marketplace-release`, and sparse paths `.agents/plugins` plus `plugins/governed-engineering-skills`.
-6. Record matching identity and four representative invocation results; only then accept the cross-surface release.
+1. Restore the `0.7.1` launcher, PowerShell installer, and isolated installer fixtures, adapting them to assemble from the current root-owned Skills before installation.
+2. Restore the governed `local_install_adapter` architecture declaration and regenerate Description Views.
+3. Remove unsupported ChatGPT-web instructions and release-evidence requirements; retain `marketplace-release` only as an optional Codex distribution artifact.
+4. Reconcile package, Plugin manifest, changelog, release state, and release intent to `0.7.2` without moving the immutable `0.7.1` tag.
+5. Run the complete installer, distribution, Plugin, version, architecture, and regression validation matrix from a clean temporary profile.
+6. Commit and push the validated 0.7.2 implementation; then let the user run the delivered installer and record optional signed-in Codex Desktop/CLI acceptance evidence.
 
 ## Validation and Acceptance Gates
 
@@ -192,8 +202,8 @@ ChatGPT Work web and Codex Desktop each add and install the same Git Marketplace
 |---|---|---|---|---|
 | Validation Enablement | Assemble into a temporary directory, generate a Marketplace tree, import it into a temporary Git repository, and run positive plus missing-path, traversal, stale-fingerprint, wrong-ref, and mutation fixtures. | Deterministic tree and explicit fail-closed errors without contacting the production branch. | Positive fixture passes twice byte-equivalently; every negative fixture fails for its intended reason. | Test log with command, exit code, generated inventory, tree hash, and fixture verdicts. |
 | Per-change Development Validation | Run `python -m unittest tests.test_shared_skill_distribution -v`, Plugin contract tests, distribution validation, artifact validation, schema checks, documentation/link checks, and a clean Git-status assertion. | All focused tests pass; no generated tree appears as an editable `main` source. | Every command exits `0`, expected negative fixtures fail closed, and Git status changes only in intended tracked files. | CI logs plus hashed test/result artifacts. |
-| Final Cross-surface Acceptance | Install the same branch independently on ChatGPT Work web and Codex Desktop; in a fresh chat/task invoke one engineering and one productivity representative on each surface. | Both installations report the same Plugin name, version, repository/ref, branch commit, and fingerprint; all four invocations follow the selected Skill. | Four invocation records pass and every identity field matches the current publication candidate. | Repository-contained Markdown/JSON records with screenshot or exported-task file paths and SHA-256 hashes. |
-| Release Acceptance | Rebuild the release composition; run `python tools/architecture/architecture_cli.py gate --phase release --manifest architecture/manifest.yaml --adoption architecture/adoption.yaml --baseline architecture/baseline.yaml`, deterministic render comparison, full regression, version checks, publication-record validation, and generated-branch tree comparison before branch update. | Release gates pass; no Workspace-admin/listing contract remains active; `marketplace-release` contains only the expected catalog, Plugin tree, and publication metadata bound to the stable source tag. | Every required command exits `0`; architecture and generated views are current; branch commit identity equals the validated candidate; previous branch commit remains a documented rollback target. | Separate validation-build and release/publication evidence with command, exit code, minimal raw output, commit IDs, tag, fingerprint, and PASS/FAIL/BLOCKED verdict. |
+| Final Codex Acceptance | After delivery, run the restored local installer, then use the installed Plugin in Codex Desktop and Codex CLI; in a fresh task/session invoke one engineering and one productivity representative in each host. | Both hosts report the same formal Plugin version; the installed manifest may contain only the governed local cachebuster; all four invocations follow the selected Skill. | User acceptance is recorded after install and does not block the repository commit or push. | Installer log plus optional exported-task or terminal evidence. |
+| Release Acceptance | Rebuild the release composition; run installer integration tests, `python tools/architecture/architecture_cli.py gate --phase release --manifest architecture/manifest.yaml --adoption architecture/adoption.yaml --baseline architecture/baseline.yaml`, deterministic render comparison, full regression, and version checks before commit and push. | Release gates pass; the installer consumes the assembled `0.7.2` Plugin; no ChatGPT-web contract remains active; optional Marketplace publication remains identity-equivalent when generated. | Every required command exits `0`; architecture and generated views are current; local installation succeeds from a clean temporary profile; `0.7.1` tag identity is unchanged. | Separate validation and release evidence with command, exit code, minimal raw output, installed inventory, version, fingerprint, and PASS/FAIL/BLOCKED verdict. |
 
 No physical-device, scheduler, OS-native trace, real-time, performance, or resource validation applies. The external product-surface checks are necessary because repository tests cannot prove that the signed-in ChatGPT account actually lists, installs, and invokes the Plugin on either product surface.
 
@@ -201,7 +211,7 @@ No physical-device, scheduler, OS-native trace, real-time, performance, or resou
 
 | Source | Relation | Target | Rationale |
 |---|---|---|---|
-| DEC-005 | refines | SPEC-0011 | Extend portable plugin governance with a single root Skill source and assembled cross-product artifact. |
+| DEC-005 | refines | SPEC-0011 | Extend portable plugin governance with a single root Skill source and assembled Codex Plugin artifact. |
 | DEC-007 | supersedes | DEC-006 | Resolve the reopened architecture-root choice in favor of one repository-root governed system. |
 
 | DEC-010 | refines | DEC-008 | Preserve a manual developer test source while removing the supported one-click local installation lane. |
@@ -216,16 +226,28 @@ No physical-device, scheduler, OS-native trace, real-time, performance, or resou
 | DEC-015 | supersedes | DEC-009 | Replace administrator-controlled Workspace installation with user-owned independent installation on each personal-account surface. |
 | DEC-016 | supersedes | DEC-008 | Replace the private-Workspace lane with a generated Git Marketplace branch while retaining maintainer-only local testing. |
 | DEC-016 | supersedes | DEC-010 | Make the personal Git Marketplace, rather than a private Workspace listing, the supported user installation source. |
+| DEC-018 | supersedes | DEC-015 | Correct the unsupported assumption that a personal Git Marketplace can be added from ChatGPT web. |
+| DEC-018 | refines | DEC-016 | Retain the generated branch as a Codex-only distribution source. |
+| DEC-019 | refines | DEC-011 | Preserve the unified governed Skill behavior while removing only the unsupported surface contract. |
+| DEC-020 | refines | SPEC-0007 | Apply an explicit pre-tag rollback release without reusing an immutable tag. |
+| DEC-021 | supersedes | DEC-010 | Restore the supported one-click local installation lane after the cross-surface premise proved false. |
+| DEC-021 | refines | DEC-018 | Make local installation primary while keeping any remote Marketplace Codex-only and optional. |
+| DEC-021 | refines | DEC-019 | Restore installation behavior without discarding the unified Skill source or governed router. |
+| DEC-022 | supersedes | DEC-020 | Correct the disproven no-0.8.0-tag assumption with an explicitly authorized remote-tag deletion and verification. |
+| DEC-022 | refines | SPEC-0007 | Preserve immutable release governance by recording and verifying the authorized correction before the 0.7.2 release. |
+| DEC-023 | refines | DEC-022 | Extend the authorized correction to the independently created 0.8.1 tag while retaining remote history. |
+| DEC-023 | refines | SPEC-0007 | Resolve the latest remote version state through a normal descendant commit rather than rewriting `main`. |
 
 ## Out of Scope
 
 - Submitting the Plugin to OpenAI's universal public Plugin Directory.
 - Shipping `misc`, `personal`, `in-progress`, or `deprecated` skills.
-- Automatically installing or enabling the Plugin on either product surface.
+- Installing or enabling the Plugin without an explicit user-launched installer action.
 - Treating the local Marketplace or local Plugin cache as a synchronization mechanism for ChatGPT Work web.
 
-- Supporting one-click or user-facing local Plugin installation.
 - Requiring installation or enablement state to synchronize automatically between ChatGPT Work web and Codex Desktop.
+- Publishing this private Plugin to the universal public Plugin Directory.
+- Supporting installation of the private Git Marketplace in ChatGPT web.
 ## Open Decisions
 
 None.
@@ -349,14 +371,60 @@ None.
 - **Explicit rationale:** No additional rationale was stated.
 - **Resulting impact:** DEC-017 refines DEC-016; REQ-024 and AC-022 reserve `marketplace-release` for installation while preserving `plugin-release/main` for Version Pull Requests.
 
+### DISC-014: Correct the unsupported ChatGPT-web channel
+
+- **Situation:** The user's ChatGPT web interface exposes MCP Plugin creation but no Git Marketplace source, and official OpenAI documentation limits repo/personal Marketplace availability by surface.
+- **Question:** Should the project target the public Plugin Directory, Codex-only distribution, or managed Workspace publication?
+- **Options and tradeoffs:** Public submission enables cross-surface discovery but makes the Plugin public and requires review; Codex-only retains private Git distribution but drops web support; Workspace publication requires an unavailable managed Workspace.
+- **User answer:** Codex Desktop and Codex CLI only.
+- **Explicit rationale:** The user chose to continue using the old private Codex installation approach.
+- **Resulting impact:** DEC-018 supersedes the web interpretation of DEC-015; REQ-003, REQ-013, REQ-015, REQ-022, AC-003, AC-012, AC-013, and AC-020 are narrowed to Codex hosts.
+
+### DISC-015: Select the rollback depth and release version
+
+- **Situation:** A full rollback to the `0.7.1` tag would discard the single-source assembly and governed router work, while a targeted rollback removes only unsupported web distribution claims. The immutable `0.7.1` tag cannot identify a new commit.
+- **Question:** Revert the complete repository tree or preserve current engineering improvements and remove only the unsupported web channel?
+- **Options and tradeoffs:** Full rollback recreates the old tree but discards 366-file improvements; targeted rollback preserves the improvements and requires focused contract changes. A new `0.7.2` release avoids reusing the existing tag.
+- **User answer:** Option 2 — targeted rollback.
+- **Explicit rationale:** No additional rationale was stated.
+- **Resulting impact:** DEC-019 and DEC-020; REQ-025 and AC-023.
+
+### DISC-016: Select the Codex installation experience
+
+- **Situation:** The targeted rollback could retain the newer Git Marketplace command or restore the `0.7.1` user-launched local installer and desktop launcher.
+- **Question:** Which installation path should be the supported Codex Desktop/CLI experience?
+- **Options and tradeoffs:** The local installer restores the familiar one-click flow and avoids a remote branch dependency but requires filesystem/cache integration tests; the Git Marketplace command has less installer code but does not match the requested previous experience.
+- **User answer:** Option 1 — restore the local one-click installer.
+- **Explicit rationale:** The user wants to return to the previous installation method.
+- **Resulting impact:** DEC-021; REQ-014, REQ-015, REQ-016, REQ-025, REQ-026, AC-003, AC-012, AC-014, AC-015, AC-024.
+
+### DISC-017: Authorize correction of the failed 0.8.0 release tag
+
+- **Situation:** Remote inspection found `governed-engineering-skills@0.8.0` even though Marketplace publication failed, contradicting DEC-020 and blocking a governed 0.7.2 release.
+- **Question:** May the failed remote 0.8.0 tag be deleted before committing and pushing the corrected 0.7.2 release?
+- **Options and tradeoffs:** Deleting the tag restores the selected 0.7.x release line but is an irreversible external correction; retaining it requires a monotonically newer formal version and abandons the selected 0.7.2 identity.
+- **User answer:** `同意刪除遠端 governed-engineering-skills@0.8.0 標籤`.
+- **Explicit rationale:** The user explicitly authorized the destructive remote correction after its consequences were explained.
+- **Resulting impact:** DEC-022 supersedes DEC-020; REQ-025 and AC-023 require verified remote absence before commit.
+
+### DISC-018: Authorize correction of the concurrent 0.8.1 release tag
+
+- **Situation:** After the 0.8.0 tag was deleted, the already-running Version PR #31 merged into remote `main`, advanced formal metadata to 0.8.1, and created `governed-engineering-skills@0.8.1`; Git correctly rejected the pending non-fast-forward push.
+- **Question:** May the new remote 0.8.1 tag be deleted and the latest remote history be resolved to the selected 0.7.2 state?
+- **Options and tradeoffs:** Deleting 0.8.1 and replaying the corrected commit preserves remote history while restoring the selected version; retaining 0.8.1 requires abandoning 0.7.2; force-pushing would rewrite shared history and is rejected.
+- **User answer:** `同意刪除遠端 governed-engineering-skills@0.8.1 標籤，並將遠端版本修正為 0.7.2`.
+- **Explicit rationale:** The user separately authorized deletion of the newly created tag and reaffirmed the 0.7.2 target.
+- **Resulting impact:** DEC-023 refines DEC-022; REQ-025 and AC-023 now require both 0.8.x tags absent and a normal descendant push.
+
 ## Routing/Gates
 
-- Grilling: PASS; personal cross-surface semantics, same-repository publication topology, and the `marketplace-release` branch identity are selected.
-- Architecture proposal and implementation: PASS; `plugin_assembly_composition` remains the owner, JSON Schema types and validation outcomes are cataloged, generated Description Views are current, and development/release gates return `PASS: VERIFIED`.
-- TDD: PASS; RED recorded before Marketplace generation/evidence implementation, followed by deterministic Git-tree, unsafe-output, mutation, malformed-schema, stale-tag, and branch-identity GREEN fixtures.
-- Development and release validation: PASS locally; distribution assembly/validation, 29 shared-distribution tests, 161 Plugin contract tests, version governance, and both architecture gates exit `0`.
-- Cross-surface acceptance: BLOCKED until `marketplace-release` exists and the four personal-account invocation records are captured.
-- Spec and Standards review: PASS; final independent reviews report no uncovered requirement, scope creep, documented-standard violation, or actionable baseline smell.
+- Grilling: PASS; Codex-only distribution, targeted rollback, restored local one-click installation, and the `0.7.2` release identity are selected.
+- Architecture proposal and implementation: PASS; `plugin_assembly_composition` owns artifact assembly and local cache identity mutation, `local_install_adapter` owns Codex registration and installation, JSON Schema types and validation outcomes are cataloged, generated Description Views are current, and development/release gates return `PASS: VERIFIED`.
+- TDD: PASS; installer RED preceded implementation, then assembly-first, exact installed-tree, repeated cache-refresh, missing-runtime, incomplete-artifact, and partial-failure fixtures reached GREEN.
+- Development and release validation: PASS locally; distribution assembly/validation, shared-distribution tests, 162 Plugin contract tests, version governance, installer integration, and both architecture release gates exit `0`.
+- Codex-host acceptance: post-install user acceptance; no ChatGPT-web or external evidence gate blocks repository delivery.
+- Remote release identity: PASS; the maintainer separately authorized deletion of failed `governed-engineering-skills@0.8.0` and `@0.8.1` tags, subsequent remote ref queries proved both absent, and the correction is rebased onto the latest remote `main` without rewriting it.
+- Spec and Standards review: pending final re-review after resolving installer ownership and evidence findings.
 
 ## Revision History
 
@@ -382,3 +450,10 @@ None.
 | 19 | 2026-08-10 | Selected independent per-surface installation from one public Git repository, a generated same-repository publication branch, and the `marketplace-release` reference. |
 | 20 | 2026-08-10 | Confirmed the personal Git Marketplace design and authorized implementation. |
 | 21 | 2026-08-10 | Implemented and locally verified deterministic Marketplace publication, fail-closed release evidence, stale-tag protection, architecture governance, documentation, and two-axis review while retaining external cross-surface acceptance blockers. |
+| 22 | 2026-08-11 | Reopened before clarification: Official product-surface evidence disproves personal Git Marketplace installation on ChatGPT web; user selected Codex Desktop/CLI-only distribution and requested a 0.7.x rollback. |
+| 23 | 2026-08-11 | Selected a targeted rollback: retain single-source governance, narrow the private Git Marketplace to Codex Desktop/CLI, remove unsupported ChatGPT-web gates, and release as 0.7.2. |
+| 24 | 2026-08-11 | Reopened before clarification: User selected restoration of the 0.7.1 local one-click installer instead of Git Marketplace installation. |
+| 25 | 2026-08-11 | Restored the local one-click installer as the primary Codex Desktop/CLI path while preserving single-source assembly and optional Codex Marketplace output. |
+| 26 | 2026-08-11 | Reconciled Codex-only post-install acceptance, assembly-owned cache refresh, isolated exact-tree installer fixtures, and verified 0.7.2 delivery evidence. |
+| 27 | 2026-08-11 | Recorded explicit authorization and verified deletion of the failed remote 0.8.0 tag, superseding DEC-020's disproven external-state assumption. |
+| 28 | 2026-08-13 | Recorded separate authorization and verified deletion of the concurrently created 0.8.1 tag, retaining remote history while resolving the current version to 0.7.2. |

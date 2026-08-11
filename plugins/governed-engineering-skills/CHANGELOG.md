@@ -1,27 +1,25 @@
 # Governed Engineering Skills
 
-## 0.8.1
-
-### Fixed
-
-- Personal Marketplace publication now tolerates an already-empty orphan worktree
-
-## 0.8.0
+## 0.7.2
 
 ### Added
 
-- Deterministic single-source Plugin assembly and generated personal Git Marketplace publication
-- Cross-product Skill compatibility inventory and validation
+- Deterministic single-source Plugin assembly from the promoted engineering and productivity buckets
+- A one-click local installer for Codex Desktop and CLI
+- An optional generated Git Marketplace publication for Codex
 
 ### Changed
 
 - Promoted engineering and productivity buckets now own all Plugin Skills
 - Formal architecture governance now lives at the repository root
+- Local installation adds a cache-only Codex version suffix without changing the formal release version
 
 ### Fixed
 
-- Removed the unsupported one-click local installer and its Codex Desktop launcher
+- Restored local Marketplace registration and Plugin reinstall from one launcher
 - Bound assembled Plugin release-state fingerprints to the final generated artifact
+- Removed unsupported ChatGPT web installation and release-evidence gates
+- Made generated Marketplace publication tolerate an already-empty orphan worktree
 
 ## 0.7.1
 

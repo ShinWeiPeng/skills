@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -157,6 +158,8 @@ def _assert_replaceable_output(repo_root: Path, output: Path) -> None:
         raise DistributionError("artifact output cannot be the repository or one of its ancestors")
     if not output.exists():
         return
+    if output.is_dir() and not any(output.iterdir()):
+        return
     inventory_path = output / INVENTORY_NAME
     try:
         inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
@@ -219,16 +222,24 @@ def assemble(repo_root: Path, output: Path) -> dict[str, object]:
             skill_name=name,
         )
     _assert_replaceable_output(repo_root, output)
-    if output.exists():
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
-    _copy_repository_tree(repo_root, SHELL_PATH, output)
-    for name, source in skills.items():
-        _copy_skill(source, output / "skills" / name)
-    _synchronize_release_state_fingerprint(output)
-    result = _inventory(output)
-    (output / INVENTORY_NAME).write_bytes(_json_bytes(result))
-    return result
+    output.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(
+        tempfile.mkdtemp(prefix=f".{output.name}-staging-", dir=output.parent)
+    )
+    try:
+        _copy_repository_tree(repo_root, SHELL_PATH, staging)
+        for name, source in skills.items():
+            _copy_skill(source, staging / "skills" / name)
+        _synchronize_release_state_fingerprint(staging)
+        result = _inventory(staging)
+        (staging / INVENTORY_NAME).write_bytes(_json_bytes(result))
+        if output.exists():
+            shutil.rmtree(output)
+        staging.replace(output)
+        return result
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
 
 
 def validate_artifact(repo_root: Path, artifact: Path) -> dict[str, object]:
@@ -246,6 +257,34 @@ def validate_artifact(repo_root: Path, artifact: Path) -> dict[str, object]:
         if expected != actual:
             raise DistributionError("artifact differs from authoritative repository sources")
     return actual
+
+
+def localize_artifact(
+    repo_root: Path,
+    artifact: Path,
+    *,
+    cachebuster: str | None = None,
+) -> dict[str, object]:
+    """Add one local-only Codex cachebuster to an inventory-valid formal artifact."""
+    inventory_path = artifact / INVENTORY_NAME
+    if not inventory_path.is_file():
+        raise DistributionError(f"artifact is missing {INVENTORY_NAME}")
+    declared = json.loads(inventory_path.read_text(encoding="utf-8"))
+    if declared != _inventory(artifact):
+        raise DistributionError("artifact inventory or content fingerprint does not match its files")
+    manifest_path = artifact / ".codex-plugin" / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    formal_version = str(manifest.get("version", "")).split("+", 1)[0]
+    token = cachebuster or datetime.now(timezone.utc).strftime("local-%Y%m%d%H%M%S%f")
+    token = re.sub(r"[^a-z0-9-]+", "-", token.strip().lower()).strip("-")
+    if not formal_version or not token:
+        raise DistributionError("local cachebuster requires a formal version and non-empty token")
+    manifest["version"] = f"{formal_version}+codex.{token}"
+    manifest_path.write_bytes(_json_bytes(manifest))
+    _synchronize_release_state_fingerprint(artifact)
+    result = _inventory(artifact)
+    (artifact / INVENTORY_NAME).write_bytes(_json_bytes(result))
+    return result
 
 
 def _tree_fingerprint(root: Path) -> str:
@@ -332,19 +371,16 @@ def write_marketplace_publication(
             f"Add {MARKETPLACE_REPOSITORY} as a personal Git Marketplace",
             f"Use Git reference {MARKETPLACE_BRANCH}",
             f"Use sparse paths {', '.join(MARKETPLACE_SPARSE_PATHS)}",
-            "Install the governed Plugin independently in ChatGPT Work web and Codex Desktop",
+            "Install the governed Plugin in Codex Desktop or Codex CLI",
         ],
         "rollback": {
             "method": f"Restore {MARKETPLACE_BRANCH} to the previous validated generated commit",
             "previous_publication_commit": previous_publication_commit,
         },
         "evidence_checklist": [
-            "Both surfaces show the expected Plugin name, version, Git reference, and fingerprint",
-            "ChatGPT Work web invokes one representative engineering Skill",
-            "ChatGPT Work web invokes one representative productivity Skill",
-            "Codex Desktop invokes one representative engineering Skill",
-            "Codex Desktop invokes one representative productivity Skill",
-            "Screenshots or exported task evidence are attached to the release record",
+            "Codex resolves the expected Plugin name, version, Git reference, and fingerprint",
+            "Codex Desktop or CLI invokes one representative engineering Skill",
+            "Codex Desktop or CLI invokes one representative productivity Skill",
         ],
     }
     record.write_bytes(_json_bytes(payload))
@@ -428,7 +464,7 @@ def validate_marketplace_publication(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("assemble", "validate"))
+    parser.add_argument("command", choices=("assemble", "validate", "localize"))
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--output", type=Path)
     parser.add_argument("--artifact", type=Path)
@@ -436,6 +472,7 @@ def main() -> int:
     parser.add_argument("--marketplace-output", type=Path)
     parser.add_argument("--source-commit")
     parser.add_argument("--previous-publication-commit", default="none:first-publication")
+    parser.add_argument("--cachebuster")
     args = parser.parse_args()
     repo_root = args.repo_root.resolve()
     artifact = (args.output or args.artifact or repo_root / "dist" / PLUGIN_NAME).resolve()
@@ -470,8 +507,14 @@ def main() -> int:
                     )
                 )
                 validate_marketplace_publication(publication_root, json.loads(record.read_text(encoding="utf-8")), schema)
-        else:
+        elif args.command == "validate":
             result = validate_artifact(repo_root, artifact)
+        else:
+            result = localize_artifact(
+                repo_root,
+                artifact,
+                cachebuster=args.cachebuster,
+            )
     except (DistributionError, OSError, KeyError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}")
         return 1

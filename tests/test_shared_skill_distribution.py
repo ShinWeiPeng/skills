@@ -1,20 +1,19 @@
 from __future__ import annotations
 
 import importlib.util
-import hashlib
 import json
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLER = REPO_ROOT / "scripts" / "assemble_plugin.py"
 VALIDATOR = REPO_ROOT / "scripts" / "validate_distribution.py"
-RELEASE_VALIDATOR = REPO_ROOT / "scripts" / "validate_personal_marketplace_release.py"
 PLUGIN_SHELL = REPO_ROOT / "plugins" / "governed-engineering-skills"
 DIST_PLUGIN = REPO_ROOT / "dist" / "governed-engineering-skills"
 PROMOTED_ROOTS = (
@@ -41,30 +40,22 @@ def load_validator():
     return module
 
 
-def load_release_validator():
-    spec = importlib.util.spec_from_file_location("validate_personal_marketplace_release", RELEASE_VALIDATOR)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("unable to load personal Marketplace release validator")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 class SharedSkillDistributionTests(unittest.TestCase):
     def test_plugin_shell_contains_no_tracked_skill_tree(self) -> None:
         self.assertFalse((PLUGIN_SHELL / "skills").exists())
 
-    def test_removed_local_installer_does_not_exist(self) -> None:
-        self.assertFalse((REPO_ROOT / "Install Governed Engineering Skills.cmd").exists())
-        self.assertFalse((PLUGIN_SHELL / "scripts" / "install-local.ps1").exists())
-        self.assertFalse((PLUGIN_SHELL / "tests" / "test_install_local.ps1").exists())
+    def test_local_installer_surface_is_complete(self) -> None:
+        self.assertTrue((REPO_ROOT / "Install Governed Engineering Skills.cmd").is_file())
+        self.assertTrue((REPO_ROOT / "scripts" / "install-local.ps1").is_file())
+        self.assertTrue((PLUGIN_SHELL / "scripts" / "install-local.ps1").is_file())
+        self.assertTrue((PLUGIN_SHELL / "tests" / "test_install_local.ps1").is_file())
 
     def test_formal_architecture_is_repository_scoped(self) -> None:
         manifest = REPO_ROOT / "architecture" / "manifest.yaml"
         self.assertTrue(manifest.is_file())
         self.assertFalse((PLUGIN_SHELL / "architecture").exists())
         text = manifest.read_text(encoding="utf-8")
-        self.assertNotIn("local_install_adapter", text)
+        self.assertIn("local_install_adapter", text)
 
     def test_algorithm_records_reference_existing_source_and_test_paths(self) -> None:
         for record in sorted((REPO_ROOT / "architecture" / "algorithms").glob("ALG-*.md")):
@@ -126,6 +117,29 @@ class SharedSkillDistributionTests(unittest.TestCase):
             first = module.assemble(REPO_ROOT, artifact)
             second = module.assemble(REPO_ROOT, artifact)
             self.assertEqual(first["content_fingerprint"], second["content_fingerprint"])
+
+    def test_empty_partial_artifact_is_recovered_safely(self) -> None:
+        module = load_assembler()
+        with tempfile.TemporaryDirectory() as output_dir:
+            artifact = Path(output_dir) / "plugin"
+            artifact.mkdir()
+            result = module.assemble(REPO_ROOT, artifact)
+            self.assertEqual("governed-engineering-skills", result["plugin_name"])
+            self.assertTrue((artifact / "artifact-inventory.json").is_file())
+
+    def test_failed_staging_preserves_the_previous_artifact(self) -> None:
+        module = load_assembler()
+        with tempfile.TemporaryDirectory() as output_dir:
+            artifact = Path(output_dir) / "plugin"
+            original = module.assemble(REPO_ROOT, artifact)
+            with mock.patch.object(
+                module,
+                "_copy_skill",
+                side_effect=module.DistributionError("simulated partial copy"),
+            ):
+                with self.assertRaises(module.DistributionError):
+                    module.assemble(REPO_ROOT, artifact)
+            self.assertEqual(original, module.validate_artifact(REPO_ROOT, artifact))
 
     def test_versioned_artifact_passes_its_own_integration_validation(self) -> None:
         module = load_assembler()
@@ -362,11 +376,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
         validate_at = release_job.index("assemble_plugin.py validate")
         version_at = release_job.index("version_governance.py")
         publish_at = release_job.index("Publish the generated personal Marketplace branch")
-        evidence_at = release_job.index("validate_personal_marketplace_release.py")
         self.assertLess(assemble_at, validate_at)
         self.assertLess(validate_at, version_at)
         self.assertLess(version_at, publish_at)
-        self.assertLess(publish_at, evidence_at)
         self.assertIn('git worktree add --detach "$publication_worktree"', release_job)
         self.assertIn(
             'git -C "$publication_worktree" rm -rf --ignore-unmatch .',
@@ -375,7 +387,8 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertIn('git -C "$publication_worktree" add -A', release_job)
         self.assertIn('"$remote_tag_commit" != "$GITHUB_SHA"', release_job)
         self.assertIn('exit 1', release_job)
-        self.assertIn('--branch-commit "$branch_commit"', release_job)
+        self.assertNotIn("validate_personal_marketplace_release.py", release_job)
+        self.assertNotIn("marketplace-acceptance", release_job)
         self.assertNotIn("Workspace publication", release_job)
 
     def test_marketplace_publication_can_populate_an_empty_orphan_worktree(self) -> None:
@@ -460,114 +473,6 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 ],
                 tracked.stdout.splitlines(),
             )
-
-    def test_release_acceptance_is_blocked_while_personal_evidence_is_pending(self) -> None:
-        completed = subprocess.run(
-            [sys.executable, str(RELEASE_VALIDATOR), "--repo-root", str(REPO_ROOT)],
-            cwd=REPO_ROOT,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        self.assertEqual(1, completed.returncode)
-        self.assertIn("still pending", completed.stdout)
-
-    def test_complete_personal_marketplace_evidence_accepts_only_the_current_artifact(self) -> None:
-        assembler = load_assembler()
-        module = load_release_validator()
-        with tempfile.TemporaryDirectory() as output_dir:
-            temporary_root = Path(output_dir)
-            artifact = temporary_root / "artifact"
-            inventory = assembler.assemble(REPO_ROOT, artifact)
-            distribution = temporary_root / "distribution"
-            evidence_root = distribution / "evidence"
-            evidence_root.mkdir(parents=True)
-            (distribution / "skill-compatibility.json").write_text(
-                (REPO_ROOT / "distribution" / "skill-compatibility.json").read_text(encoding="utf-8"),
-                encoding="utf-8",
-            )
-            (distribution / "personal-marketplace-release-evidence.schema.json").write_text(
-                (REPO_ROOT / "distribution" / "personal-marketplace-release-evidence.schema.json").read_text(
-                    encoding="utf-8"
-                ),
-                encoding="utf-8",
-            )
-            invocations = {}
-            for surface in ("chatgpt-work-web", "codex"):
-                invocations[surface] = {}
-                for bucket, skill in (("engineering", "codebase-design"), ("productivity", "writing-great-skills")):
-                    relative = Path("distribution") / "evidence" / f"{surface}-{bucket}.txt"
-                    file_path = temporary_root / relative
-                    file_path.write_text(f"auditable {surface} {bucket} result", encoding="utf-8")
-                    invocations[surface][bucket] = {
-                        "skill": skill,
-                        "evidence": {
-                            "kind": "repository-file",
-                            "path": relative.as_posix(),
-                            "sha256": "sha256:" + hashlib.sha256(file_path.read_bytes()).hexdigest(),
-                        },
-                    }
-            publication_root = temporary_root / "marketplace"
-            publication_path = assembler.write_marketplace_publication(
-                REPO_ROOT,
-                artifact,
-                inventory,
-                publication_root,
-                source_commit="a" * 40,
-                previous_publication_commit="none:first-publication",
-            )
-            publication = json.loads(publication_path.read_text(encoding="utf-8"))
-            evidence = {
-                "schema_version": "1.0.0",
-                "status": "accepted",
-                "marketplace": {
-                    "repository_url": publication["repository_url"],
-                    "git_ref": publication["git_ref"],
-                    "branch_commit": "b" * 40,
-                    "source_commit": publication["source_commit"],
-                    "source_tag": publication["source_tag"],
-                    "marketplace_path": publication["marketplace_path"],
-                    "sparse_paths": publication["sparse_paths"],
-                },
-                "artifact": {
-                    "name": inventory["plugin_name"],
-                    "version": inventory["version"],
-                    "content_fingerprint": inventory["content_fingerprint"],
-                },
-                "invocations": invocations,
-            }
-            path = temporary_root / "release-evidence.json"
-            path.write_text(json.dumps(evidence), encoding="utf-8")
-            self.assertEqual(
-                [],
-                module.validate(
-                    temporary_root, path, artifact, publication_path, branch_commit="b" * 40
-                ),
-            )
-            branch_errors = module.validate(
-                temporary_root, path, artifact, publication_path, branch_commit="c" * 40
-            )
-            self.assertTrue(any("checked-out branch commit" in error for error in branch_errors))
-            evidence["unexpected"] = True
-            path.write_text(json.dumps(evidence), encoding="utf-8")
-            schema_errors = module.validate(
-                temporary_root, path, artifact, publication_path, branch_commit="b" * 40
-            )
-            self.assertTrue(any("schema" in error for error in schema_errors), schema_errors)
-            del evidence["unexpected"]
-            evidence["marketplace"]["git_ref"] = "main"
-            path.write_text(json.dumps(evidence), encoding="utf-8")
-            errors = module.validate(
-                temporary_root, path, artifact, publication_path, branch_commit="b" * 40
-            )
-            self.assertTrue(any("git_ref" in error for error in errors), errors)
-            evidence["marketplace"]["git_ref"] = "marketplace-release"
-            evidence["invocations"]["codex"]["engineering"]["evidence"]["sha256"] = "sha256:" + "0" * 64
-            path.write_text(json.dumps(evidence), encoding="utf-8")
-            errors = module.validate(
-                temporary_root, path, artifact, publication_path, branch_commit="b" * 40
-            )
-            self.assertTrue(any("checksum does not match" in error for error in errors), errors)
 
     def test_git_status_is_unchanged_by_default_assembly(self) -> None:
         before = subprocess.run(
@@ -702,19 +607,19 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 self.assertIn(root_link, user_section if user_invoked else model_section, skill_dir.name)
                 self.assertIn(bucket_link, bucket_user if user_invoked else bucket_model, skill_dir.name)
 
-    def test_compatibility_scan_rejects_host_dependent_cross_product_skill(self) -> None:
+    def test_compatibility_scan_rejects_malformed_host_dependencies(self) -> None:
         module = load_validator()
         compatibility = json.loads(
             (REPO_ROOT / "distribution" / "skill-compatibility.json").read_text(encoding="utf-8")
         )["skills"]
         compatibility["code-review"] = {
-            "classification": "cross-product",
+            "classification": "codex-compatible",
             "reason": "negative fixture",
-            "host_dependencies": [],
+            "host_dependencies": "Git repository",
         }
         skills = module.promoted_skills(REPO_ROOT)
         errors = module.compatibility_dependency_errors(compatibility, skills)
-        self.assertTrue(any("code-review" in error for error in errors), errors)
+        self.assertTrue(any("host_dependencies must be a list" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

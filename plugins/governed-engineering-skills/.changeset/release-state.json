@@ -1,10 +1,11 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.8.1",
-  "previous_version": "0.8.0",
+  "current_version": "0.7.2",
+  "previous_version": "0.7.1",
   "bump": "patch",
-  "production_fingerprint": "sha256:10f861cfe91f472a9bb0e707df382b40026213281b0beaf1351735ea45e8e34d",
+  "production_fingerprint": "sha256:748da3a14467d4e12a35b66e984d0da6f5e3db20e454e4b4ab0e0988902444d0",
   "applied_changesets": [
+    "shared-skill-distribution",
     "marketplace-empty-orphan-worktree"
   ]
 }

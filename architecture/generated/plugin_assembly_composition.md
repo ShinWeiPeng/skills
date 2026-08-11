@@ -13,27 +13,29 @@ flowchart TD
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `plugin_assembly_composition` | L0 | composition | `-` | implemented | Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record. |
+| `plugin_assembly_composition` | L0 | composition | `-` | implemented | Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree. |
 
 ### `plugin_assembly_composition`
 
-- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, then emit a deterministic personal Git Marketplace publication tree and identity record.
+- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
-- **Input Ports:** `plugin-release.synchronize-artifact`
+- **Input Ports:** `plugin-release.synchronize-artifact`, `plugin-install.local`, `local-install.register`
 - **Output Ports:** `plugin-distribution.result`
 - **Emitted Events:** `plugin-distribution.blocked`
 - **Owned State:** None
-- **Side Effects:** Replace only selected ignored output directories with a deterministic Plugin artifact and Marketplace publication tree. (`-`)
-- **Errors:** `plugin_distribution_invalid`: Source metadata, artifact inventory, publication identity, tree fingerprint, cross-surface evidence, or output ownership is invalid. → `plugin-distribution.blocked` → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
-- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; Local maintainer testing and `marketplace-release` publication consume the same artifact identity.; ChatGPT Work web and Codex Desktop install independently from one Git-backed release.; `marketplace-release` is generated and never becomes an editable Skill source.
-- **Entrypoints:** [`main`](../../scripts/assemble_plugin.py) (cli)
-- **Public Symbols:** [`assemble`](../../scripts/assemble_plugin.py) (function)<br>[`validate_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`write_marketplace_publication`](../../scripts/assemble_plugin.py) (function)<br>[`validate`](../../scripts/validate_distribution.py) (function)<br>[`validate`](../../scripts/validate_personal_marketplace_release.py) (function)
+- **Side Effects:** Replace only selected ignored output directories with a deterministic Plugin artifact and Marketplace publication tree. (`-`); Apply a local-only cache identity to the ignored validated artifact without changing formal release metadata. (`-`); Invoke the local installation adapter only after the assembled Plugin inventory and fingerprint validate. (`-`)
+- **Errors:** `plugin_distribution_invalid`: Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → `plugin-distribution.blocked` → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
+- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; `marketplace-release` is generated and never becomes an editable Skill source.
+- **Entrypoints:** [`main`](../../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../../scripts/install-local.ps1) (script)
+- **Public Symbols:** [`install-local`](../../scripts/install-local.ps1) (script)<br>[`install-local`](../../plugins/governed-engineering-skills/scripts/install-local.ps1) (script)<br>[`assemble`](../../scripts/assemble_plugin.py) (function)<br>[`validate_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`localize_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`write_marketplace_publication`](../../scripts/assemble_plugin.py) (function)<br>[`validate`](../../scripts/validate_distribution.py) (function)
 
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
+| `plugin-install.local` | `plugin_assembly_composition` | input | command | sync | Assemble, validate, and begin installation of the governed Plugin for local Codex.: Repository-relative source, output, and Marketplace identities. | `install-local` |
+| `local-install.register` | `plugin_assembly_composition` | input | command | sync | Register the validated local Marketplace and open the governed Plugin page.: Validated assembled Plugin path, Marketplace manifest path, and Plugin identifier. | `install-local` |
 | `plugin-release.synchronize-artifact` | `plugin_assembly_composition` | input | command | sync | Ask Plugin release governance to bind an assembled Plugin release-state to that artifact's current production fingerprint.: Assembled Plugin root path whose release-state fingerprint must match its logical production files. | `assemble` |
 | `plugin-distribution.result` | `plugin_assembly_composition` | output | event | sync | Publish a fail-closed Plugin assembly or Marketplace validation result.: Artifact identity, publication identity, and bounded validation diagnostics. | `validate_artifact` |
 
@@ -49,7 +51,6 @@ flowchart TD
 |---|---|---|---|---|---|---|
 | `plugin-distribution-error` | `plugin_assembly_composition` | `DistributionError` (class, `scripts/assemble_plugin.py`) | cross-module | domain-value | `plugin_assembly_composition` | None |
 | `personal-marketplace-publication-record` | `plugin_assembly_composition` | `PersonalMarketplacePublicationRecord` (interface, `distribution/personal-marketplace-publication.schema.json`) | cross-module | domain-value | `plugin_assembly_composition` | None |
-| `personal-marketplace-release-evidence` | `plugin_assembly_composition` | `PersonalMarketplaceReleaseEvidence` (interface, `distribution/personal-marketplace-release-evidence.schema.json`) | cross-module | domain-value | `plugin_assembly_composition` | None |
 
 ## State Ownership
 
@@ -62,3 +63,37 @@ flowchart TD
 |---|---|---|---|---|---|---|---|---|---|
 
 ## End-to-End Flows
+
+### `local-plugin-installation`
+
+Assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
+
+#### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant n_plugin_assembly_composition as plugin_assembly_composition<br/>組裝單一外掛並產生個人 Git 市集發佈樹
+    participant n_local_install_adapter as local_install_adapter<br/>註冊本機 Marketplace、安裝外掛並開啟 Codex 詳情頁
+    n_plugin_assembly_composition->>+n_plugin_assembly_composition: Build the complete Plugin from the tracked shell and promoted root Skills, then reject missing, stale, or fingerprint-mismatched output.
+    n_plugin_assembly_composition-->>-n_plugin_assembly_composition: step 1
+    n_plugin_assembly_composition->>+n_plugin_assembly_composition: Apply a local-only cache identity to the validated artifact and regenerate its inventory without changing formal release metadata.
+    n_plugin_assembly_composition-->>-n_plugin_assembly_composition: step 2
+    n_plugin_assembly_composition->>+n_local_install_adapter: Register the repository-local Marketplace, install the Plugin through Codex CLI, and open its detail page.
+    n_local_install_adapter-->>-n_plugin_assembly_composition: step 3
+```
+
+#### Ordered Steps
+
+| # | Module | Action | Receives | Emits | State changes | Side effects |
+|---|---|---|---|---|---|---|
+| 1 | `plugin_assembly_composition` | Build the complete Plugin from the tracked shell and promoted root Skills, then reject missing, stale, or fingerprint-mismatched output. | `plugin-install.local` | None | None | Replace only the ignored dist/governed-engineering-skills candidate. |
+| 2 | `plugin_assembly_composition` | Apply a local-only cache identity to the validated artifact and regenerate its inventory without changing formal release metadata. | None | None | None | Mutate only the ignored dist/governed-engineering-skills candidate. |
+| 3 | `local_install_adapter` | Register the repository-local Marketplace, install the Plugin through Codex CLI, and open its detail page. | `local-install.register` | None | None | Update the current user's Codex Marketplace configuration.; Install the Plugin into the current user's Codex cache.; Open the Codex Desktop Plugin detail page. |
+
+- **Success:** Codex recognizes the local Marketplace entry and reports successful installation from the validated, locally cache-busted artifact.
+- **Errors:** Assembly or artifact validation fails. → `plugin-distribution.blocked` → Stop before invoking Codex or changing user configuration and report the failed validation boundary.
+- **Errors:** Codex resolution, Marketplace registration, Plugin installation, or Plugin-page launch fails. → `local-install.blocked` → Preserve the validated artifact, issue no removal command against a prior Plugin install, return a stable non-zero exit code, and provide the log and retry action. A Marketplace registered before installation failure remains registered for that retry.
+
+#### Execution efficiency
+
+- Workload `local-plugin-installation-workload`: `best-effort`; steps `local-plugin-installation.assemble`, `local-plugin-installation.register`; profiles None.

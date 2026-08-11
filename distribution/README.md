@@ -1,16 +1,39 @@
 # Plugin distribution
 
 The repository has one editable Skill source: `skills/engineering` and
-`skills/productivity`. The tracked directory at
-`plugins/governed-engineering-skills` is only the Plugin shell and intentionally
-contains no `skills/` directory.
+`skills/productivity`. The tracked `plugins/governed-engineering-skills`
+directory is only the Plugin shell and intentionally contains no `skills/`
+directory.
 
 Assembly removes Claude's `disable-model-invocation: true` frontmatter only from
 the OpenAI Plugin copy. The root source keeps Claude's field, while
-`agents/openai.yaml` remains the OpenAI invocation-policy authority. This is a
+`agents/openai.yaml` remains the Codex invocation-policy authority. This is a
 deterministic packaging normalization, not a second editable Skill source.
 
-Build the complete local artifact and personal Marketplace candidate with:
+## User installation
+
+On Windows, double-click `Install Governed Engineering Skills.cmd` at the
+repository root. It performs this fail-closed sequence:
+
+1. Assemble `dist/governed-engineering-skills` from the tracked Plugin shell and
+   the promoted root Skill buckets.
+2. Validate the formal artifact and distribution contracts.
+3. Add a local-only Codex cachebuster to the ignored artifact.
+4. Register the repository Marketplace and install
+   `governed-engineering-skills@personal`.
+5. Open the Plugin page and ask the user to start a new Codex task.
+
+The formal Plugin version remains `0.7.2`; only the ignored local artifact gets
+the `+codex.<cachebuster>` suffix. Failures stop before later phases and retain a
+bounded log in the operating-system temporary directory.
+
+ChatGPT web does not expose Git Marketplace installation for this personal
+account and is not supported by this distribution. No Workspace administrator,
+web publication record, or cross-surface invocation evidence is required.
+
+## Optional Git Marketplace
+
+Maintainers may also build the deterministic Codex Marketplace candidate:
 
 ```powershell
 python scripts/assemble_plugin.py assemble --marketplace-publication
@@ -18,47 +41,13 @@ python scripts/validate_distribution.py
 python scripts/assemble_plugin.py validate
 ```
 
-The command writes ignored outputs at `dist/governed-engineering-skills` and
-`dist/marketplace-release`. The publication tree contains only the Marketplace
-catalog, complete Plugin package, and `publication-record.json`. Its record is
-validated by `distribution/personal-marketplace-publication.schema.json` and is
-bound to the Plugin version, source tag and commit, artifact fingerprint, tree
-fingerprint, sparse paths, and rollback target.
+This writes ignored outputs at `dist/governed-engineering-skills` and
+`dist/marketplace-release`. The optional publication tree contains the
+Marketplace catalog, complete Plugin package, and `publication-record.json`.
+The release workflow may publish it to `marketplace-release`; it is not an
+editable Skill source and is not needed for local installation.
 
-## User installation
-
-Add the Marketplace separately in ChatGPT Work web and Codex Desktop:
-
-- Source: `https://github.com/ShinWeiPeng/skills.git`
-- Git reference: `marketplace-release`
-- Sparse paths: `.agents/plugins` and `plugins/governed-engineering-skills`
-
-Then install **Governed Engineering Skills** and start a fresh chat or task.
-Installation state is owned independently by each surface; matching repository,
-ref, branch commit, Plugin version, and content fingerprint prove that both use
-the same release.
-
-The `.agents/plugins/marketplace.json` file on `main` points at a local build and
-exists only for deliberate maintainer testing. It is not the supported user
-installation channel. The repository ships no one-click local installer.
-
-## Publication and acceptance
-
-The release workflow regenerates and validates the candidate after every local
-release gate. Only a stable release with no pending version change may replace
-the generated `marketplace-release` branch. Pull-request validation never
-publishes it, and the prior branch commit is recorded as the rollback target.
-
-`distribution/personal-marketplace-release-evidence.json` intentionally begins
-in `pending` state. Its accepted form is governed by
-`distribution/personal-marketplace-release-evidence.schema.json`. After
-independently installing the published branch, record
-the branch and artifact identity plus four repository-contained evidence files:
-one engineering and one productivity invocation from each surface. Release
-acceptance fails closed until those hashes and identities match the publication.
-
-`skill-compatibility.json` is the release inventory. A `cross-product` Skill may
-be used for the four representative checks. A `codex-only` Skill depends on
-repository, terminal, architecture-governance, or device-evidence capabilities
-not promised on ChatGPT Work web. A `blocked` entry prevents release until its
-dependency is removed or the target surface supplies it.
+`skill-compatibility.json` is the Codex capability inventory. A
+`codex-compatible` entry names any repository, terminal, tracker, device, or
+runtime dependencies. A `blocked` entry prevents release until its dependency
+is available or removed.
