@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.8.1
+
+### Fixed
+
+- Personal Marketplace publication now tolerates an already-empty orphan worktree
+
 ## 0.8.0
 
 ### Added
