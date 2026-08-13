@@ -164,6 +164,19 @@ class RepositoryPolicyTests(unittest.TestCase):
             MODULE.validate_repository(root, ci=True),
         )
 
+    def test_production_fingerprint_normalizes_text_checkout_newlines(self) -> None:
+        root = self.make_repo()
+        source = root / "skills" / "portable.md"
+        source.write_bytes(b"first\nsecond\n")
+        lf_fingerprint = MODULE.production_fingerprint(root)
+        source.write_bytes(b"first\r\nsecond\r\n")
+        self.assertEqual(lf_fingerprint, MODULE.production_fingerprint(root))
+
+        source.write_bytes(b"\x00first\r\nsecond")
+        binary_crlf_fingerprint = MODULE.production_fingerprint(root)
+        source.write_bytes(b"\x00first\nsecond")
+        self.assertNotEqual(binary_crlf_fingerprint, MODULE.production_fingerprint(root))
+
     def test_ci_rejects_cachebuster_but_local_validation_accepts_it(self) -> None:
         root = self.make_repo()
         manifest_path = root / ".codex-plugin" / "plugin.json"

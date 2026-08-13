@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0013
-revision: 28
+revision: 29
 status: confirmed
 change_set: shared-skill-distribution
 ---
@@ -162,7 +162,7 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 | AC-008 | REQ-008 | No active document states that the native Codex/OpenAI plugin is deferred or that packaged Skills are maintained as an independent vendored source. | Repository-wide contract search and documented-command verification. | PASS — active contracts describe root ownership and assembly. |
 | AC-009 | REQ-009 | The selected architecture root and source sets validate every governed Python production path after the Skill migration, with no parent traversal and no missing moved source. | Architecture design/development gates and source-set inventory validation. | PASS — both architecture release gates are VERIFIED. |
 | AC-010 | REQ-010, REQ-012 | User documentation identifies the one-click local installer as primary, while the optional publication record validates the Git repository, `marketplace-release` reference, catalog and Plugin paths, release identity, rollback, and Codex installation steps. | Rendered documentation review, Marketplace schema/path validation, and publication-record schema validation. | PASS — README and distribution guidance distinguish the local primary path and optional Git branch; malformed publication identities fail closed. |
-| AC-011 | REQ-011 | The validated formal artifact and optional `marketplace-release` publication candidate have the same Plugin name, semantic version, complete file inventory, and SHA-256 content fingerprint before local cache localization. | Deterministic assembly, manifest validation, inventory comparison, and checksum comparison. | PASS locally — Plugin 0.7.2 has 257 files; localize preserves the formal 0.7.2 prefix and refreshes inventory after adding the cachebuster. |
+| AC-011 | REQ-011 | The validated formal artifact and optional `marketplace-release` publication candidate have the same Plugin name, semantic version, complete file inventory, and SHA-256 content fingerprint before local cache localization. | Deterministic assembly, manifest validation, inventory comparison, checksum comparison, and LF/CRLF checkout-equivalence fixture. | PASS — Plugin 0.7.2 has 257 files; localize preserves the formal 0.7.2 prefix and refreshes inventory after adding the cachebuster; production fingerprints normalize text checkout newlines while preserving binary bytes exactly. |
 | AC-012 | REQ-003, REQ-013 | The locally installed Plugin is visible in Codex Desktop and Codex CLI, and a new task/session can invoke one representative engineering Skill and one representative productivity Skill in each host. | One local installation followed by a four-case Codex-host invocation checklist with matching formal release identity. | POST-INSTALL USER ACCEPTANCE — not a repository release or push gate. |
 | AC-013 | REQ-013 | Every packaged Skill is classified as Codex-compatible or blocked with a specific host-dependency reason. | Static compatibility inventory plus representative negative fixtures and packaging-policy tests. | PASS — all 28 packaged Skills are Codex-compatible with explicit host-dependency lists; malformed inventory fixtures fail. |
 
@@ -422,6 +422,7 @@ None.
 - Architecture proposal and implementation: PASS; `plugin_assembly_composition` owns artifact assembly and local cache identity mutation, `local_install_adapter` owns Codex registration and installation, JSON Schema types and validation outcomes are cataloged, generated Description Views are current, and development/release gates return `PASS: VERIFIED`.
 - TDD: PASS; installer RED preceded implementation, then assembly-first, exact installed-tree, repeated cache-refresh, missing-runtime, incomplete-artifact, and partial-failure fixtures reached GREEN.
 - Development and release validation: PASS locally; distribution assembly/validation, shared-distribution tests, 162 Plugin contract tests, version governance, installer integration, and both architecture release gates exit `0`.
+- Cross-platform release fingerprint: PASS; the LF/CRLF equivalence regression fixture passes, binary content remains byte-sensitive, and Windows plus Git-archive checkout calculations agree.
 - Codex-host acceptance: post-install user acceptance; no ChatGPT-web or external evidence gate blocks repository delivery.
 - Remote release identity: PASS; the maintainer separately authorized deletion of failed `governed-engineering-skills@0.8.0` and `@0.8.1` tags, subsequent remote ref queries proved both absent, and the correction is rebased onto the latest remote `main` without rewriting it.
 - Spec and Standards review: pending final re-review after resolving installer ownership and evidence findings.
@@ -457,3 +458,4 @@ None.
 | 26 | 2026-08-11 | Reconciled Codex-only post-install acceptance, assembly-owned cache refresh, isolated exact-tree installer fixtures, and verified 0.7.2 delivery evidence. |
 | 27 | 2026-08-11 | Recorded explicit authorization and verified deletion of the failed remote 0.8.0 tag, superseding DEC-020's disproven external-state assumption. |
 | 28 | 2026-08-13 | Recorded separate authorization and verified deletion of the concurrently created 0.8.1 tag, retaining remote history while resolving the current version to 0.7.2. |
+| 29 | 2026-08-13 | Normalized textual checkout newlines in production fingerprints after Linux CI exposed Windows CRLF drift; added portable regression evidence without changing the selected release contract. |

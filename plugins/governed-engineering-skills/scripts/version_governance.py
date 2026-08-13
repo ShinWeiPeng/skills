@@ -114,6 +114,14 @@ def _fingerprint_path(path: Path, root: Path) -> bool:
     return True
 
 
+def _fingerprint_bytes(path: Path) -> bytes:
+    """Return checkout-independent bytes while preserving binary content exactly."""
+    content = path.read_bytes()
+    if b"\x00" in content:
+        return content
+    return content.replace(b"\r\n", b"\n")
+
+
 def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
     """Hash the logical Plugin sources independent of their repository location."""
     entries: list[tuple[str, Path]] = []
@@ -132,7 +140,7 @@ def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
         relative = logical_path.encode("utf-8")
         digest.update(len(relative).to_bytes(4, "big"))
         digest.update(relative)
-        content = path.read_bytes()
+        content = _fingerprint_bytes(path)
         digest.update(len(content).to_bytes(8, "big"))
         digest.update(content)
     return f"sha256:{digest.hexdigest()}"

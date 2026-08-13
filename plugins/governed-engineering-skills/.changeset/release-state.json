@@ -3,7 +3,7 @@
   "current_version": "0.7.2",
   "previous_version": "0.7.1",
   "bump": "patch",
-  "production_fingerprint": "sha256:748da3a14467d4e12a35b66e984d0da6f5e3db20e454e4b4ab0e0988902444d0",
+  "production_fingerprint": "sha256:1865f48618d4cb3a25c3c08548a961425768ac125ad7959dc26ca141d11fce7b",
   "applied_changesets": [
     "shared-skill-distribution",
     "marketplace-empty-orphan-worktree"
