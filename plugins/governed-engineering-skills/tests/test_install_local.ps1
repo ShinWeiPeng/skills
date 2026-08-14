@@ -122,8 +122,10 @@ try {
         Assert-Equal 0 @($errors).Count "PowerShell parse errors in $script"
     }
     $launcherText = Get-Content -Raw -LiteralPath $launcher
-    if ($launcherText -notmatch '(?i)%~dp0' -or $launcherText -match '(?im)^\s*(pause|set\s+/p)\b') {
-        throw 'Launcher must be location-relative and non-interactive.'
+    if ($launcherText -notmatch '(?i)%~dp0' -or
+        $launcherText -notmatch 'scripts\\install-marketplace\.ps1' -or
+        $launcherText -match '(?im)^\s*(pause|set\s+/p)\b') {
+        throw 'Launcher must delegate location-relatively to the Marketplace installer without blocking input.'
     }
 
     $env:PATH = "$fakeBin;$originalPath"
@@ -339,16 +341,6 @@ try {
         -LogPath (Join-Path $testRoot 'assembly-failure.log') *> $null
     Assert-Equal 30 $LASTEXITCODE 'simulated partial assembly failure'
     Assert-Equal $false (Test-Path -LiteralPath $env:FAKE_CODEX_LOG) 'Codex must not run after assembly failure'
-
-    $env:GOVERNED_INSTALLER_NO_DELAY = '1'
-    $env:FAKE_CODEX_SCENARIO = 'success'
-    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'launcher.calls'
-    $env:FAKE_URI_LOG = Join-Path $testRoot 'launcher.uri'
-    $env:FAKE_URI_SCENARIO = 'success'
-    $launcherCommand = "call `"$launcher`" -RepositoryRoot `"$repoRoot`" -CodexCommand `"$fakeCodex`" -UriLauncherCommand `"$fakeUriLauncher`""
-    & $env:ComSpec /d /c $launcherCommand *> $null
-    Assert-Equal 0 $LASTEXITCODE 'launcher automatic Python discovery'
-    Assert-InstalledTree
 
     Write-Host 'PASS: local assembly, cache refresh, registration, reinstall, and failure contracts'
 }
