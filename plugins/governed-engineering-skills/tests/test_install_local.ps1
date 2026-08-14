@@ -154,8 +154,10 @@ try {
     }
     Assert-InstalledTree
     $recoveredManifest = Get-Content -Raw -LiteralPath (Join-Path $installedRoot '.codex-plugin\plugin.json') | ConvertFrom-Json
-    if ([string]$recoveredManifest.version -notmatch '^0\.7\.4\+codex\.') {
-        throw "Recovered installation did not expose the formal 0.7.4 prefix: $($recoveredManifest.version)"
+    $formalVersion = [string](Get-Content -Raw -LiteralPath (Join-Path $pluginShell 'package.json') | ConvertFrom-Json).version
+    $formalVersionPrefix = '^' + [regex]::Escape($formalVersion) + '\+codex\.'
+    if ([string]$recoveredManifest.version -notmatch $formalVersionPrefix) {
+        throw "Recovered installation did not expose the formal $formalVersion prefix: $($recoveredManifest.version)"
     }
     Remove-Item Env:\FAKE_ARTIFACT_ACCESS_SCENARIO, Env:\FAKE_ARTIFACT_ACCESS_LOG -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath (Join-Path $fakeBin 'py.cmd') -Force
