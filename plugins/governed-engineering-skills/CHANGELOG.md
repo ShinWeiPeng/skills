@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## Unreleased
+
+### Added
+
+- Added native Windows and Linux Marketplace installers with prerequisite bootstrap, mode-aware Codex authentication, and non-destructive Plugin updates.
+
+### Changed
+
+- Renamed the generated Marketplace from `personal` to `governed-engineering` to avoid collisions with unrelated personal catalogs.
+
 ## 0.7.4
 
 ### Fixed

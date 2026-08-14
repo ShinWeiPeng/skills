@@ -24,15 +24,19 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 
 ## Installation
 
-For Codex Desktop or Codex CLI on Windows, clone this repository and
-double-click **`Install Governed Engineering Skills.cmd`**. The launcher builds
-the complete Plugin from the authoritative Skill folders, validates it, refreshes
-only the local Codex cache identity, registers the local Marketplace, and
-installs the Plugin. Start a new Codex task afterward so the refreshed Skills are
-loaded.
+Clone this repository, then run the native launcher:
 
-The generated `marketplace-release` Git branch remains an optional Codex-only
-distribution source. It is not required by the one-click installer. ChatGPT web
+- Windows: double-click **`Install Governed Engineering Skills.cmd`**.
+- Ubuntu, Debian, Fedora, or RHEL: run **`./Install Governed Engineering Skills.sh`**.
+
+The launchers install missing Git, Node.js/npm, and a verified minimum Codex CLI
+through `winget`, `apt`, or `dnf`; start device authentication when needed; add or
+upgrade the `governed-engineering` Git Marketplace; and install the Plugin in
+place. Existing compatible newer Codex versions are retained. Start a new Codex
+task afterward so the refreshed Skills are loaded.
+
+The installer consumes the generated `marketplace-release` Codex distribution.
+ChatGPT web
 does not provide this personal account with Git Marketplace installation, so it
 is not a supported installation surface for this Plugin.
 

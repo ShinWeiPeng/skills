@@ -48,6 +48,10 @@ MANDATORY_CAPABILITY_EVIDENCE = {
 }
 REQUIRED_INSTALLER_PATHS = (
     "Install Governed Engineering Skills.cmd",
+    "Install Governed Engineering Skills.sh",
+    "scripts/install-marketplace.ps1",
+    "scripts/install-marketplace.sh",
+    "distribution/installer-providers.json",
     "scripts/install-local.ps1",
     "plugins/governed-engineering-skills/scripts/install-local.ps1",
     "plugins/governed-engineering-skills/tests/test_install_local.ps1",
@@ -147,6 +151,8 @@ def validate(repo_root: Path) -> list[str]:
     marketplace_path = repo_root / ".agents" / "plugins" / "marketplace.json"
     try:
         marketplace = _load_json(marketplace_path)
+        if marketplace.get("name") != "governed-engineering":
+            errors.append("Marketplace name must be governed-engineering")
         entries = [entry for entry in marketplace["plugins"] if entry.get("name") == PLUGIN_NAME]
         if len(entries) != 1:
             errors.append("manual maintainer Marketplace must contain exactly one governed plugin")
@@ -156,6 +162,17 @@ def validate(repo_root: Path) -> list[str]:
                 errors.append("manual maintainer Marketplace must target the assembled Plugin artifact")
     except (OSError, KeyError, json.JSONDecodeError) as exc:
         errors.append(f"invalid manual maintainer Marketplace: {exc}")
+
+    try:
+        providers = _load_json(repo_root / "distribution" / "installer-providers.json")
+        if providers["marketplace"]["name"] != "governed-engineering":
+            errors.append("installer provider Marketplace identity is invalid")
+        if providers["codex"]["package"] != "@openai/codex":
+            errors.append("installer provider Codex package identity is invalid")
+        if set(providers["platforms"]) != {"windows", "debian", "fedora"}:
+            errors.append("installer provider platform matrix is invalid")
+    except (OSError, KeyError, json.JSONDecodeError) as exc:
+        errors.append(f"invalid installer provider manifest: {exc}")
 
     user_docs = [repo_root / "README.md"] + list((repo_root / "docs").rglob("*.md"))
     forbidden = re.compile(
