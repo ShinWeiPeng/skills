@@ -1,5 +1,12 @@
 # Governed Engineering Skills
 
+## 0.7.3
+
+### Fixed
+
+- Fixed automatic Python discovery when the Windows one-click installer is launched without explicit command arguments.
+- Verify a PATH-discovered Codex CLI before use and fall back to the executable Codex Desktop runtime when the PATH candidate is unavailable or inaccessible.
+
 ## 0.7.2
 
 ### Added

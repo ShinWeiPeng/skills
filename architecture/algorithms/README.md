@@ -10,4 +10,5 @@
 | Guided workflow composition | `guided_workflow_router` | Not applicable: composes domain decisions without owning another selection method | — |
 | Plugin artifact assembly | `plugin_assembly_composition` | Not applicable: deterministic file selection and SHA-256 identity, with no ranking, tuning, or heuristic choice | — |
 | Personal Marketplace publication-tree generation | `plugin_assembly_composition` | Not applicable: exact path mapping and byte-for-byte release identity checks have one prescribed result with no heuristic, statistical, scheduling, or optimization choice | — |
+| Local Codex runtime resolution | `local_install_adapter` | Not applicable: this integration adapter probes two contractually ordered executable locations and applies a fixed availability fallback; it owns no product-domain ranking, tuning, estimation, optimization, or probabilistic method | — |
 | Codex plugin discovery | `codex_plugin_adapter` | Not applicable: declarative manifest ingestion | — |

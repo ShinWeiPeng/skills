@@ -58,12 +58,12 @@ try {
         $python = $PythonCommand
     }
     else {
-        $pythonCommand = Get-Command python -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($null -eq $pythonCommand) {
+        $pythonApplication = Get-Command python -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($null -eq $pythonApplication -or [string]::IsNullOrWhiteSpace([string]$pythonApplication.Source)) {
             Write-InstallLog 'Python was not found. Install Python 3.11 or newer, then run the installer again.' 'ERROR'
             exit 13
         }
-        $python = $pythonCommand.Source
+        $python = $pythonApplication.Source
     }
 
     Invoke-AssemblyStep $python @($assembler, 'assemble', '--repo-root', $RepositoryRoot, '--output', $artifact) 'Assembling the governed Plugin.'

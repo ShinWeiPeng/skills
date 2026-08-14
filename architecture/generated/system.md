@@ -52,7 +52,7 @@ flowchart TD
 | `codex_plugin_adapter` | L3+ | adapter | `-` | implemented | Bind the integrated skill directory to Codex plugin discovery. |
 | `repository_evidence_adapter` | L3+ | adapter | `-` | implemented | Enumerate tracked and non-ignored untracked repository evidence without mutating Git, the index, or the worktree. |
 | `plugin_assembly_composition` | L0 | composition | `-` | implemented | Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree. |
-| `local_install_adapter` | L3+ | adapter | `-` | implemented | Register and install the validated, locally cache-busted artifact through the supported Codex Marketplace CLI and open its Codex Desktop detail page. |
+| `local_install_adapter` | L3+ | adapter | `-` | implemented | Register and install the validated, locally cache-busted artifact through a verified executable Codex Marketplace CLI and open its Codex Desktop detail page. Honor an explicitly injected command; otherwise probe PATH first and fall back to the bundled Desktop runtime only when needed. |
 | `integration_validation_technical` | L3+ | technical | `-` | implemented | Validate plugin inventory, skill metadata, path portability, and learning-note isolation. |
 | `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and release the repository's only release unit through continuous stable-only SemVer. |
 | `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. |
@@ -195,7 +195,7 @@ flowchart TD
 
 ### `local_install_adapter`
 
-- **Purpose:** Register and install the validated, locally cache-busted artifact through the supported Codex Marketplace CLI and open its Codex Desktop detail page.
+- **Purpose:** Register and install the validated, locally cache-busted artifact through a verified executable Codex Marketplace CLI and open its Codex Desktop detail page. Honor an explicitly injected command; otherwise probe PATH first and fall back to the bundled Desktop runtime only when needed.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None
@@ -203,8 +203,8 @@ flowchart TD
 - **Emitted Events:** `local-install.blocked`
 - **Owned State:** None
 - **Side Effects:** Register the repository-local Marketplace in the current user's Codex configuration. (`-`); Install the governed Plugin into the current user's Codex cache after Marketplace registration succeeds. (`-`); Open the governed Plugin detail page after installation succeeds. (`-`)
-- **Errors:** `local_installation_failed`: The assembled artifact is incomplete, Codex cannot be resolved, Marketplace registration or Plugin installation fails, or the Desktop Plugin page cannot open. → `local-install.blocked` → Return a stable non-zero exit code and write an actionable bounded log. If installation fails after registration, leave the local Marketplace registered for retry and do not request removal of a prior Plugin install.
-- **Invariants:** Accept only the validated assembled Plugin under dist/governed-engineering-skills.; Resolve repository paths relative to the user-launched installer.; Accept only a local cache identity already produced by Plugin assembly.; Never report installation complete before Codex Plugin installation exits successfully.; Never require a remote Marketplace branch for local Codex installation.
+- **Errors:** `local_installation_failed`: The assembled artifact is incomplete, no PATH or Codex Desktop runtime candidate can execute, Marketplace registration or Plugin installation fails, or the Desktop Plugin page cannot open. → `local-install.blocked` → Return a stable non-zero exit code and write an actionable bounded log. If installation fails after registration, leave the local Marketplace registered for retry and do not request removal of a prior Plugin install.
+- **Invariants:** Accept only the validated assembled Plugin under dist/governed-engineering-skills.; Resolve repository paths relative to the user-launched installer.; Accept only a local cache identity already produced by Plugin assembly.; Probe automatic Codex candidates with a side-effect-free version command before Marketplace registration; use an executable PATH candidate before any bundled Desktop runtime candidate.; Treat an explicitly injected Codex command as authoritative for maintainers and isolated contract tests.; Never report installation complete before Codex Plugin installation exits successfully.; Never require a remote Marketplace branch for local Codex installation.
 - **Entrypoints:** [`install-local`](../../plugins/governed-engineering-skills/scripts/install-local.ps1) (script)
 - **Public Symbols:** [`install-local`](../../plugins/governed-engineering-skills/scripts/install-local.ps1) (script)
 

@@ -7,6 +7,7 @@ $orchestrator = Join-Path $repoRoot 'scripts\install-local.ps1'
 $adapter = Join-Path $pluginShell 'scripts\install-local.ps1'
 $launcher = Join-Path $repoRoot 'Install Governed Engineering Skills.cmd'
 $fakeCodex = Join-Path $PSScriptRoot 'fixtures\fake-codex.cmd'
+$fakeCodexAccessDenied = Join-Path $PSScriptRoot 'fixtures\fake-codex-access-denied.cmd'
 $fakeUriLauncher = Join-Path $PSScriptRoot 'fixtures\fake-uri-launcher.cmd'
 $fakePythonFailure = Join-Path $PSScriptRoot 'fixtures\fake-python-failure.cmd'
 $artifactRoot = Join-Path $repoRoot 'dist\governed-engineering-skills'
@@ -20,6 +21,7 @@ $originalPath = $env:PATH
 $originalLocalAppData = $env:LOCALAPPDATA
 $realPython = (Get-Command python -CommandType Application | Select-Object -First 1).Source
 $gitBin = Split-Path ((Get-Command git -CommandType Application | Select-Object -First 1).Source) -Parent
+$powershellExe = Join-Path $PSHOME 'powershell.exe'
 
 function Assert-Equal {
     param($Expected, $Actual, [string]$Context)
@@ -98,7 +100,7 @@ function Invoke-AdapterScenario {
 New-Item -ItemType Directory -Path $fakeBin -Force | Out-Null
 Copy-Item -LiteralPath $fakeCodex -Destination (Join-Path $fakeBin 'codex.cmd')
 try {
-    foreach ($subject in @($orchestrator, $adapter, $launcher, $fakeCodex, $fakeUriLauncher, $fakePythonFailure)) {
+    foreach ($subject in @($orchestrator, $adapter, $launcher, $fakeCodex, $fakeCodexAccessDenied, $fakeUriLauncher, $fakePythonFailure)) {
         if (-not (Test-Path -LiteralPath $subject -PathType Leaf)) { throw "Required test subject is missing: $subject" }
     }
     & $realPython (Join-Path $repoRoot 'scripts\assemble_plugin.py') assemble --repo-root $repoRoot --output $formalArtifact *> $null
@@ -122,6 +124,24 @@ try {
     $env:FAKE_CODEX_INSTALL_TARGET = $installedRoot
     $env:FAKE_URI_LOG = Join-Path $testRoot 'orchestrator.uri'
     $env:FAKE_URI_SCENARIO = 'success'
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
+        -RepositoryRoot $repoRoot `
+        -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
+        -LogPath (Join-Path $testRoot 'orchestrator-auto-python.log') *> $null
+    Assert-Equal 0 $LASTEXITCODE 'automatic Python discovery orchestrator'
+    Assert-InstalledTree
+
+    $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
+    & $powershellExe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
+        -RepositoryRoot $repoRoot `
+        -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
+        -LogPath (Join-Path $testRoot 'orchestrator-missing-python.log') *> $null
+    Assert-Equal 13 $LASTEXITCODE 'missing Python runtime'
+    if ((Get-Content -Raw -LiteralPath (Join-Path $testRoot 'orchestrator-missing-python.log')) -notmatch 'Python was not found') {
+        throw 'Missing-Python recovery guidance is absent.'
+    }
+    $env:PATH = "$fakeBin;$originalPath"
+
     & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
         -RepositoryRoot $repoRoot -PythonCommand $realPython `
         -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
@@ -152,6 +172,42 @@ try {
     Invoke-AdapterScenario 'plugin-failure' 21 2 $false 'Marketplace remains registered; rerun this installer to retry'
     Invoke-AdapterScenario 'access-denied' 12 1 $false 'Windows denied access'
     Invoke-AdapterScenario 'uri-launch-failure' 23 2 $true 'Open manually: codex://plugins/'
+
+    $desktopRuntime = Join-Path $fakeHome 'OpenAI\Codex\bin\build-id\codex.cmd'
+    New-Item -ItemType Directory -Path (Split-Path $desktopRuntime -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath $fakeCodexAccessDenied -Destination $desktopRuntime
+    Copy-Item -LiteralPath $fakeCodex -Destination (Join-Path $fakeBin 'codex.cmd') -Force
+    $env:FAKE_CODEX_SCENARIO = 'success'
+    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'path-runtime.calls'
+    $env:FAKE_URI_LOG = Join-Path $testRoot 'path-runtime.uri'
+    $env:FAKE_URI_SCENARIO = 'success'
+    Restore-LocalizedArtifact
+    & $powershellExe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $adapter `
+        -ArtifactRoot $artifactRoot -MarketplacePath $marketplacePath `
+        -UriLauncherCommand $fakeUriLauncher `
+        -LogPath (Join-Path $testRoot 'path-runtime.log') *> $null
+    Assert-Equal 0 $LASTEXITCODE 'an executable PATH Codex must precede the Desktop runtime'
+    [array]$pathRuntimeCalls = Get-Content -LiteralPath $env:FAKE_CODEX_LOG
+    Assert-Equal 3 $pathRuntimeCalls.Count 'PATH Codex probe and installation call count'
+    Assert-Equal '--version' $pathRuntimeCalls[0] 'PATH Codex must be probed before installation'
+    Assert-InstalledTree
+
+    Copy-Item -LiteralPath $fakeCodex -Destination $desktopRuntime -Force
+    Copy-Item -LiteralPath $fakeCodexAccessDenied -Destination (Join-Path $fakeBin 'codex.cmd') -Force
+    $env:FAKE_CODEX_SCENARIO = 'success'
+    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'desktop-runtime.calls'
+    $env:FAKE_URI_LOG = Join-Path $testRoot 'desktop-runtime.uri'
+    $env:FAKE_URI_SCENARIO = 'success'
+    Restore-LocalizedArtifact
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $adapter `
+        -ArtifactRoot $artifactRoot -MarketplacePath $marketplacePath `
+        -UriLauncherCommand $fakeUriLauncher `
+        -LogPath (Join-Path $testRoot 'desktop-runtime.log') *> $null
+    Assert-Equal 0 $LASTEXITCODE 'Codex Desktop runtime must replace an inaccessible PATH candidate'
+    [array]$desktopRuntimeCalls = Get-Content -LiteralPath $env:FAKE_CODEX_LOG
+    Assert-Equal 3 $desktopRuntimeCalls.Count 'Desktop Codex probe and installation call count'
+    Assert-Equal '--version' $desktopRuntimeCalls[0] 'Desktop Codex must be probed before installation'
+    Assert-InstalledTree
 
     $env:LOCALAPPDATA = Join-Path $testRoot 'missing-runtime'
     $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot\System32\WindowsPowerShell\v1.0;$gitBin"
@@ -187,9 +243,9 @@ try {
     $env:FAKE_CODEX_LOG = Join-Path $testRoot 'launcher.calls'
     $env:FAKE_URI_LOG = Join-Path $testRoot 'launcher.uri'
     $env:FAKE_URI_SCENARIO = 'success'
-    $launcherCommand = "call `"$launcher`" -RepositoryRoot `"$repoRoot`" -PythonCommand `"$realPython`" -CodexCommand `"$fakeCodex`" -UriLauncherCommand `"$fakeUriLauncher`""
+    $launcherCommand = "call `"$launcher`" -RepositoryRoot `"$repoRoot`" -CodexCommand `"$fakeCodex`" -UriLauncherCommand `"$fakeUriLauncher`""
     & $env:ComSpec /d /c $launcherCommand *> $null
-    Assert-Equal 0 $LASTEXITCODE 'double-click launcher'
+    Assert-Equal 0 $LASTEXITCODE 'launcher automatic Python discovery'
     Assert-InstalledTree
 
     Write-Host 'PASS: local assembly, cache refresh, registration, reinstall, and failure contracts'

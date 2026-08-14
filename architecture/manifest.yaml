@@ -569,8 +569,9 @@ modules:
   public_headers: []
   description:
     purpose: Register and install the validated, locally cache-busted artifact
-      through the supported Codex Marketplace CLI and open its Codex Desktop
-      detail page.
+      through a verified executable Codex Marketplace CLI and open its Codex
+      Desktop detail page. Honor an explicitly injected command; otherwise probe
+      PATH first and fall back to the bundled Desktop runtime only when needed.
     diagram_summaries:
       zh-TW: 註冊本機 Marketplace、安裝外掛並開啟 Codex 詳情頁
     input_ports: []
@@ -587,9 +588,9 @@ modules:
     - description: Open the governed Plugin detail page after installation succeeds.
     errors:
     - id: local_installation_failed
-      condition: The assembled artifact is incomplete, Codex cannot be resolved,
-        Marketplace registration or Plugin installation fails, or the Desktop
-        Plugin page cannot open.
+      condition: The assembled artifact is incomplete, no PATH or Codex Desktop
+        runtime candidate can execute, Marketplace registration or Plugin installation
+        fails, or the Desktop Plugin page cannot open.
       event: local-install.blocked
       handling: Return a stable non-zero exit code and write an actionable bounded
         log. If installation fails after registration, leave the local Marketplace
@@ -598,6 +599,11 @@ modules:
     - Accept only the validated assembled Plugin under dist/governed-engineering-skills.
     - Resolve repository paths relative to the user-launched installer.
     - Accept only a local cache identity already produced by Plugin assembly.
+    - Probe automatic Codex candidates with a side-effect-free version command
+      before Marketplace registration; use an executable PATH candidate before
+      any bundled Desktop runtime candidate.
+    - Treat an explicitly injected Codex command as authoritative for maintainers
+      and isolated contract tests.
     - Never report installation complete before Codex Plugin installation exits successfully.
     - Never require a remote Marketplace branch for local Codex installation.
   entrypoints:
@@ -2146,8 +2152,9 @@ flows:
   - id: local-plugin-installation.register
     order: 3
     module: local_install_adapter
-    action: Register the repository-local Marketplace, install the Plugin through
-      Codex CLI, and open its detail page.
+    action: Select an executable Codex CLI using verified PATH-first resolution
+      with Desktop-runtime fallback, register the repository-local Marketplace,
+      install the Plugin, and open its detail page.
     receives:
     - local-install.register
     emits: []

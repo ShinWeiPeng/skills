@@ -78,7 +78,7 @@ sequenceDiagram
     n_plugin_assembly_composition-->>-n_plugin_assembly_composition: step 1
     n_plugin_assembly_composition->>+n_plugin_assembly_composition: Apply a local-only cache identity to the validated artifact and regenerate its inventory without changing formal release metadata.
     n_plugin_assembly_composition-->>-n_plugin_assembly_composition: step 2
-    n_plugin_assembly_composition->>+n_local_install_adapter: Register the repository-local Marketplace, install the Plugin through Codex CLI, and open its detail page.
+    n_plugin_assembly_composition->>+n_local_install_adapter: Select an executable Codex CLI using verified PATH-first resolution with Desktop-runtime fallback, register the repository-local Marketplace, install the Plugin, and open its detail page.
     n_local_install_adapter-->>-n_plugin_assembly_composition: step 3
 ```
 
@@ -88,7 +88,7 @@ sequenceDiagram
 |---|---|---|---|---|---|---|
 | 1 | `plugin_assembly_composition` | Build the complete Plugin from the tracked shell and promoted root Skills, then reject missing, stale, or fingerprint-mismatched output. | `plugin-install.local` | None | None | Replace only the ignored dist/governed-engineering-skills candidate. |
 | 2 | `plugin_assembly_composition` | Apply a local-only cache identity to the validated artifact and regenerate its inventory without changing formal release metadata. | None | None | None | Mutate only the ignored dist/governed-engineering-skills candidate. |
-| 3 | `local_install_adapter` | Register the repository-local Marketplace, install the Plugin through Codex CLI, and open its detail page. | `local-install.register` | None | None | Update the current user's Codex Marketplace configuration.; Install the Plugin into the current user's Codex cache.; Open the Codex Desktop Plugin detail page. |
+| 3 | `local_install_adapter` | Select an executable Codex CLI using verified PATH-first resolution with Desktop-runtime fallback, register the repository-local Marketplace, install the Plugin, and open its detail page. | `local-install.register` | None | None | Update the current user's Codex Marketplace configuration.; Install the Plugin into the current user's Codex cache.; Open the Codex Desktop Plugin detail page. |
 
 - **Success:** Codex recognizes the local Marketplace entry and reports successful installation from the validated, locally cache-busted artifact.
 - **Errors:** Assembly or artifact validation fails. → `plugin-distribution.blocked` → Stop before invoking Codex or changing user configuration and report the failed validation boundary.

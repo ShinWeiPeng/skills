@@ -25,23 +25,40 @@ function Stop-Install {
 }
 
 function Resolve-CodexCommand {
-    $command = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($null -ne $command) { return $command.Source }
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    $pathCommand = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -ne $pathCommand -and -not [string]::IsNullOrWhiteSpace([string]$pathCommand.Source)) {
+        $candidates.Add([string]$pathCommand.Source)
+    }
+
     $localAppData = [Environment]::GetEnvironmentVariable('LOCALAPPDATA')
     if (-not [string]::IsNullOrWhiteSpace($localAppData)) {
         $bin = Join-Path $localAppData 'OpenAI\Codex\bin'
         foreach ($name in @('codex.exe','codex.cmd')) {
             $candidate = Join-Path $bin $name
-            if (Test-Path -LiteralPath $candidate -PathType Leaf) { return (Resolve-Path -LiteralPath $candidate).Path }
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                $candidates.Add((Resolve-Path -LiteralPath $candidate).Path)
+            }
         }
         if (Test-Path -LiteralPath $bin -PathType Container) {
-            $candidate = Get-ChildItem -LiteralPath $bin -File -Recurse -ErrorAction SilentlyContinue |
+            Get-ChildItem -LiteralPath $bin -File -Recurse -ErrorAction SilentlyContinue |
                 Where-Object { $_.Name -in @('codex.exe','codex.cmd') } |
-                Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-            if ($null -ne $candidate) { return $candidate.FullName }
+                Sort-Object LastWriteTimeUtc -Descending |
+                ForEach-Object { $candidates.Add($_.FullName) }
         }
     }
-    Stop-Install 11 'Codex CLI was not found in PATH or the Codex Desktop runtime. Install or repair Codex and try again.'
+
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($candidate in $candidates) {
+        if (-not $seen.Add($candidate)) { continue }
+        $probe = Invoke-Codex $candidate @('--version')
+        if ($probe.ExitCode -eq 0) {
+            Write-InstallLog "Selected executable Codex runtime: $candidate"
+            return $candidate
+        }
+        Write-InstallLog "Codex runtime candidate could not execute; trying the next candidate: $candidate" 'WARN'
+    }
+    Stop-Install 11 'Codex CLI was not found or could not execute from PATH or the Codex Desktop runtime. Install or repair Codex and try again.'
 }
 
 function Invoke-Codex {

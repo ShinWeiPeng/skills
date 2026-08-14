@@ -1,11 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.7.2",
-  "previous_version": "0.7.1",
+  "current_version": "0.7.3",
+  "previous_version": "0.7.2",
   "bump": "patch",
-  "production_fingerprint": "sha256:1865f48618d4cb3a25c3c08548a961425768ac125ad7959dc26ca141d11fce7b",
+  "production_fingerprint": "sha256:a1b6dd9f05c80317c4bd391d8e09875c315ef655db092e9c970d1ae65a5af175",
   "applied_changesets": [
-    "shared-skill-distribution",
-    "marketplace-empty-orphan-worktree"
+    "installer-python-discovery"
   ]
 }
