@@ -206,6 +206,24 @@ def _synchronize_release_state_fingerprint(artifact: Path) -> None:
         )
 
 
+def _normalize_windows_inherited_acl(staging: Path) -> None:
+    """Prevent a sandbox-created staging ACL from becoming the user's final artifact ACL."""
+    if sys.platform != "win32":
+        return
+    commands = (
+        ["icacls.exe", str(staging), "/inheritance:e", "/T", "/C", "/Q", "/L"],
+        ["icacls.exe", str(staging), "/reset", "/T", "/C", "/Q", "/L"],
+    )
+    for command in commands:
+        completed = subprocess.run(command, text=True, capture_output=True, check=False)
+        if completed.returncode != 0:
+            detail = completed.stderr.strip() or completed.stdout.strip()
+            raise DistributionError(
+                "unable to normalize inherited Windows access on the staged Plugin"
+                + (f": {detail}" if detail else "")
+            )
+
+
 def assemble(repo_root: Path, output: Path) -> dict[str, object]:
     repo_root = repo_root.resolve()
     output = output.resolve()
@@ -233,6 +251,7 @@ def assemble(repo_root: Path, output: Path) -> dict[str, object]:
         _synchronize_release_state_fingerprint(staging)
         result = _inventory(staging)
         (staging / INVENTORY_NAME).write_bytes(_json_bytes(result))
+        _normalize_windows_inherited_acl(staging)
         if output.exists():
             shutil.rmtree(output)
         staging.replace(output)

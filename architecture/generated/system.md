@@ -13,6 +13,9 @@ flowchart TD
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
+    n_python_runtime_selection_domain["python_runtime_selection_domain (L1)<br/>選取並驗證相容的 Python 執行環境"]
+    n_python_runtime_discovery_adapter["python_runtime_discovery_adapter (L3+)<br/>探測 Windows Python 候選並套用相容性政策"]
+    n_windows_artifact_access_adapter["windows_artifact_access_adapter (L3+)<br/>修復唯一受治理產物的 Windows 存取權限"]
     n_local_install_adapter["local_install_adapter (L3+)<br/>註冊本機 Marketplace、安裝外掛並開啟 Codex 詳情頁"]
     n_integration_validation_technical["integration_validation_technical (L3+)<br/>驗證外掛清單、叫用政策、可攜性與內容隔離"]
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>以穩定語意版本治理唯一外掛發佈單元"]
@@ -32,7 +35,12 @@ flowchart TD
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
     n_plugin_assembly_composition -.->|depends| n_local_install_adapter
+    n_plugin_assembly_composition -.->|depends| n_python_runtime_selection_domain
+    n_plugin_assembly_composition -.->|depends| n_python_runtime_discovery_adapter
+    n_plugin_assembly_composition -.->|depends| n_windows_artifact_access_adapter
     n_plugin_assembly_composition -.->|depends| n_plugin_release_governance_technical
+    n_plugin_assembly_composition -->|owns| n_python_runtime_selection_domain
+    n_python_runtime_discovery_adapter -.->|depends| n_python_runtime_selection_domain
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
@@ -51,7 +59,10 @@ flowchart TD
 | `governance_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation. |
 | `codex_plugin_adapter` | L3+ | adapter | `-` | implemented | Bind the integrated skill directory to Codex plugin discovery. |
 | `repository_evidence_adapter` | L3+ | adapter | `-` | implemented | Enumerate tracked and non-ignored untracked repository evidence without mutating Git, the index, or the worktree. |
-| `plugin_assembly_composition` | L0 | composition | `-` | implemented | Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree. |
+| `plugin_assembly_composition` | L0 | composition | `-` | implemented | Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree. |
+| `python_runtime_selection_domain` | L1 | domain | `plugin_assembly_composition` | implemented | Own the deterministic admission policy that accepts an explicit compatible runtime, otherwise prefers a compatible PATH observation and requests Windows Launcher fallback only after that observation is rejected. |
+| `python_runtime_discovery_adapter` | L3+ | adapter | `-` | implemented | Discover and execute explicit, PATH, and Windows Python Launcher candidates, convert process output into validated observations, and apply the functional runtime-selection policy for the one-click installer. |
+| `windows_artifact_access_adapter` | L3+ | adapter | `-` | implemented | Bind the exact governed artifact-access request to Windows filesystem inspection, inherited ACL reset, and narrowly scoped UAC process execution. |
 | `local_install_adapter` | L3+ | adapter | `-` | implemented | Register and install the validated, locally cache-busted artifact through a verified executable Codex Marketplace CLI and open its Codex Desktop detail page. Honor an explicitly injected command; otherwise probe PATH first and fall back to the bundled Desktop runtime only when needed. |
 | `integration_validation_technical` | L3+ | technical | `-` | implemented | Validate plugin inventory, skill metadata, path portability, and learning-note isolation. |
 | `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and release the repository's only release unit through continuous stable-only SemVer. |
@@ -180,18 +191,63 @@ flowchart TD
 
 ### `plugin_assembly_composition`
 
-- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
+- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
-- **Input Ports:** `plugin-release.synchronize-artifact`, `plugin-install.local`, `local-install.register`
+- **Input Ports:** `plugin-release.synchronize-artifact`, `plugin-install.local`, `plugin-artifact-access.repair`, `local-install.register`
 - **Output Ports:** `plugin-distribution.result`
 - **Emitted Events:** `plugin-distribution.blocked`
 - **Owned State:** None
-- **Side Effects:** Replace only selected ignored output directories with a deterministic Plugin artifact and Marketplace publication tree. (`-`); Apply a local-only cache identity to the ignored validated artifact without changing formal release metadata. (`-`); Invoke the local installation adapter only after the assembled Plugin inventory and fingerprint validate. (`-`)
-- **Errors:** `plugin_distribution_invalid`: Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → `plugin-distribution.blocked` → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
-- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; `marketplace-release` is generated and never becomes an editable Skill source.
+- **Side Effects:** Replace only selected ignored output directories with a deterministic Plugin artifact and Marketplace publication tree. (`-`); Apply a local-only cache identity to the ignored validated artifact without changing formal release metadata. (`-`); Invoke the local installation adapter only after the assembled Plugin inventory and fingerprint validate. (`-`); Request the Windows artifact-access adapter to repair inherited access only for the exact ignored dist/governed-engineering-skills artifact, with elevation available only after a bounded non-elevated attempt fails. (`-`)
+- **Errors:** `plugin_distribution_invalid`: Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → `plugin-distribution.blocked` → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.; `python_runtime_incompatible`: An explicitly injected Python command is incompatible, or neither PATH Python nor the Windows Python Launcher resolves Python 3.11 or newer. → `plugin-distribution.blocked` → Stop before assembly, report every observed candidate and version, and explain how to install or explicitly select Python 3.11 or newer.; `plugin_artifact_access_blocked`: The existing ignored artifact is inaccessible and its exact canonical path, repository containment, reparse-point safety, non-elevated repair, or explicitly approved elevated repair cannot be validated. → `plugin-distribution.blocked` → Refuse paths outside the exact governed artifact, stop before assembly and Codex registration, preserve unrelated files, and report whether elevation was declined or the bounded ACL repair failed.
+- **Invariants:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; Python selection completes before artifact mutation and the selected absolute interpreter performs every assembly, validation, and localization command.; Windows ACL recovery accepts only the canonical repository-owned dist/governed-engineering-skills directory and never a repository root, ancestor, sibling, outside path, symbolic link, junction, or other reparse point.; `marketplace-release` is generated and never becomes an editable Skill source.
 - **Entrypoints:** [`main`](../../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../../scripts/install-local.ps1) (script)
 - **Public Symbols:** [`install-local`](../../scripts/install-local.ps1) (script)<br>[`install-local`](../../plugins/governed-engineering-skills/scripts/install-local.ps1) (script)<br>[`assemble`](../../scripts/assemble_plugin.py) (function)<br>[`validate_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`localize_artifact`](../../scripts/assemble_plugin.py) (function)<br>[`write_marketplace_publication`](../../scripts/assemble_plugin.py) (function)<br>[`validate`](../../scripts/validate_distribution.py) (function)
+
+### `python_runtime_selection_domain`
+
+- **Purpose:** Own the deterministic admission policy that accepts an explicit compatible runtime, otherwise prefers a compatible PATH observation and requests Windows Launcher fallback only after that observation is rejected.
+- **Parent:** `plugin_assembly_composition`
+- **Implementation Status:** `implemented`
+- **Input Ports:** `python-runtime.select`
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** None
+- **Errors:** None
+- **Invariants:** Explicit candidate admission is authoritative and never silently replaced.; A compatible PATH observation is accepted before requesting launcher fallback.; A launcher observation is accepted only after its resolved runtime is revalidated.
+- **Entrypoints:** [`Select-CompatiblePythonCandidate`](../../scripts/python-runtime-selection-policy.ps1) (function)
+- **Public Symbols:** [`Select-CompatiblePythonCandidate`](../../scripts/python-runtime-selection-policy.ps1) (function)
+
+### `python_runtime_discovery_adapter`
+
+- **Purpose:** Discover and execute explicit, PATH, and Windows Python Launcher candidates, convert process output into validated observations, and apply the functional runtime-selection policy for the one-click installer.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** Execute bounded side-effect-free Python capability probes through PATH applications or the Windows Python Launcher. (`-`)
+- **Errors:** `python_runtime_probe_failed`: A candidate cannot execute, returns malformed output, reports an old version, or resolves a missing executable path. → `plugin-distribution.blocked` → Preserve the observation as a diagnostic and follow the domain-owned admission or fallback action without entering Plugin assembly.
+- **Invariants:** Every accepted executable is normalized to an absolute path and revalidated.; Python 2 and Python 3.10 are observable candidates but never execution runtimes.
+- **Entrypoints:** [`Resolve-CompatiblePython`](../../scripts/python-runtime-selection.ps1) (function)
+- **Public Symbols:** [`Resolve-CompatiblePython`](../../scripts/python-runtime-selection.ps1) (function)
+
+### `windows_artifact_access_adapter`
+
+- **Purpose:** Bind the exact governed artifact-access request to Windows filesystem inspection, inherited ACL reset, and narrowly scoped UAC process execution.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** Inspect every artifact descendant and create/delete bounded probes to prove recursive read and replacement access. (`-`); Reset inherited ACLs only for the exact admitted artifact, using an elevated PowerShell helper only after ordinary repair fails. (`-`)
+- **Errors:** `windows_artifact_access_refused`: The path is outside the exact artifact boundary, is a reparse point, remains partially inaccessible, elevation is declined, or ACL reset fails. → `plugin-distribution.blocked` → Return a fail-closed result to composition without invoking assembly or Codex registration and identify the rejected safety boundary.
+- **Invariants:** Repository roots, dist roots, ancestors, siblings, outside paths, and any root or nested reparse point are never ACL repair targets.; Elevated execution derives the only target from the admitted repository root.
+- **Entrypoints:** [`Ensure-GovernedArtifactAccess`](../../scripts/windows-artifact-access.ps1) (function)
+- **Public Symbols:** [`Ensure-GovernedArtifactAccess`](../../scripts/windows-artifact-access.ps1) (function)
 
 ### `local_install_adapter`
 
@@ -272,6 +328,8 @@ flowchart TD
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
+| `python-runtime.select` | `python_runtime_selection_domain` | input | query | sync | Select one installed Python 3.11-or-newer interpreter before Plugin assembly.: Optional explicit command plus PATH and Windows Python Launcher candidates. | `Select-CompatiblePythonCandidate` |
+| `plugin-artifact-access.repair` | `plugin_assembly_composition` | input | query | sync | Admit and restore replace access to only the exact governed Windows artifact.: Canonical repository root, exact artifact path, and bounded recovery result. | `install-local` |
 | `plugin-install.local` | `plugin_assembly_composition` | input | command | sync | Assemble, validate, and begin installation of the governed Plugin for local Codex.: Repository-relative source, output, and Marketplace identities. | `install-local` |
 | `local-install.register` | `plugin_assembly_composition` | input | command | sync | Register the validated local Marketplace and open the governed Plugin page.: Validated assembled Plugin path, Marketplace manifest path, and Plugin identifier. | `install-local` |
 | `local-install.result` | `local_install_adapter` | output | event | sync | Publish a bounded local Codex installation result.: Stable exit status, installation phase, and actionable diagnostic. | `install-local` |
@@ -299,7 +357,7 @@ flowchart TD
 | ID | Owner | Delivery | Emitted when | Purpose | Consumers |
 |---|---|---|---|---|---|
 | `local-install.blocked` | `local_install_adapter` | at-most-once | Artifact validation, Codex resolution, Marketplace registration, Plugin installation, or page launch fails. | Report that local Codex installation cannot continue safely. | `plugin_assembly_composition` |
-| `plugin-distribution.blocked` | `plugin_assembly_composition` | at-most-once | Artifact, publication, evidence, or output-ownership validation fails. | Report that Plugin assembly or personal Marketplace publication cannot continue safely. | `plugin_release_governance_technical` |
+| `plugin-distribution.blocked` | `plugin_assembly_composition` | at-most-once | Python runtime, exact-target ACL recovery, artifact, publication, evidence, or output-ownership validation fails. | Report that Python admission, bounded artifact-access recovery, Plugin assembly, or personal Marketplace publication cannot continue safely. | `plugin_release_governance_technical` |
 | `plugin-integration.blocked` | `integration_validation_technical` | at-most-once | Inventory, metadata, portability, or isolation validation fails. | Report that the assembled Plugin violates an integration contract. | `plugin_release_governance_technical` |
 | `plugin-release.blocked` | `plugin_release_governance_technical` | at-most-once | Version, changeset, tag, or release-intent validation fails. | Report that the stable release identity is inconsistent. | `plugin_assembly_composition` |
 | `spec-governance.blocked` | `spec_governance_domain` | at-most-once | A reconciliation or verification has unresolved blocking evidence. | Tell delivery orchestration that specification work cannot continue safely. | `delivery_workflow_domain` |

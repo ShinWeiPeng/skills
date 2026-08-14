@@ -47,8 +47,25 @@ class SharedSkillDistributionTests(unittest.TestCase):
     def test_local_installer_surface_is_complete(self) -> None:
         self.assertTrue((REPO_ROOT / "Install Governed Engineering Skills.cmd").is_file())
         self.assertTrue((REPO_ROOT / "scripts" / "install-local.ps1").is_file())
+        self.assertTrue((REPO_ROOT / "scripts" / "python-runtime-selection.ps1").is_file())
+        self.assertTrue((REPO_ROOT / "scripts" / "python-runtime-selection-policy.ps1").is_file())
+        self.assertTrue((REPO_ROOT / "scripts" / "windows-artifact-access.ps1").is_file())
         self.assertTrue((PLUGIN_SHELL / "scripts" / "install-local.ps1").is_file())
         self.assertTrue((PLUGIN_SHELL / "tests" / "test_install_local.ps1").is_file())
+
+    def test_windows_assembly_staging_inherits_parent_acl_before_replacement(self) -> None:
+        module = load_assembler()
+        staging = Path(r"C:\repo\dist\.governed-engineering-skills-staging-test")
+        completed = subprocess.CompletedProcess([], 0, stdout="", stderr="")
+        with mock.patch.object(module.sys, "platform", "win32"), mock.patch.object(
+            module.subprocess, "run", return_value=completed
+        ) as run:
+            module._normalize_windows_inherited_acl(staging)
+        self.assertEqual(2, run.call_count)
+        first = run.call_args_list[0].args[0]
+        second = run.call_args_list[1].args[0]
+        self.assertEqual(["icacls.exe", str(staging), "/inheritance:e", "/T", "/C", "/Q", "/L"], first)
+        self.assertEqual(["icacls.exe", str(staging), "/reset", "/T", "/C", "/Q", "/L"], second)
 
     def test_formal_architecture_is_repository_scoped(self) -> None:
         manifest = REPO_ROOT / "architecture" / "manifest.yaml"

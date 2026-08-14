@@ -1,5 +1,13 @@
 # Governed Engineering Skills
 
+## 0.7.4
+
+### Fixed
+
+- Validate Python 3.11 or newer before the Windows one-click installer mutates the assembled Plugin.
+- Fall back from an outdated PATH Python to the Windows Python Launcher's compatible Python 3 runtime and use the selected absolute interpreter throughout installation.
+- Recover inherited Windows access only for the exact ignored Plugin artifact, with a bounded UAC fallback, and prevent sandbox-only ACLs from reaching future assembled artifacts.
+
 ## 0.7.3
 
 ### Fixed

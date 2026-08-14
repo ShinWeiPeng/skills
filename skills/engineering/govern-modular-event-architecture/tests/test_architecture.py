@@ -1255,6 +1255,59 @@ class SchemaV2Tests(unittest.TestCase):
         self.assertIn("State Ownership", documents[Path("generated/system.md")])
         self.assertIn("Cross-module Mapping", documents[Path("generated/system.md")])
 
+    def test_renderer_returns_sync_query_control_to_the_caller(self) -> None:
+        manifest = valid_manifest()
+        manifest["ports"].append(
+            {
+                "id": "adapter.lookup",
+                "owner": "adapter",
+                "direction": "input",
+                "kind": "query",
+                "contract": "src/adapter/adapter.h",
+                "implemented_by": [],
+                "description": {
+                    "purpose": "Resolve one adapter value.",
+                    "data": "Lookup request and result.",
+                    "timing": "sync",
+                    "immediate_rejections": [],
+                },
+                "symbols": ["adapter_lookup"],
+            }
+        )
+        manifest["flows"][0]["owner"] = "app"
+        manifest["flows"][0]["steps"] = [
+            {
+                "id": "feature-flow.lookup",
+                "order": 1,
+                "module": "adapter",
+                "action": "Resolve the adapter value.",
+                "receives": ["adapter.lookup"],
+                "emits": [],
+                "state_changes": [],
+                "side_effects": [],
+            },
+            {
+                "id": "feature-flow.continue",
+                "order": 2,
+                "module": "app",
+                "action": "Continue composition with the resolved value.",
+                "receives": [],
+                "emits": [],
+                "state_changes": [],
+                "side_effects": [],
+            },
+        ]
+
+        parent = render_documents(manifest)[Path("generated/app.md")]
+        self.assertIn("n_app->>+n_adapter: Resolve the adapter value.", parent)
+        self.assertIn("n_adapter-->>-n_app: adapter.lookup result", parent)
+        self.assertIn(
+            "n_app->>n_app: Continue composition with the resolved value.",
+            parent,
+        )
+        self.assertNotIn("n_app->>+n_app", parent)
+        self.assertNotIn("n_adapter->>+n_app: Continue composition", parent)
+
     def test_renderer_adds_function_first_localized_views_only_for_2_2(self) -> None:
         legacy = render_documents(valid_manifest())
         self.assertNotIn(

@@ -4,12 +4,22 @@ $ErrorActionPreference = 'Stop'
 $pluginShell = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $pluginShell '..\..'))
 $orchestrator = Join-Path $repoRoot 'scripts\install-local.ps1'
+$pythonSelector = Join-Path $repoRoot 'scripts\python-runtime-selection.ps1'
+$pythonSelectionPolicy = Join-Path $repoRoot 'scripts\python-runtime-selection-policy.ps1'
+$artifactAccess = Join-Path $repoRoot 'scripts\windows-artifact-access.ps1'
 $adapter = Join-Path $pluginShell 'scripts\install-local.ps1'
 $launcher = Join-Path $repoRoot 'Install Governed Engineering Skills.cmd'
 $fakeCodex = Join-Path $PSScriptRoot 'fixtures\fake-codex.cmd'
 $fakeCodexAccessDenied = Join-Path $PSScriptRoot 'fixtures\fake-codex-access-denied.cmd'
 $fakeUriLauncher = Join-Path $PSScriptRoot 'fixtures\fake-uri-launcher.cmd'
 $fakePythonFailure = Join-Path $PSScriptRoot 'fixtures\fake-python-failure.cmd'
+$fakePythonIncompatible = Join-Path $PSScriptRoot 'fixtures\fake-python-incompatible.cmd'
+$fakePythonLauncher = Join-Path $PSScriptRoot 'fixtures\fake-python-launcher.cmd'
+$fakePython2 = Join-Path $PSScriptRoot 'fixtures\fake-python2.cmd'
+$fakePythonMalformed = Join-Path $PSScriptRoot 'fixtures\fake-python-malformed.cmd'
+$fakePythonCompatibleRuntime = Join-Path $PSScriptRoot 'fixtures\fake-python-compatible-runtime.cmd'
+$fakePythonProbeFailure = Join-Path $PSScriptRoot 'fixtures\fake-python-probe-failure.cmd'
+$fakeArtifactAccess = Join-Path $PSScriptRoot 'fixtures\fake-artifact-access.ps1'
 $artifactRoot = Join-Path $repoRoot 'dist\governed-engineering-skills'
 $marketplacePath = Join-Path $repoRoot '.agents\plugins\marketplace.json'
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('governed-installer-' + [Guid]::NewGuid().ToString('N'))
@@ -100,12 +110,12 @@ function Invoke-AdapterScenario {
 New-Item -ItemType Directory -Path $fakeBin -Force | Out-Null
 Copy-Item -LiteralPath $fakeCodex -Destination (Join-Path $fakeBin 'codex.cmd')
 try {
-    foreach ($subject in @($orchestrator, $adapter, $launcher, $fakeCodex, $fakeCodexAccessDenied, $fakeUriLauncher, $fakePythonFailure)) {
+    foreach ($subject in @($orchestrator, $pythonSelector, $pythonSelectionPolicy, $artifactAccess, $adapter, $launcher, $fakeCodex, $fakeCodexAccessDenied, $fakeUriLauncher, $fakePythonFailure, $fakePythonIncompatible, $fakePythonLauncher, $fakePython2, $fakePythonMalformed, $fakePythonCompatibleRuntime, $fakePythonProbeFailure, $fakeArtifactAccess)) {
         if (-not (Test-Path -LiteralPath $subject -PathType Leaf)) { throw "Required test subject is missing: $subject" }
     }
     & $realPython (Join-Path $repoRoot 'scripts\assemble_plugin.py') assemble --repo-root $repoRoot --output $formalArtifact *> $null
     Assert-Equal 0 $LASTEXITCODE 'formal artifact fixture assembly'
-    foreach ($script in @($orchestrator, $adapter)) {
+    foreach ($script in @($orchestrator, $pythonSelector, $pythonSelectionPolicy, $artifactAccess, $adapter)) {
         $tokens = $null
         $errors = $null
         [void][System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$tokens, [ref]$errors)
@@ -124,12 +134,87 @@ try {
     $env:FAKE_CODEX_INSTALL_TARGET = $installedRoot
     $env:FAKE_URI_LOG = Join-Path $testRoot 'orchestrator.uri'
     $env:FAKE_URI_SCENARIO = 'success'
+    $env:FAKE_ARTIFACT_ACCESS_SCENARIO = 'ordinary'
+    $env:FAKE_ARTIFACT_ACCESS_LOG = Join-Path $testRoot 'artifact-access.calls'
+    Copy-Item -LiteralPath $fakePythonLauncher -Destination (Join-Path $fakeBin 'py.cmd') -Force
+    $env:FAKE_PYTHON_LAUNCHER_LOG = Join-Path $testRoot 'compatible-path-launcher.calls'
     & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
         -RepositoryRoot $repoRoot `
+        -ArtifactAccessScript $fakeArtifactAccess `
         -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
         -LogPath (Join-Path $testRoot 'orchestrator-auto-python.log') *> $null
     Assert-Equal 0 $LASTEXITCODE 'automatic Python discovery orchestrator'
+    Assert-Equal $false (Test-Path -LiteralPath $env:FAKE_PYTHON_LAUNCHER_LOG) 'compatible PATH Python must not invoke the Windows Python Launcher'
+    [array]$artifactAccessCalls = Get-Content -LiteralPath $env:FAKE_ARTIFACT_ACCESS_LOG
+    Assert-Equal 1 $artifactAccessCalls.Count 'artifact access recovery call count'
+    if ($artifactAccessCalls[0] -notmatch [regex]::Escape($artifactRoot)) {
+        throw 'Artifact access recovery did not receive the exact governed artifact path.'
+    }
     Assert-InstalledTree
+    $recoveredManifest = Get-Content -Raw -LiteralPath (Join-Path $installedRoot '.codex-plugin\plugin.json') | ConvertFrom-Json
+    if ([string]$recoveredManifest.version -notmatch '^0\.7\.4\+codex\.') {
+        throw "Recovered installation did not expose the formal 0.7.4 prefix: $($recoveredManifest.version)"
+    }
+    Remove-Item Env:\FAKE_ARTIFACT_ACCESS_SCENARIO, Env:\FAKE_ARTIFACT_ACCESS_LOG -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath (Join-Path $fakeBin 'py.cmd') -Force
+
+    Copy-Item -LiteralPath $fakePythonIncompatible -Destination (Join-Path $fakeBin 'python.cmd') -Force
+    Copy-Item -LiteralPath $fakePythonLauncher -Destination (Join-Path $fakeBin 'py.cmd') -Force
+    $selectedPythonRuntime = Join-Path $testRoot 'selected-python-runtime.cmd'
+    Copy-Item -LiteralPath $fakePythonCompatibleRuntime -Destination $selectedPythonRuntime
+    $env:FAKE_REAL_PYTHON = $realPython
+    $env:FAKE_PYTHON_EXECUTABLE = $selectedPythonRuntime
+    $env:FAKE_PYTHON_CANDIDATE_LOG = Join-Path $testRoot 'python-path-candidate.calls'
+    $env:FAKE_PYTHON_LAUNCHER_LOG = Join-Path $testRoot 'python-launcher.calls'
+    $env:FAKE_PYTHON_RUNTIME_LOG = Join-Path $testRoot 'python-selected-runtime.calls'
+    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'python-launcher-fallback.codex.calls'
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
+        -RepositoryRoot $repoRoot `
+        -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
+        -LogPath (Join-Path $testRoot 'orchestrator-python-launcher-fallback.log') *> $null
+    Assert-Equal 0 $LASTEXITCODE 'incompatible PATH Python must fall back to the Windows Python Launcher'
+    $launcherProbe = (Get-Content -LiteralPath $env:FAKE_PYTHON_LAUNCHER_LOG) -join ''
+    if ($launcherProbe -notmatch '^-3 -c ' -or $launcherProbe -notmatch 'CODEX_PYTHON_PROBE') {
+        throw "Windows Python Launcher was not probed through 'py -3 -c': $launcherProbe"
+    }
+    $pythonFallbackLog = Get-Content -Raw -LiteralPath (Join-Path $testRoot 'orchestrator-python-launcher-fallback.log')
+    if ($pythonFallbackLog -notmatch 'Rejected PATH Python.*3\.10\.0' -or $pythonFallbackLog -notmatch [regex]::Escape($selectedPythonRuntime)) {
+        throw 'Python fallback log must identify the rejected version and selected absolute interpreter.'
+    }
+    [array]$selectedRuntimeCalls = Get-Content -LiteralPath $env:FAKE_PYTHON_RUNTIME_LOG
+    Assert-Equal 4 $selectedRuntimeCalls.Count 'selected Python probe plus installation phase count'
+    if ($selectedRuntimeCalls[0] -notmatch '^-c .*CODEX_PYTHON_PROBE') { throw 'Selected Python was not revalidated before assembly.' }
+    if ($selectedRuntimeCalls[1] -notmatch 'assemble_plugin\.py.* assemble ') { throw 'Selected Python did not execute Plugin assembly.' }
+    if ($selectedRuntimeCalls[2] -notmatch 'validate_distribution\.py') { throw 'Selected Python did not execute distribution validation.' }
+    if ($selectedRuntimeCalls[3] -notmatch 'assemble_plugin\.py.* localize ') { throw 'Selected Python did not execute cache localization.' }
+    Assert-InstalledTree
+    Remove-Item -LiteralPath (Join-Path $fakeBin 'python.cmd'), (Join-Path $fakeBin 'py.cmd') -Force
+
+    foreach ($invalidPython in @(
+        @{ Name = 'python2'; Command = $fakePython2; Pattern = 'Python 2\.7\.18' },
+        @{ Name = 'malformed'; Command = $fakePythonMalformed; Pattern = 'malformed version information' },
+        @{ Name = 'non-executable'; Command = $fakePythonProbeFailure; Pattern = 'probe exited with code 96' }
+    )) {
+        $artifactBeforeProbeFailure = Get-TreeEvidence $artifactRoot
+        $env:FAKE_CODEX_LOG = Join-Path $testRoot "$($invalidPython.Name)-python.codex.calls"
+        $env:FAKE_PYTHON_INVALID_LOG = Join-Path $testRoot "$($invalidPython.Name)-python.probe.calls"
+        $invalidPythonLog = Join-Path $testRoot "$($invalidPython.Name)-python.log"
+        & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
+            -RepositoryRoot $repoRoot -PythonCommand $invalidPython.Command `
+            -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
+            -LogPath $invalidPythonLog *> $null
+        Assert-Equal 13 $LASTEXITCODE "$($invalidPython.Name) explicit Python preflight"
+        Assert-Equal $artifactBeforeProbeFailure (Get-TreeEvidence $artifactRoot) "$($invalidPython.Name) must stop before artifact mutation"
+        Assert-Equal $false (Test-Path -LiteralPath $env:FAKE_CODEX_LOG) "$($invalidPython.Name) must stop before Codex"
+        [array]$invalidPythonCalls = Get-Content -LiteralPath $env:FAKE_PYTHON_INVALID_LOG
+        Assert-Equal 1 $invalidPythonCalls.Count "$($invalidPython.Name) probe-only call count"
+        if ($invalidPythonCalls[0] -notmatch '^-c ' -or $invalidPythonCalls[0] -match 'assemble_plugin\.py|validate_distribution\.py') {
+            throw "$($invalidPython.Name) crossed the preflight-to-assembly boundary."
+        }
+        if ((Get-Content -Raw -LiteralPath $invalidPythonLog) -notmatch $invalidPython.Pattern) {
+            throw "$($invalidPython.Name) did not report its observed incompatibility."
+        }
+    }
 
     $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
     & $powershellExe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
@@ -137,7 +222,7 @@ try {
         -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
         -LogPath (Join-Path $testRoot 'orchestrator-missing-python.log') *> $null
     Assert-Equal 13 $LASTEXITCODE 'missing Python runtime'
-    if ((Get-Content -Raw -LiteralPath (Join-Path $testRoot 'orchestrator-missing-python.log')) -notmatch 'Python was not found') {
+    if ((Get-Content -Raw -LiteralPath (Join-Path $testRoot 'orchestrator-missing-python.log')) -notmatch 'No compatible Python runtime was found') {
         throw 'Missing-Python recovery guidance is absent.'
     }
     $env:PATH = "$fakeBin;$originalPath"
@@ -230,6 +315,23 @@ try {
     if ((Get-Content -Raw -LiteralPath (Join-Path $testRoot 'incomplete.log')) -notmatch 'incomplete or stale') { throw 'Incomplete-artifact recovery guidance is absent.' }
 
     $env:PATH = "$fakeBin;$originalPath"
+    $artifactBeforeAccessFailure = Get-TreeEvidence $artifactRoot
+    $env:FAKE_ARTIFACT_ACCESS_SCENARIO = 'blocked'
+    $env:FAKE_ARTIFACT_ACCESS_LOG = Join-Path $testRoot 'artifact-access-blocked.calls'
+    $env:FAKE_CODEX_LOG = Join-Path $testRoot 'artifact-access-blocked.codex.calls'
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
+        -RepositoryRoot $repoRoot -PythonCommand $realPython `
+        -ArtifactAccessScript $fakeArtifactAccess `
+        -CodexCommand $fakeCodex -UriLauncherCommand $fakeUriLauncher `
+        -LogPath (Join-Path $testRoot 'artifact-access-blocked.log') *> $null
+    Assert-Equal 14 $LASTEXITCODE 'blocked artifact access recovery'
+    Assert-Equal $artifactBeforeAccessFailure (Get-TreeEvidence $artifactRoot) 'blocked artifact access must stop before artifact mutation'
+    Assert-Equal $false (Test-Path -LiteralPath $env:FAKE_CODEX_LOG) 'Codex must not run after artifact access recovery failure'
+    if ((Get-Content -Raw -LiteralPath (Join-Path $testRoot 'artifact-access-blocked.log')) -notmatch 'Simulated bounded ACL recovery refusal') {
+        throw 'Blocked artifact access recovery did not preserve actionable guidance.'
+    }
+    Remove-Item Env:\FAKE_ARTIFACT_ACCESS_SCENARIO, Env:\FAKE_ARTIFACT_ACCESS_LOG -ErrorAction SilentlyContinue
+
     $env:FAKE_CODEX_LOG = Join-Path $testRoot 'assembly-failure.calls'
     & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $orchestrator `
         -RepositoryRoot $repoRoot -PythonCommand $fakePythonFailure `
@@ -251,7 +353,7 @@ try {
     Write-Host 'PASS: local assembly, cache refresh, registration, reinstall, and failure contracts'
 }
 finally {
-    foreach ($name in @('FAKE_CODEX_SCENARIO','FAKE_CODEX_LOG','FAKE_CODEX_INSTALL_SOURCE','FAKE_CODEX_INSTALL_TARGET','FAKE_URI_LOG','FAKE_URI_SCENARIO','GOVERNED_INSTALLER_NO_DELAY')) {
+    foreach ($name in @('FAKE_CODEX_SCENARIO','FAKE_CODEX_LOG','FAKE_CODEX_INSTALL_SOURCE','FAKE_CODEX_INSTALL_TARGET','FAKE_URI_LOG','FAKE_URI_SCENARIO','FAKE_REAL_PYTHON','FAKE_PYTHON_EXECUTABLE','FAKE_PYTHON_CANDIDATE_LOG','FAKE_PYTHON_LAUNCHER_LOG','FAKE_PYTHON_RUNTIME_LOG','FAKE_PYTHON_INVALID_LOG','FAKE_ARTIFACT_ACCESS_SCENARIO','FAKE_ARTIFACT_ACCESS_LOG','GOVERNED_INSTALLER_NO_DELAY')) {
         Remove-Item "Env:\$name" -ErrorAction SilentlyContinue
     }
     $env:PATH = $originalPath

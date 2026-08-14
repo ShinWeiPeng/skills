@@ -9,7 +9,7 @@
 
 - `guided_workflow_router` — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
   - Entrypoints: [`ask-matt`](../skills/engineering/ask-matt/SKILL.md) (skill)<br>[`main`](../skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
-- `plugin_assembly_composition` — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
+- `plugin_assembly_composition` — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
   - Entrypoints: [`main`](../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../scripts/install-local.ps1) (script)
 - `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI.
   - Entrypoints: [`main`](../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
@@ -25,12 +25,14 @@ flowchart TD
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
+    n_python_runtime_selection_domain["python_runtime_selection_domain (L1)<br/>選取並驗證相容的 Python 執行環境"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>透過單一命令列介面執行架構治理與原生分析"]
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_plugin_assembly_composition -->|owns| n_python_runtime_selection_domain
 ```
 
 ## Function Guide
@@ -79,10 +81,17 @@ flowchart TD
 
 ### `plugin_assembly_composition`
 
-- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
-- **Children:** None
+- **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
+- **Children:** `python_runtime_selection_domain`
 - **Related Flows:** [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation)
-- **Protection Rationale:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; `marketplace-release` is generated and never becomes an editable Skill source.; Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.
+- **Protection Rationale:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; Python selection completes before artifact mutation and the selected absolute interpreter performs every assembly, validation, and localization command.; Windows ACL recovery accepts only the canonical repository-owned dist/governed-engineering-skills directory and never a repository root, ancestor, sibling, outside path, symbolic link, junction, or other reparse point.; `marketplace-release` is generated and never becomes an editable Skill source.; Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.; An explicitly injected Python command is incompatible, or neither PATH Python nor the Windows Python Launcher resolves Python 3.11 or newer. → Stop before assembly, report every observed candidate and version, and explain how to install or explicitly select Python 3.11 or newer.; The existing ignored artifact is inaccessible and its exact canonical path, repository containment, reparse-point safety, non-elevated repair, or explicitly approved elevated repair cannot be validated. → Refuse paths outside the exact governed artifact, stop before assembly and Codex registration, preserve unrelated files, and report whether elevation was declined or the bounded ACL repair failed.
+
+### `python_runtime_selection_domain`
+
+- **Purpose:** Own the deterministic admission policy that accepts an explicit compatible runtime, otherwise prefers a compatible PATH observation and requests Windows Launcher fallback only after that observation is rejected.
+- **Children:** None
+- **Related Flows:** None
+- **Protection Rationale:** Explicit candidate admission is authoritative and never silently replaced.; A compatible PATH observation is accepted before requesting launcher fallback.; A launcher observation is accepted only after its resolved runtime is revalidated.
 
 ### `architecture_governance_cli`
 
@@ -99,12 +108,13 @@ flowchart TD
 - [`workflow_routing_domain`](generated/workflow_routing_domain.md) — Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection.
 - [`delivery_workflow_domain`](generated/delivery_workflow_domain.md) — Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
 - [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
-- [`plugin_assembly_composition`](generated/plugin_assembly_composition.md) — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
+- [`plugin_assembly_composition`](generated/plugin_assembly_composition.md) — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
+- [`python_runtime_selection_domain`](generated/python_runtime_selection_domain.md) — Own the deterministic admission policy that accepts an explicit compatible runtime, otherwise prefers a compatible PATH observation and requests Windows Launcher fallback only after that observation is rejected.
 - [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
 
 ## End-to-End Flows
 
-- [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation) — Assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
+- [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation) — Select one compatible Python interpreter, recover safe access to only the exact ignored Windows artifact when necessary, assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
 - [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass.
 
@@ -123,6 +133,9 @@ flowchart TD
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
+    n_python_runtime_selection_domain["python_runtime_selection_domain (L1)<br/>選取並驗證相容的 Python 執行環境"]
+    n_python_runtime_discovery_adapter["python_runtime_discovery_adapter (L3+)<br/>探測 Windows Python 候選並套用相容性政策"]
+    n_windows_artifact_access_adapter["windows_artifact_access_adapter (L3+)<br/>修復唯一受治理產物的 Windows 存取權限"]
     n_local_install_adapter["local_install_adapter (L3+)<br/>註冊本機 Marketplace、安裝外掛並開啟 Codex 詳情頁"]
     n_integration_validation_technical["integration_validation_technical (L3+)<br/>驗證外掛清單、叫用政策、可攜性與內容隔離"]
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>以穩定語意版本治理唯一外掛發佈單元"]
@@ -142,7 +155,12 @@ flowchart TD
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
     n_plugin_assembly_composition -.->|depends| n_local_install_adapter
+    n_plugin_assembly_composition -.->|depends| n_python_runtime_selection_domain
+    n_plugin_assembly_composition -.->|depends| n_python_runtime_discovery_adapter
+    n_plugin_assembly_composition -.->|depends| n_windows_artifact_access_adapter
     n_plugin_assembly_composition -.->|depends| n_plugin_release_governance_technical
+    n_plugin_assembly_composition -->|owns| n_python_runtime_selection_domain
+    n_python_runtime_discovery_adapter -.->|depends| n_python_runtime_selection_domain
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter

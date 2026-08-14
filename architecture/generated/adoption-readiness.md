@@ -31,6 +31,9 @@
 - `SYM004` `governance_workflow_domain` — `active`: one or more symbols have no installed language analyzer
 - `SYM004` `codex_plugin_adapter` — `active`: one or more symbols have no installed language analyzer
 - `SYM004` `plugin_assembly_composition` — `active`: one or more symbols have no installed language analyzer
+- `SYM004` `python_runtime_selection_domain` — `active`: one or more symbols have no installed language analyzer
+- `SYM004` `python_runtime_discovery_adapter` — `active`: one or more symbols have no installed language analyzer
+- `SYM004` `windows_artifact_access_adapter` — `active`: one or more symbols have no installed language analyzer
 - `SYM004` `local_install_adapter` — `active`: one or more symbols have no installed language analyzer
 - `FLW014` `plugin-release.synchronize-artifact` — `active`: public command is not referenced by a flow
 - `FLW015` `plugin-integration.blocked` — `active`: event is not referenced by a flow

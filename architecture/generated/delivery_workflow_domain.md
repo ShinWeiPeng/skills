@@ -106,22 +106,19 @@ sequenceDiagram
     participant n_governance_workflow_domain as governance_workflow_domain<br/>決策完整性、架構、流程成本與執行證據治理
     n_delivery_workflow_domain->>+n_spec_governance_domain: Create, transactionally migrate, or resolve one project-root flat WORKING-SPEC pair before the first decision question; migration validates a complete temporary pair and restores the legacy source on failure.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: step 1
-    n_spec_governance_domain->>+n_spec_governance_domain: Classify the confirmed statement, update stable relationships, and report and persist the working specification delta, conflicts, and open decisions before another decision question.
-    n_spec_governance_domain-->>-n_spec_governance_domain: step 2
+    n_spec_governance_domain->>n_spec_governance_domain: Classify the confirmed statement, update stable relationships, and report and persist the working specification delta, conflicts, and open decisions before another decision question.
     n_spec_governance_domain->>+n_governance_workflow_domain: Review every material as-is and target Flow through functional admission, execution and real-time feasibility, maintainability and extensibility change scenarios, and model assurance; keep unresolved load-bearing evidence BLOCKED.
     n_governance_workflow_domain-->>-n_spec_governance_domain: step 3
     n_governance_workflow_domain->>+n_spec_governance_domain: Materialize the decision-complete canonical specification under specs/ without granting product execution authorization.
     n_spec_governance_domain-->>-n_governance_workflow_domain: step 4
     n_spec_governance_domain->>+n_delivery_workflow_domain: Present the confirmed specification and wait for exact product execution authorization; reopen it before clarification when a possible contract change appears.
     n_delivery_workflow_domain-->>-n_spec_governance_domain: step 5
-    n_delivery_workflow_domain->>+n_delivery_workflow_domain: Publish a tracker snapshot that names the repository specification as canonical.
-    n_delivery_workflow_domain-->>-n_delivery_workflow_domain: step 6
+    n_delivery_workflow_domain->>n_delivery_workflow_domain: Publish a tracker snapshot that names the repository specification as canonical.
     n_delivery_workflow_domain->>+n_spec_governance_domain: Verify requirement-to-acceptance-to-validation traceability and return to grilling only when the request introduces a new decision or conflict.
-    n_spec_governance_domain-->>-n_delivery_workflow_domain: step 7
-    n_spec_governance_domain->>+n_delivery_workflow_domain: Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes.
-    n_delivery_workflow_domain-->>-n_spec_governance_domain: step 8
+    n_spec_governance_domain-->>-n_delivery_workflow_domain: spec-governance.verify result
+    n_delivery_workflow_domain->>n_delivery_workflow_domain: Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes.
     n_delivery_workflow_domain->>+n_spec_governance_domain: Reject staged local working state and require delete, keep-local, or archive disposition before the delivery workflow commits.
-    n_spec_governance_domain-->>-n_delivery_workflow_domain: step 9
+    n_spec_governance_domain-->>-n_delivery_workflow_domain: spec-governance.prepare-commit result
 ```
 
 #### Ordered Steps

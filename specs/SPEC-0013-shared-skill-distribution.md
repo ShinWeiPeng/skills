@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0013
-revision: 36
+revision: 40
 status: confirmed
 change_set: shared-skill-distribution
 ---
@@ -25,6 +25,8 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 - As the maintainer, I want to edit each shared skill in one authoritative root location.
 - As a contributor, I want Skill PRs to avoid duplicate generated-file diffs.
 - As the owner of one personal account, I want Codex Desktop and Codex CLI to consume the same Git-backed Plugin release without claiming unsupported ChatGPT web installation.
+- As a Windows user, I want the one-click installer to verify that its Python runtime is compatible before any Plugin assembly begins, so an old PATH entry produces actionable guidance instead of a Python syntax error.
+- As a Windows user, I want a user-launched reinstall to recover safely when a prior ignored artifact was created by Codex's sandbox or another account, so cross-account ACLs do not block installation or hide the installed-version view.
 
 ## Requirements
 
@@ -59,6 +61,8 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 | REQ-026 | The installer MUST assemble before installation, reject an incomplete or stale Plugin shell, preserve the current formal release version, apply any cachebuster only to the local installed manifest, and provide actionable recovery on partial failure. |
 | REQ-027 | The supported Windows launcher MUST succeed when invoked without `-PythonCommand`, MUST resolve a Python application without colliding with the case-insensitive `PythonCommand` parameter, MUST report an actionable missing-runtime error instead of generic exit 99 when resolution fails, and MUST retain explicit command injection for tests and maintainers. The regression fix MUST ship as immutable patch release `0.7.3` without moving the `0.7.2` tag. |
 | REQ-028 | Unless `-CodexCommand` is explicitly injected, the local installer MUST first select a PATH-discovered Codex application only after a side-effect-free execution probe succeeds; if the PATH candidate is absent or cannot execute, it MUST fall back to a usable Codex Desktop bundled runtime. It MUST report actionable failure when neither candidate is executable. |
+| REQ-029 | Before Plugin assembly, the local installer MUST execute a side-effect-free Python capability probe and accept only Python 3.11 or newer. An explicit `-PythonCommand` remains authoritative and MUST pass the probe. Without explicit injection, the installer MUST first accept a compatible PATH `python`; otherwise it MUST ask the Windows Python Launcher for its highest Python 3 runtime, resolve that runtime to an absolute executable path, validate it, and use that same executable for every assembly and validation command. An absent, non-executable, malformed, or older runtime MUST stop before assembly and report the observed candidates plus actionable recovery. |
+| REQ-030 | On Windows, the one-click installer MUST detect an existing `dist/governed-engineering-skills` artifact that the launching account cannot inspect or replace. Recovery MUST be limited to that exact repository-relative ignored artifact, MUST refuse repository roots, ancestors, symlinks/reparse targets, and any path outside the resolved repository `dist` directory, MUST first attempt ordinary inherited-access recovery, and MAY request UAC elevation only for a narrowly scoped ACL reset when ordinary recovery is denied. After recovery it MUST revalidate the artifact boundary and restart assembly; refusal, denied elevation, or failed recovery MUST stop before Codex registration and report actionable guidance. |
 
 ## Decisions
 
@@ -90,12 +94,15 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 | DEC-023 | Refine DEC-022 for the concurrent Version PR: after the first correction, automation merged `0.8.1` and created its tag; the maintainer separately authorized deleting `0.8.1`, retaining the latest remote `main` history, and resolving its version state to `0.7.2` without force-pushing. |
 | DEC-024 | Repair the one-click installer in place by giving the auto-discovered Python command a distinct local variable, retaining optional `-PythonCommand` injection, adding a no-`PythonCommand` launcher regression fixture, and publishing the correction as `0.7.3` rather than rewriting immutable `0.7.2`. |
 | DEC-025 | Resolve Codex with verified PATH-first precedence: honor an explicitly injected command, otherwise probe the PATH candidate without installation side effects and use it when executable; fall back to the Codex Desktop bundled runtime only when PATH is absent or unusable. |
+| DEC-026 | Select automatic compatible-Python discovery: after an incompatible PATH `python`, query the Windows Python Launcher for its highest Python 3 runtime, normalize the selected runtime to its absolute executable path, and use that exact interpreter throughout installation. Do not download or silently install Python. Publish the correction as a new immutable patch release rather than rewriting `0.7.3`. |
+| DEC-027 | Select bounded automatic Windows ACL recovery. Preserve Codex sandbox isolation globally, but allow the user-launched installer to restore inherited access only on the exact ignored `dist/governed-engineering-skills` artifact. Attempt non-elevated recovery first; request UAC only when required; refuse unsafe, redirected, or out-of-scope targets; and continue installation only after the repaired boundary is revalidated. |
 
 ## Architecture Impact
 
 - **Affected level and module:** retain the L0 `plugin_assembly_composition` owner, restore the L3+ `local_install_adapter`, and keep remote Marketplace publication as an optional Codex-only channel.
 - **Technical release authority:** retain L3+ `plugin_release_governance_technical`; a publication candidate is admitted only after its stable SemVer, immutable tag intent, assembled inventory, and fingerprint pass existing release governance.
 - **Ports, Events, Types, and State:** restore the installer request/result and rollback outcome contracts. `plugin_assembly_composition` owns the ignored artifact and formal-version/local-cachebuster invariant; `local_install_adapter` owns Codex Marketplace registration and Plugin-installation side effects. No queue, callback, execution unit, or long-lived mutable runtime State Object is introduced.
+- **Windows ACL recovery:** keep recovery inside `plugin_assembly_composition` before artifact replacement. It is a synchronous, bounded local filesystem operation on one exact ignored path; it introduces no new public Port, Event, Queue, Task, or persistent State Object. The existing blocked outcome gains unsafe-target, elevation-denied, and recovery-failed reasons.
 - **Source and Description Views:** add the restored launcher and installer paths, entrypoint, public symbols, side effects, invariants, and failure outcomes to `architecture/manifest.yaml`; update System, Parent, and architecture overview pages and regenerate marker-owned views deterministically.
 - **Compatibility boundary:** preserve Plugin ID, bundled Skill paths, invocation policy, stable SemVer authority, immutable release tags, and root-only editable Skill ownership. Replace only the user distribution channel and its evidence schema.
 - **ADR:** revise `ADR-0014-personal-git-marketplace-publication.md` so the generated branch is a Codex distribution channel rather than a ChatGPT-web channel. DISC-014 and DISC-015 are the correcting human decision evidence; no architecture-rule exception is requested.
@@ -122,6 +129,7 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 |---|---|---|---|
 | Plugin artifact assembly | `plugin_assembly_composition` | Not applicable: existing deterministic inclusion, normalization, inventory, and SHA-256 identity rules do not rank, tune, estimate, or select among data-dependent results. | Existing inventory entry remains sufficient. |
 | Marketplace publication-tree generation | `plugin_assembly_composition` | Not applicable: exact path mapping and byte-for-byte identity checks have one prescribed result and no heuristic, statistical, scheduling, optimization, or fallback method choice. | No new `ALG-####` required. |
+| Windows ACL recovery | `plugin_assembly_composition` | Not applicable: path admission, ordinary recovery, bounded elevation, revalidation, and refusal use one fixed safety order with no tunable, statistical, optimization, or data-dependent result selection. | No new `ALG-####` required. |
 
 ## Recommended Improvements
 
@@ -151,6 +159,17 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 - **Costs and disadvantages:** publication waits for all gates and requires GitHub Actions content-write permission.
 - **Risks:** concurrent or partially completed publication.
 - **Mitigation:** existing workflow concurrency, temporary staging, source-tag binding, one generated commit, and atomic branch update after all checks.
+
+### Improvement 4: Recover only the exact inaccessible local artifact
+
+- **Change:** add a Windows ACL preflight before assembly. Resolve and compare the repository root, `dist` parent, and expected Plugin artifact without traversing an inaccessible child; attempt ordinary inherited-access recovery first, then invoke a narrowly scoped elevated helper only when Windows denies the non-elevated repair. Revalidate the exact target before deletion or assembly.
+- **Expected impact:** a user-launched reinstall recovers from artifacts created by Codex's sandbox, an administrator, or another account, then installs the current formal Plugin version instead of leaving the Marketplace preview state.
+- **Benefits:** preserves sandbox isolation, restores the one-click contract, and prevents a stale inaccessible artifact from hiding the installed version.
+- **Costs and disadvantages:** Windows-only recovery code, a possible UAC prompt, and additional ACL fixtures.
+- **Risks:** privilege escalation against the wrong directory, reparse-point traversal, or continuing after a partial ACL repair.
+- **Dependencies:** exact canonical path admission, Windows identity/ACL inspection, bounded elevation, and retry-safe assembly.
+- **Alternatives considered:** fail with manual commands, or relocate all artifacts under `%LOCALAPPDATA%`.
+- **Why this is recommended:** it addresses the observed cross-principal failure while changing permissions only on the one ignored artifact the installer already owns.
 
 ## Acceptance Criteria
 
@@ -183,6 +202,8 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 | AC-024 | REQ-026 | Positive, repeated-install, missing-runtime, incomplete-artifact, stale-cache, and simulated partial-failure fixtures prove assembly-first installation, idempotence, formal-version preservation, local-only cachebusting, and recovery guidance. | Isolated temporary-home PowerShell integration tests with fake Codex CLI fixtures and exact installed-tree assertions. | PASS — the complete suite covers injected and automatic runtime resolution, repeated refresh, duplicate Marketplace, missing runtime, incomplete artifact, cachebuster replacement, assembly and CLI failures, recovery logs, and exact copied inventory. |
 | AC-025 | REQ-027 | A regression fixture invokes the repository-root installer without `-PythonCommand`, reproduces the `Source`-property exit-99 failure before repair, and passes after repair while the explicit-injection, missing-Python, repeated-install, exact-tree, and real user-launched installer paths remain valid. Formal metadata and the new immutable tag identify `0.7.3`; `0.7.2` remains unchanged. | RED/GREEN PowerShell integration fixture, direct launcher acceptance, full installer suite, version-governance checks, remote tag inspection, and GitHub Actions Windows matrix. | PASS locally — RED reproduced exit 99; GREEN passes without `-PythonCommand`; the launcher fixture now uses automatic Python discovery, the missing-Python fixture returns actionable exit 13, and the complete installer suite passes. Remote tag and CI evidence remain pending until push. |
 | AC-026 | REQ-028 | Installer fixtures prove that an executable PATH Codex wins over an available Desktop runtime, an absent or non-executable PATH candidate falls back to a usable Desktop runtime, explicit `-CodexCommand` injection remains authoritative, and no executable candidate fails with actionable recovery guidance. | Isolated temporary-home PowerShell integration tests with fake PATH and Desktop runtimes, side-effect-free probe assertions, command-selection logs, and exit-code checks. | PASS locally — RED selected the inaccessible Desktop runtime and returned exit 12 despite a usable PATH CLI; GREEN probes `--version`, performs no installation side effect during the probe, prefers executable PATH, falls back to Desktop after a failed PATH probe, preserves explicit injection, and returns actionable exit 11 when neither candidate works. |
+| AC-027 | REQ-029 | Installer fixtures prove that a compatible explicit command remains authoritative, compatible PATH Python wins, incompatible PATH Python falls back to the Python Launcher's highest compatible Python 3 runtime, the selected absolute interpreter performs both assembly and validation, and Python 2.x/3.10 plus malformed/non-executable candidates stop before assembly with actionable recovery. | Isolated PowerShell tests with fake Python commands, launcher/runtime mappings, an assembly-call sentinel, exact selected-path assertions, and the complete installer contract suite on Windows. | PASS locally — RED returned exit 30 after sending the Python 3.10 PATH candidate directly to assembly; GREEN proves compatible PATH never invokes the launcher, rejects explicit Python 2.7 plus malformed/non-executable probes before artifact/Codex side effects, resolves `py -3` to one exact absolute selected command, records that same command executing re-probe/assemble/validate/localize, and the 211-second exact-tree installer suite exits 0. |
+| AC-028 | REQ-030 | Windows fixtures reproduce an artifact owned by a different principal with no launching-user access, prove non-elevated recovery when inheritance is sufficient, prove a bounded elevation request only for the exact expected artifact when required, and reject repository roots, ancestors, sibling paths, reparse targets, denied UAC, and partial recovery before Codex registration. A successful recovery reassembles and installs formal version `0.7.4` and the installed detail view exposes that formal prefix. | Isolated Windows ACL integration fixtures using disposable temporary repositories and principals where available; mocked elevation contract tests for CI; exact path, owner/access, Codex-call sentinel, artifact inventory, installed manifest, and UI-facing metadata assertions. | PARTIAL locally — RED failed because no recovery helper existed; GREEN recursively validates every descendant, checks effective `Delete` or parent `DeleteChild` permission on every existing entry, and rejects root/dist/sibling/outside/root-or-nested-reparse targets. ACL repair walks breadth-first, admits each non-reparse entry before resetting only that entry, and a junction fixture proves the destination ACL remains byte-for-byte unchanged. Fixtures prove ordinary-before-elevated ordering, deny readable-but-not-replaceable existing children, block denied/partial recovery before Codex, and install an exact inventory whose manifest begins `0.7.4+codex.` after mocked recovery. Formal assembly normalizes inherited Windows ACLs before atomic replacement; the resulting 268-file `0.7.4` artifact grants the interactive `Hugo` account FullControl while retaining sandbox ownership. Automated suites and gates pass, but a real second-principal/UAC run plus user-visible Codex detail-page confirmation remain post-install acceptance before AC-028 can be marked PASS. |
 
 ## Alternatives Comparison
 
@@ -203,6 +224,7 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 6. Commit and push the validated 0.7.2 implementation; then let the user run the delivered installer and record optional signed-in Codex Desktop/CLI acceptance evidence.
 7. Add a RED regression fixture that omits `-PythonCommand`, repair the case-insensitive variable collision without moving discovery into the CMD launcher, and retain explicit command injection.
 8. Advance formal release metadata to `0.7.3`, rerun all installer and release gates, publish a new immutable tag, and prove the existing `0.7.2` tag did not move.
+9. Add a RED cross-principal ACL fixture, implement exact-target non-elevated/elevated recovery before assembly, preserve refusal and UAC-denied outcomes, and rerun installation to prove `0.7.4` reaches the installed detail view.
 
 ## Validation and Acceptance Gates
 
@@ -212,6 +234,7 @@ The supported user path restores the `0.7.1` local one-click installer: it assem
 | Per-change Development Validation | Run `python -m unittest tests.test_shared_skill_distribution -v`, Plugin contract tests, distribution validation, artifact validation, schema checks, documentation/link checks, and a clean Git-status assertion. | All focused tests pass; no generated tree appears as an editable `main` source. | Every command exits `0`, expected negative fixtures fail closed, and Git status changes only in intended tracked files. | CI logs plus hashed test/result artifacts. |
 | Final Codex Acceptance | After delivery, run the restored local installer, then use the installed Plugin in Codex Desktop and Codex CLI; in a fresh task/session invoke one engineering and one productivity representative in each host. | Both hosts report the same formal Plugin version; the installed manifest may contain only the governed local cachebuster; all four invocations follow the selected Skill. | User acceptance is recorded after install and does not block the repository commit or push. | Installer log plus optional exported-task or terminal evidence. |
 | Release Acceptance | Rebuild the release composition; run installer integration tests, `python tools/architecture/architecture_cli.py gate --phase release --manifest architecture/manifest.yaml --adoption architecture/adoption.yaml --baseline architecture/baseline.yaml`, deterministic render comparison, full regression, and version checks before commit and push. | Release gates pass; the installer consumes the assembled `0.7.3` Plugin; no ChatGPT-web contract remains active; optional Marketplace publication remains identity-equivalent when generated. | Every required command exits `0`; architecture and generated views are current; direct launch succeeds without `-PythonCommand`; `0.7.1` and `0.7.2` tag identities are unchanged. | Separate validation and release evidence with command, exit code, minimal raw output, installed inventory, version, fingerprint, and PASS/FAIL/BLOCKED verdict. |
+| Windows ACL Recovery Acceptance | In a disposable Windows repository, create the expected artifact under a different principal or equivalent restrictive ACL, launch the public installer as the normal user, exercise ordinary recovery, bounded UAC acceptance, UAC denial, unsafe-path, and reparse-path fixtures, then inspect the installed manifest. | Only the exact ignored artifact can be repaired; unsafe or denied cases stop before Codex side effects; the positive case installs the current `0.7.4` formal prefix. | Every positive fixture exits `0`; every negative fixture returns its specified recovery code and message; no ACL outside the disposable artifact changes; installed manifest and cache inventory match the rebuilt candidate. | Before/after ACL export, resolved paths, installer log, Codex sentinel, artifact inventory, installed manifest, exit codes, and PASS/FAIL verdicts. |
 
 No physical-device, scheduler, OS-native trace, real-time, performance, or resource validation applies. The external product-surface checks are necessary because repository tests cannot prove that the signed-in ChatGPT account actually lists, installs, and invokes the Plugin on either product surface.
 
@@ -249,6 +272,10 @@ No physical-device, scheduler, OS-native trace, real-time, performance, or resou
 | DEC-024 | refines | SPEC-0007 | Publish the correction as the next immutable patch release instead of moving the existing `0.7.2` tag. |
 | DEC-025 | refines | DEC-021 | Preserve the one-click Codex installation experience while selecting an actually executable local runtime. |
 | DEC-025 | refines | DEC-024 | Add the runtime-selection contract exposed while validating the focused Python-discovery repair. |
+| DEC-026 | refines | DEC-024 | Preserve the one-click installer while validating and normalizing its Python runtime before assembly. |
+| DEC-026 | refines | SPEC-0007 | Deliver the correction as the next immutable patch release instead of rewriting `0.7.3`. |
+| DEC-027 | refines | DEC-021 | Preserve the selected one-click installation experience when a previous ignored artifact belongs to another Windows principal. |
+| DEC-027 | refines | REQ-026 | Extend actionable partial-failure recovery with bounded exact-target ACL repair before assembly. |
 
 ## Out of Scope
 
@@ -446,16 +473,34 @@ None.
 - **Explicit rationale:** After clarifying that PATH only locates a candidate and does not prove it executable, the user selected the recommended policy that retains an intentional PATH CLI while recovering from an inaccessible WindowsApps candidate.
 - **Resulting impact:** DEC-025; REQ-028 and AC-026 define verified PATH-first resolution and Desktop-runtime fallback. OD-001 is resolved.
 
+### DISC-021: Select Python compatibility handling
+
+- **Situation:** A second Windows computer resolves `python` from PATH, but that runtime is too old to parse the assembler's f-string syntax. The installer currently checks only whether a command exists, so assembly begins and exposes a raw `SyntaxError` instead of a prerequisite message.
+- **Question:** After detecting that the PATH `python` is older than 3.11, should the installer stop with recovery instructions or automatically search the Windows Python Launcher for an installed compatible runtime?
+- **Options and tradeoffs:** Immediate stop is the smallest and most predictable change but rejects a computer that already has Python 3.11+ installed under `py`; automatic discovery preserves one-click installation and handles stale PATH configuration, but requires deterministic precedence and more fixtures. Bundling Python would remove the prerequisite but substantially increases package size, security maintenance, and release complexity.
+- **User answer:** Automatically find the installed Python version and use the corresponding compatible command for installation.
+- **Explicit rationale:** A computer may already contain a compatible Python even when PATH points to an older runtime; the one-click installer should select and consistently use the compatible interpreter it finds.
+- **Resulting impact:** DEC-026 resolves OD-002; REQ-029 and AC-027 require compatible PATH-first discovery, Python Launcher fallback, absolute-path normalization, and same-interpreter execution.
+
+### DISC-022: Select cross-account Windows ACL recovery
+
+- **Situation:** The validated `0.7.4` artifact was assembled inside the Codex sandbox and inherited an ACL owned by `CodexSandboxOffline` without access for the interactive `Hugo` account. The public installer selected compatible Python successfully but failed with `WinError 5` before installing `0.7.4`, leaving Codex on the Marketplace preview page where no installed version is shown.
+- **Question:** Should the installer repair only the exact inaccessible ignored artifact automatically, stop with manual commands, or relocate all local artifacts to a per-user directory?
+- **Options and tradeoffs:** Bounded automatic recovery preserves one-click installation but may require one UAC prompt and strict path guards; manual recovery is most conservative but requires terminal work; relocation avoids cross-account repository ACLs but changes established assembly, testing, release, and Marketplace paths.
+- **User answer:** Option 1.
+- **Explicit rationale:** No additional rationale was stated; the selected recommended option restores the one-click flow while retaining Codex sandbox isolation and limiting elevated permission changes to the exact ignored artifact.
+- **Resulting impact:** DEC-027; REQ-030 and AC-028 require exact-target admission, ordinary recovery before UAC, unsafe-target refusal, post-repair revalidation, and no Codex side effects on recovery failure.
+
 ## Routing/Gates
 
-- Grilling: PASS; Codex-only distribution, restored local one-click installation, focused Python-discovery repair, verified PATH-first Codex selection with Desktop fallback, and immutable `0.7.3` patch release are selected.
+- Grilling: PASS; bounded exact-target Windows ACL recovery is selected after the compatible-Python decision.
 - Architecture proposal and implementation: PASS; `plugin_assembly_composition` owns artifact assembly and local cache identity mutation, `local_install_adapter` owns Codex registration and installation, JSON Schema types and validation outcomes are cataloged, generated Description Views are current, and development/release gates return `PASS: VERIFIED`.
-- TDD: PASS locally; verified PATH-first selection reproduced exit 12 under the provisional Desktop-first implementation, reached GREEN with a side-effect-free `--version` probe and Desktop fallback, and the complete installer suite passes together with automatic and missing Python discovery.
-- Development and release validation: PASS locally for `0.7.3`; the 213.9-second installer suite, 163 Plugin tests, 31 shared-distribution tests, deterministic 259-file artifact assembly and validation, Plugin ingestion, version governance, strict Spec validation, and both architecture gates exit 0. The real no-argument launcher rejects the inaccessible PATH alias during its side-effect-free probe, falls back to Codex Desktop, installs `0.7.3+codex.local-20260814005128602957`, and `codex plugin list` reports it installed and enabled. GitHub Actions and immutable remote-tag evidence remain pending until push.
+- TDD: PASS; RED proved the recovery helper absent, and GREEN covers exact-path admission, reparse refusal, ordinary-before-elevated repair, denied/partial recovery, pre-assembly orchestration, zero Codex side effects on failure, staging ACL inheritance, exact installed tree, and the formal `0.7.4` prefix.
+- Development and release validation: PASS locally; formal assembly produces 268 files at version `0.7.4`, distribution and integration validators pass, the complete installer suite passes in 245 seconds, 32 shared-distribution tests, 163 Plugin tests, and 105 architecture tests pass, version governance is consistent, and the release architecture gate returns `PASS: VERIFIED`. Normal-user detail-page confirmation remains post-install acceptance.
 - Cross-platform release fingerprint: PASS; the LF/CRLF equivalence regression fixture passes, binary content remains byte-sensitive, and Windows plus Git-archive checkout calculations agree.
 - Codex-host acceptance: post-install user acceptance; no ChatGPT-web or external evidence gate blocks repository delivery.
 - Remote release identity: PASS; the maintainer separately authorized deletion of failed `governed-engineering-skills@0.8.0` and `@0.8.1` tags, subsequent remote ref queries proved both absent, and the correction is rebased onto the latest remote `main` without rewriting it.
-- Spec and Standards review: pending final re-review of DEC-025 / REQ-028 / AC-026 after full validation.
+- Spec and Standards review: pending final two-axis review of DEC-027 / REQ-030 / AC-028.
 
 ## Revision History
 
@@ -470,13 +515,13 @@ None.
 | 7 | 2026-08-10 | Normalized canonical schema fields and traceability without changing decisions. |
 | 8 | 2026-08-10 | Reopened after the architecture root could not legally reference moved root production sources. |
 | 9 | 2026-08-10 | Selected repository-root formal architecture governance. |
+| 10 | 2026-08-10 | Reopened to separate Codex-local testing from private Workspace publication, add cross-product acceptance requirements, and normalize legacy answer markers. |
 | 12 | 2026-08-10 | Removed the one-click local installer from the proposal while retaining manual maintainer Marketplace testing. |
 | 13 | 2026-08-10 | Reconciled the implemented repository-root architecture, maintainer-only artifact testing, conservative per-Skill portability inventory, and schema-governed Workspace publication handoff. |
 | 14 | 2026-08-10 | Recorded governed Plugin behavior as the non-regressing baseline for duplicate Skill reconciliation. |
 | 15 | 2026-08-10 | Recorded local acceptance evidence and retained external Workspace checks as explicit release blockers. |
 | 16 | 2026-08-10 | Reopened to reconcile invocation metadata and fresh-task engineering decision routing; selected confirmed-Spec resume semantics for exact `開始執行`. |
 | 17 | 2026-08-10 | Implemented and locally verified invocation metadata enforcement, exact fresh-task resume routing, explicit repository onboarding, and Plugin-only router authority. |
-| 10 | 2026-08-10 | Reopened to separate Codex-local testing from private Workspace publication, add cross-product acceptance requirements, and normalize legacy answer markers. |
 | 18 | 2026-08-10 | Reopened before clarification: User changed the target from a private managed Workspace listing to one personal account shared across ChatGPT Work web and Codex Desktop. |
 | 19 | 2026-08-10 | Selected independent per-surface installation from one public Git repository, a generated same-repository publication branch, and the `marketplace-release` reference. |
 | 20 | 2026-08-10 | Confirmed the personal Git Marketplace design and authorized implementation. |
@@ -493,3 +538,11 @@ None.
 | 31 | 2026-08-13 | Recorded RED/GREEN coverage for automatic Python discovery and Codex Desktop runtime precedence, plus successful real no-argument installation of local Plugin 0.7.3. |
 | 35 | 2026-08-14 | Implemented the selected verified PATH-first Codex resolution contract with side-effect-free probing, Desktop fallback, launcher-level Python discovery, and actionable missing-runtime fixtures. |
 | 36 | 2026-08-14 | Reconciled complete local validation and real installation evidence; retained GitHub Actions and immutable remote tag creation as post-push evidence. |
+| 37 | 2026-08-14 | Reopened before clarification: 另一台電腦的 PATH python 不支援 f-string；安裝器應在組裝前驗證 Python 3.11+，並決定是否自動尋找相容 runtime。 |
+| 38 | 2026-08-14 | Selected automatic compatible-Python discovery, absolute interpreter normalization, same-interpreter execution, and a new immutable patch release. |
+| 39 | 2026-08-14 | Implemented Python 3.11+ preflight and Windows Launcher fallback, published local version metadata as 0.7.4, and recorded passing installer, distribution, Plugin, and architecture evidence. |
+| 40 | 2026-08-14 | Reopened before clarification: Clarify cross-account Windows ACL recovery after a Codex sandbox-owned dist artifact blocked local Plugin assembly and hid the installed-version view. |
+| 41 | 2026-08-14 | Selected bounded automatic ACL recovery for only the exact ignored Plugin artifact, with ordinary recovery before UAC, unsafe-target refusal, and post-repair revalidation. |
+| 42 | 2026-08-14 | Implemented bounded exact-target Windows ACL recovery, sandbox-staging ACL inheritance, public-installer failure isolation, and passing 0.7.4 local validation evidence. |
+| 43 | 2026-08-14 | Corrected recursive partial-recovery validation, moved Windows ACL and Python process bindings behind L3+ adapters, and retained real cross-principal/UI confirmation as pending user acceptance. |
+| 44 | 2026-08-14 | Added effective existing-entry replaceability checks and reparse-safe breadth-first ACL repair after final Spec and Standards review findings. |

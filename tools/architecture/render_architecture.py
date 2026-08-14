@@ -439,12 +439,29 @@ def _flow_view(flow: dict[str, Any], labels: dict[str, str], manifest: dict[str,
     previous = _node_id(owner)
     for step in flow.get("steps", []):
         current = _node_id(str(step.get("module")))
-        lines.append(f"    {previous}->>+{current}: {_mermaid_label(step.get('action', ''))}")
+        arrow = "->>" if current == previous else "->>+"
+        lines.append(f"    {previous}{arrow}{current}: {_mermaid_label(step.get('action', ''))}")
         emitted = step.get("emits", [])
         if emitted:
             lines.append(f"    Note right of {current}: {_mermaid_label(', '.join(str(item) for item in emitted))}")
-        lines.append(f"    {current}-->>-{previous}: step {step.get('order')}")
-        previous = current
+        sync_query = next(
+            (
+                str(port.get("id"))
+                for port in (manifest or {}).get("ports", [])
+                if isinstance(port, dict)
+                and str(port.get("id")) in step.get("receives", [])
+                and port.get("kind") == "query"
+                and port.get("description", {}).get("timing") == "sync"
+            ),
+            None,
+        )
+        if sync_query:
+            lines.append(
+                f"    {current}-->>-{previous}: {_mermaid_label(sync_query)} result"
+            )
+        elif current != previous:
+            lines.append(f"    {current}-->>-{previous}: step {step.get('order')}")
+            previous = current
     lines.append("```")
     lines.extend(["", f"#### {labels['steps']}", "", "| # | Module | Action | Receives | Emits | State changes | Side effects |", "|---|---|---|---|---|---|---|"])
     for step in flow.get("steps", []):

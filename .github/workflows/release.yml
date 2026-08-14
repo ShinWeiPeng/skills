@@ -81,6 +81,13 @@ jobs:
           powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass
           -File plugins/governed-engineering-skills/tests/test_install_local.ps1
 
+      - name: Run bounded Windows artifact access contracts
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: >-
+          powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass
+          -File plugins/governed-engineering-skills/tests/test_windows_artifact_access.ps1
+
       - name: Run skill release gate
         run: >-
           python skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py

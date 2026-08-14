@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.7.3",
-  "previous_version": "0.7.2",
+  "current_version": "0.7.4",
+  "previous_version": "0.7.3",
   "bump": "patch",
-  "production_fingerprint": "sha256:a1b6dd9f05c80317c4bd391d8e09875c315ef655db092e9c970d1ae65a5af175",
+  "production_fingerprint": "sha256:dcdb77649f3a969eafaebd41718ff4372ca48525661ca872d9ab8fc1c75c1847",
   "applied_changesets": [
-    "installer-python-discovery"
+    "installer-python-runtime-preflight"
   ]
 }

@@ -4,6 +4,7 @@ param(
     [string]$PythonCommand,
     [string]$CodexCommand,
     [string]$UriLauncherCommand,
+    [string]$ArtifactAccessScript,
     [string]$LogPath = (Join-Path ([System.IO.Path]::GetTempPath()) 'governed-engineering-skills-install.log')
 )
 
@@ -44,31 +45,37 @@ try {
     $RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
     $assembler = Join-Path $RepositoryRoot 'scripts\assemble_plugin.py'
     $validator = Join-Path $RepositoryRoot 'scripts\validate_distribution.py'
+    $pythonSelector = Join-Path $RepositoryRoot 'scripts\python-runtime-selection.ps1'
+    if ([string]::IsNullOrWhiteSpace($ArtifactAccessScript)) {
+        $ArtifactAccessScript = Join-Path $RepositoryRoot 'scripts\windows-artifact-access.ps1'
+    }
+    $artifactAccess = [System.IO.Path]::GetFullPath($ArtifactAccessScript)
     $adapter = Join-Path $RepositoryRoot 'plugins\governed-engineering-skills\scripts\install-local.ps1'
     $artifact = Join-Path $RepositoryRoot 'dist\governed-engineering-skills'
     $marketplace = Join-Path $RepositoryRoot '.agents\plugins\marketplace.json'
-    foreach ($required in @($assembler, $validator, $adapter, $marketplace)) {
+    foreach ($required in @($assembler, $validator, $pythonSelector, $artifactAccess, $adapter, $marketplace)) {
         if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
             Write-InstallLog "Required installer component is missing: $required" 'ERROR'
             exit 10
         }
     }
 
-    if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
-        $python = $PythonCommand
+    . $pythonSelector
+    $pythonSelection = Resolve-CompatiblePython -ExplicitCommand $PythonCommand
+    foreach ($diagnostic in $pythonSelection.Diagnostics) {
+        Write-InstallLog ([string]$diagnostic.Message) ([string]$diagnostic.Level)
     }
-    else {
-        $pythonApplication = Get-Command python -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($null -eq $pythonApplication -or [string]::IsNullOrWhiteSpace([string]$pythonApplication.Source)) {
-            Write-InstallLog 'Python was not found. Install Python 3.11 or newer, then run the installer again.' 'ERROR'
-            exit 13
-        }
-        $python = $pythonApplication.Source
-    }
+    if (-not $pythonSelection.Valid) { exit 13 }
+    $selectedPython = $pythonSelection.Executable
 
-    Invoke-AssemblyStep $python @($assembler, 'assemble', '--repo-root', $RepositoryRoot, '--output', $artifact) 'Assembling the governed Plugin.'
-    Invoke-AssemblyStep $python @($validator) 'Validating the assembled Plugin distribution.'
-    Invoke-AssemblyStep $python @($assembler, 'localize', '--repo-root', $RepositoryRoot, '--artifact', $artifact) 'Refreshing the local Codex cache identity.'
+    . $artifactAccess
+    $accessDecision = Ensure-GovernedArtifactAccess -RepositoryRoot $RepositoryRoot -ArtifactPath $artifact
+    Write-InstallLog ([string]$accessDecision.Diagnostic) $(if ($accessDecision.Valid) { 'INFO' } else { 'ERROR' })
+    if (-not $accessDecision.Valid) { exit 14 }
+
+    Invoke-AssemblyStep $selectedPython @($assembler, 'assemble', '--repo-root', $RepositoryRoot, '--output', $artifact) 'Assembling the governed Plugin.'
+    Invoke-AssemblyStep $selectedPython @($validator) 'Validating the assembled Plugin distribution.'
+    Invoke-AssemblyStep $selectedPython @($assembler, 'localize', '--repo-root', $RepositoryRoot, '--artifact', $artifact) 'Refreshing the local Codex cache identity.'
     $adapterArguments = @(
         '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $adapter,
         '-ArtifactRoot', $artifact,

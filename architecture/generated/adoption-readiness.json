@@ -130,6 +130,30 @@
       {
         "configuration": false,
         "disposition": "active",
+        "location": "python_runtime_selection_domain",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
+        "location": "python_runtime_discovery_adapter",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
+        "location": "windows_artifact_access_adapter",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
         "location": "local_install_adapter",
         "message": "one or more symbols have no installed language analyzer",
         "rule_id": "SYM004",

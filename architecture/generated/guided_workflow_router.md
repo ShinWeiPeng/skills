@@ -183,11 +183,11 @@ sequenceDiagram
     participant n_workflow_routing_domain as workflow_routing_domain<br/>意圖分類、專案狀態評估與技能交接選擇
     participant n_risk_routing_domain as risk_routing_domain<br/>工程風險分級、必要閘門與失敗關閉決策
     n_guided_workflow_router->>+n_workflow_routing_domain: Classify ordered hard intent including exact fresh-task confirmed-Spec resume, preserve caller-supplied unresolved-decision evidence from before the first design question through answer reconciliation, and assess implementation and durable context from repository evidence.
-    n_workflow_routing_domain-->>-n_guided_workflow_router: step 1
-    n_workflow_routing_domain->>+n_risk_routing_domain: Match ordered risk hard triggers and preserve the required governance gates.
-    n_risk_routing_domain-->>-n_workflow_routing_domain: step 2
-    n_risk_routing_domain->>+n_workflow_routing_domain: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision.
-    n_workflow_routing_domain-->>-n_risk_routing_domain: step 3
+    n_workflow_routing_domain-->>-n_guided_workflow_router: workflow-routing.assess-project result
+    n_guided_workflow_router->>+n_risk_routing_domain: Match ordered risk hard triggers and preserve the required governance gates.
+    n_risk_routing_domain-->>-n_guided_workflow_router: risk-routing.classify result
+    n_guided_workflow_router->>+n_workflow_routing_domain: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision.
+    n_workflow_routing_domain-->>-n_guided_workflow_router: workflow-routing.select result
 ```
 
 #### Ordered Steps

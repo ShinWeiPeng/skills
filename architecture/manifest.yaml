@@ -12,6 +12,9 @@ source_sets:
   - skills/productivity/**
   - scripts/assemble_plugin.py
   - scripts/install-local.ps1
+  - scripts/python-runtime-selection-policy.ps1
+  - scripts/python-runtime-selection.ps1
+  - scripts/windows-artifact-access.ps1
   - scripts/validate_distribution.py
   - distribution/**
   - plugins/governed-engineering-skills/**
@@ -485,19 +488,25 @@ modules:
   depends_on:
   - codex_plugin_adapter
   - local_install_adapter
+  - python_runtime_selection_domain
+  - python_runtime_discovery_adapter
+  - windows_artifact_access_adapter
   - plugin_release_governance_technical
   implements_ports: []
   public_headers: []
   description:
     purpose: Assemble one complete Plugin artifact from the tracked Plugin shell
       and the two authoritative promoted Skill buckets, normalize host-specific
-      invocation metadata, coordinate the supported local Codex installation,
+      invocation metadata, select and validate one Python 3.11+ interpreter before
+      assembly, safely recover access to only the exact ignored Windows artifact,
+      coordinate the supported local Codex installation,
       and optionally emit a deterministic Codex Git Marketplace publication tree.
     diagram_summaries:
       zh-TW: 組裝單一外掛並產生個人 Git 市集發佈樹
     input_ports:
     - plugin-release.synchronize-artifact
     - plugin-install.local
+    - plugin-artifact-access.repair
     - local-install.register
     output_ports:
     - plugin-distribution.result
@@ -511,6 +520,9 @@ modules:
         artifact without changing formal release metadata.
     - description: Invoke the local installation adapter only after the assembled
         Plugin inventory and fingerprint validate.
+    - description: Request the Windows artifact-access adapter to repair inherited
+        access only for the exact ignored dist/governed-engineering-skills artifact,
+        with elevation available only after a bounded non-elevated attempt fails.
     errors:
     - id: plugin_distribution_invalid
       condition: Source metadata, artifact inventory, publication identity, tree fingerprint,
@@ -518,6 +530,20 @@ modules:
       event: plugin-distribution.blocked
       handling: Fail closed, preserve unrelated files, and report the mismatched
         identity or validation boundary.
+    - id: python_runtime_incompatible
+      condition: An explicitly injected Python command is incompatible, or neither
+        PATH Python nor the Windows Python Launcher resolves Python 3.11 or newer.
+      event: plugin-distribution.blocked
+      handling: Stop before assembly, report every observed candidate and version,
+        and explain how to install or explicitly select Python 3.11 or newer.
+    - id: plugin_artifact_access_blocked
+      condition: The existing ignored artifact is inaccessible and its exact canonical
+        path, repository containment, reparse-point safety, non-elevated repair, or
+        explicitly approved elevated repair cannot be validated.
+      event: plugin-distribution.blocked
+      handling: Refuse paths outside the exact governed artifact, stop before assembly
+        and Codex registration, preserve unrelated files, and report whether elevation
+        was declined or the bounded ACL repair failed.
     invariants:
     - Root engineering and productivity buckets are the only editable Skill source.
     - The tracked Plugin shell never contains a skills directory.
@@ -526,6 +552,11 @@ modules:
     - Assembled release-state mutation is delegated to Plugin release governance before inventory creation.
     - The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.
     - Codex Desktop and Codex CLI are the only supported installation surfaces.
+    - Python selection completes before artifact mutation and the selected absolute
+      interpreter performs every assembly, validation, and localization command.
+    - Windows ACL recovery accepts only the canonical repository-owned
+      dist/governed-engineering-skills directory and never a repository root, ancestor,
+      sibling, outside path, symbolic link, junction, or other reparse point.
     - "`marketplace-release` is generated and never becomes an editable Skill source."
   entrypoints:
   - path: scripts/assemble_plugin.py
@@ -555,6 +586,128 @@ modules:
     kind: function
   - path: scripts/validate_distribution.py
     symbol: validate
+    kind: function
+- id: python_runtime_selection_domain
+  level: L1
+  role: domain
+  implementation_status: implemented
+  paths:
+  - scripts/python-runtime-selection-policy.ps1
+  parent: plugin_assembly_composition
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Own the deterministic admission policy that accepts an explicit compatible
+      runtime, otherwise prefers a compatible PATH observation and requests Windows
+      Launcher fallback only after that observation is rejected.
+    diagram_summaries:
+      zh-TW: 選取並驗證相容的 Python 執行環境
+    input_ports:
+    - python-runtime.select
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Explicit candidate admission is authoritative and never silently replaced.
+    - A compatible PATH observation is accepted before requesting launcher fallback.
+    - A launcher observation is accepted only after its resolved runtime is revalidated.
+  entrypoints:
+  - path: scripts/python-runtime-selection-policy.ps1
+    symbol: Select-CompatiblePythonCandidate
+    kind: function
+  public_symbols:
+  - path: scripts/python-runtime-selection-policy.ps1
+    symbol: Select-CompatiblePythonCandidate
+    kind: function
+- id: python_runtime_discovery_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - scripts/python-runtime-selection.ps1
+  parent: null
+  depends_on:
+  - python_runtime_selection_domain
+  implements_ports:
+  - python-runtime.select
+  public_headers: []
+  description:
+    purpose: Discover and execute explicit, PATH, and Windows Python Launcher candidates,
+      convert process output into validated observations, and apply the functional
+      runtime-selection policy for the one-click installer.
+    diagram_summaries:
+      zh-TW: 探測 Windows Python 候選並套用相容性政策
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Execute bounded side-effect-free Python capability probes through
+        PATH applications or the Windows Python Launcher.
+    errors:
+    - id: python_runtime_probe_failed
+      condition: A candidate cannot execute, returns malformed output, reports an old
+        version, or resolves a missing executable path.
+      event: plugin-distribution.blocked
+      handling: Preserve the observation as a diagnostic and follow the domain-owned
+        admission or fallback action without entering Plugin assembly.
+    invariants:
+    - Every accepted executable is normalized to an absolute path and revalidated.
+    - Python 2 and Python 3.10 are observable candidates but never execution runtimes.
+  entrypoints:
+  - path: scripts/python-runtime-selection.ps1
+    symbol: Resolve-CompatiblePython
+    kind: function
+  public_symbols:
+  - path: scripts/python-runtime-selection.ps1
+    symbol: Resolve-CompatiblePython
+    kind: function
+- id: windows_artifact_access_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - scripts/windows-artifact-access.ps1
+  parent: null
+  depends_on: []
+  implements_ports:
+  - plugin-artifact-access.repair
+  public_headers: []
+  description:
+    purpose: Bind the exact governed artifact-access request to Windows filesystem
+      inspection, inherited ACL reset, and narrowly scoped UAC process execution.
+    diagram_summaries:
+      zh-TW: 修復唯一受治理產物的 Windows 存取權限
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects:
+    - description: Inspect every artifact descendant and create/delete bounded probes
+        to prove recursive read and replacement access.
+    - description: Reset inherited ACLs only for the exact admitted artifact, using
+        an elevated PowerShell helper only after ordinary repair fails.
+    errors:
+    - id: windows_artifact_access_refused
+      condition: The path is outside the exact artifact boundary, is a reparse point,
+        remains partially inaccessible, elevation is declined, or ACL reset fails.
+      event: plugin-distribution.blocked
+      handling: Return a fail-closed result to composition without invoking assembly
+        or Codex registration and identify the rejected safety boundary.
+    invariants:
+    - Repository roots, dist roots, ancestors, siblings, outside paths, and any root
+      or nested reparse point are never ACL repair targets.
+    - Elevated execution derives the only target from the admitted repository root.
+  entrypoints:
+  - path: scripts/windows-artifact-access.ps1
+    symbol: Ensure-GovernedArtifactAccess
+    kind: function
+  public_symbols:
+  - path: scripts/windows-artifact-access.ps1
+    symbol: Ensure-GovernedArtifactAccess
     kind: function
 - id: local_install_adapter
   level: L3+
@@ -787,6 +940,39 @@ composition_roots:
   source_set: repository-production
   kind: release
 ports:
+- id: python-runtime.select
+  owner: python_runtime_selection_domain
+  direction: input
+  kind: query
+  contract: scripts/python-runtime-selection-policy.ps1
+  implemented_by:
+  - python_runtime_discovery_adapter
+  description:
+    purpose: Select one installed Python 3.11-or-newer interpreter before Plugin assembly.
+    data: Optional explicit command plus PATH and Windows Python Launcher candidates.
+    timing: sync
+    immediate_rejections:
+    - code: incompatible
+      condition: No contractually ordered candidate resolves a valid compatible interpreter.
+  symbols: [Select-CompatiblePythonCandidate]
+- id: plugin-artifact-access.repair
+  owner: plugin_assembly_composition
+  direction: input
+  kind: query
+  contract: scripts/install-local.ps1
+  implemented_by:
+  - windows_artifact_access_adapter
+  description:
+    purpose: Admit and restore replace access to only the exact governed Windows artifact.
+    data: Canonical repository root, exact artifact path, and bounded recovery result.
+    timing: sync
+    immediate_rejections:
+    - code: unsafe-target
+      condition: The target is not the exact repository artifact or contains a reparse point.
+    - code: inaccessible
+      condition: Ordinary and approved elevated inherited-ACL repair do not make every
+        descendant inspectable and replaceable.
+  symbols: [install-local]
 - id: plugin-install.local
   owner: plugin_assembly_composition
   direction: input
@@ -800,6 +986,11 @@ ports:
     immediate_rejections:
     - code: invalid
       condition: The repository source or required assembly tooling is unavailable.
+    - code: python-incompatible
+      condition: No validated Python 3.11-or-newer interpreter can be selected.
+    - code: artifact-access-blocked
+      condition: The exact ignored Windows artifact cannot pass bounded path, reparse-point,
+        ACL-repair, elevation-consent, and post-repair access checks.
   symbols: [install-local]
 - id: local-install.register
   owner: plugin_assembly_composition
@@ -1134,8 +1325,10 @@ events:
   envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
   lifecycle: [received, validated, processing, succeeded, failed]
   description:
-    purpose: Report that Plugin assembly or personal Marketplace publication cannot continue safely.
-    emitted_when: Artifact, publication, evidence, or output-ownership validation fails.
+    purpose: Report that Python admission, bounded artifact-access recovery, Plugin assembly,
+      or personal Marketplace publication cannot continue safely.
+    emitted_when: Python runtime, exact-target ACL recovery, artifact, publication,
+      evidence, or output-ownership validation fails.
     payload_fields:
     - {name: reason, type: string, meaning: Bounded fail-closed validation diagnostic.}
     intended_consumers: [plugin_release_governance_technical]
@@ -2121,15 +2314,41 @@ boundary_mappings:
 flows:
 - id: local-plugin-installation
   owner: plugin_assembly_composition
-  description: Assemble and validate the root-owned Plugin, apply a local-only cache
-    identity, then register and install it before opening the Codex Desktop detail page.
+  description: Select one compatible Python interpreter, recover safe access to only
+    the exact ignored Windows artifact when necessary, assemble and validate the
+    root-owned Plugin, apply a local-only cache identity, then register and install
+    it before opening the Codex Desktop detail page.
   trigger:
     kind: command
     ref: plugin-install.local
     description: The user launches Install Governed Engineering Skills.cmd.
   steps:
-  - id: local-plugin-installation.assemble
+  - id: local-plugin-installation.select-python
     order: 1
+    module: python_runtime_discovery_adapter
+    action: Validate an explicit Python command when supplied; otherwise accept a
+      compatible PATH Python or resolve the Windows Python Launcher's highest Python
+      3 runtime to one validated absolute interpreter path.
+    receives:
+    - python-runtime.select
+    emits: []
+    state_changes: []
+    side_effects: []
+  - id: local-plugin-installation.recover-artifact-access
+    order: 2
+    module: windows_artifact_access_adapter
+    action: Confirm that the exact dist/governed-engineering-skills output is safely
+      replaceable; when an existing Windows artifact is inaccessible, try a bounded
+      inherited-ACL repair without elevation and request UAC only if that attempt fails.
+    receives:
+    - plugin-artifact-access.repair
+    emits: []
+    state_changes: []
+    side_effects:
+    - Repair inherited ACLs only on the exact ignored dist/governed-engineering-skills
+      artifact after rejecting unsafe paths and reparse points.
+  - id: local-plugin-installation.assemble
+    order: 3
     module: plugin_assembly_composition
     action: Build the complete Plugin from the tracked shell and promoted root
       Skills, then reject missing, stale, or fingerprint-mismatched output.
@@ -2140,7 +2359,7 @@ flows:
     side_effects:
     - Replace only the ignored dist/governed-engineering-skills candidate.
   - id: local-plugin-installation.localize
-    order: 2
+    order: 4
     module: plugin_assembly_composition
     action: Apply a local-only cache identity to the validated artifact and
       regenerate its inventory without changing formal release metadata.
@@ -2150,7 +2369,7 @@ flows:
     side_effects:
     - Mutate only the ignored dist/governed-engineering-skills candidate.
   - id: local-plugin-installation.register
-    order: 3
+    order: 5
     module: local_install_adapter
     action: Select an executable Codex CLI using verified PATH-first resolution
       with Desktop-runtime fallback, register the repository-local Marketplace,
@@ -2168,10 +2387,22 @@ flows:
       installation from the validated, locally cache-busted artifact.
     events: []
   errors:
+  - condition: The explicit, PATH, and Windows Python Launcher candidates do not
+      yield a validated Python 3.11-or-newer absolute interpreter.
+    event: plugin-distribution.blocked
+    handling: Stop before artifact mutation, report observed candidates and versions,
+      and provide Python installation or explicit-selection recovery guidance.
   - condition: Assembly or artifact validation fails.
     event: plugin-distribution.blocked
     handling: Stop before invoking Codex or changing user configuration and report
       the failed validation boundary.
+  - condition: The existing ignored artifact is inaccessible and exact-target safety,
+      reparse-point rejection, non-elevated repair, UAC approval, or post-repair access
+      validation fails.
+    event: plugin-distribution.blocked
+    handling: Stop before assembly and Codex registration, leave unrelated paths
+      untouched, return a stable non-zero status, and identify the rejected safety
+      boundary or UAC recovery action.
   - condition: Codex resolution, Marketplace registration, Plugin installation,
       or Plugin-page launch fails.
     event: local-install.blocked
@@ -2381,6 +2612,7 @@ workloads:
 - id: local-plugin-installation-workload
   flow: local-plugin-installation
   steps:
+  - local-plugin-installation.recover-artifact-access
   - local-plugin-installation.assemble
   - local-plugin-installation.register
   timing_class: best-effort

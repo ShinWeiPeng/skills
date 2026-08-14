@@ -124,7 +124,7 @@ sequenceDiagram
     participant n_architecture_tooling as architecture_tooling<br/>以單一公開 CLI 組合架構檢查、產生與分析工具
     participant n_libclang_toolchain_adapter as libclang_toolchain_adapter<br/>安裝並驗證鎖定版本的 Espressif libclang
     n_architecture_tooling->>+n_libclang_toolchain_adapter: Validate lock, platform, cache receipt, archive/library hashes, binding version, provider version, and Xtensa capability probes.
-    n_libclang_toolchain_adapter-->>-n_architecture_tooling: step 1
+    n_libclang_toolchain_adapter-->>-n_architecture_tooling: libclang_toolchain.resolve result
 ```
 
 #### Ordered Steps
