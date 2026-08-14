@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.8.0
+
+### Added
+
+- Added native Windows and Linux Marketplace installers with bounded dependency provisioning.
+
+### Changed
+
+- Changed the user installation identity to the governed-engineering Marketplace.
+
 ## Unreleased
 
 ### Added
