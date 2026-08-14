@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.8.1
+
+### Fixed
+
+- Allow successful Codex stderr diagnostics on Windows PowerShell 5.1 without aborting Marketplace installation.
+
 ## 0.8.0
 
 ### Added
