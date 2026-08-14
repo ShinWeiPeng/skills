@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.8.0",
-  "previous_version": "0.7.4",
-  "bump": "minor",
+  "current_version": "0.8.1",
+  "previous_version": "0.8.0",
+  "bump": "patch",
   "production_fingerprint": "sha256:dcdb77649f3a969eafaebd41718ff4372ca48525661ca872d9ab8fc1c75c1847",
   "applied_changesets": [
-    "cross-platform-marketplace-installer"
+    "windows-powershell-native-stderr"
   ]
 }
