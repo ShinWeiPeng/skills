@@ -53,12 +53,20 @@ try {
     $restrictedFile = Join-Path $restricted 'existing.txt'
     New-Item -ItemType Directory -Path $restricted | Out-Null
     Set-Content -LiteralPath $restrictedFile -Value 'existing' -Encoding ascii
-    $currentSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    $currentIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $currentSid = $currentIdentity.User.Value
+    $currentGroupSid = ($currentIdentity.Groups | Select-Object -First 1).Value
     try {
-        & icacls.exe $restricted '/inheritance:r' '/grant:r' "*$($currentSid):(OI)(CI)(RX,W)" *> $null
+        & icacls.exe $restricted '/inheritance:r' '/grant:r' `
+            "*$($currentSid):(OI)(CI)(RX,W)" "*$($currentGroupSid):(OI)(CI)F" *> $null
         Assert-Equal 0 $LASTEXITCODE 'restrict existing tree ACL'
-        & icacls.exe $restrictedFile '/inheritance:r' '/grant:r' "*$($currentSid):(R,W)" *> $null
+        & icacls.exe $restricted '/deny' "*$($currentSid):(DC)" *> $null
+        Assert-Equal 0 $LASTEXITCODE 'deny current principal child deletion'
+        & icacls.exe $restrictedFile '/inheritance:r' '/grant:r' `
+            "*$($currentSid):(R,W)" "*$($currentGroupSid):F" *> $null
         Assert-Equal 0 $LASTEXITCODE 'restrict existing file ACL'
+        & icacls.exe $restrictedFile '/deny' "*$($currentSid):(D)" *> $null
+        Assert-Equal 0 $LASTEXITCODE 'deny current principal file deletion'
         Assert-Equal $false (Test-GovernedArtifactReplaceAccess -ArtifactPath $restricted) 'existing child without delete access'
     }
     finally {
