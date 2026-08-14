@@ -45,7 +45,7 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
         marketplace = json.loads(
             (ROOT / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
         )
-        self.assertEqual("governed-engineering", marketplace["name"])
+        self.assertEqual("governed-engineering-development", marketplace["name"])
 
         linux_text = linux_installer.read_text(encoding="utf-8")
         windows_text = windows_installer.read_text(encoding="utf-8")
@@ -84,11 +84,13 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
             (bin_dir / "codex").write_text(
                 "#!/bin/sh\n"
                 'printf "codex %s\\n" "$*" >> "$COMMAND_LOG"\n'
+                'printf "cwd %s\\n" "$PWD" >> "$COMMAND_LOG"\n'
                 'case "$*" in\n'
                 '  "--version") printf "codex-cli %s\\n" "$(cat "$CODEX_VERSION_FILE")" ;;\n'
                 '  "login status") exit 0 ;;\n'
-                '  "plugin marketplace list --json") printf \'{"marketplaces":[]}\\n\' ;;\n'
+                '  "plugin marketplace list --json") printf \'%s\\n\' "$MARKETPLACE_JSON"; exit "${MARKETPLACE_LIST_EXIT:-0}" ;;\n'
                 '  "plugin marketplace add "*) exit 0 ;;\n'
+                '  "plugin marketplace upgrade governed-engineering") exit 0 ;;\n'
                 '  "plugin add governed-engineering-skills@governed-engineering") exit 0 ;;\n'
                 '  "plugin list --json") printf \'{"installed":[{"pluginId":"governed-engineering-skills@governed-engineering"}]}\\n\' ;;\n'
                 '  *) exit 1 ;;\n'
@@ -104,6 +106,8 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                     "PATH": f"{bin_dir}:{environment['PATH']}",
                     "COMMAND_LOG": str(command_log),
                     "CODEX_VERSION_FILE": str(version_file),
+                    "MARKETPLACE_JSON": '{"marketplaces":[]}',
+                    "TMPDIR": str(temp),
                 }
             )
             result = subprocess.run(
@@ -125,6 +129,102 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 commands,
             )
             self.assertNotIn("plugin remove", commands)
+            codex_working_directories = [
+                line.removeprefix("cwd ")
+                for line in commands.splitlines()
+                if line.startswith("cwd ")
+            ]
+            self.assertTrue(codex_working_directories)
+            self.assertEqual([str(temp)] * len(codex_working_directories), codex_working_directories)
+
+            command_log.write_text("", encoding="utf-8")
+            environment["MARKETPLACE_JSON"] = json.dumps(
+                {
+                    "marketplaces": [
+                        {
+                            "name": "governed-engineering",
+                            "marketplaceSource": {
+                                "sourceType": "git",
+                                "source": "https://github.com/ShinWeiPeng/skills.git",
+                            },
+                        }
+                    ]
+                }
+            )
+            matching_result = subprocess.run(
+                [str(ROOT / "scripts" / "install-marketplace.sh"), "--non-interactive"],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(0, matching_result.returncode, matching_result.stdout + matching_result.stderr)
+            self.assertIn(
+                "codex plugin marketplace upgrade governed-engineering",
+                command_log.read_text(encoding="utf-8"),
+            )
+
+            conflict_sources = (
+                {"name": "governed-engineering", "root": "/tmp/local-marketplace"},
+                {
+                    "name": "governed-engineering",
+                    "marketplaceSource": {
+                        "sourceType": "git",
+                        "source": "https://github.com/example/other.git",
+                    },
+                },
+                [
+                    {
+                        "name": "governed-engineering",
+                        "marketplaceSource": {
+                            "sourceType": "git",
+                            "source": "https://github.com/ShinWeiPeng/skills.git",
+                        },
+                    },
+                    {"name": "governed-engineering", "root": "/tmp/local-marketplace"},
+                ],
+            )
+            for conflict_source in conflict_sources:
+                with self.subTest(conflict_source=conflict_source):
+                    command_log.write_text("", encoding="utf-8")
+                    marketplaces = (
+                        conflict_source if isinstance(conflict_source, list) else [conflict_source]
+                    )
+                    environment["MARKETPLACE_JSON"] = json.dumps(
+                        {"marketplaces": marketplaces}
+                    )
+                    conflict_result = subprocess.run(
+                        [str(ROOT / "scripts" / "install-marketplace.sh"), "--non-interactive"],
+                        cwd=ROOT,
+                        env=environment,
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                    )
+                    self.assertEqual(1, conflict_result.returncode)
+                    self.assertIn("conflicts with the required Git Marketplace", conflict_result.stderr)
+                    conflict_commands = command_log.read_text(encoding="utf-8")
+                    self.assertNotIn("plugin marketplace add", conflict_commands)
+                    self.assertNotIn("plugin marketplace upgrade", conflict_commands)
+                    self.assertNotIn("plugin marketplace remove", conflict_commands)
+
+            command_log.write_text("", encoding="utf-8")
+            environment["MARKETPLACE_JSON"] = '{"marketplaces":[]}'
+            environment["MARKETPLACE_LIST_EXIT"] = "23"
+            inventory_failure = subprocess.run(
+                [str(ROOT / "scripts" / "install-marketplace.sh"), "--non-interactive"],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(1, inventory_failure.returncode)
+            self.assertIn("Marketplace inventory could not be read", inventory_failure.stderr)
+            failure_commands = command_log.read_text(encoding="utf-8")
+            self.assertNotIn("plugin marketplace add", failure_commands)
+            self.assertNotIn("plugin marketplace upgrade", failure_commands)
 
 
 if __name__ == "__main__":

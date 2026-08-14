@@ -7,11 +7,13 @@ REF=marketplace-release
 PLUGIN=governed-engineering-skills
 CODEX_VERSION=0.147.0
 NON_INTERACTIVE=0
+CODEX_WORKDIR=${TMPDIR:-/tmp}
 
 log() { printf '%s\n' "$*"; }
 fail() { log "ERROR: $*" >&2; exit 1; }
+run_codex() { (CDPATH='' cd -- "$CODEX_WORKDIR" && codex "$@"); }
 codex_version() {
-  codex --version 2>/dev/null | sed -n 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' | head -n 1
+  run_codex --version 2>/dev/null | sed -n 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' | head -n 1
 }
 version_at_least() {
   awk -v actual="$1" -v required="$2" 'BEGIN {
@@ -52,7 +54,7 @@ case "${ID:-}" in
   *) fail "Unsupported Linux distribution '${ID:-unknown}'. Supported: Ubuntu, Debian, Fedora, RHEL." ;;
 esac
 
-if ! command -v git >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+if ! command -v git >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
   log "Installing prerequisites with $PROVIDER."
   # The command is selected from the fixed provider contract above, never user input.
   # shellcheck disable=SC2086
@@ -72,19 +74,36 @@ CURRENT_CODEX_VERSION=$(codex_version)
 version_at_least "$CURRENT_CODEX_VERSION" "$CODEX_VERSION" \
   || fail "Codex $CURRENT_CODEX_VERSION is older than required $CODEX_VERSION after installation."
 
-if ! codex login status >/dev/null 2>&1; then
+if ! run_codex login status >/dev/null 2>&1; then
   [ "$NON_INTERACTIVE" -eq 0 ] || fail "Codex authentication is required before a non-interactive install."
-  codex login --device-auth || fail "Codex device authentication failed."
+  run_codex login --device-auth || fail "Codex device authentication failed."
 fi
 
-if codex plugin marketplace list --json | grep -q '"name"[[:space:]]*:[[:space:]]*"governed-engineering"'; then
-  codex plugin marketplace upgrade "$MARKETPLACE"
-else
-  codex plugin marketplace add "$REPOSITORY" --ref "$REF" \
+MARKETPLACE_JSON=$(run_codex plugin marketplace list --json) \
+  || fail "Codex Marketplace inventory could not be read."
+MARKETPLACE_STATE=$(printf '%s\n' "$MARKETPLACE_JSON" | node -e '
+const fs = require("fs");
+const marketplace = process.argv[1];
+const repository = process.argv[2];
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const matches = (payload.marketplaces || []).filter(item => item.name === marketplace);
+const exact = matches.filter(item => item.marketplaceSource &&
+  item.marketplaceSource.sourceType === "git" &&
+  item.marketplaceSource.source === repository);
+process.stdout.write(matches.length === 0 ? "missing" :
+  (matches.length === 1 && exact.length === 1 ? "matching" : "conflict"));
+' "$MARKETPLACE" "$REPOSITORY") || fail "Codex Marketplace inventory could not be validated."
+
+case "$MARKETPLACE_STATE" in
+  matching) run_codex plugin marketplace upgrade "$MARKETPLACE" ;;
+  missing) run_codex plugin marketplace add "$REPOSITORY" --ref "$REF" \
     --sparse .agents/plugins --sparse plugins/governed-engineering-skills
-fi
+    ;;
+  conflict) fail "Marketplace '$MARKETPLACE' conflicts with the required Git Marketplace '$REPOSITORY'. Remove or rename the conflicting source, then rerun." ;;
+  *) fail "Unexpected Marketplace validation state '$MARKETPLACE_STATE'." ;;
+esac
 
-codex plugin add "$PLUGIN@$MARKETPLACE"
-codex plugin list --json | grep -q '"pluginId"[[:space:]]*:[[:space:]]*"governed-engineering-skills@governed-engineering"' \
+run_codex plugin add "$PLUGIN@$MARKETPLACE"
+run_codex plugin list --json | grep -q '"pluginId"[[:space:]]*:[[:space:]]*"governed-engineering-skills@governed-engineering"' \
   || fail "Codex did not report the expected installed Plugin."
 log "READY: $PLUGIN is installed from $MARKETPLACE. Start a new Codex task."

@@ -40,6 +40,20 @@ function Assert-Equal {
     if ($Expected -ne $Actual) { throw "$Context expected '$Expected', got '$Actual'." }
 }
 
+function Invoke-MarketplaceInstallerExpectedFailure {
+    param([string]$OutputPath)
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $marketplaceInstaller `
+            -NonInteractive -CodexCommand $fakeMarketplaceCodex *> $OutputPath
+        $result = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    return $result
+}
+
 function Assert-InstalledTree {
     $inventory = Get-Content -Raw -LiteralPath (Join-Path $artifactRoot 'artifact-inventory.json') | ConvertFrom-Json
     $expected = @($inventory.files.path) + @('artifact-inventory.json') | Sort-Object
@@ -131,8 +145,14 @@ try {
     }
 
     $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-native-stderr.calls'
-    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $marketplaceInstaller `
-        -NonInteractive -CodexCommand $fakeMarketplaceCodex *> $null
+    $env:FAKE_MARKETPLACE_CODEX_CWD_LOG = Join-Path $testRoot 'marketplace-native-stderr.cwd'
+    Push-Location $repoRoot
+    try {
+        & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $marketplaceInstaller `
+            -NonInteractive -CodexCommand $fakeMarketplaceCodex *> $null
+    } finally {
+        Pop-Location
+    }
     Assert-Equal 0 $LASTEXITCODE 'successful Codex stderr must not fail the Marketplace installer'
     [array]$marketplaceCalls = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_LOG
     Assert-Equal 7 $marketplaceCalls.Count 'Marketplace installer Codex call count'
@@ -143,6 +163,58 @@ try {
     if ($marketplaceCalls[4] -notmatch '^plugin marketplace add ') { throw 'Codex Marketplace add call is absent.' }
     Assert-Equal 'plugin add governed-engineering-skills@governed-engineering' $marketplaceCalls[5] 'Codex Plugin add call'
     Assert-Equal 'plugin list --json' $marketplaceCalls[6] 'Codex Plugin verification call'
+    [array]$marketplaceWorkingDirectories = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_CWD_LOG
+    Assert-Equal 7 $marketplaceWorkingDirectories.Count 'Marketplace installer Codex working-directory count'
+    $neutralDirectory = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd('\')
+    foreach ($workingDirectory in $marketplaceWorkingDirectories) {
+        Assert-Equal $neutralDirectory ([System.IO.Path]::GetFullPath($workingDirectory).TrimEnd('\')) 'Codex neutral working directory'
+    }
+
+    $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-local-conflict.calls'
+    $env:FAKE_MARKETPLACE_CODEX_SCENARIO = 'local-conflict'
+    $marketplaceConflictOutput = Join-Path $testRoot 'marketplace-local-conflict.log'
+    $marketplaceConflictExit = Invoke-MarketplaceInstallerExpectedFailure $marketplaceConflictOutput
+    Assert-Equal 1 $marketplaceConflictExit 'a same-name local Marketplace must fail safely'
+    [array]$marketplaceConflictCalls = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_LOG
+    Assert-Equal 4 $marketplaceConflictCalls.Count 'local Marketplace conflict Codex call count'
+    if ((Get-Content -Raw -LiteralPath $marketplaceConflictOutput) -notmatch '(?s)Marketplace.*conflicts') {
+        throw 'Local Marketplace conflict did not produce actionable diagnostics.'
+    }
+    if (($marketplaceConflictCalls -join "`n") -match 'marketplace (add|upgrade|remove)') {
+        throw 'Local Marketplace conflict must stop before Marketplace mutation.'
+    }
+
+    $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-matching-git.calls'
+    $env:FAKE_MARKETPLACE_CODEX_SCENARIO = 'matching-git'
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $marketplaceInstaller `
+        -NonInteractive -CodexCommand $fakeMarketplaceCodex *> $null
+    Assert-Equal 0 $LASTEXITCODE 'an exact Git Marketplace source must upgrade successfully'
+    [array]$matchingGitCalls = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_LOG
+    Assert-Equal 7 $matchingGitCalls.Count 'matching Git Marketplace Codex call count'
+    Assert-Equal 'plugin marketplace upgrade governed-engineering' $matchingGitCalls[4] 'matching Git Marketplace upgrade call'
+
+    $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-wrong-git.calls'
+    $env:FAKE_MARKETPLACE_CODEX_SCENARIO = 'wrong-git'
+    $wrongGitOutput = Join-Path $testRoot 'marketplace-wrong-git.log'
+    $wrongGitExit = Invoke-MarketplaceInstallerExpectedFailure $wrongGitOutput
+    Assert-Equal 1 $wrongGitExit 'a same-name Git Marketplace with a different URL must fail safely'
+    [array]$wrongGitCalls = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_LOG
+    Assert-Equal 4 $wrongGitCalls.Count 'wrong Git Marketplace Codex call count'
+    if (($wrongGitCalls -join "`n") -match 'marketplace (add|upgrade|remove)') {
+        throw 'Wrong Git Marketplace source must stop before Marketplace mutation.'
+    }
+
+    $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-duplicate.calls'
+    $env:FAKE_MARKETPLACE_CODEX_SCENARIO = 'duplicate'
+    $duplicateOutput = Join-Path $testRoot 'marketplace-duplicate.log'
+    $duplicateExit = Invoke-MarketplaceInstallerExpectedFailure $duplicateOutput
+    Assert-Equal 1 $duplicateExit 'duplicate same-name Marketplaces must fail safely'
+    [array]$duplicateMarketplaceCalls = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_LOG
+    Assert-Equal 4 $duplicateMarketplaceCalls.Count 'duplicate Marketplace Codex call count'
+    if (($duplicateMarketplaceCalls -join "`n") -match 'marketplace (add|upgrade|remove)') {
+        throw 'Duplicate same-name Marketplaces must stop before Marketplace mutation.'
+    }
+    Remove-Item Env:\FAKE_MARKETPLACE_CODEX_SCENARIO
 
     $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-native-failure.calls'
     $env:FAKE_MARKETPLACE_CODEX_FAILURE = 'plugin-add'
@@ -381,7 +453,7 @@ try {
     Write-Host 'PASS: local assembly, cache refresh, registration, reinstall, and failure contracts'
 }
 finally {
-    foreach ($name in @('FAKE_CODEX_SCENARIO','FAKE_CODEX_LOG','FAKE_CODEX_INSTALL_SOURCE','FAKE_CODEX_INSTALL_TARGET','FAKE_MARKETPLACE_CODEX_LOG','FAKE_MARKETPLACE_CODEX_FAILURE','FAKE_URI_LOG','FAKE_URI_SCENARIO','FAKE_REAL_PYTHON','FAKE_PYTHON_EXECUTABLE','FAKE_PYTHON_CANDIDATE_LOG','FAKE_PYTHON_LAUNCHER_LOG','FAKE_PYTHON_RUNTIME_LOG','FAKE_PYTHON_INVALID_LOG','FAKE_ARTIFACT_ACCESS_SCENARIO','FAKE_ARTIFACT_ACCESS_LOG','GOVERNED_INSTALLER_NO_DELAY')) {
+    foreach ($name in @('FAKE_CODEX_SCENARIO','FAKE_CODEX_LOG','FAKE_CODEX_INSTALL_SOURCE','FAKE_CODEX_INSTALL_TARGET','FAKE_MARKETPLACE_CODEX_LOG','FAKE_MARKETPLACE_CODEX_CWD_LOG','FAKE_MARKETPLACE_CODEX_FAILURE','FAKE_MARKETPLACE_CODEX_SCENARIO','FAKE_URI_LOG','FAKE_URI_SCENARIO','FAKE_REAL_PYTHON','FAKE_PYTHON_EXECUTABLE','FAKE_PYTHON_CANDIDATE_LOG','FAKE_PYTHON_LAUNCHER_LOG','FAKE_PYTHON_RUNTIME_LOG','FAKE_PYTHON_INVALID_LOG','FAKE_ARTIFACT_ACCESS_SCENARIO','FAKE_ARTIFACT_ACCESS_LOG','GOVERNED_INSTALLER_NO_DELAY')) {
         Remove-Item "Env:\$name" -ErrorAction SilentlyContinue
     }
     $env:PATH = $originalPath

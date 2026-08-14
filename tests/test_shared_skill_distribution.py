@@ -257,6 +257,7 @@ class SharedSkillDistributionTests(unittest.TestCase):
             catalog = json.loads(
                 (publication_root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
             )
+            self.assertEqual("governed-engineering", catalog["name"])
             self.assertEqual(
                 "./plugins/governed-engineering-skills",
                 catalog["plugins"][0]["source"]["path"],

@@ -1,0 +1,11 @@
+{
+  "bump": "patch",
+  "changesets": [
+    "development-marketplace-identity"
+  ],
+  "summary": {
+    "Fixed": [
+      "Prevent source checkouts from shadowing the governed Git Marketplace and validate same-name Marketplace sources before upgrade."
+    ]
+  }
+}

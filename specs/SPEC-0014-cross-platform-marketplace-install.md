@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0014
-revision: 14
+revision: 16
 status: confirmed
 change_set: cross-platform-marketplace-install
 ---
@@ -40,6 +40,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | REQ-012 | Interactive execution MUST initiate native UAC or `sudo` only when required; `--non-interactive` MUST proceed only with sufficient privilege and non-interactive providers, otherwise stopping before mutation. |
 | REQ-013 | The installer MUST check `codex login status`; an unauthenticated interactive run MUST launch `codex login --device-auth` and continue only after success, while a non-interactive run MUST require existing or caller-provided standard Codex authentication without reading, persisting, or logging credential values. |
 | REQ-014 | On Windows PowerShell 5.1, every Codex native command MUST use its process exit code as the success criterion, MUST tolerate stderr output from a successful command, and MUST retain actionable output when the command fails. |
+| REQ-015 | A source checkout MUST expose a distinct development Marketplace identity that cannot shadow the generated `governed-engineering` Git Marketplace; publication MUST deterministically rewrite the generated Marketplace to the formal identity and packaged Plugin path. |
 
 ## Decisions
 
@@ -58,6 +59,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | DEC-011 | Use native interactive elevation by default and permit non-interactive installation only with pre-existing privilege and fully non-interactive verified provider actions. |
 | DEC-012 | Bootstrap authentication by execution mode: interactive device authentication when needed, and pre-existing or caller-provided standard Codex authentication for non-interactive runs without installer secret handling. |
 | DEC-013 | Route every Windows Codex invocation through one PowerShell 5.1-compatible native-command wrapper that prevents stderr from becoming a terminating PowerShell error, evaluates `$LASTEXITCODE`, and returns captured output when callers need to parse it. |
+| DEC-014 | Name the source-checkout Marketplace `governed-engineering-development`, retain `governed-engineering` only for generated `marketplace-release` publications, and make publication generation explicitly set the formal name and packaged Plugin source. |
 
 ## Acceptance Criteria
 
@@ -77,6 +79,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | AC-012 | REQ-012 | Interactive fixtures elevate only when required; non-interactive fixtures never prompt and make zero mutation when insufficient. | Elevation/provider traces with bounded timeout. | Pending |
 | AC-013 | REQ-013 | Logged-in runs continue; interactive logged-out runs launch device auth once; non-interactive logged-out runs fail before mutation; logs and artifacts contain no credential values. | Fake-Codex auth state matrix, redaction scan, and command traces. | Pending |
 | AC-014 | REQ-014 | A fake Codex command that exits zero after writing to stderr succeeds for login, Marketplace, and Plugin operations; a nonzero command still fails with actionable diagnostics. | Windows PowerShell 5.1 integration and fake-Codex regression tests. | Pending |
+| AC-015 | REQ-015 | A main-branch checkout is discovered only as `governed-engineering-development`, while a generated publication is discovered as `governed-engineering` with its packaged Plugin present; Windows and Linux installers can add the formal Git Marketplace without a same-name local collision. | Source/publication manifest contract tests plus Windows and Linux installer integration fixtures launched from a source checkout. | Pending |
 
 ## Relationships
 
@@ -198,6 +201,15 @@ None.
 - **Explicit rationale:** The user selected the comprehensive compatibility repair.
 - **Resulting impact:** DEC-013 governs REQ-014 and AC-014.
 
+### DISC-013: Development and publication Marketplace identities
+
+- **Situation:** Codex discovers a cloned main-branch Marketplace globally as `governed-engineering`, even outside the checkout directory. The source manifest points to ignored `dist/` output, shadows the formal Git Marketplace, cannot be removed as a configured source, and leaves the Plugin unavailable.
+- **Question:** How should source checkouts avoid shadowing the generated Git Marketplace?
+- **Options and tradeoffs:** Separating development and publication names removes the collision while retaining local discovery; a clone-free bootstrap avoids the common path but leaves the collision; installing from generated local `dist/` abandons the requested remote Marketplace authority.
+- **User answer:** 1 (separate development and publication Marketplace names).
+- **Explicit rationale:** Preserve `governed-engineering` as the formal remote identity while making source-checkout discovery visibly developmental and non-conflicting.
+- **Resulting impact:** DEC-014 governs REQ-015 and AC-015, and refines DEC-001 and DEC-007.
+
 ## Routing/Gates
 
 - Route: grilling -> spec-governance -> tdd -> code-review
@@ -210,4 +222,6 @@ None.
 - Revision 11: Selected verified Codex provider policy.
 - Revision 12: Selected native elevation and restricted unattended execution.
 - Revision 13: Selected mode-aware authentication bootstrap.
-- Revision 14: Reopened after Windows PowerShell 5.1 treated successful Codex stderr as a terminating error and selected a shared exit-code-based wrapper for every Windows Codex native command.
+- Revision 14: Reopened after Windows PowerShell 5.1 treated successful Codex stderr as a terminating error.
+- Revision 15: Reopened after a cloned source Marketplace shadowed the generated Git Marketplace and proved that changing only the installer working directory was insufficient.
+- Revision 16: Selected distinct development and formal publication Marketplace identities.

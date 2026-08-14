@@ -16,6 +16,7 @@ if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
 from assemble_plugin import (  # noqa: E402
+    DEVELOPMENT_MARKETPLACE_NAME,
     PLUGIN_NAME,
     assemble,
     promoted_skills,
@@ -151,8 +152,8 @@ def validate(repo_root: Path) -> list[str]:
     marketplace_path = repo_root / ".agents" / "plugins" / "marketplace.json"
     try:
         marketplace = _load_json(marketplace_path)
-        if marketplace.get("name") != "governed-engineering":
-            errors.append("Marketplace name must be governed-engineering")
+        if marketplace.get("name") != DEVELOPMENT_MARKETPLACE_NAME:
+            errors.append(f"source Marketplace name must be {DEVELOPMENT_MARKETPLACE_NAME}")
         entries = [entry for entry in marketplace["plugins"] if entry.get("name") == PLUGIN_NAME]
         if len(entries) != 1:
             errors.append("manual maintainer Marketplace must contain exactly one governed plugin")

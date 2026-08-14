@@ -19,6 +19,8 @@ function Invoke-Checked([string]$Command, [string[]]$Arguments) {
 
 function Invoke-CodexNative([string]$Command, [string[]]$Arguments) {
     $previousErrorActionPreference = $ErrorActionPreference
+    $neutralWorkingDirectory = [System.IO.Path]::GetTempPath()
+    Push-Location -LiteralPath $neutralWorkingDirectory
     try {
         # Windows PowerShell 5.1 promotes redirected native stderr to ErrorRecord.
         $ErrorActionPreference = 'Continue'
@@ -26,6 +28,7 @@ function Invoke-CodexNative([string]$Command, [string[]]$Arguments) {
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
+        Pop-Location
     }
     $stdout = @($records | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     $stderr = @($records | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.Exception.Message }) -join "`n"
@@ -102,8 +105,21 @@ try {
     }
 
     $marketplaces = Invoke-CodexChecked $codex @('plugin','marketplace','list','--json') | ConvertFrom-Json
-    if (@($marketplaces.marketplaces | Where-Object name -eq $marketplace).Count -gt 0) {
+    [array]$matchingMarketplaces = @($marketplaces.marketplaces | Where-Object name -eq $marketplace)
+    [array]$matchingGitMarketplaces = @($matchingMarketplaces | Where-Object {
+        $sourceProperty = $_.PSObject.Properties['marketplaceSource']
+        if ($null -eq $sourceProperty -or $null -eq $sourceProperty.Value) { return $false }
+        $sourceTypeProperty = $sourceProperty.Value.PSObject.Properties['sourceType']
+        $sourceLocationProperty = $sourceProperty.Value.PSObject.Properties['source']
+        return (
+            $null -ne $sourceTypeProperty -and $sourceTypeProperty.Value -eq 'git' -and
+            $null -ne $sourceLocationProperty -and $sourceLocationProperty.Value -ceq $repository
+        )
+    })
+    if ($matchingMarketplaces.Count -eq 1 -and $matchingGitMarketplaces.Count -eq 1) {
         [void](Invoke-CodexChecked $codex @('plugin','marketplace','upgrade',$marketplace))
+    } elseif ($matchingMarketplaces.Count -gt 0) {
+        throw "Marketplace '$marketplace' conflicts with the required Git Marketplace '$repository'. Remove or rename the conflicting source, then rerun."
     } else {
         [void](Invoke-CodexChecked $codex @('plugin','marketplace','add',$repository,'--ref',$ref,'--sparse','.agents/plugins','--sparse','plugins/governed-engineering-skills'))
     }

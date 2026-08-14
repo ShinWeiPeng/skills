@@ -16,6 +16,8 @@ from pathlib import Path
 
 
 PLUGIN_NAME = "governed-engineering-skills"
+MARKETPLACE_NAME = "governed-engineering"
+DEVELOPMENT_MARKETPLACE_NAME = "governed-engineering-development"
 SHELL_PATH = Path("plugins") / PLUGIN_NAME
 PROMOTED_BUCKETS = (Path("skills/engineering"), Path("skills/productivity"))
 INVENTORY_NAME = "artifact-inventory.json"
@@ -364,6 +366,7 @@ def write_marketplace_publication(
     plugins = catalog.get("plugins")
     if not isinstance(plugins, list) or len(plugins) != 1 or plugins[0].get("name") != PLUGIN_NAME:
         raise DistributionError("personal Marketplace catalog must contain exactly the governed Plugin")
+    catalog["name"] = MARKETPLACE_NAME
     plugins[0]["source"] = {"source": "local", "path": f"./plugins/{PLUGIN_NAME}"}
     catalog_path = output / MARKETPLACE_PATH
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
