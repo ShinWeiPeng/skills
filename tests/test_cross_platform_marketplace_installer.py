@@ -53,8 +53,10 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
             self.assertNotIn("plugin remove", text)
         self.assertIn("plugin add", linux_text)
         self.assertIn("login status", linux_text)
-        self.assertIn("'plugin','add'", windows_text)
-        self.assertIn("login status", windows_text)
+        self.assertIn("Invoke-CodexNative", windows_text)
+        self.assertIn("Invoke-CodexChecked", windows_text)
+        self.assertIn("@('login','status')", windows_text)
+        self.assertIn("@('plugin','add'", windows_text)
 
         self.assertIn("install-marketplace.ps1", windows_launcher.read_text(encoding="utf-8"))
         self.assertIn("install-marketplace.sh", linux_launcher.read_text(encoding="utf-8"))

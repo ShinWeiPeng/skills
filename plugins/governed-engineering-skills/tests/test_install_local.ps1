@@ -9,7 +9,9 @@ $pythonSelectionPolicy = Join-Path $repoRoot 'scripts\python-runtime-selection-p
 $artifactAccess = Join-Path $repoRoot 'scripts\windows-artifact-access.ps1'
 $adapter = Join-Path $pluginShell 'scripts\install-local.ps1'
 $launcher = Join-Path $repoRoot 'Install Governed Engineering Skills.cmd'
+$marketplaceInstaller = Join-Path $repoRoot 'scripts\install-marketplace.ps1'
 $fakeCodex = Join-Path $PSScriptRoot 'fixtures\fake-codex.cmd'
+$fakeMarketplaceCodex = Join-Path $PSScriptRoot 'fixtures\fake-marketplace-codex.cmd'
 $fakeCodexAccessDenied = Join-Path $PSScriptRoot 'fixtures\fake-codex-access-denied.cmd'
 $fakeUriLauncher = Join-Path $PSScriptRoot 'fixtures\fake-uri-launcher.cmd'
 $fakePythonFailure = Join-Path $PSScriptRoot 'fixtures\fake-python-failure.cmd'
@@ -110,12 +112,12 @@ function Invoke-AdapterScenario {
 New-Item -ItemType Directory -Path $fakeBin -Force | Out-Null
 Copy-Item -LiteralPath $fakeCodex -Destination (Join-Path $fakeBin 'codex.cmd')
 try {
-    foreach ($subject in @($orchestrator, $pythonSelector, $pythonSelectionPolicy, $artifactAccess, $adapter, $launcher, $fakeCodex, $fakeCodexAccessDenied, $fakeUriLauncher, $fakePythonFailure, $fakePythonIncompatible, $fakePythonLauncher, $fakePython2, $fakePythonMalformed, $fakePythonCompatibleRuntime, $fakePythonProbeFailure, $fakeArtifactAccess)) {
+    foreach ($subject in @($orchestrator, $pythonSelector, $pythonSelectionPolicy, $artifactAccess, $adapter, $launcher, $marketplaceInstaller, $fakeCodex, $fakeMarketplaceCodex, $fakeCodexAccessDenied, $fakeUriLauncher, $fakePythonFailure, $fakePythonIncompatible, $fakePythonLauncher, $fakePython2, $fakePythonMalformed, $fakePythonCompatibleRuntime, $fakePythonProbeFailure, $fakeArtifactAccess)) {
         if (-not (Test-Path -LiteralPath $subject -PathType Leaf)) { throw "Required test subject is missing: $subject" }
     }
     & $realPython (Join-Path $repoRoot 'scripts\assemble_plugin.py') assemble --repo-root $repoRoot --output $formalArtifact *> $null
     Assert-Equal 0 $LASTEXITCODE 'formal artifact fixture assembly'
-    foreach ($script in @($orchestrator, $pythonSelector, $pythonSelectionPolicy, $artifactAccess, $adapter)) {
+    foreach ($script in @($orchestrator, $pythonSelector, $pythonSelectionPolicy, $artifactAccess, $adapter, $marketplaceInstaller)) {
         $tokens = $null
         $errors = $null
         [void][System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$tokens, [ref]$errors)
@@ -127,6 +129,38 @@ try {
         $launcherText -match '(?im)^\s*(pause|set\s+/p)\b') {
         throw 'Launcher must delegate location-relatively to the Marketplace installer without blocking input.'
     }
+
+    $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-native-stderr.calls'
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $marketplaceInstaller `
+        -NonInteractive -CodexCommand $fakeMarketplaceCodex *> $null
+    Assert-Equal 0 $LASTEXITCODE 'successful Codex stderr must not fail the Marketplace installer'
+    [array]$marketplaceCalls = Get-Content -LiteralPath $env:FAKE_MARKETPLACE_CODEX_LOG
+    Assert-Equal 7 $marketplaceCalls.Count 'Marketplace installer Codex call count'
+    Assert-Equal '--version' $marketplaceCalls[0] 'initial Codex version probe'
+    Assert-Equal '--version' $marketplaceCalls[1] 'post-install Codex version probe'
+    Assert-Equal 'login status' $marketplaceCalls[2] 'Codex login status call'
+    Assert-Equal 'plugin marketplace list --json' $marketplaceCalls[3] 'Codex Marketplace list call'
+    if ($marketplaceCalls[4] -notmatch '^plugin marketplace add ') { throw 'Codex Marketplace add call is absent.' }
+    Assert-Equal 'plugin add governed-engineering-skills@governed-engineering' $marketplaceCalls[5] 'Codex Plugin add call'
+    Assert-Equal 'plugin list --json' $marketplaceCalls[6] 'Codex Plugin verification call'
+
+    $env:FAKE_MARKETPLACE_CODEX_LOG = Join-Path $testRoot 'marketplace-native-failure.calls'
+    $env:FAKE_MARKETPLACE_CODEX_FAILURE = 'plugin-add'
+    $marketplaceFailureOutput = Join-Path $testRoot 'marketplace-native-failure.log'
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $marketplaceInstaller `
+            -NonInteractive -CodexCommand $fakeMarketplaceCodex *> $marketplaceFailureOutput
+        $marketplaceFailureExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    Assert-Equal 1 $marketplaceFailureExit 'nonzero Codex exit must fail the Marketplace installer'
+    if ((Get-Content -Raw -LiteralPath $marketplaceFailureOutput) -notmatch 'Actionable simulated plugin failure') {
+        throw 'Marketplace installer did not retain actionable Codex stderr on failure.'
+    }
+    Remove-Item Env:\FAKE_MARKETPLACE_CODEX_FAILURE
 
     $env:PATH = "$fakeBin;$originalPath"
     $env:LOCALAPPDATA = $fakeHome
@@ -347,7 +381,7 @@ try {
     Write-Host 'PASS: local assembly, cache refresh, registration, reinstall, and failure contracts'
 }
 finally {
-    foreach ($name in @('FAKE_CODEX_SCENARIO','FAKE_CODEX_LOG','FAKE_CODEX_INSTALL_SOURCE','FAKE_CODEX_INSTALL_TARGET','FAKE_URI_LOG','FAKE_URI_SCENARIO','FAKE_REAL_PYTHON','FAKE_PYTHON_EXECUTABLE','FAKE_PYTHON_CANDIDATE_LOG','FAKE_PYTHON_LAUNCHER_LOG','FAKE_PYTHON_RUNTIME_LOG','FAKE_PYTHON_INVALID_LOG','FAKE_ARTIFACT_ACCESS_SCENARIO','FAKE_ARTIFACT_ACCESS_LOG','GOVERNED_INSTALLER_NO_DELAY')) {
+    foreach ($name in @('FAKE_CODEX_SCENARIO','FAKE_CODEX_LOG','FAKE_CODEX_INSTALL_SOURCE','FAKE_CODEX_INSTALL_TARGET','FAKE_MARKETPLACE_CODEX_LOG','FAKE_MARKETPLACE_CODEX_FAILURE','FAKE_URI_LOG','FAKE_URI_SCENARIO','FAKE_REAL_PYTHON','FAKE_PYTHON_EXECUTABLE','FAKE_PYTHON_CANDIDATE_LOG','FAKE_PYTHON_LAUNCHER_LOG','FAKE_PYTHON_RUNTIME_LOG','FAKE_PYTHON_INVALID_LOG','FAKE_ARTIFACT_ACCESS_SCENARIO','FAKE_ARTIFACT_ACCESS_LOG','GOVERNED_INSTALLER_NO_DELAY')) {
         Remove-Item "Env:\$name" -ErrorAction SilentlyContinue
     }
     $env:PATH = $originalPath

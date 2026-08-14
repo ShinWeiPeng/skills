@@ -1,0 +1,11 @@
+{
+  "bump": "patch",
+  "changesets": [
+    "windows-powershell-native-stderr"
+  ],
+  "summary": {
+    "Fixed": [
+      "Allow successful Codex stderr diagnostics on Windows PowerShell 5.1 without aborting Marketplace installation."
+    ]
+  }
+}

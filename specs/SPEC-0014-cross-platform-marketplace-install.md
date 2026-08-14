@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0014
-revision: 13
+revision: 14
 status: confirmed
 change_set: cross-platform-marketplace-install
 ---
@@ -39,6 +39,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | REQ-011 | A tracked provider manifest MUST declare verified Codex source, package identity, integrity, and minimum compatible version; missing or old Codex installs the manifest version and compatible newer versions are retained. |
 | REQ-012 | Interactive execution MUST initiate native UAC or `sudo` only when required; `--non-interactive` MUST proceed only with sufficient privilege and non-interactive providers, otherwise stopping before mutation. |
 | REQ-013 | The installer MUST check `codex login status`; an unauthenticated interactive run MUST launch `codex login --device-auth` and continue only after success, while a non-interactive run MUST require existing or caller-provided standard Codex authentication without reading, persisting, or logging credential values. |
+| REQ-014 | On Windows PowerShell 5.1, every Codex native command MUST use its process exit code as the success criterion, MUST tolerate stderr output from a successful command, and MUST retain actionable output when the command fails. |
 
 ## Decisions
 
@@ -56,6 +57,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | DEC-010 | Install Codex from a tracked verified provider manifest only when missing or below the declared compatibility floor, and retain compatible newer versions without downgrade. |
 | DEC-011 | Use native interactive elevation by default and permit non-interactive installation only with pre-existing privilege and fully non-interactive verified provider actions. |
 | DEC-012 | Bootstrap authentication by execution mode: interactive device authentication when needed, and pre-existing or caller-provided standard Codex authentication for non-interactive runs without installer secret handling. |
+| DEC-013 | Route every Windows Codex invocation through one PowerShell 5.1-compatible native-command wrapper that prevents stderr from becoming a terminating PowerShell error, evaluates `$LASTEXITCODE`, and returns captured output when callers need to parse it. |
 
 ## Acceptance Criteria
 
@@ -74,6 +76,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | AC-011 | REQ-011 | Missing and old Codex install the verified version; compatible newer Codex stays; invalid metadata stops. | Version, schema, integrity, and trace tests. | Pending |
 | AC-012 | REQ-012 | Interactive fixtures elevate only when required; non-interactive fixtures never prompt and make zero mutation when insufficient. | Elevation/provider traces with bounded timeout. | Pending |
 | AC-013 | REQ-013 | Logged-in runs continue; interactive logged-out runs launch device auth once; non-interactive logged-out runs fail before mutation; logs and artifacts contain no credential values. | Fake-Codex auth state matrix, redaction scan, and command traces. | Pending |
+| AC-014 | REQ-014 | A fake Codex command that exits zero after writing to stderr succeeds for login, Marketplace, and Plugin operations; a nonzero command still fails with actionable diagnostics. | Windows PowerShell 5.1 integration and fake-Codex regression tests. | Pending |
 
 ## Relationships
 
@@ -186,6 +189,15 @@ None.
 - **Explicit rationale:** The user selected the recommended mode-aware authentication policy.
 - **Resulting impact:** DEC-012 adds authentication bootstrap and secret-handling boundaries in REQ-013 and AC-013.
 
+### DISC-012: Windows native-command error handling
+
+- **Situation:** Windows PowerShell 5.1 promotes stderr from `codex.cmd` into a terminating error when `$ErrorActionPreference` is `Stop`, even when Codex exits successfully.
+- **Question:** Should the compatibility repair cover only login status or every Codex native command?
+- **Options and tradeoffs:** A shared wrapper removes the same failure mode from login, Marketplace, and Plugin operations with broader regression coverage; a login-only exception changes less code but leaves identical failures elsewhere.
+- **User answer:** 1 (apply the shared fix to every Codex native command).
+- **Explicit rationale:** The user selected the comprehensive compatibility repair.
+- **Resulting impact:** DEC-013 governs REQ-014 and AC-014.
+
 ## Routing/Gates
 
 - Route: grilling -> spec-governance -> tdd -> code-review
@@ -198,3 +210,4 @@ None.
 - Revision 11: Selected verified Codex provider policy.
 - Revision 12: Selected native elevation and restricted unattended execution.
 - Revision 13: Selected mode-aware authentication bootstrap.
+- Revision 14: Reopened after Windows PowerShell 5.1 treated successful Codex stderr as a terminating error and selected a shared exit-code-based wrapper for every Windows Codex native command.
