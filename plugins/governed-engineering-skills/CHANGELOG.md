@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.8.2
+
+### Fixed
+
+- Prevent source checkouts from shadowing the governed Git Marketplace and validate same-name Marketplace sources before upgrade.
+
 ## 0.8.1
 
 ### Fixed
