@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.8.2",
-  "previous_version": "0.8.1",
-  "bump": "patch",
-  "production_fingerprint": "sha256:dcdb77649f3a969eafaebd41718ff4372ca48525661ca872d9ab8fc1c75c1847",
+  "current_version": "0.9.0",
+  "previous_version": "0.8.2",
+  "bump": "minor",
+  "production_fingerprint": "sha256:349c836f1b078854f9707b6816bf3bff3be940c390b3029ab8037e9e4cd0ff05",
   "applied_changesets": [
-    "development-marketplace-identity"
+    "explain-runtime-action-purpose"
   ]
 }
