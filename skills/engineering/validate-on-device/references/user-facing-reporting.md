@@ -33,7 +33,19 @@ Present these items once before asking the user to operate the target:
 
 Map every trigger and required criterion into the test-item table. State initial device or application state, bounded duration, relevant permissions, expected state changes, and cleanup or reset requirements. Explain what allowing or denying a permission will do before requesting it.
 
-During the test, show only the current action, completion signal, and timeout. Do not repeat the full brief on every confirmation turn.
+During the test, show only the action purpose, current action, completion signal, and timeout, in that order:
+
+1. `執行目的`: state the higher-level downstream decision, configuration, evidence claim, or risk supported by the result, including the relevant failure, uncertainty, or unsafe workaround the action helps prevent. It must not merely paraphrase the command or observation.
+2. `目前動作`: state the bounded operation or command being performed.
+3. `完成訊號`: state the observable output or condition that proves the action finished.
+4. `逾時`: state the maximum wait for the action.
+
+Keep `執行目的` to one concise explanation and do not repeat the full brief, criteria table, expected flow, or risk section on every confirmation turn. A command that asks the user to paste only selected output still receives this context before the command; the output restriction applies to the user's response, not to the operation explanation.
+
+Representative purpose quality:
+
+- 不合格：`確認 PostgreSQL 使用者的 UID/GID。` This merely restates the immediate check.
+- 合格：`取得 UID/GID，以便正確設定掛載資料目錄的擁有者，避免 PostgreSQL 因權限不足而無法啟動，也避免使用過度寬鬆的權限。` This connects the result to its downstream configuration and prevented failure.
 
 ## After the runner evaluates evidence
 
