@@ -1,5 +1,11 @@
 # Governed Engineering Skills
 
+## 0.9.0
+
+### Changed
+
+- Explain the higher-level purpose of every active validate-on-device action before showing the current action, completion signal, and timeout.
+
 ## 0.8.2
 
 ### Fixed
