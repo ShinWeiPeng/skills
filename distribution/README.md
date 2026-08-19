@@ -15,8 +15,16 @@ deterministic packaging normalization, not a second editable Skill source.
 Run the native launcher for the current platform from the repository root:
 
 - Windows: double-click `Install Governed Engineering Skills.cmd`.
-- Ubuntu, Debian, Fedora, or RHEL: run
-  `./Install\ Governed\ Engineering\ Skills.sh`.
+- Ubuntu, Debian, Fedora, or RHEL with GNOME, KDE Plasma, or Xfce:
+  double-click `Install Governed Engineering Skills.desktop`. Honor any
+  first-launch trust prompt; the launcher intentionally does not bypass desktop
+  security. Its terminal reports the installer exit code and waits for Enter
+  before closing.
+- Linux terminal: run `./Install\ Governed\ Engineering\ Skills.sh`.
+
+Cinnamon, MATE, and other Freedesktop-compatible desktops are best-effort GUI
+targets. The desktop entry uses `Terminal=true` and does not probe or hard-code a
+terminal emulator.
 
 The launcher performs this fail-closed sequence:
 

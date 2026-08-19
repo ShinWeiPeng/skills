@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install Governed Engineering Skills
+Comment=Install or update the Governed Engineering Skills plugin
+Exec=sh -c "desktop=\$1; desktop=\${desktop#file://}; exec \"\$(dirname \"\$desktop\")/scripts/install-marketplace-gui.sh\"" sh %k
+Icon=system-software-install
+Terminal=true
+DBusActivatable=false
+Categories=Development;

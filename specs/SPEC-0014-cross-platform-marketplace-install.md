@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0014
-revision: 16
+revision: 20
 status: confirmed
 change_set: cross-platform-marketplace-install
 ---
@@ -41,6 +41,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | REQ-013 | The installer MUST check `codex login status`; an unauthenticated interactive run MUST launch `codex login --device-auth` and continue only after success, while a non-interactive run MUST require existing or caller-provided standard Codex authentication without reading, persisting, or logging credential values. |
 | REQ-014 | On Windows PowerShell 5.1, every Codex native command MUST use its process exit code as the success criterion, MUST tolerate stderr output from a successful command, and MUST retain actionable output when the command fails. |
 | REQ-015 | A source checkout MUST expose a distinct development Marketplace identity that cannot shadow the generated `governed-engineering` Git Marketplace; publication MUST deterministically rewrite the generated Marketplace to the formal identity and packaged Plugin path. |
+| REQ-016 | Linux MUST provide a dedicated Freedesktop `.desktop` GUI launcher using `Terminal=true` that opens the installer through the desktop environment's configured terminal on GNOME, KDE Plasma, and Xfce, while retaining the POSIX-shell launcher as the command-line entry point; platform trust prompts MUST remain visible and MUST NOT be bypassed. Cinnamon, MATE, and other Freedesktop-compatible environments MAY work on a best-effort basis without named-terminal probing. After the installer returns, the GUI-launched terminal MUST display success or failure and the exit code, then remain open until the user presses Enter. |
 
 ## Decisions
 
@@ -60,6 +61,9 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | DEC-012 | Bootstrap authentication by execution mode: interactive device authentication when needed, and pre-existing or caller-provided standard Codex authentication for non-interactive runs without installer secret handling. |
 | DEC-013 | Route every Windows Codex invocation through one PowerShell 5.1-compatible native-command wrapper that prevents stderr from becoming a terminating PowerShell error, evaluates `$LASTEXITCODE`, and returns captured output when callers need to parse it. |
 | DEC-014 | Name the source-checkout Marketplace `governed-engineering-development`, retain `governed-engineering` only for generated `marketplace-release` publications, and make publication generation explicitly set the formal name and packaged Plugin source. |
+| DEC-015 | Add a separate Linux `.desktop` launcher as the formal GUI entry point and retain the existing `.sh` launcher for terminal use. |
+| DEC-016 | Use the Freedesktop `Terminal=true` contract, formally validate GNOME, KDE Plasma, and Xfce, treat other compatible desktops as best effort, and do not probe named terminal emulators. |
+| DEC-017 | Keep every GUI-launched terminal open after completion, show the result and exit code, and close only after the user presses Enter. |
 
 ## Acceptance Criteria
 
@@ -80,6 +84,7 @@ Provide PowerShell and POSIX-shell installers governed by shared contracts. Supp
 | AC-013 | REQ-013 | Logged-in runs continue; interactive logged-out runs launch device auth once; non-interactive logged-out runs fail before mutation; logs and artifacts contain no credential values. | Fake-Codex auth state matrix, redaction scan, and command traces. | Pending |
 | AC-014 | REQ-014 | A fake Codex command that exits zero after writing to stderr succeeds for login, Marketplace, and Plugin operations; a nonzero command still fails with actionable diagnostics. | Windows PowerShell 5.1 integration and fake-Codex regression tests. | Pending |
 | AC-015 | REQ-015 | A main-branch checkout is discovered only as `governed-engineering-development`, while a generated publication is discovered as `governed-engineering` with its packaged Plugin present; Windows and Linux installers can add the formal Git Marketplace without a same-name local collision. | Source/publication manifest contract tests plus Windows and Linux installer integration fixtures launched from a source checkout. | Pending |
+| AC-016 | REQ-016 | On GNOME, KDE Plasma, and Xfce, activating the `.desktop` launcher uses the configured terminal, delegates to the repository-relative POSIX-shell launcher, leaves any first-launch trust prompt intact, contains no named-terminal probes, reports both zero and nonzero exit status, and waits for Enter before closing in either case. | Static desktop-entry validation plus bounded GNOME, KDE Plasma, and Xfce success/failure integration tests. | Pending |
 
 ## Relationships
 
@@ -210,6 +215,33 @@ None.
 - **Explicit rationale:** Preserve `governed-engineering` as the formal remote identity while making source-checkout discovery visibly developmental and non-conflicting.
 - **Resulting impact:** DEC-014 governs REQ-015 and AC-015, and refines DEC-001 and DEC-007.
 
+### DISC-014: Linux GUI installation entry point
+
+- **Situation:** The executable POSIX-shell launcher works from a terminal, but Linux file managers may open `.sh` files as text or refuse to execute them, so direct clicking is not a dependable GUI entry point.
+- **Question:** Which Linux entry point should provide direct-click installation?
+- **Options and tradeoffs:** A dedicated `.desktop` launcher gives desktop environments an explicit application entry while preserving visible trust prompts; modifying only the `.sh` launcher cannot help when the file manager refuses to invoke it; supporting both GUI relaunch logic and a desktop entry adds terminal-detection complexity.
+- **User answer:** 1 (add a dedicated `.desktop` launcher).
+- **Explicit rationale:** The user selected the recommended explicit GUI surface while retaining the existing shell launcher for command-line use.
+- **Resulting impact:** DEC-015 adds REQ-016 and AC-016 and refines DEC-002.
+
+### DISC-015: Linux desktop support matrix
+
+- **Situation:** A `.desktop` launcher can delegate terminal selection through the Freedesktop contract or carry desktop-specific terminal probing.
+- **Question:** Which Linux desktop environments and terminal-emulator behavior are formally supported?
+- **Options and tradeoffs:** Freedesktop `Terminal=true` keeps the launcher portable and avoids named-terminal drift; GNOME-only support narrows validation but excludes supported distribution variants; explicit terminal probing broadens best-effort coverage at the cost of brittle branches and tests.
+- **User answer:** 1 (Freedesktop standard with GNOME, KDE Plasma, and Xfce formally validated).
+- **Explicit rationale:** The user selected the recommended standards-based launcher without terminal-emulator probing.
+- **Resulting impact:** DEC-016 refines REQ-016 and AC-016 and resolves OD-001.
+
+### DISC-016: GUI terminal completion behavior
+
+- **Situation:** A desktop-launched terminal may close as soon as the installer exits, hiding both confirmation and actionable errors.
+- **Question:** After GUI-launched installation finishes, when should the terminal remain open?
+- **Options and tradeoffs:** Waiting for Enter on every result makes success and failure observable with one extra interaction; waiting only on failure is smoother but hides success evidence; always closing minimizes interaction but recreates an invisible-failure experience.
+- **User answer:** 1 (wait for Enter after both success and failure).
+- **Explicit rationale:** The user selected the recommended observable completion behavior.
+- **Resulting impact:** DEC-017 refines REQ-016 and AC-016 and resolves OD-002.
+
 ## Routing/Gates
 
 - Route: grilling -> spec-governance -> tdd -> code-review
@@ -225,3 +257,7 @@ None.
 - Revision 14: Reopened after Windows PowerShell 5.1 treated successful Codex stderr as a terminating error.
 - Revision 15: Reopened after a cloned source Marketplace shadowed the generated Git Marketplace and proved that changing only the installer working directory was insufficient.
 - Revision 16: Selected distinct development and formal publication Marketplace identities.
+- Revision 17: Reopened to add a dedicated Linux GUI launcher and selected a separate `.desktop` entry point.
+- Revision 18: Recorded the unresolved supported-desktop matrix.
+- Revision 19: Selected Freedesktop terminal delegation with GNOME, KDE Plasma, and Xfce as the formal validation matrix.
+- Revision 20: Selected visible completion and an Enter-to-close pause for every GUI-launched result.

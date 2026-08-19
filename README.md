@@ -27,7 +27,15 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 Clone this repository, then run the native launcher:
 
 - Windows: double-click **`Install Governed Engineering Skills.cmd`**.
-- Ubuntu, Debian, Fedora, or RHEL: run **`./Install Governed Engineering Skills.sh`**.
+- Ubuntu, Debian, Fedora, or RHEL with GNOME, KDE Plasma, or Xfce:
+  double-click **`Install Governed Engineering Skills.desktop`**. On the first
+  launch, use the desktop environment's **Allow Launching** or equivalent trust
+  action if prompted. The installer opens in the configured terminal, displays
+  its exit code, and waits for Enter before closing.
+- Linux terminal: run **`./Install Governed Engineering Skills.sh`**.
+
+Cinnamon, MATE, and other Freedesktop-compatible environments may also launch
+the desktop entry, but are supported on a best-effort basis.
 
 The launchers install missing Git, Node.js/npm, and a verified minimum Codex CLI
 through `winget`, `apt`, or `dnf`; start device authentication when needed; add or

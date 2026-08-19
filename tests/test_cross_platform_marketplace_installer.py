@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import configparser
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -12,6 +14,70 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
+    def test_linux_desktop_launcher_uses_freedesktop_terminal_contract(self) -> None:
+        desktop_launcher = ROOT / "Install Governed Engineering Skills.desktop"
+        gui_launcher = ROOT / "scripts" / "install-marketplace-gui.sh"
+
+        self.assertTrue(desktop_launcher.is_file(), desktop_launcher)
+        self.assertTrue(gui_launcher.is_file(), gui_launcher)
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.optionxform = str
+        parser.read(desktop_launcher, encoding="utf-8")
+
+        entry = parser["Desktop Entry"]
+        self.assertEqual("Application", entry["Type"])
+        self.assertEqual("true", entry["Terminal"])
+        self.assertEqual("false", entry["DBusActivatable"])
+        self.assertIn("%k", entry["Exec"])
+        self.assertIn("install-marketplace-gui.sh", entry["Exec"])
+        for named_terminal in ("gnome-terminal", "konsole", "xfce4-terminal"):
+            self.assertNotIn(named_terminal, desktop_launcher.read_text(encoding="utf-8"))
+        desktop_validator = shutil.which("desktop-file-validate")
+        if desktop_validator:
+            validation = subprocess.run(
+                [desktop_validator, str(desktop_launcher)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(0, validation.returncode, validation.stdout + validation.stderr)
+
+    def test_linux_gui_launcher_keeps_success_and_failure_results_visible(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temp = Path(temporary_directory)
+            scripts = temp / "scripts"
+            scripts.mkdir()
+            gui_launcher = scripts / "install-marketplace-gui.sh"
+            shutil.copy2(ROOT / "scripts" / "install-marketplace-gui.sh", gui_launcher)
+            installer = temp / "Install Governed Engineering Skills.sh"
+            installer.write_text(
+                "#!/bin/sh\n"
+                'printf "installer exit %s\\n" "$1"\n'
+                'exit "$1"\n',
+                encoding="utf-8",
+            )
+            gui_launcher.chmod(0o755)
+            installer.chmod(0o755)
+
+            for exit_code, result_text in (
+                (0, "Installation completed successfully."),
+                (23, "Installation failed."),
+            ):
+                with self.subTest(exit_code=exit_code):
+                    result = subprocess.run(
+                        [str(gui_launcher), str(exit_code)],
+                        input="\n",
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                    )
+
+                    self.assertEqual(exit_code, result.returncode)
+                    self.assertIn(f"installer exit {exit_code}", result.stdout)
+                    self.assertIn(result_text, result.stdout)
+                    self.assertIn(f"Exit code: {exit_code}", result.stdout)
+                    self.assertIn("Press Enter to close this window", result.stdout)
+
     def test_public_installation_surface_and_provider_policy(self) -> None:
         linux_launcher = ROOT / "Install Governed Engineering Skills.sh"
         windows_launcher = ROOT / "Install Governed Engineering Skills.cmd"
