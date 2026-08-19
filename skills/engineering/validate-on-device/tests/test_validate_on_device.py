@@ -151,6 +151,30 @@ class ProfileTests(unittest.TestCase):
         self.assertIn("must not use Mermaid", reference)
         self.assertIn("all required headings are present exactly once and in order", reference)
 
+    def test_during_operation_explains_the_higher_level_action_purpose(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        reference = (ROOT / "references" / "user-facing-reporting.md").read_text(encoding="utf-8")
+        docs = (ROOT.parents[2] / "docs" / "engineering" / "validate-on-device.md").read_text(encoding="utf-8")
+
+        ordered_fields = "action purpose, current action, completion signal, and timeout"
+        for contract in (skill, reference):
+            self.assertIn(ordered_fields, contract)
+            self.assertIn("downstream decision, configuration, evidence claim, or risk", contract)
+            self.assertIn("failure, uncertainty, or unsafe workaround", contract)
+            self.assertIn("must not merely paraphrase", contract)
+
+        labels = ("執行目的", "目前動作", "完成訊號", "逾時")
+        for label in labels:
+            self.assertIn(label, reference)
+        positions = [reference.index(f"`{label}`") for label in labels]
+        self.assertEqual(sorted(positions), positions)
+        self.assertIn("不合格", reference)
+        self.assertIn("合格", reference)
+        self.assertIn("UID/GID", reference)
+        self.assertIn("無法啟動", reference)
+        self.assertIn("過度寬鬆", reference)
+        self.assertIn("higher-level purpose", docs)
+
     def test_four_phase_scenario_contract_is_required(self) -> None:
         for field in ("phase", "evidence_mode", "max_duration_ms", "completion"):
             value = profile()

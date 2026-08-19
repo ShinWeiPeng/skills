@@ -60,7 +60,7 @@ Other subcommands are `probe`, `prepare-guided-session`, `finalize-guided-sessio
 Read [references/user-facing-reporting.md](references/user-facing-reporting.md) before presenting a runtime scenario or its result.
 
 - Before operation, state the test name, purpose, criteria-backed test items, initial state, risks, user actions, and expected flow.
-- During operation, show only the current action, completion signal, and timeout.
+- During operation, show only the action purpose, current action, completion signal, and timeout, in that order. The action purpose explains the downstream decision, configuration, evidence claim, or risk supported by the result and the relevant failure, uncertainty, or unsafe workaround it helps prevent; it must not merely paraphrase the command or observation. Keep it concise and do not repeat the full pre-test brief.
 - After evaluation, lead with the runner verdict and follow every literal heading in the reference exactly once and in order. Do not omit, merge, or rename headings. Map every criterion to expected and observed evidence, identify the first difference, classify the problem, and link the evidence.
 - Always show the expected flow. A passing one- or two-event flow must use an inline chain, not Mermaid. Use Mermaid for longer or ordering-sensitive flows and for `FAIL` or `BLOCKED` when it clarifies the evidence boundary.
 - Use optional profile `title`, `purpose`, criterion `label`, and `description` fields when present. Otherwise use the reference's explicitly marked contract-derived fallback; never invent product intent.

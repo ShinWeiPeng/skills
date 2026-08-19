@@ -20,6 +20,8 @@ The target device or operating-system application, required permissions, and a b
 
 Its leading idea is **measure the claim**: each capture names the criterion, environment, time bound, evidence source, and verdict instead of collecting an open-ended log.
 
+During an active scenario, every operation includes a concise higher-level purpose before the current action, completion signal, and timeout. The purpose explains how the result will be used and which failure or uncertainty it helps prevent, rather than merely restating the command. The complete pre-test brief still appears only once.
+
 ## Where it fits
 
 This is the runtime-evidence gate after ordinary tests and architecture checks. [ask-matt](https://aihero.dev/skills-ask-matt) invokes it only when the task needs native or physical evidence.
