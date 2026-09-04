@@ -19,6 +19,7 @@ source_sets:
   - scripts/windows-artifact-access.ps1
   - scripts/validate_distribution.py
   - distribution/**
+  - validation/verification-ladder.yaml
   - plugins/governed-engineering-skills/**
   - plugins/governed-engineering-skills/.codex-plugin
   - plugins/governed-engineering-skills/.codex-plugin/**
@@ -453,7 +454,8 @@ modules:
   - skills/engineering/govern-modular-event-architecture
   - skills/engineering/validate-on-device
   parent: guided_workflow_router
-  depends_on: []
+  depends_on:
+  - verification_ladder_domain
   implements_ports: []
   public_headers: []
   description:
@@ -488,6 +490,50 @@ modules:
   - path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
     symbol: LibclangToolchainPort
     kind: class
+- id: verification_ladder_domain
+  level: L2
+  role: component
+  implementation_status: implemented
+  paths:
+  - skills/engineering/verification-ladder
+  parent: governance_workflow_domain
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Select the lowest sufficient additive verification layers for affected
+      module contracts and evidence claims, validate project bindings, and reject
+      cross-layer evidence substitution.
+    diagram_summaries:
+      zh-TW: 選擇模組契約所需驗證層並阻擋跨層證據替代
+    input_ports:
+    - verification-ladder.plan
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Host evidence remains valid for host-observable semantics but never satisfies
+      target timing, scheduler, physical-hardware, or long-duration stability claims.
+    - Device-dependent PIL, HIL, and System/Soak execution is delegated to
+      validate-on-device after Validation Enablement.
+    - Missing or stale architecture, scenario, profile, trigger, or evidence bindings
+      return BLOCKED instead of silently omitting a layer.
+  entrypoints:
+  - path: skills/engineering/verification-ladder/SKILL.md
+    symbol: verification-ladder
+    kind: skill
+  - path: skills/engineering/verification-ladder/scripts/verification_ladder.py
+    symbol: main
+    kind: function
+  public_symbols:
+  - path: skills/engineering/verification-ladder/SKILL.md
+    symbol: verification-ladder
+    kind: skill
+  - path: skills/engineering/verification-ladder/scripts/verification_ladder.py
+    symbol: main
+    kind: function
 - id: codex_plugin_adapter
   level: L3+
   role: adapter
@@ -1036,6 +1082,25 @@ composition_roots:
   source_set: repository-production
   kind: release
 ports:
+- id: verification-ladder.plan
+  owner: verification_ladder_domain
+  direction: input
+  kind: query
+  contract: skills/engineering/verification-ladder/references/verification-ladder.schema.json
+  implemented_by: []
+  description:
+    purpose: Validate one project verification matrix and derive the additive layers
+      required by affected architecture references, contract dimensions, execution
+      changes, and evidence claims.
+    data: Project matrix, governed architecture manifest, optional on-device profile,
+      affected trigger categories, and observed evidence layers.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: The matrix or a referenced architecture, profile, scenario, trigger,
+        threshold, or evidence binding is missing, stale, duplicated, or malformed.
+  symbols:
+  - main
 - id: python-runtime.select
   owner: python_runtime_selection_domain
   direction: input
@@ -2456,6 +2521,33 @@ boundary_mappings:
   - spec_governance_domain->workflow_routing_domain
   - workflow_routing_domain->delivery_workflow_domain
 flows:
+- id: verification-ladder-planning
+  owner: governance_workflow_domain
+  description: Validate project-owned verification bindings, combine universal hard
+    triggers with project rules, and produce the lowest sufficient additive ladder
+    without accepting evidence from a lower-authority environment.
+  trigger:
+    kind: command
+    ref: verification-ladder.plan
+    description: A modifying change identifies affected module contracts, execution
+      changes, or evidence claims that require a verification plan.
+  steps:
+  - id: verification-ladder-planning.evaluate
+    order: 1
+    module: verification_ladder_domain
+    action: Resolve architecture and on-device references, validate the project
+      matrix, apply universal evidence-authority hard triggers, add project-selected
+      layers, and return PASS or BLOCKED with explicit rationale.
+    receives:
+    - verification-ladder.plan
+    emits: []
+    state_changes: []
+    side_effects: []
+  success:
+    result: Every requested trigger is mapped to explicit criteria and the returned
+      ordered layers are sufficient for each evidence claim.
+    events: []
+  errors: []
 - id: local-plugin-installation
   owner: plugin_assembly_composition
   description: Select one compatible Python interpreter, recover safe access to only
@@ -2770,6 +2862,16 @@ python_analyzer:
   status: required
   rationale: Production routing and integration tooling is implemented in Python and requires AST evidence.
 workloads:
+- id: verification-ladder-planning-workload
+  flow: verification-ladder-planning
+  steps:
+  - verification-ladder-planning.evaluate
+  timing_class: best-effort
+  activation:
+    kind: command
+  data:
+    volume: one bounded project verification matrix and one affected change set
+  budgets: []
 - id: local-plugin-installation-workload
   flow: local-plugin-installation
   steps:

@@ -7,6 +7,9 @@
 ```mermaid
 flowchart TD
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
+    n_verification_ladder_domain["verification_ladder_domain (L2)<br/>選擇模組契約所需驗證層並阻擋跨層證據替代"]
+    n_governance_workflow_domain -.->|depends| n_verification_ladder_domain
+    n_governance_workflow_domain -->|owns| n_verification_ladder_domain
 ```
 
 ## Modules
@@ -14,6 +17,7 @@ flowchart TD
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
 | `governance_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation. |
+| `verification_ladder_domain` | L2 | component | `governance_workflow_domain` | implemented | Select the lowest sufficient additive verification layers for affected module contracts and evidence claims, validate project bindings, and reject cross-layer evidence substitution. |
 
 ### `governance_workflow_domain`
 
@@ -30,10 +34,26 @@ flowchart TD
 - **Entrypoints:** [`govern-modular-event-architecture`](../../skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)
 - **Public Symbols:** [`govern-modular-event-architecture`](../../skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)<br>[`LibclangToolchainPort`](../../skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py) (class)
 
+### `verification_ladder_domain`
+
+- **Purpose:** Select the lowest sufficient additive verification layers for affected module contracts and evidence claims, validate project bindings, and reject cross-layer evidence substitution.
+- **Parent:** `governance_workflow_domain`
+- **Implementation Status:** `implemented`
+- **Input Ports:** `verification-ladder.plan`
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** None
+- **Errors:** None
+- **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
+- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
+- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
+
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
+| `verification-ladder.plan` | `verification_ladder_domain` | input | query | sync | Validate one project verification matrix and derive the additive layers required by affected architecture references, contract dimensions, execution changes, and evidence claims.: Project matrix, governed architecture manifest, optional on-device profile, affected trigger categories, and observed evidence layers. | `main` |
 | `libclang_toolchain.resolve` | `governance_workflow_domain` | output | query | sync | Resolve, bind, and verify one lock-pinned target-capable libclang provider.: Toolchain lock and operation mode produce immutable provider evidence or fail-closed CAST diagnostics. | `LibclangToolchainPort` |
 
 ## Event Contracts
@@ -74,3 +94,29 @@ flowchart TD
 |---|---|---|---|---|---|---|---|---|---|
 
 ## End-to-End Flows
+
+### `verification-ladder-planning`
+
+Validate project-owned verification bindings, combine universal hard triggers with project rules, and produce the lowest sufficient additive ladder without accepting evidence from a lower-authority environment.
+
+#### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant n_governance_workflow_domain as governance_workflow_domain<br/>決策完整性、架構、流程成本與執行證據治理
+    participant n_verification_ladder_domain as verification_ladder_domain<br/>選擇模組契約所需驗證層並阻擋跨層證據替代
+    n_governance_workflow_domain->>+n_verification_ladder_domain: Resolve architecture and on-device references, validate the project matrix, apply universal evidence-authority hard triggers, add project-selected layers, and return PASS or BLOCKED with explicit rationale.
+    n_verification_ladder_domain-->>-n_governance_workflow_domain: verification-ladder.plan result
+```
+
+#### Ordered Steps
+
+| # | Module | Action | Receives | Emits | State changes | Side effects |
+|---|---|---|---|---|---|---|
+| 1 | `verification_ladder_domain` | Resolve architecture and on-device references, validate the project matrix, apply universal evidence-authority hard triggers, add project-selected layers, and return PASS or BLOCKED with explicit rationale. | `verification-ladder.plan` | None | None | None |
+
+- **Success:** Every requested trigger is mapped to explicit criteria and the returned ordered layers are sufficient for each evidence claim.
+
+#### Execution efficiency
+
+- Workload `verification-ladder-planning-workload`: `best-effort`; steps `verification-ladder-planning.evaluate`; profiles None.

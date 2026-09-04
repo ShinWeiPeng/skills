@@ -11,6 +11,7 @@ flowchart TD
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
     n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
+    n_verification_ladder_domain["verification_ladder_domain (L2)<br/>選擇模組契約所需驗證層並阻擋跨層證據替代"]
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
@@ -35,6 +36,8 @@ flowchart TD
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
     n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_governance_workflow_domain -.->|depends| n_verification_ladder_domain
+    n_governance_workflow_domain -->|owns| n_verification_ladder_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
     n_plugin_assembly_composition -.->|depends| n_local_install_adapter
@@ -61,6 +64,7 @@ flowchart TD
 | `spec_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Persist and reconcile engineering discussion into one canonical change-set specification, materialize it when decision-complete, and verify traceability before implementation. |
 | `formatter_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Select and enforce one formatter policy before product-code mutation, preserving repository CLI style, applying governed fallbacks, and governing confirmed full-program formatting writes. |
 | `governance_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation. |
+| `verification_ladder_domain` | L2 | component | `governance_workflow_domain` | implemented | Select the lowest sufficient additive verification layers for affected module contracts and evidence claims, validate project bindings, and reject cross-layer evidence substitution. |
 | `codex_plugin_adapter` | L3+ | adapter | `-` | implemented | Bind the integrated skill directory to Codex plugin discovery. |
 | `repository_evidence_adapter` | L3+ | adapter | `-` | implemented | Enumerate tracked and non-ignored untracked repository evidence without mutating Git, the index, or the worktree. |
 | `plugin_assembly_composition` | L0 | composition | `-` | implemented | Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree. |
@@ -177,6 +181,21 @@ flowchart TD
 - **Invariants:** Codex never approves its own ADR or Algorithm Design Record.; A material Flow recommendation evaluates functional admission, execution and real-time feasibility, maintainability and extensibility, and model assurance before Module, Port, Event, or execution decisions are finalized.; Estimated models cannot establish a platform performance winner or real-time PASS; load-bearing evidence gaps remain BLOCKED.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
 - **Entrypoints:** [`govern-modular-event-architecture`](../../skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)
 - **Public Symbols:** [`govern-modular-event-architecture`](../../skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)<br>[`LibclangToolchainPort`](../../skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py) (class)
+
+### `verification_ladder_domain`
+
+- **Purpose:** Select the lowest sufficient additive verification layers for affected module contracts and evidence claims, validate project bindings, and reject cross-layer evidence substitution.
+- **Parent:** `governance_workflow_domain`
+- **Implementation Status:** `implemented`
+- **Input Ports:** `verification-ladder.plan`
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** None
+- **Errors:** None
+- **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
+- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
+- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
 
 ### `codex_plugin_adapter`
 
@@ -347,6 +366,7 @@ flowchart TD
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
+| `verification-ladder.plan` | `verification_ladder_domain` | input | query | sync | Validate one project verification matrix and derive the additive layers required by affected architecture references, contract dimensions, execution changes, and evidence claims.: Project matrix, governed architecture manifest, optional on-device profile, affected trigger categories, and observed evidence layers. | `main` |
 | `python-runtime.select` | `python_runtime_selection_domain` | input | query | sync | Select one installed Python 3.11-or-newer interpreter before Plugin assembly.: Optional explicit command plus PATH and Windows Python Launcher candidates. | `Select-CompatiblePythonCandidate` |
 | `plugin-artifact-access.repair` | `plugin_assembly_composition` | input | query | sync | Admit and restore replace access to only the exact governed Windows artifact.: Canonical repository root, exact artifact path, and bounded recovery result. | `install-local` |
 | `plugin-install.local` | `plugin_assembly_composition` | input | command | sync | Assemble, validate, and begin installation of the governed Plugin for local Codex.: Repository-relative source, output, and Marketplace identities. | `install-local` |

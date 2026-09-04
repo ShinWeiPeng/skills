@@ -5,6 +5,7 @@
     "review",
     "diagnosis",
     "code-understanding",
+    "verification-planning",
     "implementation-design"
   ],
   "intents": [
@@ -19,6 +20,10 @@
     {
       "intent": "code-understanding",
       "terms": ["explain code", "trace flow", "how does", "walk me through", "導讀", "解釋程式", "解釋", "資料流", "呼叫流程", "怎麼運作"]
+    },
+    {
+      "intent": "verification-planning",
+      "terms": ["verification ladder", "verification matrix", "module contract test", "adapter contract test", "software-in-the-loop", "processor-in-the-loop", "hardware-in-the-loop", "system soak", "sil pil hil", "驗證階梯", "驗證矩陣", "模組契約測試", "分層驗證"]
     },
     {
       "intent": "implementation-design",

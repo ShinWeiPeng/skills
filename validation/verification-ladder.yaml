@@ -1,0 +1,69 @@
+schema_version: "1.0"
+architecture_manifest: architecture/manifest.yaml
+layers:
+  module-contract:
+    scope: Public verification-planning and routing contracts changed by SPEC-0018.
+    inputs:
+    - Confirmed SPEC and project matrix trigger values.
+    metrics:
+    - CLI and routing behavioral verdicts.
+    thresholds:
+      pass: All selected behavioral tests and schema checks pass.
+      fail: A complete test observes incorrect selection or evidence authority.
+      blocked: A required reference, test capability, or contract is unresolved.
+    evidence: Python unittest output and validated JSON CLI results.
+    stop_condition: Stop on the first FAIL or BLOCKED result.
+    next_layers:
+    - sil
+  sil:
+    scope: Production planner and router code executed on the host with temporary project documents.
+    inputs:
+    - Production CLI, routing code, and Fake filesystem fixtures.
+    metrics:
+    - Ordered layers, activated rules, diagnostics, and exit status.
+    thresholds:
+      pass: Every host fixture returns its independently expected result.
+      fail: A complete fixture returns a different plan or authority verdict.
+      blocked: The production code or host test runner cannot execute.
+    evidence: Behavioral unittest output.
+    stop_condition: Stop when all fixtures pass or any fixture fails or blocks.
+    next_layers: []
+rules:
+- id: verification-planner-contract
+  architecture_refs:
+  - verification_ladder_domain
+  - verification-ladder.plan
+  - verification-ladder-planning
+  contract_dimensions:
+  - input-output-units
+  execution_changes: []
+  evidence_claims:
+  - host-semantics
+  layers:
+  - module-contract
+  - sil
+  on_device_scenarios: []
+  execution_profiles: []
+- id: verification-routing-contract
+  architecture_refs:
+  - workflow_routing_domain
+  - governed-engineering-route
+  contract_dimensions:
+  - call-order
+  execution_changes: []
+  evidence_claims:
+  - host-semantics
+  layers:
+  - module-contract
+  - sil
+  on_device_scenarios: []
+  execution_profiles: []
+not_applicable:
+- layer: adapter-contract
+  rationale: This change adds no external-technology Port Adapter implementation.
+- layer: pil
+  rationale: The planner and router make no target-processor execution-cost claim.
+- layer: hil
+  rationale: The change affects no physical hardware or production scheduling path.
+- layer: system-soak
+  rationale: The change makes no long-duration system-stability claim.

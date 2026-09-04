@@ -29,6 +29,7 @@
     "to-tickets": {"classification": "codex-compatible", "reason": "The workflow writes local ticket files or creates native issue-tracker dependencies.", "host_dependencies": ["repository filesystem or issue tracker"]},
     "triage": {"classification": "codex-compatible", "reason": "The state machine reads and updates issues and pull requests through a configured tracker.", "host_dependencies": ["issue tracker"]},
     "validate-on-device": {"classification": "codex-compatible", "reason": "Runtime acceptance requires physical-device or operating-system access, permissions, and native capture tools.", "host_dependencies": ["device or OS access", "native capture tools", "runtime permissions"]},
+    "verification-ladder": {"classification": "codex-compatible", "reason": "Layer planning uses repository contracts and host tests, then delegates selected physical or native evidence to validate-on-device.", "host_dependencies": ["repository filesystem", "test execution", "validate-on-device for selected device layers"]},
     "wayfinder": {"classification": "codex-compatible", "reason": "The workflow creates and resolves a durable map of issue-tracker decision tickets.", "host_dependencies": ["issue tracker"]},
     "writing-great-skills": {"classification": "codex-compatible", "reason": "The writing guidance is instruction-only and has no additional host dependency.", "host_dependencies": []}
   },

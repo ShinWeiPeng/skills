@@ -604,6 +604,23 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         self.assertEqual("code-review", review["selected_skill"])
         self.assertEqual("explain-code-flow", explanation["selected_skill"])
 
+    def test_layered_verification_planning_routes_to_verification_ladder(self) -> None:
+        intent = WORKFLOW_SELECTION.classify_intent(
+            "為 processing 模組規劃 SIL、PIL 和 HIL 驗證階梯"
+        )
+
+        result = WORKFLOW_SELECTION.select_workflow(
+            intent,
+            PROJECT_STATE.assess_project_state(
+                [{"path": "src/processing.py", "tracking": "tracked"}]
+            ),
+            self.RISK,
+            available_skills=self.SKILLS | {"verification-ladder"},
+        )
+
+        self.assertEqual("verification-planning", intent["intent"])
+        self.assertEqual("verification-ladder", result["selected_skill"])
+
     def test_mixed_review_and_fix_grills_before_review(self) -> None:
         intent = WORKFLOW_SELECTION.classify_intent(
             "review this payment flow and fix the retry bug"

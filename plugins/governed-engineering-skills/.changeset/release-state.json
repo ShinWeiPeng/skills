@@ -1,10 +1,11 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.9.0",
-  "previous_version": "0.8.2",
+  "current_version": "0.10.0",
+  "previous_version": "0.9.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:349c836f1b078854f9707b6816bf3bff3be940c390b3029ab8037e9e4cd0ff05",
+  "production_fingerprint": "sha256:ce5dce02c112439b9fdd60f17f3305c45d25091e69e4d63a2f0f9695794b8007",
   "applied_changesets": [
-    "explain-runtime-action-purpose"
+    "formatter-governance",
+    "verification-ladder"
   ]
 }

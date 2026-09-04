@@ -43,6 +43,7 @@
     "./skills/engineering/spec-governance",
     "./skills/engineering/formatter-governance",
     "./skills/engineering/validate-on-device",
+    "./skills/engineering/verification-ladder",
     "./skills/productivity/grill-me",
     "./skills/productivity/grilling",
     "./skills/productivity/handoff",

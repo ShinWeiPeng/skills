@@ -26,6 +26,7 @@ Model- or user-reachable (rich trigger phrasing so the model can reach for them)
 - **[spec-governance](./spec-governance/SKILL.md)** — Maintain the canonical change-set specification and verify requirement-to-evidence traceability.
 - **[formatter-governance](./formatter-governance/SKILL.md)** — Select repository-first formatter policy and protect confirmed full-program writes before product-code mutation.
 - **[validate-on-device](./validate-on-device/SKILL.md)** — Collect bounded physical-device and operating-system runtime evidence.
+- **[verification-ladder](./verification-ladder/SKILL.md)** — Select Module Contract, SIL, Adapter Contract, PIL, HIL, and System/Soak evidence without cross-layer substitution.
 
 - **[prototype](./prototype/SKILL.md)** — Build a throwaway prototype to answer a design question: a runnable terminal app for state/logic, or several toggleable UI variations.
 

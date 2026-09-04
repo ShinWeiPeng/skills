@@ -1,5 +1,13 @@
 # Governed Engineering Skills
 
+## 0.10.0
+
+### Added
+
+- Centralized formatter governance for greenfield defaults, repository-style preservation, safe scaffold preflight, and pre-product checks.
+- Added canonical-SPEC confirmation, clean-target protection, governed CLI fallback, and authorized installation evidence for full program-source formatting.
+- Added project-governed Module Contract, SIL, Adapter Contract, PIL, HIL, and System/Soak planning with fail-closed evidence authority.
+
 ## 0.9.0
 
 ### Changed

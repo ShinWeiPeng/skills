@@ -25,6 +25,7 @@ flowchart TD
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
     n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
+    n_verification_ladder_domain["verification_ladder_domain (L2)<br/>選擇模組契約所需驗證層並阻擋跨層證據替代"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
     n_python_runtime_selection_domain["python_runtime_selection_domain (L1)<br/>選取並驗證相容的 Python 執行環境"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>透過單一命令列介面執行架構治理與原生分析"]
@@ -34,6 +35,7 @@ flowchart TD
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
     n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_governance_workflow_domain -->|owns| n_verification_ladder_domain
     n_plugin_assembly_composition -->|owns| n_python_runtime_selection_domain
 ```
 
@@ -84,9 +86,16 @@ flowchart TD
 ### `governance_workflow_domain`
 
 - **Purpose:** Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
-- **Children:** None
-- **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
+- **Children:** `verification_ladder_domain`
+- **Related Flows:** [`verification-ladder-planning`](generated/governance_workflow_domain.md#verification-ladder-planning), [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
 - **Protection Rationale:** Codex never approves its own ADR or Algorithm Design Record.; A material Flow recommendation evaluates functional admission, execution and real-time feasibility, maintainability and extensibility, and model assurance before Module, Port, Event, or execution decisions are finalized.; Estimated models cannot establish a platform performance winner or real-time PASS; load-bearing evidence gaps remain BLOCKED.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
+
+### `verification_ladder_domain`
+
+- **Purpose:** Select the lowest sufficient additive verification layers for affected module contracts and evidence claims, validate project bindings, and reject cross-layer evidence substitution.
+- **Children:** None
+- **Related Flows:** [`verification-ladder-planning`](generated/governance_workflow_domain.md#verification-ladder-planning)
+- **Protection Rationale:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
 
 ### `plugin_assembly_composition`
 
@@ -123,6 +132,7 @@ flowchart TD
 
 ## End-to-End Flows
 
+- [`verification-ladder-planning`](generated/governance_workflow_domain.md#verification-ladder-planning) — Validate project-owned verification bindings, combine universal hard triggers with project rules, and produce the lowest sufficient additive ladder without accepting evidence from a lower-authority environment.
 - [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation) — Select one compatible Python interpreter, recover safe access to only the exact ignored Windows artifact when necessary, assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
 - [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass.
@@ -140,6 +150,7 @@ flowchart TD
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
     n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
+    n_verification_ladder_domain["verification_ladder_domain (L2)<br/>選擇模組契約所需驗證層並阻擋跨層證據替代"]
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
@@ -164,6 +175,8 @@ flowchart TD
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
     n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
+    n_governance_workflow_domain -.->|depends| n_verification_ladder_domain
+    n_governance_workflow_domain -->|owns| n_verification_ladder_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
     n_plugin_assembly_composition -.->|depends| n_local_install_adapter

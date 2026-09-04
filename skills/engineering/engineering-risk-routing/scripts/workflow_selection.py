@@ -312,6 +312,8 @@ def select_workflow(
         post_spec_target = "code-review"
     elif intent == "code-understanding":
         post_spec_target = "explain-code-flow"
+    elif intent == "verification-planning":
+        post_spec_target = "verification-ladder"
     elif not post_spec_target:
         post_spec_target = (
             risk_decision.get("next_skill")
@@ -384,6 +386,12 @@ def select_workflow(
             reason="The request is read-only code understanding.",
         )
 
+    if intent == "verification-planning" and not modifies:
+        return capability_checked(
+            "verification-ladder",
+            reason="The request is layered verification planning.",
+        )
+
     if modifies:
         signals = wayfinder_evidence or {}
 
@@ -416,6 +424,8 @@ def select_workflow(
             next_skill = "code-review"
         elif intent == "code-understanding":
             next_skill = "explain-code-flow"
+        elif intent == "verification-planning":
+            next_skill = "verification-ladder"
         if not next_skill:
             next_skill = (
                 "to-spec"

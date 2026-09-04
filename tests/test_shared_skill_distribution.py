@@ -115,7 +115,7 @@ class SharedSkillDistributionTests(unittest.TestCase):
             if path.is_dir()
         ]
         self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(29, len(names))
+        self.assertEqual(30, len(names))
 
     def test_clean_assembly_is_deterministic_and_detects_drift(self) -> None:
         module = load_assembler()

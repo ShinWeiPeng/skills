@@ -74,7 +74,8 @@
           "skills/engineering/validate-on-device/scripts/vod/guided.py",
           "skills/engineering/validate-on-device/scripts/vod/model.py",
           "skills/engineering/validate-on-device/scripts/vod/profile.py",
-          "skills/engineering/validate-on-device/scripts/vod/providers.py"
+          "skills/engineering/validate-on-device/scripts/vod/providers.py",
+          "skills/engineering/verification-ladder/scripts/verification_ladder.py"
         ],
         "mode": "python-ast"
       }
@@ -116,6 +117,14 @@
         "configuration": false,
         "disposition": "active",
         "location": "governance_workflow_domain",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
+        "location": "verification_ladder_domain",
         "message": "one or more symbols have no installed language analyzer",
         "rule_id": "SYM004",
         "severity": "SHOULD"
