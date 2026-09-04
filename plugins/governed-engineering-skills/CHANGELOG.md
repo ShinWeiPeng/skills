@@ -1,5 +1,13 @@
 # Governed Engineering Skills
 
+## 0.10.1
+
+### Fixed
+
+- Made Plugin release fingerprints independent of local workspace artifacts.
+- Made baseline-expiry governance tests deterministic over time.
+- Added a tracked-file-only release rehearsal before publication eligibility.
+
 ## 0.10.0
 
 ### Added
