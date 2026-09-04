@@ -89,12 +89,12 @@ def _table(section: str) -> list[dict[str, str]]:
     if len(rows) < 2:
         return []
     headers = rows[0]
-    data = rows[2:] if all(re.fullmatch(r":?-{3,}:?", cell) for cell in rows[1]) else rows[1:]
-    return [
-        dict(zip(headers, cells))
-        for cells in data
-        if len(cells) == len(headers)
-    ]
+    data = (
+        rows[2:]
+        if all(re.fullmatch(r":?-{3,}:?", cell) for cell in rows[1])
+        else rows[1:]
+    )
+    return [dict(zip(headers, cells)) for cells in data if len(cells) == len(headers)]
 
 
 def _field(row: dict[str, str], name: str) -> str:
@@ -181,8 +181,7 @@ def validate_spec_text(
             uncovered_acceptance.append(ac_id)
     uncovered_requirements = sorted(req_ids - covered)
     errors.extend(
-        f"{item_id} has no acceptance criterion"
-        for item_id in uncovered_requirements
+        f"{item_id} has no acceptance criterion" for item_id in uncovered_requirements
     )
 
     conflicts: list[dict[str, str]] = []
@@ -199,15 +198,21 @@ def validate_spec_text(
                 if ref not in allowed_specs:
                     errors.append(f"relationship references unknown spec {ref}")
             elif ref not in known_ids:
-                errors.append(f"relationship references unknown ID {ref or '<missing>'}")
+                errors.append(
+                    f"relationship references unknown ID {ref or '<missing>'}"
+                )
         if relation == "conflicts_with":
             conflicts.append({"source": source, "target": target})
 
     open_decisions = sections.get("open decisions", "")
-    if status in {"confirmed", "implemented"} and not _open_decisions_are_empty(open_decisions):
+    if status in {"confirmed", "implemented"} and not _open_decisions_are_empty(
+        open_decisions
+    ):
         errors.append("confirmed and implemented specs must have zero open decisions")
     if status in {"confirmed", "implemented"} and conflicts:
-        errors.append("confirmed and implemented specs must have zero unresolved conflicts")
+        errors.append(
+            "confirmed and implemented specs must have zero unresolved conflicts"
+        )
 
     if status == "implemented":
         for row in acceptance:
@@ -226,7 +231,9 @@ def validate_spec_text(
     reference = {
         "spec_id": metadata.get("spec_id"),
         "path": None,
-        "revision": int(metadata["revision"]) if metadata.get("revision", "").isdigit() else None,
+        "revision": int(metadata["revision"])
+        if metadata.get("revision", "").isdigit()
+        else None,
         "status": status or None,
     }
     return {
@@ -272,8 +279,7 @@ def reconcile_working_spec(
     for key, prefix in mapping.items():
         existing_by_id = {str(row.get("id", "")): row for row in result[key]}
         existing_by_text = {
-            str(row.get("text", "")).strip().casefold(): row
-            for row in result[key]
+            str(row.get("text", "")).strip().casefold(): row for row in result[key]
         }
         for value in new_content.get(key, []):
             incoming = {"text": value} if isinstance(value, str) else dict(value)
@@ -305,9 +311,7 @@ def reconcile_working_spec(
     requested_removals = list(dict.fromkeys(new_content.get("removed_ids", [])))
     for item_id in requested_removals:
         for key in mapping:
-            retained = [
-                row for row in result[key] if str(row.get("id", "")) != item_id
-            ]
+            retained = [row for row in result[key] if str(row.get("id", "")) != item_id]
             if len(retained) != len(result[key]):
                 result[key] = retained
                 removed_ids.append(item_id)
@@ -317,9 +321,7 @@ def reconcile_working_spec(
                     changed_ids.remove(item_id)
                 break
 
-    relationships = [
-        dict(item) for item in working_spec.get("relationships", [])
-    ]
+    relationships = [dict(item) for item in working_spec.get("relationships", [])]
     for item in new_content.get("relationships", []):
         if item not in relationships:
             relationships.append(dict(item))
@@ -454,33 +456,44 @@ def _working_structure_errors(text: str) -> list[str]:
             "Explicit rationale",
             "Resulting impact",
         ):
-            if re.search(
-                rf"(?im)^-\s+\*\*{re.escape(label)}:\*\*\s*\S",
-                row["content"],
-            ) is None:
+            if (
+                re.search(
+                    rf"(?im)^-\s+\*\*{re.escape(label)}:\*\*\s*\S",
+                    row["content"],
+                )
+                is None
+            ):
                 errors.append(f"{discussion_id} missing discussion field {label}")
         impact = re.search(
             r"(?im)^-\s+\*\*Resulting impact:\*\*\s*(.+)$",
             row["content"],
         )
-        affected_ids = re.findall(r"\b(?:REQ|DEC|AC)-\d{3}\b", impact.group(1) if impact else "")
+        affected_ids = re.findall(
+            r"\b(?:REQ|DEC|AC)-\d{3}\b", impact.group(1) if impact else ""
+        )
         known_ids = set(_snapshot_rows(text))
         if not affected_ids:
-            errors.append(f"{discussion_id} resulting impact must link an affected REQ/DEC/AC ID")
+            errors.append(
+                f"{discussion_id} resulting impact must link an affected REQ/DEC/AC ID"
+            )
         for affected_id in affected_ids:
             if affected_id not in known_ids:
-                errors.append(f"{discussion_id} links unknown affected ID {affected_id}")
+                errors.append(
+                    f"{discussion_id} links unknown affected ID {affected_id}"
+                )
     forbidden_patterns = (
         (r"(?im)^#{1,6}\s+(?:full\s+)?transcript\b", "full transcript"),
         (r"(?i)<(?:thinking|reasoning)>", "hidden reasoning"),
-        (r"(?i)\b(?:chain[ -]of[ -]thought|hidden reasoning|internal reasoning)\b", "hidden reasoning"),
+        (
+            r"(?i)\b(?:chain[ -]of[ -]thought|hidden reasoning|internal reasoning)\b",
+            "hidden reasoning",
+        ),
     )
     for pattern, label in forbidden_patterns:
         if re.search(pattern, text):
             errors.append(f"working snapshot contains forbidden {label}")
-    if (
-        re.search(r"(?im)^\s*(?:user|human)\s*:", text)
-        and re.search(r"(?im)^\s*(?:assistant|ai)\s*:", text)
+    if re.search(r"(?im)^\s*(?:user|human)\s*:", text) and re.search(
+        r"(?im)^\s*(?:assistant|ai)\s*:", text
     ):
         errors.append("working snapshot contains forbidden full transcript")
     if _redact_sensitive_content(text) != text:
@@ -497,7 +510,9 @@ def _redact_sensitive_content(text: str) -> str:
     )
     text = re.sub(
         r"(?i)\b(password|passwd|api[_ -]?key|access[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|secret)\s*([:=])\s*(?!\[REDACTED:)[^\s`,;]+",
-        lambda match: f"{match.group(1)}{match.group(2)}{REDACTION_MARKERS['credential']}",
+        lambda match: (
+            f"{match.group(1)}{match.group(2)}{REDACTION_MARKERS['credential']}"
+        ),
         text,
     )
     text = re.sub(
@@ -531,17 +546,14 @@ def _snapshot_rows(text: str) -> dict[str, dict[str, str]]:
             item_id = _field(row, "ID")
             if item_id:
                 rows[item_id] = {
-                    key.strip().casefold(): value.strip()
-                    for key, value in row.items()
+                    key.strip().casefold(): value.strip() for key, value in row.items()
                 }
     return rows
 
 
 def _discussion_rows(text: str) -> dict[str, dict[str, str]]:
     section = _sections(text).get("discussion context", "")
-    matches = list(
-        re.finditer(r"(?m)^###\s+(DISC-\d{3})(?::\s+(.+?))?\s*$", section)
-    )
+    matches = list(re.finditer(r"(?m)^###\s+(DISC-\d{3})(?::\s+(.+?))?\s*$", section))
     rows: dict[str, dict[str, str]] = {}
     for index, match in enumerate(matches):
         end = matches[index + 1].start() if index + 1 < len(matches) else len(section)
@@ -702,7 +714,8 @@ def _append_journal_event(
         "snapshot_hash": snapshot_hash,
         "previous_event_hash": events[-1]["event_hash"] if events else None,
         "continuity": continuity,
-        "delta": delta or {
+        "delta": delta
+        or {
             "added_ids": [],
             "changed_ids": [],
             "removed_ids": [],
@@ -795,7 +808,9 @@ def _migrate_legacy_bundle(
         return failure("legacy working ID is invalid")
     legacy_journal = legacy_snapshot.with_name(LEGACY_WORKING_JOURNAL)
     source_snapshot_bytes = legacy_snapshot.read_bytes()
-    source_journal_bytes = legacy_journal.read_bytes() if legacy_journal.is_file() else None
+    source_journal_bytes = (
+        legacy_journal.read_bytes() if legacy_journal.is_file() else None
+    )
     source_text = legacy_snapshot.read_text(encoding="utf-8")
     metadata, metadata_errors = _metadata(source_text)
     if metadata_errors or metadata.get("working_id") != legacy_id:
@@ -829,9 +844,7 @@ def _migrate_legacy_bundle(
     snapshot_hash = _sha256_text(rendered)
     for index, source_event in enumerate(events):
         event = {
-            key: value
-            for key, value in source_event.items()
-            if key != "event_hash"
+            key: value for key, value in source_event.items() if key != "event_hash"
         }
         event["working_id"] = new_id
         event["previous_event_hash"] = previous_event_hash
@@ -843,8 +856,12 @@ def _migrate_legacy_bundle(
     journal_text = "".join(_normalized_json(event) + "\n" for event in rewritten_events)
     destination_snapshot.parent.mkdir(parents=True, exist_ok=True)
     token = uuid.uuid4().hex
-    temporary_snapshot = destination_snapshot.with_name(f".{destination_snapshot.name}.{token}.tmp")
-    temporary_journal = destination_journal.with_name(f".{destination_journal.name}.{token}.tmp")
+    temporary_snapshot = destination_snapshot.with_name(
+        f".{destination_snapshot.name}.{token}.tmp"
+    )
+    temporary_journal = destination_journal.with_name(
+        f".{destination_journal.name}.{token}.tmp"
+    )
     try:
         temporary_snapshot.write_text(rendered, encoding="utf-8", newline="\n")
         temporary_journal.write_text(journal_text, encoding="utf-8", newline="\n")
@@ -852,7 +869,10 @@ def _migrate_legacy_bundle(
         if (
             _working_structure_errors(temporary_snapshot.read_text(encoding="utf-8"))
             or (rewritten_events and migrated_continuity != "continuous")
-            or (migrated_events and migrated_events[-1].get("snapshot_hash") != snapshot_hash)
+            or (
+                migrated_events
+                and migrated_events[-1].get("snapshot_hash") != snapshot_hash
+            )
         ):
             raise ValueError("migrated working specification verification failed")
         os.replace(temporary_journal, destination_journal)
@@ -861,9 +881,10 @@ def _migrate_legacy_bundle(
         except OSError:
             destination_journal.unlink(missing_ok=True)
             raise
-        if (
-            _working_structure_errors(destination_snapshot.read_text(encoding="utf-8"))
-            or _read_journal(destination_journal)[1] != ("continuous" if rewritten_events else "unavailable")
+        if _working_structure_errors(
+            destination_snapshot.read_text(encoding="utf-8")
+        ) or _read_journal(destination_journal)[1] != (
+            "continuous" if rewritten_events else "unavailable"
         ):
             raise ValueError("published working specification verification failed")
         legacy_snapshot.unlink()
@@ -938,13 +959,14 @@ def resolve_working_bundle(
     invalid = [row for row in candidates if row.get("state") == "invalid"]
     valid = [row for row in candidates if row.get("state") != "invalid"]
 
-    def result(state: str, matches: list[dict[str, Any]], reason: str) -> dict[str, Any]:
+    def result(
+        state: str, matches: list[dict[str, Any]], reason: str
+    ) -> dict[str, Any]:
         return {
             "state": state,
             "working_spec": matches[0] if len(matches) == 1 else None,
             "candidates": [
-                row.get("snapshot_path") or row.get("working_id")
-                for row in matches
+                row.get("snapshot_path") or row.get("working_id") for row in matches
             ],
             "reason": reason,
         }
@@ -965,8 +987,10 @@ def resolve_working_bundle(
                 row
                 for row in invalid
                 if str(row.get("working_id", "")).casefold() in {original, normalized}
-                or str(row.get("logical_working_id", "")).casefold() in {original, normalized}
-                or str(row.get("snapshot_path", "")).casefold() in {original, normalized}
+                or str(row.get("logical_working_id", "")).casefold()
+                in {original, normalized}
+                or str(row.get("snapshot_path", "")).casefold()
+                in {original, normalized}
             ]
             if invalid_matches:
                 errors = sorted(
@@ -984,7 +1008,9 @@ def resolve_working_bundle(
         return result(
             "working" if len(matches) == 1 else "invalid",
             matches,
-            "explicit working reference" if matches else "explicit working reference does not exist",
+            "explicit working reference"
+            if matches
+            else "explicit working reference does not exist",
         )
     if task_ref:
         matches = [row for row in valid if row.get("task_ref") == task_ref]
@@ -1005,7 +1031,11 @@ def resolve_working_bundle(
     if len(valid) == 1:
         return result("working", valid, "unique working fallback")
     if len(valid) > 1:
-        return result("ambiguous", valid, "multiple working specifications require an explicit reference")
+        return result(
+            "ambiguous",
+            valid,
+            "multiple working specifications require an explicit reference",
+        )
     if invalid:
         return result("invalid", invalid, "working specification is malformed")
     return result("absent", [], "no working specification exists")
@@ -1031,13 +1061,18 @@ def start_working_bundle(
         return {
             "verdict": "BLOCKED",
             "reason": "working specification discovery or migration failed",
-            "errors": sorted({error for row in invalid for error in row.get("errors", [])}),
+            "errors": sorted(
+                {error for row in invalid for error in row.get("errors", [])}
+            ),
         }
     matching = [row for row in discovered if row.get("change_set") == slug]
     if len(matching) == 1:
         return {"verdict": "PASS", "working_spec": matching[0], "created": False}
     if len(matching) > 1:
-        return {"verdict": "BLOCKED", "reason": "multiple working specifications match change set"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "multiple working specifications match change set",
+        }
     working_id = working_id or f"WORKING-SPEC-{uuid.uuid4().hex[:12]}-{slug}"
     if not WORKING_ID_RE.fullmatch(working_id):
         return {"verdict": "BLOCKED", "reason": "invalid working ID"}
@@ -1047,20 +1082,32 @@ def start_working_bundle(
         return {"verdict": "PASS", "working_spec": reference, "created": False}
     metadata, metadata_errors = _metadata(text)
     if metadata_errors:
-        return {"verdict": "BLOCKED", "reason": "invalid working snapshot", "errors": metadata_errors}
-    rendered = _redact_sensitive_content(_replace_metadata(
-        text,
-        spec_id=metadata.get("spec_id", "SPEC-0000") if preserve_spec_identity else "SPEC-0000",
-        revision=1 if not preserve_spec_identity else metadata.get("revision", "1"),
-        status="working",
-        change_set=slug,
-        working_id=working_id,
-        task_ref=task_ref,
-        branch_ref=branch,
-    ))
+        return {
+            "verdict": "BLOCKED",
+            "reason": "invalid working snapshot",
+            "errors": metadata_errors,
+        }
+    rendered = _redact_sensitive_content(
+        _replace_metadata(
+            text,
+            spec_id=metadata.get("spec_id", "SPEC-0000")
+            if preserve_spec_identity
+            else "SPEC-0000",
+            revision=1 if not preserve_spec_identity else metadata.get("revision", "1"),
+            status="working",
+            change_set=slug,
+            working_id=working_id,
+            task_ref=task_ref,
+            branch_ref=branch,
+        )
+    )
     errors = _working_structure_errors(rendered)
     if errors:
-        return {"verdict": "BLOCKED", "reason": "invalid working snapshot", "errors": errors}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "invalid working snapshot",
+            "errors": errors,
+        }
     _atomic_write(snapshot_path, rendered)
     snapshot_hash = _sha256_text(rendered)
     initial_consistency = _snapshot_consistency(rendered, rendered)
@@ -1095,7 +1142,10 @@ def reconcile_working_bundle(
     expected_hash: str,
 ) -> dict[str, Any]:
     """Persist a complete next snapshot with optimistic revision/hash checks."""
-    if not (WORKING_ID_RE.fullmatch(working_id) or LEGACY_WORKING_ID_RE.fullmatch(working_id)):
+    if not (
+        WORKING_ID_RE.fullmatch(working_id)
+        or LEGACY_WORKING_ID_RE.fullmatch(working_id)
+    ):
         return {"verdict": "BLOCKED", "reason": "invalid working ID"}
     resolved = resolve_working_bundle(project_root, reference=working_id)
     if resolved["state"] != "working":
@@ -1112,21 +1162,29 @@ def reconcile_working_bundle(
         return {
             "verdict": "BLOCKED",
             "reason": "stale working specification",
-            "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+            "working_spec": _working_reference(
+                project_root, snapshot_path, journal_path
+            ),
         }
-    rendered = _redact_sensitive_content(_replace_metadata(
-        next_snapshot,
-        spec_id=metadata.get("spec_id"),
-        revision=current_revision + 1,
-        status="working",
-        change_set=metadata.get("change_set"),
-        working_id=working_id,
-        task_ref=metadata.get("task_ref") or None,
-        branch_ref=metadata.get("branch_ref") or None,
-    ))
+    rendered = _redact_sensitive_content(
+        _replace_metadata(
+            next_snapshot,
+            spec_id=metadata.get("spec_id"),
+            revision=current_revision + 1,
+            status="working",
+            change_set=metadata.get("change_set"),
+            working_id=working_id,
+            task_ref=metadata.get("task_ref") or None,
+            branch_ref=metadata.get("branch_ref") or None,
+        )
+    )
     errors = _working_structure_errors(rendered)
     if errors:
-        return {"verdict": "BLOCKED", "reason": "invalid next working snapshot", "errors": errors}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "invalid next working snapshot",
+            "errors": errors,
+        }
     if metadata.get("spec_id") != "SPEC-0000":
         replacement_errors = _confirmed_decision_replacement_errors(current, rendered)
         if replacement_errors:
@@ -1258,7 +1316,11 @@ def materialize_spec(
 ) -> dict[str, Any]:
     """Write one decision-complete canonical spec without product authorization."""
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
-        return {"verdict": "BLOCKED", "reason": "invalid change-set slug", "canonical_spec": None}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "invalid change-set slug",
+            "canonical_spec": None,
+        }
     spec_id = _next_spec_id(project_root)
     rendered = re.sub(
         r"(?m)^spec_id:\s*SPEC-\d{4}\s*$",
@@ -1312,7 +1374,10 @@ def materialize_working_bundle(
     expected_hash: str,
 ) -> dict[str, Any]:
     """Confirm a decision-complete bundle, creating or updating its canonical spec."""
-    if not (WORKING_ID_RE.fullmatch(working_id) or LEGACY_WORKING_ID_RE.fullmatch(working_id)):
+    if not (
+        WORKING_ID_RE.fullmatch(working_id)
+        or LEGACY_WORKING_ID_RE.fullmatch(working_id)
+    ):
         return {"verdict": "BLOCKED", "reason": "invalid working ID"}
     resolved = resolve_working_bundle(project_root, reference=working_id)
     if resolved["state"] != "working":
@@ -1329,7 +1394,9 @@ def materialize_working_bundle(
         return {
             "verdict": "BLOCKED",
             "reason": "stale working specification",
-            "working_spec": _working_reference(project_root, snapshot_path, journal_path),
+            "working_spec": _working_reference(
+                project_root, snapshot_path, journal_path
+            ),
         }
     rendered = _replace_metadata(
         current,
@@ -1363,7 +1430,10 @@ def materialize_working_bundle(
     if existing:
         existing_metadata, _ = _metadata(destination.read_text(encoding="utf-8"))
         if existing_metadata.get("status") == "implemented":
-            return {"verdict": "BLOCKED", "reason": "implemented specification cannot reopen"}
+            return {
+                "verdict": "BLOCKED",
+                "reason": "implemented specification cannot reopen",
+            }
     events, _ = _read_journal(journal_path)
     baseline_hash = next(
         (
@@ -1373,7 +1443,9 @@ def materialize_working_bundle(
         ),
         None,
     )
-    actual_delta = baseline_hash is not None and baseline_hash != _contract_hash(rendered)
+    actual_delta = baseline_hash is not None and baseline_hash != _contract_hash(
+        rendered
+    )
     _atomic_write(destination, rendered)
     working_rendered = _replace_metadata(
         rendered,
@@ -1417,21 +1489,40 @@ def reopen_spec(
     """Reopen a confirmed unimplemented canonical spec before clarification."""
     path = spec_path if spec_path.is_absolute() else project_root / spec_path
     if not path.is_file():
-        return {"verdict": "BLOCKED", "reason": "canonical specification does not exist"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical specification does not exist",
+        }
     try:
         relative = path.resolve().relative_to(project_root.resolve())
     except ValueError:
-        return {"verdict": "BLOCKED", "reason": "canonical specification is outside the project"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical specification is outside the project",
+        }
     if relative.parent.as_posix().casefold() != "specs":
-        return {"verdict": "BLOCKED", "reason": "canonical specification must be directly under specs/"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical specification must be directly under specs/",
+        }
     text = path.read_text(encoding="utf-8")
     metadata, errors = _metadata(text)
     if errors:
-        return {"verdict": "BLOCKED", "reason": "canonical metadata is invalid", "errors": errors}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical metadata is invalid",
+            "errors": errors,
+        }
     if metadata.get("status") == "implemented":
-        return {"verdict": "BLOCKED", "reason": "implemented specification cannot reopen"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "implemented specification cannot reopen",
+        }
     if metadata.get("status") != "confirmed":
-        return {"verdict": "BLOCKED", "reason": "only confirmed specifications can reopen"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "only confirmed specifications can reopen",
+        }
     identity_errors = _canonical_identity_errors(project_root, path, text)
     if identity_errors:
         return {
@@ -1492,7 +1583,9 @@ def prepare_commit(
         return {
             "verdict": "BLOCKED",
             "reason": "working specification discovery or migration failed",
-            "errors": sorted({error for row in invalid for error in row.get("errors", [])}),
+            "errors": sorted(
+                {error for row in invalid for error in row.get("errors", [])}
+            ),
         }
     bundles = sorted(
         row["snapshot_path"] for row in discovered if row.get("snapshot_path")
@@ -1500,7 +1593,14 @@ def prepare_commit(
     if tracked_paths is None or staged_paths is None:
         try:
             tracked = subprocess.run(
-                ["git", "-C", str(project_root), "ls-files", "--", WORKING_ROOT.as_posix()],
+                [
+                    "git",
+                    "-C",
+                    str(project_root),
+                    "ls-files",
+                    "--",
+                    WORKING_ROOT.as_posix(),
+                ],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -1611,10 +1711,7 @@ def resolve_spec_context(
         if path.is_file()
     ]
     known_spec_ids = _repository_spec_ids(project_root)
-    records = [
-        _candidate_record(project_root, path, known_spec_ids)
-        for path in paths
-    ]
+    records = [_candidate_record(project_root, path, known_spec_ids) for path in paths]
 
     def response(
         state: str,
@@ -1632,12 +1729,20 @@ def resolve_spec_context(
     explicit = CANONICAL_PATH_RE.search(prompt)
     if explicit:
         wanted = explicit.group("path").replace("\\", "/").casefold()
-        selected = next((row for row in records if row["path"].casefold() == wanted), None)
+        selected = next(
+            (row for row in records if row["path"].casefold() == wanted), None
+        )
         if selected is None:
-            return response("invalid", None, records, "explicit canonical path does not exist")
+            return response(
+                "invalid", None, records, "explicit canonical path does not exist"
+            )
         if selected["assessment"]["verdict"] != "PASS":
-            return response("invalid", selected, [selected], "explicit canonical spec is invalid")
-        return response(selected["status"], selected, [selected], "explicit canonical path")
+            return response(
+                "invalid", selected, [selected], "explicit canonical spec is invalid"
+            )
+        return response(
+            selected["status"], selected, [selected], "explicit canonical path"
+        )
 
     confirmed = [
         row
@@ -1646,26 +1751,42 @@ def resolve_spec_context(
     ]
     if tracker_path:
         wanted = tracker_path.replace("\\", "/").casefold()
-        selected = next((row for row in records if row["path"].casefold() == wanted), None)
+        selected = next(
+            (row for row in records if row["path"].casefold() == wanted), None
+        )
         if selected is None:
-            return response("invalid", None, records, "tracker canonical path does not exist")
+            return response(
+                "invalid", None, records, "tracker canonical path does not exist"
+            )
         if selected["assessment"]["verdict"] != "PASS":
-            return response("invalid", selected, [selected], "tracker canonical spec is invalid")
-        return response(selected["status"], selected, [selected], "tracker canonical path")
+            return response(
+                "invalid", selected, [selected], "tracker canonical spec is invalid"
+            )
+        return response(
+            selected["status"], selected, [selected], "tracker canonical path"
+        )
     if branch:
         normalized_branch = branch.casefold().replace("_", "-")
         matches = [row for row in confirmed if row["slug"] in normalized_branch]
         if len(matches) == 1:
             return response("confirmed", matches[0], matches, "branch name match")
         if len(matches) > 1:
-            return response("ambiguous", None, matches, "multiple branch-matched specifications")
+            return response(
+                "ambiguous", None, matches, "multiple branch-matched specifications"
+            )
     if len(confirmed) == 1:
-        return response("confirmed", confirmed[0], confirmed, "unique confirmed specification")
+        return response(
+            "confirmed", confirmed[0], confirmed, "unique confirmed specification"
+        )
     if len(confirmed) > 1:
-        return response("ambiguous", None, confirmed, "multiple confirmed specifications")
+        return response(
+            "ambiguous", None, confirmed, "multiple confirmed specifications"
+        )
     invalid = [row for row in records if row["assessment"]["verdict"] != "PASS"]
     if invalid:
-        return response("invalid", None, invalid, "repository contains invalid specifications")
+        return response(
+            "invalid", None, invalid, "repository contains invalid specifications"
+        )
     return response("none", None, [], "no active confirmed specification")
 
 
@@ -1693,7 +1814,9 @@ def verify_spec(
         assessment["verdict"] = "BLOCKED"
         assessment["traceability"]["verdict"] = "BLOCKED"
     if unauthorized_scope:
-        assessment["errors"].append("implementation contains behavior outside canonical scope")
+        assessment["errors"].append(
+            "implementation contains behavior outside canonical scope"
+        )
         assessment["verdict"] = "BLOCKED"
         assessment["traceability"]["verdict"] = "BLOCKED"
         assessment["traceability"]["scope_creep"] = unauthorized_scope
@@ -1749,7 +1872,10 @@ def mark_spec_implemented(
     if not spec_review_passed:
         return {"verdict": "BLOCKED", "reason": "Spec review has not passed"}
     if spec_path.parent.name.casefold() != "specs":
-        return {"verdict": "BLOCKED", "reason": "canonical spec must be directly under specs/"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical spec must be directly under specs/",
+        }
     text = spec_path.read_text(encoding="utf-8")
     project_root = spec_path.parent.parent
     known_spec_ids = _repository_spec_ids(project_root)
@@ -1758,8 +1884,14 @@ def mark_spec_implemented(
         current,
         _canonical_identity_errors(project_root, spec_path, text),
     )
-    if current["verdict"] != "PASS" or current["canonical_spec"]["status"] != "confirmed":
-        return {"verdict": "BLOCKED", "reason": "canonical spec is not confirmed and valid"}
+    if (
+        current["verdict"] != "PASS"
+        or current["canonical_spec"]["status"] != "confirmed"
+    ):
+        return {
+            "verdict": "BLOCKED",
+            "reason": "canonical spec is not confirmed and valid",
+        }
 
     sections = _sections(text)
     acceptance = _table(sections.get("acceptance criteria", ""))
@@ -1768,7 +1900,10 @@ def mark_spec_implemented(
         not evidence.casefold().startswith("pass")
         for evidence in evidence_by_ac.values()
     ):
-        return {"verdict": "BLOCKED", "reason": "every AC requires actual PASS evidence"}
+        return {
+            "verdict": "BLOCKED",
+            "reason": "every AC requires actual PASS evidence",
+        }
 
     lines = text.splitlines()
     in_acceptance = False
@@ -1786,7 +1921,9 @@ def mark_spec_implemented(
             lines[index] = "| " + " | ".join(cells) + " |"
 
     rendered = "\n".join(lines) + ("\n" if text.endswith("\n") else "")
-    rendered = re.sub(r"(?m)^status:\s*confirmed\s*$", "status: implemented", rendered, count=1)
+    rendered = re.sub(
+        r"(?m)^status:\s*confirmed\s*$", "status: implemented", rendered, count=1
+    )
     revision = int(current["canonical_spec"]["revision"])
     rendered = re.sub(
         r"(?m)^revision:\s*\d+\s*$",
@@ -1809,7 +1946,10 @@ def mark_spec_implemented(
             if rendered_lines[index].startswith("## "):
                 insert_at = index
                 break
-        while insert_at > revision_heading + 1 and not rendered_lines[insert_at - 1].strip():
+        while (
+            insert_at > revision_heading + 1
+            and not rendered_lines[insert_at - 1].strip()
+        ):
             insert_at -= 1
         rendered_lines.insert(
             insert_at,
@@ -1967,7 +2107,12 @@ def main() -> int:
             disposition=args.disposition,
         )
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
-    return 0 if result.get("verdict", "PASS") == "PASS" and result.get("state") not in {"ambiguous", "invalid"} else 2
+    return (
+        0
+        if result.get("verdict", "PASS") == "PASS"
+        and result.get("state") not in {"ambiguous", "invalid"}
+        else 2
+    )
 
 
 if __name__ == "__main__":

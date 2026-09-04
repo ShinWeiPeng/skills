@@ -129,7 +129,9 @@ def _task_cost(
     ):
         value = overheads.get(field)
         if not _nonnegative_int(value):
-            problems.append(f"{profile.get('id')}.overheads.{field} must be nonnegative")
+            problems.append(
+                f"{profile.get('id')}.overheads.{field} must be nonnegative"
+            )
         else:
             fixed_overhead += value
     return demand + fixed_overhead + channel_costs.get(task_id, 0)
@@ -146,13 +148,17 @@ def _task_fingerprint(
             continue
         task = unit.get("realtime_task", {})
         activation = task.get("activation", {}) if isinstance(task, dict) else {}
-        mappings = tuple(
-            sorted(
-                str(item.get("mapping"))
-                for item in task.get("demand_components", [])
-                if isinstance(item, dict)
+        mappings = (
+            tuple(
+                sorted(
+                    str(item.get("mapping"))
+                    for item in task.get("demand_components", [])
+                    if isinstance(item, dict)
+                )
             )
-        ) if isinstance(task, dict) else ()
+            if isinstance(task, dict)
+            else ()
+        )
         task_rows.append(
             (
                 mappings,
@@ -271,15 +277,11 @@ def analyze_realtime_profile(
             f"{profile_id}.scheduler.priority_higher_value_wins must be boolean"
         )
     if not _positive_int(scheduler.get("timer_resolution_ns")):
-        problems.append(
-            f"{profile_id}.scheduler.timer_resolution_ns must be positive"
-        )
-    if not isinstance(scheduler.get("resource_access_protocol"), str) or not scheduler.get(
-        "resource_access_protocol"
-    ):
-        problems.append(
-            f"{profile_id}.scheduler.resource_access_protocol is required"
-        )
+        problems.append(f"{profile_id}.scheduler.timer_resolution_ns must be positive")
+    if not isinstance(
+        scheduler.get("resource_access_protocol"), str
+    ) or not scheduler.get("resource_access_protocol"):
+        problems.append(f"{profile_id}.scheduler.resource_access_protocol is required")
     scheduler_compatible = not problems
 
     channel_costs: dict[str, int] = {}
@@ -353,12 +355,18 @@ def analyze_realtime_profile(
         wcet = isr.get("wcet_ns")
         period = isr.get("minimum_interarrival_ns")
         jitter = isr.get("release_jitter_ns")
-        if not isinstance(core, int) or isinstance(core, bool) or not 0 <= core < core_count:
+        if (
+            not isinstance(core, int)
+            or isinstance(core, bool)
+            or not 0 <= core < core_count
+        ):
             problems.append(
                 f"{unit_id}.interrupt_interference.core must select an available core"
             )
         if not _positive_int(wcet):
-            problems.append(f"{unit_id}.interrupt_interference.wcet_ns must be positive")
+            problems.append(
+                f"{unit_id}.interrupt_interference.wcet_ns must be positive"
+            )
         if not _positive_int(period):
             problems.append(
                 f"{unit_id}.interrupt_interference.minimum_interarrival_ns must be positive"
@@ -394,8 +402,14 @@ def analyze_realtime_profile(
             problems.append(f"{unit_id}.realtime_task must be a mapping")
             continue
         core = task.get("core")
-        if not isinstance(core, int) or isinstance(core, bool) or not 0 <= core < core_count:
-            problems.append(f"{unit_id}.realtime_task.core must select an available core")
+        if (
+            not isinstance(core, int)
+            or isinstance(core, bool)
+            or not 0 <= core < core_count
+        ):
+            problems.append(
+                f"{unit_id}.realtime_task.core must select an available core"
+            )
         period = _effective_period(task)
         if period is None:
             problems.append(f"{unit_id}.realtime_task.activation is not analyzable")
@@ -427,9 +441,10 @@ def analyze_realtime_profile(
             if not isinstance(component, dict):
                 continue
             mapping_id = component.get("mapping")
-            if mapping_id not in mappings or mappings.get(mapping_id, {}).get(
-                "profile"
-            ) != profile_id:
+            if (
+                mapping_id not in mappings
+                or mappings.get(mapping_id, {}).get("profile") != profile_id
+            ):
                 problems.append(
                     f"{unit_id} demand component references unknown profile mapping "
                     f"{mapping_id!r}"
@@ -505,9 +520,7 @@ def analyze_realtime_profile(
     ordered_tasks_by_core: dict[int, list[dict[str, Any]]] = {}
     for core in range(core_count):
         ordered = [row for row in task_rows.values() if row["core"] == core]
-        ordered.sort(
-            key=lambda row: (row["period_ns"], row["deadline_ns"], row["id"])
-        )
+        ordered.sort(key=lambda row: (row["period_ns"], row["deadline_ns"], row["id"]))
         ordered_tasks_by_core[core] = ordered
         priorities = [row["priority"] for row in ordered]
         if all(
@@ -569,7 +582,9 @@ def analyze_realtime_profile(
             "liu_layland_bound": sufficient_bound,
             "sufficient_bound_pass": (
                 not core_interrupts and float(utilization) <= sufficient_bound
-            ) if n else not core_interrupts,
+            )
+            if n
+            else not core_interrupts,
         }
         for index, row in enumerate(core_tasks):
             higher = core_tasks[:index]
@@ -612,10 +627,7 @@ def analyze_realtime_profile(
             worst_response = 0
             response_converged = True
             for job_index in range(jobs):
-                window = (
-                    row["blocking_ns"]
-                    + (job_index + 1) * row["execution_ns"]
-                )
+                window = row["blocking_ns"] + (job_index + 1) * row["execution_ns"]
                 converged = False
                 for _ in range(max_iterations):
                     interference = sum(
@@ -712,9 +724,10 @@ def analyze_realtime_profile(
                 problems.append(f"{chain_id} references unknown channel {channel_id!r}")
                 valid = False
                 continue
-            if channel.get("from_unit") != ordered_units[index] or channel.get(
-                "to_unit"
-            ) != ordered_units[index + 1]:
+            if (
+                channel.get("from_unit") != ordered_units[index]
+                or channel.get("to_unit") != ordered_units[index + 1]
+            ):
                 problems.append(
                     f"{chain_id} channel {channel_id!r} does not connect adjacent tasks"
                 )

@@ -59,17 +59,27 @@ REQUIRED_INSTALLER_PATHS = (
 )
 
 
-def compatibility_dependency_errors(entries: dict, skills: dict[str, Path]) -> list[str]:
+def compatibility_dependency_errors(
+    entries: dict, skills: dict[str, Path]
+) -> list[str]:
     errors: list[str] = []
     for name, entry in entries.items():
         dependencies = entry.get("host_dependencies")
         if not isinstance(dependencies, list):
             errors.append(f"{name}: host_dependencies must be a list")
     for name, markers in MANDATORY_CAPABILITY_EVIDENCE.items():
-        skill_text = (skills[name] / "SKILL.md").read_text(encoding="utf-8", errors="ignore")
-        missing = [marker for marker in markers if marker.casefold() not in skill_text.casefold()]
+        skill_text = (skills[name] / "SKILL.md").read_text(
+            encoding="utf-8", errors="ignore"
+        )
+        missing = [
+            marker
+            for marker in markers
+            if marker.casefold() not in skill_text.casefold()
+        ]
         if missing:
-            errors.append(f"{name}: mandatory capability evidence changed; missing markers {missing}")
+            errors.append(
+                f"{name}: mandatory capability evidence changed; missing markers {missing}"
+            )
     return errors
 
 
@@ -108,7 +118,9 @@ def validate(repo_root: Path) -> list[str]:
         claude_manifest = _load_json(claude_manifest_path)
         declared = {Path(value).name for value in claude_manifest["skills"]}
         if declared != set(skills) or len(claude_manifest["skills"]) != len(skills):
-            errors.append("Claude Plugin manifest does not list exactly the promoted Skills")
+            errors.append(
+                "Claude Plugin manifest does not list exactly the promoted Skills"
+            )
     except (OSError, KeyError, json.JSONDecodeError) as exc:
         errors.append(f"invalid Claude Plugin manifest: {exc}")
 
@@ -118,7 +130,9 @@ def validate(repo_root: Path) -> list[str]:
         expected_link = f"./skills/{bucket}/{name}/SKILL.md"
         if expected_link not in root_readme:
             errors.append(f"root README is missing promoted Skill link: {name}")
-        bucket_readme = (root.parent / "README.md").read_text(encoding="utf-8", errors="ignore")
+        bucket_readme = (root.parent / "README.md").read_text(
+            encoding="utf-8", errors="ignore"
+        )
         if f"./{name}/SKILL.md" not in bucket_readme:
             errors.append(f"{bucket} README is missing promoted Skill link: {name}")
         if not (repo_root / "docs" / bucket / f"{name}.md").is_file():
@@ -129,18 +143,30 @@ def validate(repo_root: Path) -> list[str]:
         compatibility = _load_json(compatibility_path)
         entries = compatibility["skills"]
         if set(entries) != set(skills):
-            errors.append("compatibility inventory does not exactly match promoted skills")
-        classifications = {name: entry.get("classification") for name, entry in entries.items()}
-        invalid = {name: value for name, value in classifications.items() if value not in {"codex-compatible", "blocked"}}
+            errors.append(
+                "compatibility inventory does not exactly match promoted skills"
+            )
+        classifications = {
+            name: entry.get("classification") for name, entry in entries.items()
+        }
+        invalid = {
+            name: value
+            for name, value in classifications.items()
+            if value not in {"codex-compatible", "blocked"}
+        }
         if invalid:
             errors.append(f"invalid compatibility classifications: {invalid}")
         for name, entry in entries.items():
             if not isinstance(entry.get("reason"), str) or not entry["reason"].strip():
                 errors.append(f"{name}: compatibility reason is required")
         errors.extend(compatibility_dependency_errors(entries, skills))
-        blocked = sorted(name for name, value in classifications.items() if value == "blocked")
+        blocked = sorted(
+            name for name, value in classifications.items() if value == "blocked"
+        )
         if blocked:
-            errors.append("release-blocked compatibility entries: " + ", ".join(blocked))
+            errors.append(
+                "release-blocked compatibility entries: " + ", ".join(blocked)
+            )
         representatives = compatibility["representative_invocations"]
         for bucket in ("engineering", "productivity"):
             name = representatives.get(bucket)
@@ -153,14 +179,27 @@ def validate(repo_root: Path) -> list[str]:
     try:
         marketplace = _load_json(marketplace_path)
         if marketplace.get("name") != DEVELOPMENT_MARKETPLACE_NAME:
-            errors.append(f"source Marketplace name must be {DEVELOPMENT_MARKETPLACE_NAME}")
-        entries = [entry for entry in marketplace["plugins"] if entry.get("name") == PLUGIN_NAME]
+            errors.append(
+                f"source Marketplace name must be {DEVELOPMENT_MARKETPLACE_NAME}"
+            )
+        entries = [
+            entry
+            for entry in marketplace["plugins"]
+            if entry.get("name") == PLUGIN_NAME
+        ]
         if len(entries) != 1:
-            errors.append("manual maintainer Marketplace must contain exactly one governed plugin")
+            errors.append(
+                "manual maintainer Marketplace must contain exactly one governed plugin"
+            )
         else:
             source = entries[0].get("source", {})
-            if source != {"source": "local", "path": "./dist/governed-engineering-skills"}:
-                errors.append("manual maintainer Marketplace must target the assembled Plugin artifact")
+            if source != {
+                "source": "local",
+                "path": "./dist/governed-engineering-skills",
+            }:
+                errors.append(
+                    "manual maintainer Marketplace must target the assembled Plugin artifact"
+                )
     except (OSError, KeyError, json.JSONDecodeError) as exc:
         errors.append(f"invalid manual maintainer Marketplace: {exc}")
 
@@ -180,11 +219,17 @@ def validate(repo_root: Path) -> list[str]:
         r"(?i)(administrator-approved private Workspace|Workspace administrator)"
     )
     for path in user_docs:
-        if path.is_file() and forbidden.search(path.read_text(encoding="utf-8", errors="ignore")):
-            errors.append(f"user-facing document advertises an unsupported Workspace installation: {path.relative_to(repo_root)}")
+        if path.is_file() and forbidden.search(
+            path.read_text(encoding="utf-8", errors="ignore")
+        ):
+            errors.append(
+                f"user-facing document advertises an unsupported Workspace installation: {path.relative_to(repo_root)}"
+            )
 
     try:
-        with tempfile.TemporaryDirectory(prefix="distribution-validation-") as temporary:
+        with tempfile.TemporaryDirectory(
+            prefix="distribution-validation-"
+        ) as temporary:
             artifact = Path(temporary) / PLUGIN_NAME
             result = assemble(repo_root, artifact)
             validate_artifact(repo_root, artifact)
@@ -198,10 +243,16 @@ def validate(repo_root: Path) -> list[str]:
                 previous_publication_commit="none:first-publication",
             )
             payload = _load_json(record)
-            schema = _load_json(repo_root / "distribution" / "personal-marketplace-publication.schema.json")
+            schema = _load_json(
+                repo_root
+                / "distribution"
+                / "personal-marketplace-publication.schema.json"
+            )
             validate_marketplace_publication(publication_root, payload, schema)
             if payload.get("channel") != "personal-git-marketplace":
-                errors.append("Marketplace publication does not identify the personal Git channel")
+                errors.append(
+                    "Marketplace publication does not identify the personal Git channel"
+                )
     except Exception as exc:  # report all bounded assembly failures together
         errors.append(f"assembly validation failed: {exc}")
     return errors
@@ -209,13 +260,17 @@ def validate(repo_root: Path) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument(
+        "--repo-root", type=Path, default=Path(__file__).resolve().parents[1]
+    )
     args = parser.parse_args()
     errors = validate(args.repo_root.resolve())
     if errors:
         print("\n".join(f"ERROR: {error}" for error in errors))
         return 1
-    print("PASS: single-source assembly, Codex compatibility inventory, and optional Git Marketplace publication")
+    print(
+        "PASS: single-source assembly, Codex compatibility inventory, and optional Git Marketplace publication"
+    )
     return 0
 
 

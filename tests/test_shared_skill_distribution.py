@@ -45,27 +45,43 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertFalse((PLUGIN_SHELL / "skills").exists())
 
     def test_local_installer_surface_is_complete(self) -> None:
-        self.assertTrue((REPO_ROOT / "Install Governed Engineering Skills.cmd").is_file())
+        self.assertTrue(
+            (REPO_ROOT / "Install Governed Engineering Skills.cmd").is_file()
+        )
         self.assertTrue((REPO_ROOT / "scripts" / "install-local.ps1").is_file())
-        self.assertTrue((REPO_ROOT / "scripts" / "python-runtime-selection.ps1").is_file())
-        self.assertTrue((REPO_ROOT / "scripts" / "python-runtime-selection-policy.ps1").is_file())
-        self.assertTrue((REPO_ROOT / "scripts" / "windows-artifact-access.ps1").is_file())
+        self.assertTrue(
+            (REPO_ROOT / "scripts" / "python-runtime-selection.ps1").is_file()
+        )
+        self.assertTrue(
+            (REPO_ROOT / "scripts" / "python-runtime-selection-policy.ps1").is_file()
+        )
+        self.assertTrue(
+            (REPO_ROOT / "scripts" / "windows-artifact-access.ps1").is_file()
+        )
         self.assertTrue((PLUGIN_SHELL / "scripts" / "install-local.ps1").is_file())
         self.assertTrue((PLUGIN_SHELL / "tests" / "test_install_local.ps1").is_file())
 
-    def test_windows_assembly_staging_inherits_parent_acl_before_replacement(self) -> None:
+    def test_windows_assembly_staging_inherits_parent_acl_before_replacement(
+        self,
+    ) -> None:
         module = load_assembler()
         staging = Path(r"C:\repo\dist\.governed-engineering-skills-staging-test")
         completed = subprocess.CompletedProcess([], 0, stdout="", stderr="")
-        with mock.patch.object(module.sys, "platform", "win32"), mock.patch.object(
-            module.subprocess, "run", return_value=completed
-        ) as run:
+        with (
+            mock.patch.object(module.sys, "platform", "win32"),
+            mock.patch.object(module.subprocess, "run", return_value=completed) as run,
+        ):
             module._normalize_windows_inherited_acl(staging)
         self.assertEqual(2, run.call_count)
         first = run.call_args_list[0].args[0]
         second = run.call_args_list[1].args[0]
-        self.assertEqual(["icacls.exe", str(staging), "/inheritance:e", "/T", "/C", "/Q", "/L"], first)
-        self.assertEqual(["icacls.exe", str(staging), "/reset", "/T", "/C", "/Q", "/L"], second)
+        self.assertEqual(
+            ["icacls.exe", str(staging), "/inheritance:e", "/T", "/C", "/Q", "/L"],
+            first,
+        )
+        self.assertEqual(
+            ["icacls.exe", str(staging), "/reset", "/T", "/C", "/Q", "/L"], second
+        )
 
     def test_formal_architecture_is_repository_scoped(self) -> None:
         manifest = REPO_ROOT / "architecture" / "manifest.yaml"
@@ -75,18 +91,22 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertIn("local_install_adapter", text)
 
     def test_algorithm_records_reference_existing_source_and_test_paths(self) -> None:
-        for record in sorted((REPO_ROOT / "architecture" / "algorithms").glob("ALG-*.md")):
+        for record in sorted(
+            (REPO_ROOT / "architecture" / "algorithms").glob("ALG-*.md")
+        ):
             metadata = record.read_text(encoding="utf-8").split("## Problem", 1)[0]
             referenced_paths = [
                 line.split("`", 2)[1]
                 for line in metadata.splitlines()
-                if "`" in line and ("path" in line.casefold() or line.lstrip().startswith("- `"))
+                if "`" in line
+                and ("path" in line.casefold() or line.lstrip().startswith("- `"))
             ]
             for relative in referenced_paths:
                 self.assertTrue(
                     (REPO_ROOT / relative).exists(),
                     f"{record.name} references a missing source/test path: {relative}",
                 )
+
     def test_all_promoted_skills_have_unique_names(self) -> None:
         names = [
             path.name
@@ -95,19 +115,27 @@ class SharedSkillDistributionTests(unittest.TestCase):
             if path.is_dir()
         ]
         self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(28, len(names))
+        self.assertEqual(29, len(names))
 
     def test_clean_assembly_is_deterministic_and_detects_drift(self) -> None:
         module = load_assembler()
-        with tempfile.TemporaryDirectory() as first_dir, tempfile.TemporaryDirectory() as second_dir:
+        with (
+            tempfile.TemporaryDirectory() as first_dir,
+            tempfile.TemporaryDirectory() as second_dir,
+        ):
             first = Path(first_dir) / "plugin"
             second = Path(second_dir) / "plugin"
             first_result = module.assemble(REPO_ROOT, first)
             second_result = module.assemble(REPO_ROOT, second)
-            self.assertEqual(first_result["content_fingerprint"], second_result["content_fingerprint"])
+            self.assertEqual(
+                first_result["content_fingerprint"],
+                second_result["content_fingerprint"],
+            )
             self.assertEqual(first_result["files"], second_result["files"])
             changed = first / "skills" / "ask-matt" / "SKILL.md"
-            changed.write_text(changed.read_text(encoding="utf-8") + "\ndrift\n", encoding="utf-8")
+            changed.write_text(
+                changed.read_text(encoding="utf-8") + "\ndrift\n", encoding="utf-8"
+            )
             with self.assertRaises(module.DistributionError):
                 module.validate_artifact(REPO_ROOT, first)
 
@@ -133,7 +161,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
             artifact = Path(output_dir) / "plugin"
             first = module.assemble(REPO_ROOT, artifact)
             second = module.assemble(REPO_ROOT, artifact)
-            self.assertEqual(first["content_fingerprint"], second["content_fingerprint"])
+            self.assertEqual(
+                first["content_fingerprint"], second["content_fingerprint"]
+            )
 
     def test_empty_partial_artifact_is_recovered_safely(self) -> None:
         module = load_assembler()
@@ -206,13 +236,19 @@ class SharedSkillDistributionTests(unittest.TestCase):
 
     def test_assembly_removes_claude_only_invocation_metadata(self) -> None:
         module = load_assembler()
-        source = (REPO_ROOT / "skills" / "engineering" / "implement" / "SKILL.md").read_text(encoding="utf-8")
+        source = (
+            REPO_ROOT / "skills" / "engineering" / "implement" / "SKILL.md"
+        ).read_text(encoding="utf-8")
         self.assertIn("disable-model-invocation: true", source)
         with tempfile.TemporaryDirectory() as output_dir:
             artifact = Path(output_dir) / "plugin"
             module.assemble(REPO_ROOT, artifact)
-            assembled = (artifact / "skills" / "implement" / "SKILL.md").read_text(encoding="utf-8")
-            metadata = (artifact / "skills" / "implement" / "agents" / "openai.yaml").read_text(encoding="utf-8")
+            assembled = (artifact / "skills" / "implement" / "SKILL.md").read_text(
+                encoding="utf-8"
+            )
+            metadata = (
+                artifact / "skills" / "implement" / "agents" / "openai.yaml"
+            ).read_text(encoding="utf-8")
             self.assertNotIn("disable-model-invocation", assembled)
             self.assertIn("allow_implicit_invocation: false", metadata)
 
@@ -244,8 +280,13 @@ class SharedSkillDistributionTests(unittest.TestCase):
             payload = json.loads(publication.read_text(encoding="utf-8"))
             self.assertEqual(result["plugin_name"], payload["artifact"]["name"])
             self.assertEqual(result["version"], payload["artifact"]["version"])
-            self.assertEqual(result["content_fingerprint"], payload["artifact"]["content_fingerprint"])
-            self.assertEqual("https://github.com/ShinWeiPeng/skills.git", payload["repository_url"])
+            self.assertEqual(
+                result["content_fingerprint"],
+                payload["artifact"]["content_fingerprint"],
+            )
+            self.assertEqual(
+                "https://github.com/ShinWeiPeng/skills.git", payload["repository_url"]
+            )
             self.assertEqual("marketplace-release", payload["git_ref"])
             self.assertEqual(
                 [".agents/plugins", "plugins/governed-engineering-skills"],
@@ -255,7 +296,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
             self.assertIn("rollback", payload)
             self.assertIn("evidence_checklist", payload)
             catalog = json.loads(
-                (publication_root / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
+                (
+                    publication_root / ".agents" / "plugins" / "marketplace.json"
+                ).read_text(encoding="utf-8")
             )
             self.assertEqual("governed-engineering", catalog["name"])
             self.assertEqual(
@@ -263,19 +306,43 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 catalog["plugins"][0]["source"]["path"],
             )
             self.assertTrue(
-                (publication_root / "plugins" / "governed-engineering-skills" / "artifact-inventory.json").is_file()
+                (
+                    publication_root
+                    / "plugins"
+                    / "governed-engineering-skills"
+                    / "artifact-inventory.json"
+                ).is_file()
             )
-            schema = json.loads((REPO_ROOT / "distribution" / "personal-marketplace-publication.schema.json").read_text(encoding="utf-8"))
+            schema = json.loads(
+                (
+                    REPO_ROOT
+                    / "distribution"
+                    / "personal-marketplace-publication.schema.json"
+                ).read_text(encoding="utf-8")
+            )
             module.validate_marketplace_publication(publication_root, payload, schema)
-            (publication_root / "plugins" / "governed-engineering-skills" / "README.md").write_text(
-                "drift", encoding="utf-8"
-            )
+            (
+                publication_root
+                / "plugins"
+                / "governed-engineering-skills"
+                / "README.md"
+            ).write_text("drift", encoding="utf-8")
             with self.assertRaises(module.DistributionError):
-                module.validate_marketplace_publication(publication_root, payload, schema)
+                module.validate_marketplace_publication(
+                    publication_root, payload, schema
+                )
 
-    def test_marketplace_publication_schema_rejects_malformed_identity_fields(self) -> None:
+    def test_marketplace_publication_schema_rejects_malformed_identity_fields(
+        self,
+    ) -> None:
         module = load_assembler()
-        schema = json.loads((REPO_ROOT / "distribution" / "personal-marketplace-publication.schema.json").read_text(encoding="utf-8"))
+        schema = json.loads(
+            (
+                REPO_ROOT
+                / "distribution"
+                / "personal-marketplace-publication.schema.json"
+            ).read_text(encoding="utf-8")
+        )
         with tempfile.TemporaryDirectory() as output_dir:
             artifact = Path(output_dir) / "plugin"
             result = module.assemble(REPO_ROOT, artifact)
@@ -294,7 +361,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
             payload["git_ref"] = "main"
             payload["sparse_paths"] = ["../outside"]
             with self.assertRaises(module.DistributionError):
-                module.validate_marketplace_publication(publication_root, payload, schema)
+                module.validate_marketplace_publication(
+                    publication_root, payload, schema
+                )
 
     def test_marketplace_publication_is_git_tree_deterministic(self) -> None:
         module = load_assembler()
@@ -313,7 +382,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
                     source_commit="a" * 40,
                     previous_publication_commit="none:first-publication",
                 )
-                subprocess.run(["git", "init", "--quiet"], cwd=publication_root, check=True)
+                subprocess.run(
+                    ["git", "init", "--quiet"], cwd=publication_root, check=True
+                )
                 subprocess.run(["git", "add", "-A"], cwd=publication_root, check=True)
                 tree_ids.append(
                     subprocess.run(
@@ -344,7 +415,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
                     source_commit="a" * 40,
                     previous_publication_commit="none:first-publication",
                 )
-            self.assertEqual("keep", (unrelated / "keep.txt").read_text(encoding="utf-8"))
+            self.assertEqual(
+                "keep", (unrelated / "keep.txt").read_text(encoding="utf-8")
+            )
 
     def test_assembly_refuses_to_replace_an_unrelated_existing_directory(self) -> None:
         module = load_assembler()
@@ -354,7 +427,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
             (unrelated / "keep.txt").write_text("keep", encoding="utf-8")
             with self.assertRaises(module.DistributionError):
                 module.assemble(REPO_ROOT, unrelated)
-            self.assertEqual("keep", (unrelated / "keep.txt").read_text(encoding="utf-8"))
+            self.assertEqual(
+                "keep", (unrelated / "keep.txt").read_text(encoding="utf-8")
+            )
 
     def test_default_output_path_still_requires_artifact_identity(self) -> None:
         module = load_assembler()
@@ -365,7 +440,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
             (default_output / "keep.txt").write_text("keep", encoding="utf-8")
             with self.assertRaises(module.DistributionError):
                 module._assert_replaceable_output(root, default_output)
-            self.assertEqual("keep", (default_output / "keep.txt").read_text(encoding="utf-8"))
+            self.assertEqual(
+                "keep", (default_output / "keep.txt").read_text(encoding="utf-8")
+            )
 
     def test_repository_distribution_validation_passes(self) -> None:
         completed = subprocess.run(
@@ -388,12 +465,16 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertEqual(0, ignored.returncode, ignored.stdout + ignored.stderr)
 
     def test_release_workflow_assembles_before_consuming_the_artifact(self) -> None:
-        workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-        release_job = workflow[workflow.index("\n  release:\n"):]
+        workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(
+            encoding="utf-8"
+        )
+        release_job = workflow[workflow.index("\n  release:\n") :]
         assemble_at = release_job.index("assemble_plugin.py assemble")
         validate_at = release_job.index("assemble_plugin.py validate")
         version_at = release_job.index("version_governance.py")
-        publish_at = release_job.index("Publish the generated personal Marketplace branch")
+        publish_at = release_job.index(
+            "Publish the generated personal Marketplace branch"
+        )
         self.assertLess(assemble_at, validate_at)
         self.assertLess(validate_at, version_at)
         self.assertLess(version_at, publish_at)
@@ -404,12 +485,14 @@ class SharedSkillDistributionTests(unittest.TestCase):
         )
         self.assertIn('git -C "$publication_worktree" add -A', release_job)
         self.assertIn('"$remote_tag_commit" != "$GITHUB_SHA"', release_job)
-        self.assertIn('exit 1', release_job)
+        self.assertIn("exit 1", release_job)
         self.assertNotIn("validate_personal_marketplace_release.py", release_job)
         self.assertNotIn("marketplace-acceptance", release_job)
         self.assertNotIn("Workspace publication", release_job)
 
-    def test_marketplace_publication_can_populate_an_empty_orphan_worktree(self) -> None:
+    def test_marketplace_publication_can_populate_an_empty_orphan_worktree(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             repository = root / "repository"
@@ -425,7 +508,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 )
 
             initialized = run_git("init", "--initial-branch", "main", str(repository))
-            self.assertEqual(0, initialized.returncode, initialized.stdout + initialized.stderr)
+            self.assertEqual(
+                0, initialized.returncode, initialized.stdout + initialized.stderr
+            )
             (repository / "seed.txt").write_text("seed\n", encoding="utf-8")
             staged = run_git("-C", str(repository), "add", "seed.txt")
             self.assertEqual(0, staged.returncode, staged.stdout + staged.stderr)
@@ -440,7 +525,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 "-m",
                 "seed",
             )
-            self.assertEqual(0, committed.returncode, committed.stdout + committed.stderr)
+            self.assertEqual(
+                0, committed.returncode, committed.stdout + committed.stderr
+            )
             detached = run_git(
                 "-C",
                 str(repository),
@@ -481,7 +568,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 / "artifact-inventory.json"
             ).write_text("{}\n", encoding="utf-8")
             published = run_git("-C", str(publication_worktree), "add", "-A")
-            self.assertEqual(0, published.returncode, published.stdout + published.stderr)
+            self.assertEqual(
+                0, published.returncode, published.stdout + published.stderr
+            )
             tracked = run_git("-C", str(publication_worktree), "ls-files")
             self.assertEqual(0, tracked.returncode, tracked.stdout + tracked.stderr)
             self.assertEqual(
@@ -495,15 +584,24 @@ class SharedSkillDistributionTests(unittest.TestCase):
     def test_git_status_is_unchanged_by_default_assembly(self) -> None:
         before = subprocess.run(
             ["git", "status", "--porcelain", "--untracked-files=all"],
-            cwd=REPO_ROOT, text=True, capture_output=True, check=True,
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
         ).stdout
         subprocess.run(
             [sys.executable, str(ASSEMBLER), "assemble"],
-            cwd=REPO_ROOT, text=True, capture_output=True, check=True,
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
         )
         after = subprocess.run(
             ["git", "status", "--porcelain", "--untracked-files=all"],
-            cwd=REPO_ROOT, text=True, capture_output=True, check=True,
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
         ).stdout
         self.assertEqual(before, after)
 
@@ -511,14 +609,20 @@ class SharedSkillDistributionTests(unittest.TestCase):
         for root in PROMOTED_ROOTS:
             for skill_dir in (path for path in root.iterdir() if path.is_dir()):
                 skill = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
-                metadata = (skill_dir / "agents" / "openai.yaml").read_text(encoding="utf-8")
-                user_invoked = "disable-model-invocation: true" in skill.split("---", 2)[1]
+                metadata = (skill_dir / "agents" / "openai.yaml").read_text(
+                    encoding="utf-8"
+                )
+                user_invoked = (
+                    "disable-model-invocation: true" in skill.split("---", 2)[1]
+                )
                 codex_false = "allow_implicit_invocation: false" in metadata
                 codex_true = "allow_implicit_invocation: true" in metadata
                 self.assertEqual(user_invoked, codex_false, skill_dir.name)
                 self.assertFalse(codex_true, skill_dir.name)
 
-    def test_invocation_metadata_contract_rejects_both_mismatch_directions(self) -> None:
+    def test_invocation_metadata_contract_rejects_both_mismatch_directions(
+        self,
+    ) -> None:
         module = load_assembler()
         with self.assertRaises(module.DistributionError):
             module.classify_invocation_mode(
@@ -547,14 +651,20 @@ class SharedSkillDistributionTests(unittest.TestCase):
             for root in PROMOTED_ROOTS:
                 for skill_dir in (path for path in root.iterdir() if path.is_dir()):
                     source_skill = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
-                    source_metadata = (skill_dir / "agents" / "openai.yaml").read_text(encoding="utf-8")
+                    source_metadata = (skill_dir / "agents" / "openai.yaml").read_text(
+                        encoding="utf-8"
+                    )
                     mode = module.classify_invocation_mode(
                         source_skill,
                         source_metadata,
                         skill_name=skill_dir.name,
                     )
-                    assembled_skill = (artifact / "skills" / skill_dir.name / "SKILL.md").read_text(encoding="utf-8")
-                    assembled_metadata = (artifact / "skills" / skill_dir.name / "agents" / "openai.yaml").read_text(encoding="utf-8")
+                    assembled_skill = (
+                        artifact / "skills" / skill_dir.name / "SKILL.md"
+                    ).read_text(encoding="utf-8")
+                    assembled_metadata = (
+                        artifact / "skills" / skill_dir.name / "agents" / "openai.yaml"
+                    ).read_text(encoding="utf-8")
                     assembled_frontmatter = assembled_skill.split("---", 2)[1]
                     self.assertNotIn("disable-model-invocation", assembled_frontmatter)
                     self.assertEqual(
@@ -563,11 +673,15 @@ class SharedSkillDistributionTests(unittest.TestCase):
                         skill_dir.name,
                     )
 
-    def test_agents_points_fresh_tasks_to_ask_matt_without_becoming_plugin_authority(self) -> None:
+    def test_agents_points_fresh_tasks_to_ask_matt_without_becoming_plugin_authority(
+        self,
+    ) -> None:
         agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("ask-matt", agents)
         self.assertIn("every software-engineering request", agents)
-        ask_matt = (REPO_ROOT / "skills" / "engineering" / "ask-matt" / "SKILL.md").read_text(encoding="utf-8")
+        ask_matt = (
+            REPO_ROOT / "skills" / "engineering" / "ask-matt" / "SKILL.md"
+        ).read_text(encoding="utf-8")
         self.assertIn("bundled contracts", ask_matt)
         self.assertIn("Never require", ask_matt)
 
@@ -579,13 +693,21 @@ class SharedSkillDistributionTests(unittest.TestCase):
             project = root / "consumer"
             project.mkdir()
             self.assertFalse((project / "AGENTS.md").exists())
-            subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "init"], cwd=project, check=True, capture_output=True, text=True
+            )
             module.assemble(REPO_ROOT, artifact)
             self.assertTrue((artifact / "skills" / "ask-matt" / "SKILL.md").is_file())
             completed = subprocess.run(
                 [
                     sys.executable,
-                    str(artifact / "skills" / "engineering-risk-routing" / "scripts" / "guided_workflow_router.py"),
+                    str(
+                        artifact
+                        / "skills"
+                        / "engineering-risk-routing"
+                        / "scripts"
+                        / "guided_workflow_router.py"
+                    ),
                     "--prompt",
                     "add a payment retry feature",
                     "--project-root",
@@ -601,16 +723,20 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 encoding="utf-8",
             )
             result = json.loads(completed.stdout)
-            self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
+            self.assertEqual(
+                0, completed.returncode, completed.stdout + completed.stderr
+            )
             self.assertEqual("grill-me", result["selected_skill"])
             self.assertEqual("to-spec", result["resume_target"])
 
     def test_readme_invocation_groups_match_skill_metadata(self) -> None:
         root_readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-        reference = root_readme[root_readme.index("## Reference"):]
+        reference = root_readme[root_readme.index("## Reference") :]
         sections = {
-            "engineering": reference[reference.index("### Engineering"):reference.index("### Productivity")],
-            "productivity": reference[reference.index("### Productivity"):],
+            "engineering": reference[
+                reference.index("### Engineering") : reference.index("### Productivity")
+            ],
+            "productivity": reference[reference.index("### Productivity") :],
         }
         for root in PROMOTED_ROOTS:
             bucket = root.name
@@ -619,16 +745,28 @@ class SharedSkillDistributionTests(unittest.TestCase):
             bucket_user, bucket_model = bucket_readme.split("## Model-invoked", 1)
             for skill_dir in (path for path in root.iterdir() if path.is_dir()):
                 skill = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
-                user_invoked = "disable-model-invocation: true" in skill.split("---", 2)[1]
+                user_invoked = (
+                    "disable-model-invocation: true" in skill.split("---", 2)[1]
+                )
                 root_link = f"./skills/{bucket}/{skill_dir.name}/SKILL.md"
                 bucket_link = f"./{skill_dir.name}/SKILL.md"
-                self.assertIn(root_link, user_section if user_invoked else model_section, skill_dir.name)
-                self.assertIn(bucket_link, bucket_user if user_invoked else bucket_model, skill_dir.name)
+                self.assertIn(
+                    root_link,
+                    user_section if user_invoked else model_section,
+                    skill_dir.name,
+                )
+                self.assertIn(
+                    bucket_link,
+                    bucket_user if user_invoked else bucket_model,
+                    skill_dir.name,
+                )
 
     def test_compatibility_scan_rejects_malformed_host_dependencies(self) -> None:
         module = load_validator()
         compatibility = json.loads(
-            (REPO_ROOT / "distribution" / "skill-compatibility.json").read_text(encoding="utf-8")
+            (REPO_ROOT / "distribution" / "skill-compatibility.json").read_text(
+                encoding="utf-8"
+            )
         )["skills"]
         compatibility["code-review"] = {
             "classification": "codex-compatible",
@@ -637,7 +775,9 @@ class SharedSkillDistributionTests(unittest.TestCase):
         }
         skills = module.promoted_skills(REPO_ROOT)
         errors = module.compatibility_dependency_errors(compatibility, skills)
-        self.assertTrue(any("host_dependencies must be a list" in error for error in errors), errors)
+        self.assertTrue(
+            any("host_dependencies must be a list" in error for error in errors), errors
+        )
 
 
 if __name__ == "__main__":

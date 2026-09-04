@@ -16,6 +16,8 @@ The model reaches for `ask-matt` automatically on software-engineering requests;
 
 In a new task, exact `開始執行` resumes a sole confirmed specification without repeating the interview. Add its canonical `specs/SPEC-####-<slug>.md` path when more than one confirmed specification exists. Quoted or negated uses of the phrase do not authorize execution.
 
+After specification verification, the router passes modifying work through formatter governance. A canonical SPEC may trigger one confirmation for a clean full-program formatting write; formatter selection, installation permission, and CLI check evidence remain inside that gate before TDD or implementation begins.
+
 ## Flows, not just skills
 
 The idea `ask-matt` gives you to think with is the **flow** — a path *through* the skills rather than a single one. Most work runs along one **main flow** (idea → ship: grill → spec → tickets → implement → review), two **on-ramps** merge onto it (a triage lane for incoming bugs and requests; a codebase-health lane that generates ideas), and everything else is a **standalone** you reach for on its own. Ask a question and you get placed on the right flow, at the right step — not just handed a tool.

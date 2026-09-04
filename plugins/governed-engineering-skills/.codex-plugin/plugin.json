@@ -24,6 +24,7 @@
       "During governed grilling, persist the working bundle after every answer and materialize a decision-complete canonical spec without treating either write as product execution authorization.",
       "Require the user's exact 開始執行 authorization before product source, tests, configuration, non-spec governance artifacts, generated files, Git, or external actions; then verify the confirmed spec before implementation.",
       "After spec verification, apply $formatter-governance with the original ProjectState evidence and stop product-code mutation until its applicable formatter gate passes.",
+      "When a canonical SPEC triggers full-program formatting, require one affirmative confirmation, a clean product-and-test target scope, deterministic CLI write/check evidence, and native authorization for any missing formatter installation.",
       "Enforce governance from this plugin's bundled contracts without requiring or modifying a user-global AGENTS.md."
     ]
   }

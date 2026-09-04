@@ -9,7 +9,20 @@ from typing import Any
 from source_sets import classify_path
 
 SUPPORTED_CODE_SUFFIXES = {".py"}
-KNOWN_CODE_SUFFIXES = {".py", ".c", ".h", ".cc", ".cpp", ".hh", ".hpp", ".rs", ".go", ".js", ".ts", ".java"}
+KNOWN_CODE_SUFFIXES = {
+    ".py",
+    ".c",
+    ".h",
+    ".cc",
+    ".cpp",
+    ".hh",
+    ".hpp",
+    ".rs",
+    ".go",
+    ".js",
+    ".ts",
+    ".java",
+}
 
 
 def _diagnostic(
@@ -135,12 +148,18 @@ def analyze_python(
         )
         return diagnostics, {"mode": "not-run", "analyzed_files": []}
     catalog = {
-        (str(item.get("declaration", {}).get("path")), str(item.get("declaration", {}).get("symbol"))): item
+        (
+            str(item.get("declaration", {}).get("path")),
+            str(item.get("declaration", {}).get("symbol")),
+        ): item
         for item in manifest.get("types", [])
         if isinstance(item, dict) and item.get("language") == "python"
     }
     states = {
-        (str(item.get("declaration", {}).get("path")), str(item.get("declaration", {}).get("symbol"))): item
+        (
+            str(item.get("declaration", {}).get("path")),
+            str(item.get("declaration", {}).get("symbol")),
+        ): item
         for item in manifest.get("state_objects", [])
         if isinstance(item, dict) and item.get("language") == "python"
     }
@@ -167,7 +186,12 @@ def analyze_python(
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=relative)
         except (OSError, UnicodeError, SyntaxError) as exc:
             diagnostics.append(
-                _diagnostic("PYAST002", relative, f"cannot form Python AST: {exc}", configuration=True)
+                _diagnostic(
+                    "PYAST002",
+                    relative,
+                    f"cannot form Python AST: {exc}",
+                    configuration=True,
+                )
             )
             continue
         trees[relative] = tree
@@ -183,11 +207,19 @@ def analyze_python(
                 item = catalog.get(key)
                 if item is None:
                     diagnostics.append(
-                        _diagnostic("PYTYPE001", f"{relative}:{node.name}", "uncataloged production Python type")
+                        _diagnostic(
+                            "PYTYPE001",
+                            f"{relative}:{node.name}",
+                            "uncataloged production Python type",
+                        )
                     )
                 elif str(item.get("owner")) != owner:
                     diagnostics.append(
-                        _diagnostic("PYTYPE003", f"{relative}:{node.name}", "Python type catalog owner does not match source owner")
+                        _diagnostic(
+                            "PYTYPE003",
+                            f"{relative}:{node.name}",
+                            "Python type catalog owner does not match source owner",
+                        )
                     )
             for name in _assignment_names(node):
                 if _is_runtime_state(node, name):
@@ -196,19 +228,31 @@ def analyze_python(
                     item = states.get(key)
                     if item is None:
                         diagnostics.append(
-                            _diagnostic("PYSTATE001", f"{relative}:{name}", "uncataloged mutable module runtime state")
+                            _diagnostic(
+                                "PYSTATE001",
+                                f"{relative}:{name}",
+                                "uncataloged mutable module runtime state",
+                            )
                         )
                     elif str(item.get("owner")) != owner:
                         diagnostics.append(
-                            _diagnostic("PYSTATE002", f"{relative}:{name}", "Python state owner does not match source owner")
+                            _diagnostic(
+                                "PYSTATE002",
+                                f"{relative}:{name}",
+                                "Python state owner does not match source owner",
+                            )
                         )
     for key in sorted(set(catalog).difference(discovered_types)):
         diagnostics.append(
-            _diagnostic("PYTYPE002", f"{key[0]}:{key[1]}", "stale Python Type Catalog entry")
+            _diagnostic(
+                "PYTYPE002", f"{key[0]}:{key[1]}", "stale Python Type Catalog entry"
+            )
         )
     for key in sorted(set(states).difference(discovered_states)):
         diagnostics.append(
-            _diagnostic("PYSTATE003", f"{key[0]}:{key[1]}", "stale Python State Catalog entry")
+            _diagnostic(
+                "PYSTATE003", f"{key[0]}:{key[1]}", "stale Python State Catalog entry"
+            )
         )
 
     module_index = {str(item.get("id")): item for item in modules}
@@ -240,7 +284,9 @@ def analyze_python(
             for item in module.get(kind, []):
                 relative = str(item.get("path"))
                 symbol = str(item.get("symbol"))
-                if relative.endswith(".py") and symbol not in symbols.get(relative, set()):
+                if relative.endswith(".py") and symbol not in symbols.get(
+                    relative, set()
+                ):
                     diagnostics.append(
                         _diagnostic(
                             "PYSYM001",

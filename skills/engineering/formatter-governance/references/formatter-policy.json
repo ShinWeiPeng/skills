@@ -7,8 +7,28 @@
     "ts": "typescript",
     "yml": "yaml"
   },
+  "program_scope": {
+    "extensions": {
+      "python": [".py"],
+      "javascript": [".js", ".jsx", ".mjs", ".cjs"],
+      "typescript": [".ts", ".tsx", ".mts", ".cts"],
+      "c": [".c", ".h"],
+      "cpp": [".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx"],
+      "go": [".go"],
+      "rust": [".rs"],
+      "csharp": [".cs"],
+      "java": [".java"]
+    },
+    "excluded_path_parts": [
+      ".config", ".git", ".venv", "venv", "build", "config", "configuration",
+      "coverage", "dist", "docs", "documentation", "generated", "node_modules",
+      "target", "third_party", "vendor", "vendors"
+    ],
+    "excluded_root_paths": ["spec-governance", "specs"],
+    "excluded_filenames": ["conftest.py", "setup.py"]
+  },
   "languages": {
-    "python": {"formatter": "ruff", "check": ["ruff", "format", "--check", "."], "write": ["ruff", "format", "."]},
+    "python": {"formatter": "ruff", "check": ["ruff", "format", "--config", "format.line-ending = 'lf'", "--check", "."], "write": ["ruff", "format", "--config", "format.line-ending = 'lf'", "."]},
     "javascript": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
     "typescript": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
     "json": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
@@ -18,8 +38,8 @@
     "c": {"formatter": "clang-format", "check": ["clang-format", "--dry-run", "--Werror", "<files>"], "write": ["clang-format", "-i", "<files>"]},
     "cpp": {"formatter": "clang-format", "check": ["clang-format", "--dry-run", "--Werror", "<files>"], "write": ["clang-format", "-i", "<files>"]},
     "go": {"formatter": "gofmt", "check": ["gofmt", "-l", "<files>"], "write": ["gofmt", "-w", "<files>"], "check_pass": "exit zero and empty stdout"},
-    "rust": {"formatter": "rustfmt", "check": ["cargo", "fmt", "--all", "--", "--check"], "write": ["cargo", "fmt", "--all"]},
-    "csharp": {"formatter": "dotnet format", "check": ["dotnet", "format", "--verify-no-changes"], "write": ["dotnet", "format"]},
+    "rust": {"formatter": "rustfmt", "check": ["rustfmt", "--check", "<files>"], "write": ["rustfmt", "<files>"]},
+    "csharp": {"formatter": "dotnet format", "check": ["dotnet", "format", "--verify-no-changes", "--include", "<files>"], "write": ["dotnet", "format", "--include", "<files>"]},
     "java": {"formatter": "google-java-format", "check": ["google-java-format", "--dry-run", "--set-exit-if-changed", "<files>"], "write": ["google-java-format", "--replace", "<files>"]}
   }
 }

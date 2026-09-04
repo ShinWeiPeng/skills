@@ -172,7 +172,9 @@ def validate_type_catalog(
             type_id = location
         type_id = str(type_id)
         if type_id in type_ids:
-            _diag(diagnostics, "TYP001", type_id, "duplicate type id", configuration=True)
+            _diag(
+                diagnostics, "TYP001", type_id, "duplicate type id", configuration=True
+            )
         type_ids.add(type_id)
 
         owner_id = str(item.get("owner", ""))
@@ -197,7 +199,11 @@ def validate_type_catalog(
         path = str(declaration.get("path", ""))
         symbol = str(declaration.get("symbol", ""))
         kind = declaration.get("kind")
-        if not _is_nonempty_string(path) or Path(path).is_absolute() or path.startswith("../"):
+        if (
+            not _is_nonempty_string(path)
+            or Path(path).is_absolute()
+            or path.startswith("../")
+        ):
             _diag(
                 diagnostics,
                 "TYP003",
@@ -376,7 +382,9 @@ def validate_type_catalog(
             field_location = f"{type_id}.fields[{field_index}]"
             field = _mapping(raw_field, diagnostics, "TYP003", field_location)
             name = field.get("name")
-            if not _is_nonempty_string(name) or not _is_nonempty_string(field.get("type")):
+            if not _is_nonempty_string(name) or not _is_nonempty_string(
+                field.get("type")
+            ):
                 _diag(
                     diagnostics,
                     "TYP003",
@@ -525,7 +533,11 @@ def validate_type_catalog(
                 f"{location}.path",
                 "excluded path must be owned by the declared module",
             )
-        if not _is_nonempty_string(path) or Path(path).is_absolute() or path.startswith("../"):
+        if (
+            not _is_nonempty_string(path)
+            or Path(path).is_absolute()
+            or path.startswith("../")
+        ):
             _diag(
                 diagnostics,
                 "TYP007",

@@ -47,7 +47,11 @@ def overall(results: list[CriterionResult]) -> Verdict:
 
 
 def _nonempty_strings(value: Any) -> bool:
-    return isinstance(value, list) and bool(value) and all(isinstance(item, str) and bool(item.strip()) for item in value)
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(isinstance(item, str) and bool(item.strip()) for item in value)
+    )
 
 
 def _development_gate_result(
@@ -61,7 +65,10 @@ def _development_gate_result(
         problems.append("development gate schema_version must be '1.0'")
     if document.get("gate") != VALIDATION_GATES[1]:
         problems.append("development gate identifier is invalid")
-    if not isinstance(document.get("source_revision"), str) or not document["source_revision"].strip():
+    if (
+        not isinstance(document.get("source_revision"), str)
+        or not document["source_revision"].strip()
+    ):
         problems.append("development gate source_revision is required")
     groups = document.get("change_groups")
     if not isinstance(groups, list) or not groups:
@@ -74,7 +81,9 @@ def _development_gate_result(
         check_verdicts: list[Verdict] = []
         if not isinstance(group, dict):
             problems.append(f"{prefix} must be a mapping")
-            group_results.append(CriterionResult(prefix, Verdict.BLOCKED, "change group is invalid"))
+            group_results.append(
+                CriterionResult(prefix, Verdict.BLOCKED, "change group is invalid")
+            )
             continue
         group_id = group.get("id")
         if not isinstance(group_id, str) or not group_id.strip():
@@ -86,7 +95,9 @@ def _development_gate_result(
             seen_group_ids.add(group_id)
         architecture_refs = group.get("architecture_refs")
         if not _nonempty_strings(architecture_refs):
-            group_problems.append(f"{prefix}.architecture_refs must contain non-empty identifiers")
+            group_problems.append(
+                f"{prefix}.architecture_refs must contain non-empty identifiers"
+            )
             architecture_refs = []
         risks = group.get("risks")
         if not _nonempty_strings(risks):
@@ -116,18 +127,34 @@ def _development_gate_result(
                 check_problems.append(f"{check_prefix}.kind is required")
             else:
                 check_kinds.add(kind)
-            if not isinstance(check.get("test_boundary"), str) or not check["test_boundary"].strip():
+            if (
+                not isinstance(check.get("test_boundary"), str)
+                or not check["test_boundary"].strip()
+            ):
                 check_problems.append(f"{check_prefix}.test_boundary is required")
             command = check.get("command")
             if not isinstance(command, dict):
                 check_problems.append(f"{check_prefix}.command must be a mapping")
             else:
-                if not isinstance(command.get("executable"), str) or not command["executable"].strip():
-                    check_problems.append(f"{check_prefix}.command.executable is required")
-                if not isinstance(command.get("args"), list) or not all(isinstance(item, str) for item in command.get("args", [])):
-                    check_problems.append(f"{check_prefix}.command.args must be a string list")
-                if "cwd" in command and (not isinstance(command["cwd"], str) or not command["cwd"].strip()):
-                    check_problems.append(f"{check_prefix}.command.cwd must be a non-empty string")
+                if (
+                    not isinstance(command.get("executable"), str)
+                    or not command["executable"].strip()
+                ):
+                    check_problems.append(
+                        f"{check_prefix}.command.executable is required"
+                    )
+                if not isinstance(command.get("args"), list) or not all(
+                    isinstance(item, str) for item in command.get("args", [])
+                ):
+                    check_problems.append(
+                        f"{check_prefix}.command.args must be a string list"
+                    )
+                if "cwd" in command and (
+                    not isinstance(command["cwd"], str) or not command["cwd"].strip()
+                ):
+                    check_problems.append(
+                        f"{check_prefix}.command.cwd must be a non-empty string"
+                    )
             exit_code = check.get("exit_code")
             if not isinstance(exit_code, int) or isinstance(exit_code, bool):
                 check_problems.append(f"{check_prefix}.exit_code must be an integer")
@@ -138,27 +165,44 @@ def _development_gate_result(
             else:
                 check_verdict = Verdict[verdict_name]
                 if check_verdict == Verdict.PASS and exit_code != 0:
-                    check_problems.append(f"{check_prefix} cannot PASS with a nonzero exit_code")
+                    check_problems.append(
+                        f"{check_prefix} cannot PASS with a nonzero exit_code"
+                    )
             evidence = check.get("evidence")
             if not isinstance(evidence, list) or not evidence:
-                check_problems.append(f"{check_prefix}.evidence must contain hashed artifacts")
+                check_problems.append(
+                    f"{check_prefix}.evidence must contain hashed artifacts"
+                )
             else:
                 for evidence_index, artifact in enumerate(evidence):
                     artifact_prefix = f"{check_prefix}.evidence[{evidence_index}]"
                     if not isinstance(artifact, dict):
                         check_problems.append(f"{artifact_prefix} must be a mapping")
                         continue
-                    if not isinstance(artifact.get("path"), str) or not artifact["path"].strip():
+                    if (
+                        not isinstance(artifact.get("path"), str)
+                        or not artifact["path"].strip()
+                    ):
                         check_problems.append(f"{artifact_prefix}.path is required")
                     digest = artifact.get("sha256")
-                    if not isinstance(digest, str) or re.fullmatch(r"[0-9a-fA-F]{64}", digest) is None:
-                        check_problems.append(f"{artifact_prefix}.sha256 must be a 64-digit hexadecimal digest")
+                    if (
+                        not isinstance(digest, str)
+                        or re.fullmatch(r"[0-9a-fA-F]{64}", digest) is None
+                    ):
+                        check_problems.append(
+                            f"{artifact_prefix}.sha256 must be a 64-digit hexadecimal digest"
+                        )
             if check_problems:
                 group_problems.extend(check_problems)
                 check_verdict = max(check_verdict, Verdict.BLOCKED)
             check_verdicts.append(check_verdict)
-        if set(architecture_refs) & external_contract_refs and "port-contract" not in check_kinds:
-            group_problems.append(f"{prefix} changes an external Port/Adapter but has no port-contract check")
+        if (
+            set(architecture_refs) & external_contract_refs
+            and "port-contract" not in check_kinds
+        ):
+            group_problems.append(
+                f"{prefix} changes an external Port/Adapter but has no port-contract check"
+            )
         smoke = group.get("on_device_smoke")
         if not isinstance(smoke, dict) or not isinstance(smoke.get("required"), bool):
             group_problems.append(f"{prefix}.on_device_smoke.required must be boolean")
@@ -168,9 +212,13 @@ def _development_gate_result(
             if smoke["required"]:
                 scenario = smoke.get("scenario")
                 if not isinstance(scenario, str) or not scenario.strip():
-                    group_problems.append(f"{prefix}.on_device_smoke.scenario is required")
+                    group_problems.append(
+                        f"{prefix}.on_device_smoke.scenario is required"
+                    )
                 elif scenario not in smoke_results:
-                    group_problems.append(f"{prefix} requires smoke scenario {scenario!r}, but no matching result was supplied")
+                    group_problems.append(
+                        f"{prefix} requires smoke scenario {scenario!r}, but no matching result was supplied"
+                    )
                     check_verdicts.append(Verdict.BLOCKED)
                 else:
                     check_verdicts.append(smoke_results[scenario])
@@ -179,14 +227,21 @@ def _development_gate_result(
             problems.extend(group_problems)
             group_verdict = max(group_verdict, Verdict.BLOCKED)
         group_results.append(
-            CriterionResult(str(group_id), group_verdict, "change group evidence recomputed", {"checks": len(checks), "problems": group_problems})
+            CriterionResult(
+                str(group_id),
+                group_verdict,
+                "change group evidence recomputed",
+                {"checks": len(checks), "problems": group_problems},
+            )
         )
     recomputed = overall(group_results)
     declared = document.get("verdict")
     if declared not in Verdict.__members__:
         problems.append("development gate verdict is invalid")
     elif Verdict[declared] != recomputed:
-        problems.append(f"development gate declared verdict {declared} does not match recomputed verdict {recomputed.label}")
+        problems.append(
+            f"development gate declared verdict {declared} does not match recomputed verdict {recomputed.label}"
+        )
     effective = max(recomputed, Verdict.BLOCKED) if problems else recomputed
     return (
         CriterionResult(
@@ -196,7 +251,12 @@ def _development_gate_result(
             {
                 "source_revision": document.get("source_revision"),
                 "change_groups": [
-                    {"id": item.criterion_id, "verdict": item.verdict.label, **item.evidence} for item in group_results
+                    {
+                        "id": item.criterion_id,
+                        "verdict": item.verdict.label,
+                        **item.evidence,
+                    }
+                    for item in group_results
                 ],
             },
         ),
@@ -228,31 +288,51 @@ def overall_gates(
             invalid.append(f"result[{index}] is not bound to the current profile")
             continue
         scenario = document.get("scenario")
-        if not isinstance(scenario, str) or not scenario or scenario not in expected_smoke:
+        if (
+            not isinstance(scenario, str)
+            or not scenario
+            or scenario not in expected_smoke
+        ):
             invalid.append(f"result[{index}] is not a declared smoke scenario")
             continue
         if document.get("verdict") not in Verdict.__members__:
             invalid.append(f"result[{index}] has an invalid verdict")
             continue
         verdict = Verdict[document["verdict"]]
-        smoke_results[scenario] = max(smoke_results.get(scenario, Verdict.PASS), verdict)
+        smoke_results[scenario] = max(
+            smoke_results.get(scenario, Verdict.PASS), verdict
+        )
     for index, document in enumerate(documents):
         if index in smoke_indexes:
             continue
-        if not isinstance(document, dict) or document.get("profile_sha256") != profile_sha256:
+        if (
+            not isinstance(document, dict)
+            or document.get("profile_sha256") != profile_sha256
+        ):
             invalid.append(f"result[{index}] is not bound to the current profile")
             continue
         gate = document.get("gate") or phase_gate.get(document.get("phase"))
         if gate not in grouped:
-            invalid.append(f"result[{index}] does not identify a recognized validation gate")
+            invalid.append(
+                f"result[{index}] does not identify a recognized validation gate"
+            )
             continue
-        if gate == VALIDATION_GATES[0] and document.get("scenario") not in expected_enablement:
+        if (
+            gate == VALIDATION_GATES[0]
+            and document.get("scenario") not in expected_enablement
+        ):
             invalid.append(f"result[{index}] is not a declared enablement scenario")
             continue
-        if gate == VALIDATION_GATES[2] and document.get("scenario") not in expected_acceptance:
+        if (
+            gate == VALIDATION_GATES[2]
+            and document.get("scenario") not in expected_acceptance
+        ):
             invalid.append(f"result[{index}] is not a declared acceptance scenario")
             continue
-        if gate != VALIDATION_GATES[1] and document.get("verdict") not in Verdict.__members__:
+        if (
+            gate != VALIDATION_GATES[1]
+            and document.get("verdict") not in Verdict.__members__
+        ):
             invalid.append(f"result[{index}] has an invalid verdict")
             continue
         if gate == VALIDATION_GATES[3] and not document.get("evidence"):
@@ -260,20 +340,35 @@ def overall_gates(
             continue
         grouped[gate].append(document)
     missing_scenarios = {
-        VALIDATION_GATES[0]: sorted(expected_enablement - {item.get("scenario") for item in grouped[VALIDATION_GATES[0]]}),
-        VALIDATION_GATES[2]: sorted(expected_acceptance - {item.get("scenario") for item in grouped[VALIDATION_GATES[2]]}),
+        VALIDATION_GATES[0]: sorted(
+            expected_enablement
+            - {item.get("scenario") for item in grouped[VALIDATION_GATES[0]]}
+        ),
+        VALIDATION_GATES[2]: sorted(
+            expected_acceptance
+            - {item.get("scenario") for item in grouped[VALIDATION_GATES[2]]}
+        ),
     }
     gate_results: list[CriterionResult] = []
     for gate in VALIDATION_GATES:
         items = grouped[gate]
         missing = missing_scenarios.get(gate, [])
         if not items or missing:
-            gate_results.append(CriterionResult(gate, Verdict.BLOCKED, "required gate evidence is missing", {"missing_scenarios": missing}))
+            gate_results.append(
+                CriterionResult(
+                    gate,
+                    Verdict.BLOCKED,
+                    "required gate evidence is missing",
+                    {"missing_scenarios": missing},
+                )
+            )
             continue
         if gate == VALIDATION_GATES[1]:
             development_results: list[CriterionResult] = []
             for item in items:
-                result, problems = _development_gate_result(item, smoke_results, external_contract_refs)
+                result, problems = _development_gate_result(
+                    item, smoke_results, external_contract_refs
+                )
                 development_results.append(result)
                 invalid.extend(problems)
             verdict = overall(development_results)
@@ -282,17 +377,34 @@ def overall_gates(
                     gate,
                     verdict,
                     "structured change-group evidence recomputed",
-                    {"documents": len(items), "results": [item.evidence for item in development_results]},
+                    {
+                        "documents": len(items),
+                        "results": [item.evidence for item in development_results],
+                    },
                 )
             )
         else:
             verdict = max(Verdict[item["verdict"]] for item in items)
-            gate_results.append(CriterionResult(gate, verdict, "gate evidence combined", {"documents": len(items)}))
+            gate_results.append(
+                CriterionResult(
+                    gate, verdict, "gate evidence combined", {"documents": len(items)}
+                )
+            )
     if invalid:
-        gate_results.append(CriterionResult("gate-input", Verdict.BLOCKED, "; ".join(invalid)))
+        gate_results.append(
+            CriterionResult("gate-input", Verdict.BLOCKED, "; ".join(invalid))
+        )
     verdict = overall(gate_results)
     return verdict, {
         "verdict": verdict.label,
-        "gates": [{"gate": item.criterion_id, "verdict": item.verdict.label, "reason": item.reason, "evidence": item.evidence} for item in gate_results],
+        "gates": [
+            {
+                "gate": item.criterion_id,
+                "verdict": item.verdict.label,
+                "reason": item.reason,
+                "evidence": item.evidence,
+            }
+            for item in gate_results
+        ],
         "invalid": invalid,
     }

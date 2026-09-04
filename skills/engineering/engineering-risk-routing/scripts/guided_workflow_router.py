@@ -25,9 +25,7 @@ from workflow_selection import classify_intent, select_workflow
 def discover_available_skills(skills_root: Path = SKILLS_ROOT) -> set[str]:
     """Return the fresh-task inventory represented by this plugin package."""
     return {
-        path.parent.name
-        for path in skills_root.glob("*/SKILL.md")
-        if path.is_file()
+        path.parent.name for path in skills_root.glob("*/SKILL.md") if path.is_file()
     }
 
 
@@ -76,9 +74,7 @@ def route(
     resume_confirmed_spec: bool = False,
 ) -> dict[str, Any]:
     capabilities = (
-        discover_available_skills()
-        if available_skills is None
-        else available_skills
+        discover_available_skills() if available_skills is None else available_skills
     )
     artifacts = GitFilesystemRepositoryEvidenceAdapter().collect(project_root)
     project = assess_project_state(artifacts)

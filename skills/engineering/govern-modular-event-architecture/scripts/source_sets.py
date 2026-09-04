@@ -43,7 +43,13 @@ def validate_source_sets(data: dict[str, Any]) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     raw_sets = data.get("source_sets")
     if not isinstance(raw_sets, list) or not raw_sets:
-        _diag(diagnostics, "SRC001", "source_sets", "must be a non-empty list", configuration=True)
+        _diag(
+            diagnostics,
+            "SRC001",
+            "source_sets",
+            "must be a non-empty list",
+            configuration=True,
+        )
         return diagnostics
 
     seen_ids: set[str] = set()
@@ -56,14 +62,28 @@ def validate_source_sets(data: dict[str, Any]) -> list[Diagnostic]:
     for index, item in enumerate(raw_sets):
         location = f"source_sets[{index}]"
         if not isinstance(item, dict):
-            _diag(diagnostics, "SRC001", location, "must be a mapping", configuration=True)
+            _diag(
+                diagnostics, "SRC001", location, "must be a mapping", configuration=True
+            )
             continue
         identifier = item.get("id")
         classification = item.get("classification")
         if not _is_nonempty_string(identifier):
-            _diag(diagnostics, "SRC001", f"{location}.id", "must be non-empty", configuration=True)
+            _diag(
+                diagnostics,
+                "SRC001",
+                f"{location}.id",
+                "must be non-empty",
+                configuration=True,
+            )
         elif str(identifier) in seen_ids:
-            _diag(diagnostics, "SRC001", f"{location}.id", "duplicate source-set id", configuration=True)
+            _diag(
+                diagnostics,
+                "SRC001",
+                f"{location}.id",
+                "duplicate source-set id",
+                configuration=True,
+            )
         else:
             seen_ids.add(str(identifier))
         if classification not in CLASSIFICATIONS:
@@ -88,7 +108,10 @@ def validate_source_sets(data: dict[str, Any]) -> list[Diagnostic]:
                 )
                 continue
             for pattern_index, raw_pattern in enumerate(patterns):
-                if not _is_nonempty_string(raw_pattern) or _normalize(str(raw_pattern)) is None:
+                if (
+                    not _is_nonempty_string(raw_pattern)
+                    or _normalize(str(raw_pattern)) is None
+                ):
                     _diag(
                         diagnostics,
                         "SRC002",
@@ -97,9 +120,21 @@ def validate_source_sets(data: dict[str, Any]) -> list[Diagnostic]:
                         configuration=True,
                     )
         if not _is_nonempty_string(item.get("purpose")):
-            _diag(diagnostics, "SRC001", f"{location}.purpose", "must be non-empty", configuration=True)
+            _diag(
+                diagnostics,
+                "SRC001",
+                f"{location}.purpose",
+                "must be non-empty",
+                configuration=True,
+            )
         if not _is_nonempty_string(item.get("provenance")):
-            _diag(diagnostics, "SRC001", f"{location}.provenance", "must be non-empty", configuration=True)
+            _diag(
+                diagnostics,
+                "SRC001",
+                f"{location}.provenance",
+                "must be non-empty",
+                configuration=True,
+            )
         if classification == "generated-production":
             owner = modules.get(str(item.get("owner", "")))
             if owner is None or owner.get("level") != "L3+":
@@ -128,7 +163,9 @@ def validate_source_sets(data: dict[str, Any]) -> list[Diagnostic]:
     return diagnostics
 
 
-def classify_path(data: dict[str, Any], raw_path: str) -> tuple[str | None, dict[str, Any] | None]:
+def classify_path(
+    data: dict[str, Any], raw_path: str
+) -> tuple[str | None, dict[str, Any] | None]:
     normalized = _normalize(raw_path)
     if normalized is None:
         return None, None
@@ -136,8 +173,16 @@ def classify_path(data: dict[str, Any], raw_path: str) -> tuple[str | None, dict
     for item in data.get("source_sets", []):
         if not isinstance(item, dict):
             continue
-        includes = [str(value) for value in item.get("include", []) if _is_nonempty_string(value)]
-        excludes = [str(value) for value in item.get("exclude", []) if _is_nonempty_string(value)]
+        includes = [
+            str(value)
+            for value in item.get("include", [])
+            if _is_nonempty_string(value)
+        ]
+        excludes = [
+            str(value)
+            for value in item.get("exclude", [])
+            if _is_nonempty_string(value)
+        ]
         if _matches(normalized, includes) and not _matches(normalized, excludes):
             matches.append(item)
     if len(matches) != 1:
@@ -152,7 +197,9 @@ def validate_manifest_source_paths(data: dict[str, Any]) -> list[Diagnostic]:
         if not isinstance(module, dict):
             continue
         module_id = str(module.get("id", ""))
-        references.extend((f"{module_id}.paths", str(path)) for path in module.get("paths", []))
+        references.extend(
+            (f"{module_id}.paths", str(path)) for path in module.get("paths", [])
+        )
         for key in ("entrypoints", "public_symbols"):
             for item in module.get(key, []):
                 if isinstance(item, dict):

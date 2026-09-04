@@ -24,7 +24,7 @@ Model- or user-reachable (rich trigger phrasing so the model can reach for them)
 - **[explain-code-flow](./explain-code-flow/SKILL.md)** — Explain existing code from governed system and flow views down to selected implementation details.
 - **[govern-modular-event-architecture](./govern-modular-event-architecture/SKILL.md)** — Govern module boundaries, type and state ownership, algorithms, and scheduling evidence.
 - **[spec-governance](./spec-governance/SKILL.md)** — Maintain the canonical change-set specification and verify requirement-to-evidence traceability.
-- **[formatter-governance](./formatter-governance/SKILL.md)** — Select and verify greenfield defaults or preserve an existing repository's formatter policy before product-code mutation.
+- **[formatter-governance](./formatter-governance/SKILL.md)** — Select repository-first formatter policy and protect confirmed full-program writes before product-code mutation.
 - **[validate-on-device](./validate-on-device/SKILL.md)** — Collect bounded physical-device and operating-system runtime evidence.
 
 - **[prototype](./prototype/SKILL.md)** — Build a throwaway prototype to answer a design question: a runnable terminal app for state/logic, or several toggleable UI variations.

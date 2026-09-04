@@ -5,7 +5,8 @@
   ],
   "summary": {
     "Added": [
-      "Centralized formatter governance for greenfield defaults, repository-style preservation, safe scaffold preflight, and pre-product checks."
+      "Centralized formatter governance for greenfield defaults, repository-style preservation, safe scaffold preflight, and pre-product checks.",
+      "Added canonical-SPEC confirmation, clean-target protection, governed CLI fallback, and authorized installation evidence for full program-source formatting."
     ]
   }
 }

@@ -21,7 +21,13 @@ from vod.evidence import evaluate, write_bundle
 from vod.guided import profile_sha256
 from vod.execution import run_action
 from vod.model import Verdict, overall_gates
-from vod.profile import redact, required_samples, validate_architecture_references, validate_local_override, validate_profile
+from vod.profile import (
+    redact,
+    required_samples,
+    validate_architecture_references,
+    validate_local_override,
+    validate_profile,
+)
 from vod.providers import capture_tcp, probe
 from validate_on_device import _external_contract_refs
 
@@ -29,10 +35,19 @@ from validate_on_device import _external_contract_refs
 def profile() -> dict:
     return {
         "version": "1.0",
-        "target": {"platform": "windows", "provider": "structured-log", "fallback": "structured-log"},
+        "target": {
+            "platform": "windows",
+            "provider": "structured-log",
+            "fallback": "structured-log",
+        },
         "transport": {"type": "import", "timeout_seconds": 30, "max_bytes": 100000},
         "actions": {
-            "flash": {"executable": "missing-tool", "args": ["upload"], "risk": "flash", "timeout_seconds": 10}
+            "flash": {
+                "executable": "missing-tool",
+                "args": ["upload"],
+                "risk": "flash",
+                "timeout_seconds": 10,
+            }
         },
         "scenarios": [
             {
@@ -50,7 +65,11 @@ def profile() -> dict:
                 "forbidden_patterns": ["WATCHDOG"],
                 "criteria": [
                     {"id": "trigger", "type": "event_sequence", "events": ["started"]},
-                    {"id": "flow", "type": "event_sequence", "events": ["started", "ready"]},
+                    {
+                        "id": "flow",
+                        "type": "event_sequence",
+                        "events": ["started", "ready"],
+                    },
                     {
                         "id": "latency",
                         "type": "statistic",
@@ -59,7 +78,11 @@ def profile() -> dict:
                         "percentile": 0.95,
                         "operator": "<=",
                         "threshold": 50,
-                        "sample_plan": {"basis": "external-standard", "reference": "TEST-SAMPLE-100", "min_samples": 100},
+                        "sample_plan": {
+                            "basis": "external-standard",
+                            "reference": "TEST-SAMPLE-100",
+                            "min_samples": 100,
+                        },
                         "max_duration_ms": 30000,
                         "confidence": 0.95,
                         "timing": True,
@@ -71,7 +94,11 @@ def profile() -> dict:
                             "isr_log_writes": 0,
                             "critical_section_us": 10,
                         },
-                        "clock": {"source": "cycle_counter", "hz": 240000000, "resolution_ns": 4},
+                        "clock": {
+                            "source": "cycle_counter",
+                            "hz": 240000000,
+                            "resolution_ns": 4,
+                        },
                     },
                 ],
             }
@@ -99,23 +126,38 @@ def warmup_log() -> str:
     lines = good_log().splitlines()
     lines.insert(1, "VAL_PHASE name=warmup state=begin t_ms=0 seq=0")
     lines.insert(2, "VAL_PHASE name=warmup state=end t_ms=1 seq=0")
-    lines = [re.sub(r"seq=\d+", f"seq={index}", line) for index, line in enumerate(lines, 1)]
+    lines = [
+        re.sub(r"seq=\d+", f"seq={index}", line) for index, line in enumerate(lines, 1)
+    ]
     lines[-1] = re.sub(r"records=\d+", f"records={len(lines)}", lines[-1])
-    return "\n".join(lines).replace("VAL_STATS metric=latency_us window_start_ms=0", "VAL_STATS metric=latency_us phase=steady window_start_ms=1").replace("elapsed_ms=100", "elapsed_ms=99")
+    return (
+        "\n".join(lines)
+        .replace(
+            "VAL_STATS metric=latency_us window_start_ms=0",
+            "VAL_STATS metric=latency_us phase=steady window_start_ms=1",
+        )
+        .replace("elapsed_ms=100", "elapsed_ms=99")
+    )
 
 
 class ProfileTests(unittest.TestCase):
     def test_model_invoked_skill_uses_default_policy(self) -> None:
-        metadata = yaml.safe_load((ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8"))
+        metadata = yaml.safe_load(
+            (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
+        )
         self.assertNotIn("policy", metadata)
 
     def test_valid_profile(self) -> None:
         self.assertEqual([], validate_profile(profile()))
 
-    def test_optional_user_facing_metadata_is_backward_compatible_and_strict(self) -> None:
+    def test_optional_user_facing_metadata_is_backward_compatible_and_strict(
+        self,
+    ) -> None:
         value = profile()
         value["scenarios"][0]["title"] = "Boot readiness"
-        value["scenarios"][0]["purpose"] = "Verify that the target reaches its ready state."
+        value["scenarios"][0]["purpose"] = (
+            "Verify that the target reaches its ready state."
+        )
         value["scenarios"][0]["criteria"][0]["label"] = "Boot trigger"
         value["scenarios"][0]["criteria"][0]["description"] = "Observe the start event."
         self.assertEqual([], validate_profile(value))
@@ -134,11 +176,15 @@ class ProfileTests(unittest.TestCase):
             else:
                 target[path[0]] = invalid
                 expected = path[0]
-            self.assertTrue(any(expected in item for item in validate_profile(invalid_value)), path)
+            self.assertTrue(
+                any(expected in item for item in validate_profile(invalid_value)), path
+            )
 
     def test_user_facing_reporting_contract_is_documented(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        reference = (ROOT / "references" / "user-facing-reporting.md").read_text(encoding="utf-8")
+        reference = (ROOT / "references" / "user-facing-reporting.md").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("references/user-facing-reporting.md", skill)
         for heading in ("測試目的", "測試項目結果", "第一個差異", "問題分類", "證據"):
             self.assertIn(heading, reference)
@@ -149,17 +195,27 @@ class ProfileTests(unittest.TestCase):
         self.assertIn("Never ask the user to assign or change a verdict.", reference)
         self.assertIn("do not omit, merge, rename", reference)
         self.assertIn("must not use Mermaid", reference)
-        self.assertIn("all required headings are present exactly once and in order", reference)
+        self.assertIn(
+            "all required headings are present exactly once and in order", reference
+        )
 
     def test_during_operation_explains_the_higher_level_action_purpose(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        reference = (ROOT / "references" / "user-facing-reporting.md").read_text(encoding="utf-8")
-        docs = (ROOT.parents[2] / "docs" / "engineering" / "validate-on-device.md").read_text(encoding="utf-8")
+        reference = (ROOT / "references" / "user-facing-reporting.md").read_text(
+            encoding="utf-8"
+        )
+        docs = (
+            ROOT.parents[2] / "docs" / "engineering" / "validate-on-device.md"
+        ).read_text(encoding="utf-8")
 
-        ordered_fields = "action purpose, current action, completion signal, and timeout"
+        ordered_fields = (
+            "action purpose, current action, completion signal, and timeout"
+        )
         for contract in (skill, reference):
             self.assertIn(ordered_fields, contract)
-            self.assertIn("downstream decision, configuration, evidence claim, or risk", contract)
+            self.assertIn(
+                "downstream decision, configuration, evidence claim, or risk", contract
+            )
             self.assertIn("failure, uncertainty, or unsafe workaround", contract)
             self.assertIn("must not merely paraphrase", contract)
 
@@ -179,34 +235,88 @@ class ProfileTests(unittest.TestCase):
         for field in ("phase", "evidence_mode", "max_duration_ms", "completion"):
             value = profile()
             del value["scenarios"][0][field]
-            self.assertTrue(any(field in item for item in validate_profile(value)), field)
+            self.assertTrue(
+                any(field in item for item in validate_profile(value)), field
+            )
 
     def test_calculated_and_external_sample_plans(self) -> None:
-        self.assertEqual(100, required_samples({"basis": "external-standard", "reference": "STD", "min_samples": 100}))
-        self.assertEqual(97, required_samples({"basis": "calculated", "model": "proportion", "confidence": 0.95, "absolute_error": 0.1, "expected_proportion": 0.5}))
-        self.assertEqual(385, required_samples({"basis": "calculated", "model": "mean", "confidence": 0.95, "absolute_error": 0.1, "estimated_stddev": 1.0}))
-        self.assertEqual(738, required_samples({"basis": "calculated", "model": "distribution", "confidence": 0.95, "absolute_error": 0.05}))
+        self.assertEqual(
+            100,
+            required_samples(
+                {"basis": "external-standard", "reference": "STD", "min_samples": 100}
+            ),
+        )
+        self.assertEqual(
+            97,
+            required_samples(
+                {
+                    "basis": "calculated",
+                    "model": "proportion",
+                    "confidence": 0.95,
+                    "absolute_error": 0.1,
+                    "expected_proportion": 0.5,
+                }
+            ),
+        )
+        self.assertEqual(
+            385,
+            required_samples(
+                {
+                    "basis": "calculated",
+                    "model": "mean",
+                    "confidence": 0.95,
+                    "absolute_error": 0.1,
+                    "estimated_stddev": 1.0,
+                }
+            ),
+        )
+        self.assertEqual(
+            738,
+            required_samples(
+                {
+                    "basis": "calculated",
+                    "model": "distribution",
+                    "confidence": 0.95,
+                    "absolute_error": 0.05,
+                }
+            ),
+        )
 
     def test_guided_step_schema_is_strict(self) -> None:
         value = profile()
-        value["scenarios"][0]["guided_steps"] = [{"id": "observe", "instruction": "Observe it.", "expected_observation": "It is visible.", "verdict": "PASS"}]
+        value["scenarios"][0]["guided_steps"] = [
+            {
+                "id": "observe",
+                "instruction": "Observe it.",
+                "expected_observation": "It is visible.",
+                "verdict": "PASS",
+            }
+        ]
         self.assertTrue(any("guided_steps" in item for item in validate_profile(value)))
 
     def test_guided_step_ids_are_unique(self) -> None:
         value = profile()
-        step = {"id": "observe", "instruction": "Observe it.", "expected_observation": "It is visible."}
+        step = {
+            "id": "observe",
+            "instruction": "Observe it.",
+            "expected_observation": "It is visible.",
+        }
         value["scenarios"][0]["guided_steps"] = [step, dict(step)]
         self.assertTrue(any("duplicate" in item for item in validate_profile(value)))
 
     def test_literal_secret_is_rejected(self) -> None:
         value = profile()
         value["token"] = "plaintext"
-        self.assertTrue(any("tracked secrets" in item for item in validate_profile(value)))
+        self.assertTrue(
+            any("tracked secrets" in item for item in validate_profile(value))
+        )
 
     def test_timing_budget_is_required(self) -> None:
         value = profile()
         del value["scenarios"][0]["criteria"][2]["instrumentation_budget"]
-        self.assertTrue(any("instrumentation_budget" in item for item in validate_profile(value)))
+        self.assertTrue(
+            any("instrumentation_budget" in item for item in validate_profile(value))
+        )
 
     def test_unknown_operator_and_method_are_rejected(self) -> None:
         value = profile()
@@ -218,9 +328,15 @@ class ProfileTests(unittest.TestCase):
 
     def test_trace_action_requires_cleanup(self) -> None:
         value = profile()
-        value["actions"]["trace-start"] = {"executable": "wpr", "args": ["-start", "profile.wprp"], "risk": "trace"}
+        value["actions"]["trace-start"] = {
+            "executable": "wpr",
+            "args": ["-start", "profile.wprp"],
+            "risk": "trace",
+        }
         value["scenarios"][0]["actions"] = ["trace-start"]
-        self.assertTrue(any("cleanup_actions" in item for item in validate_profile(value)))
+        self.assertTrue(
+            any("cleanup_actions" in item for item in validate_profile(value))
+        )
 
     def test_local_override_cannot_change_risk_or_criteria(self) -> None:
         value = profile()
@@ -232,21 +348,54 @@ class ProfileTests(unittest.TestCase):
     def test_native_metric_rejects_removed_fallback_contract(self) -> None:
         value = profile()
         value["scenarios"][0]["criteria"].append(
-            {"id": "native", "type": "native_metric", "metric": "scheduler.delay", "max_alignment_error_ns": 10, "fallback_metric": "latency_us"}
+            {
+                "id": "native",
+                "type": "native_metric",
+                "metric": "scheduler.delay",
+                "max_alignment_error_ns": 10,
+                "fallback_metric": "latency_us",
+            }
         )
-        self.assertTrue(any("fallback_metric" in item for item in validate_profile(value)))
+        self.assertTrue(
+            any("fallback_metric" in item for item in validate_profile(value))
+        )
 
     def test_supported_os_native_resource_requires_native_provider(self) -> None:
         value = profile()
         value["scenarios"][0]["criteria"].append(
-            {"id": "native", "type": "native_metric", "metric": "scheduler.delay", "operator": "<=", "threshold": 10, "max_alignment_error_ns": 10, "sample_plan": {"basis": "external-standard", "reference": "STD", "min_samples": 10}, "max_duration_ms": 1000, "native_unit": "us", "native_semantics": {"start_event": "ready", "end_event": "running", "clock": "qpc"}}
+            {
+                "id": "native",
+                "type": "native_metric",
+                "metric": "scheduler.delay",
+                "operator": "<=",
+                "threshold": 10,
+                "max_alignment_error_ns": 10,
+                "sample_plan": {
+                    "basis": "external-standard",
+                    "reference": "STD",
+                    "min_samples": 10,
+                },
+                "max_duration_ms": 1000,
+                "native_unit": "us",
+                "native_semantics": {
+                    "start_event": "ready",
+                    "end_event": "running",
+                    "clock": "qpc",
+                },
+            }
         )
         self.assertTrue(any("etw-wpr" in item for item in validate_profile(value)))
 
 
 class GateSummaryTests(unittest.TestCase):
     @staticmethod
-    def development_result(digest: str, *, verdict: str = "PASS", check_kind: str = "unit", smoke: dict | None = None) -> dict:
+    def development_result(
+        digest: str,
+        *,
+        verdict: str = "PASS",
+        check_kind: str = "unit",
+        smoke: dict | None = None,
+    ) -> dict:
         return {
             "schema_version": "1.0",
             "gate": "Per-change Development Validation",
@@ -262,13 +411,17 @@ class GateSummaryTests(unittest.TestCase):
                             "id": "control-unit",
                             "kind": check_kind,
                             "test_boundary": "FakeClockPort",
-                            "command": {"executable": "test-runner", "args": ["control"]},
+                            "command": {
+                                "executable": "test-runner",
+                                "args": ["control"],
+                            },
                             "exit_code": 0,
                             "verdict": "PASS",
                             "evidence": [{"path": "tests.json", "sha256": "b" * 64}],
                         }
                     ],
-                    "on_device_smoke": smoke or {"required": False, "reason": "No runtime boundary changed."},
+                    "on_device_smoke": smoke
+                    or {"required": False, "reason": "No runtime boundary changed."},
                 }
             ],
             "verdict": verdict,
@@ -277,33 +430,68 @@ class GateSummaryTests(unittest.TestCase):
     def test_all_four_gates_are_required_and_smoke_cannot_substitute(self) -> None:
         digest = "a" * 64
         documents = [
-            {"scenario": "enable", "phase": "enablement", "verdict": "PASS", "profile_sha256": digest},
+            {
+                "scenario": "enable",
+                "phase": "enablement",
+                "verdict": "PASS",
+                "profile_sha256": digest,
+            },
             self.development_result(digest),
-            {"scenario": "accept", "phase": "acceptance", "verdict": "PASS", "profile_sha256": digest},
-            {"gate": "Release Acceptance", "verdict": "PASS", "profile_sha256": digest, "evidence": ["release.json"]},
+            {
+                "scenario": "accept",
+                "phase": "acceptance",
+                "verdict": "PASS",
+                "profile_sha256": digest,
+            },
+            {
+                "gate": "Release Acceptance",
+                "verdict": "PASS",
+                "profile_sha256": digest,
+                "evidence": ["release.json"],
+            },
         ]
         verdict, result = overall_gates(documents, digest, {"enable"}, {"accept"})
         self.assertEqual(Verdict.PASS, verdict, result)
         verdict, _ = overall_gates(documents[:-1], digest, {"enable"}, {"accept"})
         self.assertEqual(Verdict.BLOCKED, verdict)
-        smoke = {"scenario": "smoke", "phase": "smoke", "verdict": "PASS", "profile_sha256": digest}
-        verdict, _ = overall_gates([*documents[:2], smoke, documents[-1]], digest, {"enable"}, {"accept"}, {"smoke"})
+        smoke = {
+            "scenario": "smoke",
+            "phase": "smoke",
+            "verdict": "PASS",
+            "profile_sha256": digest,
+        }
+        verdict, _ = overall_gates(
+            [*documents[:2], smoke, documents[-1]],
+            digest,
+            {"enable"},
+            {"accept"},
+            {"smoke"},
+        )
         self.assertEqual(Verdict.BLOCKED, verdict)
 
     def test_structured_development_gate_is_recomputed(self) -> None:
         digest = "a" * 64
         document = self.development_result(digest)
         verdict, result = overall_gates([document], digest, set(), set())
-        development = next(item for item in result["gates"] if item["gate"] == "Per-change Development Validation")
+        development = next(
+            item
+            for item in result["gates"]
+            if item["gate"] == "Per-change Development Validation"
+        )
         self.assertEqual("PASS", development["verdict"], result)
-        self.assertEqual(Verdict.BLOCKED, verdict, "the other three gates remain required")
+        self.assertEqual(
+            Verdict.BLOCKED, verdict, "the other three gates remain required"
+        )
 
     def test_empty_change_groups_block_development_gate(self) -> None:
         digest = "a" * 64
         document = self.development_result(digest, verdict="BLOCKED")
         document["change_groups"] = []
         _, result = overall_gates([document], digest, set(), set())
-        self.assertTrue(any("at least one change group" in item for item in result["invalid"]), result)
+        self.assertTrue(
+            any("at least one change group" in item for item in result["invalid"]),
+            result,
+        )
 
     def test_missing_risk_or_evidence_hash_blocks_development_gate(self) -> None:
         digest = "a" * 64
@@ -317,30 +505,65 @@ class GateSummaryTests(unittest.TestCase):
     def test_external_port_change_requires_contract_check(self) -> None:
         digest = "a" * 64
         document = self.development_result(digest, verdict="BLOCKED")
-        _, result = overall_gates([document], digest, set(), set(), external_contract_refs={"control.clock"})
-        self.assertTrue(any("port-contract" in item for item in result["invalid"]), result)
+        _, result = overall_gates(
+            [document], digest, set(), set(), external_contract_refs={"control.clock"}
+        )
+        self.assertTrue(
+            any("port-contract" in item for item in result["invalid"]), result
+        )
         document = self.development_result(digest, check_kind="port-contract")
-        _, result = overall_gates([document], digest, set(), set(), external_contract_refs={"control.clock"})
-        development = next(item for item in result["gates"] if item["gate"] == "Per-change Development Validation")
+        _, result = overall_gates(
+            [document], digest, set(), set(), external_contract_refs={"control.clock"}
+        )
+        development = next(
+            item
+            for item in result["gates"]
+            if item["gate"] == "Per-change Development Validation"
+        )
         self.assertEqual("PASS", development["verdict"], result)
 
     def test_required_smoke_must_have_matching_profile_bound_result(self) -> None:
         digest = "a" * 64
-        smoke_policy = {"required": True, "reason": "Timer adapter changed.", "scenario": "timer-smoke"}
-        document = self.development_result(digest, verdict="BLOCKED", smoke=smoke_policy)
+        smoke_policy = {
+            "required": True,
+            "reason": "Timer adapter changed.",
+            "scenario": "timer-smoke",
+        }
+        document = self.development_result(
+            digest, verdict="BLOCKED", smoke=smoke_policy
+        )
         _, missing = overall_gates([document], digest, set(), set(), {"timer-smoke"})
-        self.assertTrue(any("no matching result" in item for item in missing["invalid"]), missing)
+        self.assertTrue(
+            any("no matching result" in item for item in missing["invalid"]), missing
+        )
         document["verdict"] = "PASS"
-        smoke = {"scenario": "timer-smoke", "phase": "smoke", "verdict": "PASS", "profile_sha256": digest}
-        _, supplied = overall_gates([document, smoke], digest, set(), set(), {"timer-smoke"})
-        development = next(item for item in supplied["gates"] if item["gate"] == "Per-change Development Validation")
+        smoke = {
+            "scenario": "timer-smoke",
+            "phase": "smoke",
+            "verdict": "PASS",
+            "profile_sha256": digest,
+        }
+        _, supplied = overall_gates(
+            [document, smoke], digest, set(), set(), {"timer-smoke"}
+        )
+        development = next(
+            item
+            for item in supplied["gates"]
+            if item["gate"] == "Per-change Development Validation"
+        )
         self.assertEqual("PASS", development["verdict"], supplied)
 
     def test_declared_development_verdict_must_match_recomputed_result(self) -> None:
         digest = "a" * 64
         document = self.development_result(digest, verdict="FAIL")
         _, result = overall_gates([document], digest, set(), set())
-        self.assertTrue(any("does not match recomputed verdict" in item for item in result["invalid"]), result)
+        self.assertTrue(
+            any(
+                "does not match recomputed verdict" in item
+                for item in result["invalid"]
+            ),
+            result,
+        )
 
     def test_external_contract_refs_come_from_governed_adapters(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -362,12 +585,19 @@ class GateSummaryTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            value = {"_project_root": str(root), "architecture": {"manifest": "architecture/manifest.yaml"}}
-            self.assertEqual({"timer_adapter", "clock.port"}, _external_contract_refs(value))
+            value = {
+                "_project_root": str(root),
+                "architecture": {"manifest": "architecture/manifest.yaml"},
+            }
+            self.assertEqual(
+                {"timer_adapter", "clock.port"}, _external_contract_refs(value)
+            )
 
     def test_secret_reference_is_allowed(self) -> None:
         value = profile()
-        value["external_refs"] = {"credential": {"ref": "windows-credential-manager:device"}}
+        value["external_refs"] = {
+            "credential": {"ref": "windows-credential-manager:device"}
+        }
         self.assertEqual([], validate_profile(value))
 
     def test_architecture_reference_must_exist(self) -> None:
@@ -375,12 +605,29 @@ class GateSummaryTests(unittest.TestCase):
             root = Path(temp)
             manifest = root / "architecture" / "manifest.yaml"
             manifest.parent.mkdir()
-            manifest.write_text(yaml.safe_dump({"modules": [{"id": "known"}], "ports": [], "events": [], "flows": []}), encoding="utf-8")
+            manifest.write_text(
+                yaml.safe_dump(
+                    {
+                        "modules": [{"id": "known"}],
+                        "ports": [],
+                        "events": [],
+                        "flows": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
             value = profile()
             value["architecture"] = {"manifest": "architecture/manifest.yaml"}
-            self.assertTrue(any("unknown architecture reference" in item for item in validate_architecture_references(value, root)))
+            self.assertTrue(
+                any(
+                    "unknown architecture reference" in item
+                    for item in validate_architecture_references(value, root)
+                )
+            )
 
-    def test_profile_v1_1_binds_accepted_execution_profile_and_extended_refs(self) -> None:
+    def test_profile_v1_1_binds_accepted_execution_profile_and_extended_refs(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             manifest = root / "architecture" / "manifest.yaml"
@@ -427,7 +674,9 @@ class GateSummaryTests(unittest.TestCase):
             self.assertEqual([], validate_profile(value))
             self.assertEqual([], validate_architecture_references(value, root))
 
-    def test_profile_v1_1_rejects_stale_manifest_hash_and_proposed_profile(self) -> None:
+    def test_profile_v1_1_rejects_stale_manifest_hash_and_proposed_profile(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             manifest = root / "architecture" / "manifest.yaml"
@@ -440,7 +689,11 @@ class GateSummaryTests(unittest.TestCase):
                         "events": [],
                         "flows": [{"id": "FLOW-BOOT-001"}],
                         "execution_profiles": [
-                            {"id": "candidate", "status": "proposed", "target": {"platform": "windows"}}
+                            {
+                                "id": "candidate",
+                                "status": "proposed",
+                                "target": {"platform": "windows"},
+                            }
                         ],
                     }
                 ),
@@ -461,7 +714,11 @@ class GateSummaryTests(unittest.TestCase):
 class EvidenceTests(unittest.TestCase):
     def test_complete_event_and_statistical_evidence_passes(self) -> None:
         _, results, verdict = evaluate(profile(), "boot", good_log())
-        self.assertEqual(Verdict.PASS, verdict, [(item.criterion_id, item.reason) for item in results])
+        self.assertEqual(
+            Verdict.PASS,
+            verdict,
+            [(item.criterion_id, item.reason) for item in results],
+        )
 
     def test_sequence_gap_is_blocked(self) -> None:
         text = good_log().replace("seq=3", "seq=30", 1)
@@ -493,12 +750,17 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(Verdict.BLOCKED, verdict)
 
     def test_records_outside_session_are_blocked(self) -> None:
-        text = good_log().replace("records=9", "records=10") + "\nVAL_EVENT name=late t_ms=101 seq=10"
+        text = (
+            good_log().replace("records=9", "records=10")
+            + "\nVAL_EVENT name=late t_ms=101 seq=10"
+        )
         _, _, verdict = evaluate(profile(), "boot", text)
         self.assertEqual(Verdict.BLOCKED, verdict)
 
     def test_duplicate_key_and_nonfinite_number_are_blocked(self) -> None:
-        duplicate = good_log().replace("dropped=0 duration_ms", "dropped=5 dropped=0 duration_ms")
+        duplicate = good_log().replace(
+            "dropped=0 duration_ms", "dropped=5 dropped=0 duration_ms"
+        )
         nonfinite = good_log().replace("max=60", "max=-inf")
         self.assertEqual(Verdict.BLOCKED, evaluate(profile(), "boot", duplicate)[2])
         self.assertEqual(Verdict.BLOCKED, evaluate(profile(), "boot", nonfinite)[2])
@@ -534,14 +796,25 @@ class EvidenceTests(unittest.TestCase):
         _, _, missing_verdict = evaluate(value, "boot", good_log())
         _, results, complete_verdict = evaluate(value, "boot", warmup_log())
         self.assertEqual(Verdict.BLOCKED, missing_verdict)
-        self.assertEqual(Verdict.PASS, complete_verdict, [(item.criterion_id, item.reason) for item in results])
+        self.assertEqual(
+            Verdict.PASS,
+            complete_verdict,
+            [(item.criterion_id, item.reason) for item in results],
+        )
 
     def test_bundle_records_user_upload_limitation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             raw = root / "input.log"
             raw.write_text(good_log(), encoding="utf-8")
-            result = write_bundle(root / "evidence", profile(), "boot", raw, probe(profile()), expected_run_id="R1")
+            result = write_bundle(
+                root / "evidence",
+                profile(),
+                "boot",
+                raw,
+                probe(profile()),
+                expected_run_id="R1",
+            )
             self.assertEqual("PASS", result["verdict"])
             self.assertFalse(result["upload_verified_by_gpt"])
             self.assertTrue((root / "evidence" / "raw.sha256").exists())
@@ -551,20 +824,59 @@ class EvidenceTests(unittest.TestCase):
     def test_acceptance_requires_matching_enablement_pass_bundle(self) -> None:
         value = profile()
         acceptance = copy.deepcopy(value["scenarios"][0])
-        acceptance.update({"id": "accept", "phase": "acceptance", "prerequisites": ["boot"]})
+        acceptance.update(
+            {"id": "accept", "phase": "acceptance", "prerequisites": ["boot"]}
+        )
         value["scenarios"].append(acceptance)
         raw_text = good_log().replace("scenario=boot", "scenario=accept")
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             raw = root / "input.log"
             raw.write_text(raw_text, encoding="utf-8")
-            blocked = write_bundle(root / "blocked", value, "accept", raw, probe(value), expected_run_id="R1")
+            blocked = write_bundle(
+                root / "blocked",
+                value,
+                "accept",
+                raw,
+                probe(value),
+                expected_run_id="R1",
+            )
             self.assertEqual("BLOCKED", blocked["verdict"])
-            bad_hash = [{"scenario": "boot", "phase": "enablement", "verdict": "PASS", "profile_sha256": "stale"}]
-            blocked = write_bundle(root / "stale", value, "accept", raw, probe(value), expected_run_id="R1", prerequisite_results=bad_hash)
+            bad_hash = [
+                {
+                    "scenario": "boot",
+                    "phase": "enablement",
+                    "verdict": "PASS",
+                    "profile_sha256": "stale",
+                }
+            ]
+            blocked = write_bundle(
+                root / "stale",
+                value,
+                "accept",
+                raw,
+                probe(value),
+                expected_run_id="R1",
+                prerequisite_results=bad_hash,
+            )
             self.assertEqual("BLOCKED", blocked["verdict"])
-            prerequisite = [{"scenario": "boot", "phase": "enablement", "verdict": "PASS", "profile_sha256": profile_sha256(value)}]
-            passed = write_bundle(root / "passed", value, "accept", raw, probe(value), expected_run_id="R1", prerequisite_results=prerequisite)
+            prerequisite = [
+                {
+                    "scenario": "boot",
+                    "phase": "enablement",
+                    "verdict": "PASS",
+                    "profile_sha256": profile_sha256(value),
+                }
+            ]
+            passed = write_bundle(
+                root / "passed",
+                value,
+                "accept",
+                raw,
+                probe(value),
+                expected_run_id="R1",
+                prerequisite_results=prerequisite,
+            )
             self.assertEqual("PASS", passed["verdict"])
 
     def test_oversized_import_is_blocked_without_copying_raw(self) -> None:
@@ -574,7 +886,14 @@ class EvidenceTests(unittest.TestCase):
             raw.write_text("x" * 101, encoding="utf-8")
             value = profile()
             value["transport"]["max_bytes"] = 100
-            result = write_bundle(root / "evidence", value, "boot", raw, probe(value), expected_run_id="R1")
+            result = write_bundle(
+                root / "evidence",
+                value,
+                "boot",
+                raw,
+                probe(value),
+                expected_run_id="R1",
+            )
             self.assertEqual("BLOCKED", result["verdict"])
             self.assertFalse((root / "evidence" / "raw.log").exists())
 
@@ -585,16 +904,61 @@ class EvidenceTests(unittest.TestCase):
         value = profile()
         value["target"]["provider"] = "etw-wpr"
         value["scenarios"][0]["criteria"].append(
-            {"id": "ready-latency", "type": "native_metric", "metric": "scheduler.ready_latency_us", "field": "max", "operator": "<=", "threshold": 50, "max_alignment_error_ns": 1000, "sample_plan": {"basis": "external-standard", "reference": "TEST-SAMPLE-100", "min_samples": 100}, "max_duration_ms": 30000, "native_unit": "us", "native_semantics": {"start_event": "thread_ready", "end_event": "thread_running", "clock": "qpc"}}
+            {
+                "id": "ready-latency",
+                "type": "native_metric",
+                "metric": "scheduler.ready_latency_us",
+                "field": "max",
+                "operator": "<=",
+                "threshold": 50,
+                "max_alignment_error_ns": 1000,
+                "sample_plan": {
+                    "basis": "external-standard",
+                    "reference": "TEST-SAMPLE-100",
+                    "min_samples": 100,
+                },
+                "max_duration_ms": 30000,
+                "native_unit": "us",
+                "native_semantics": {
+                    "start_event": "thread_ready",
+                    "end_event": "thread_running",
+                    "clock": "qpc",
+                },
+            }
         )
-        native = {"provider": "etw-wpr", "run_id": "R1", "lost_events": 0, "source_trace_sha256": "a" * 64, "correlation": {"marker": "R1", "alignment_error_ns": 100}, "window": {"complete": True, "n": 100, "duration_ms": 1000}, "metrics": {"scheduler.ready_latency_us": {"max": 42, "n": 100, "unit": "us", "start_event": "thread_ready", "end_event": "thread_running", "clock": "qpc"}}}
+        native = {
+            "provider": "etw-wpr",
+            "run_id": "R1",
+            "lost_events": 0,
+            "source_trace_sha256": "a" * 64,
+            "correlation": {"marker": "R1", "alignment_error_ns": 100},
+            "window": {"complete": True, "n": 100, "duration_ms": 1000},
+            "metrics": {
+                "scheduler.ready_latency_us": {
+                    "max": 42,
+                    "n": 100,
+                    "unit": "us",
+                    "start_event": "thread_ready",
+                    "end_event": "thread_running",
+                    "clock": "qpc",
+                }
+            },
+        }
         _, _, verdict = evaluate(value, "boot", good_log(), native, "a" * 64)
         self.assertEqual(Verdict.PASS, verdict)
 
     def test_native_loss_blocks(self) -> None:
         value = profile()
         value["target"]["provider"] = "etw-wpr"
-        native = {"provider": "etw-wpr", "run_id": "R1", "lost_events": 1, "source_trace_sha256": "a" * 64, "correlation": {"marker": "R1", "alignment_error_ns": 100}, "window": {"complete": True, "n": 100, "duration_ms": 1000}, "metrics": {}}
+        native = {
+            "provider": "etw-wpr",
+            "run_id": "R1",
+            "lost_events": 1,
+            "source_trace_sha256": "a" * 64,
+            "correlation": {"marker": "R1", "alignment_error_ns": 100},
+            "window": {"complete": True, "n": 100, "duration_ms": 1000},
+            "metrics": {},
+        }
         _, _, verdict = evaluate(value, "boot", good_log(), native)
         self.assertEqual(Verdict.BLOCKED, verdict)
 
@@ -602,9 +966,46 @@ class EvidenceTests(unittest.TestCase):
         value = profile()
         value["target"]["provider"] = "etw-wpr"
         value["scenarios"][0]["criteria"].append(
-            {"id": "ready-latency", "type": "native_metric", "metric": "scheduler.ready_latency_us", "field": "max", "operator": "<=", "threshold": 50, "max_alignment_error_ns": 1000, "sample_plan": {"basis": "external-standard", "reference": "TEST-SAMPLE-100", "min_samples": 100}, "max_duration_ms": 30000, "native_unit": "us", "native_semantics": {"start_event": "thread_ready", "end_event": "thread_running", "clock": "qpc"}}
+            {
+                "id": "ready-latency",
+                "type": "native_metric",
+                "metric": "scheduler.ready_latency_us",
+                "field": "max",
+                "operator": "<=",
+                "threshold": 50,
+                "max_alignment_error_ns": 1000,
+                "sample_plan": {
+                    "basis": "external-standard",
+                    "reference": "TEST-SAMPLE-100",
+                    "min_samples": 100,
+                },
+                "max_duration_ms": 30000,
+                "native_unit": "us",
+                "native_semantics": {
+                    "start_event": "thread_ready",
+                    "end_event": "thread_running",
+                    "clock": "qpc",
+                },
+            }
         )
-        native = {"provider": "etw-wpr", "run_id": "R1", "lost_events": 0, "source_trace_sha256": "a" * 64, "correlation": {"marker": "R1", "alignment_error_ns": 100}, "window": {"complete": True, "n": 100, "duration_ms": 1000}, "metrics": {"scheduler.ready_latency_us": {"max": 42, "n": 100, "unit": "us", "start_event": "thread_ready", "end_event": "thread_running", "clock": "qpc"}}}
+        native = {
+            "provider": "etw-wpr",
+            "run_id": "R1",
+            "lost_events": 0,
+            "source_trace_sha256": "a" * 64,
+            "correlation": {"marker": "R1", "alignment_error_ns": 100},
+            "window": {"complete": True, "n": 100, "duration_ms": 1000},
+            "metrics": {
+                "scheduler.ready_latency_us": {
+                    "max": 42,
+                    "n": 100,
+                    "unit": "us",
+                    "start_event": "thread_ready",
+                    "end_event": "thread_running",
+                    "clock": "qpc",
+                }
+            },
+        }
         _, _, verdict = evaluate(value, "boot", good_log(), native)
         self.assertEqual(Verdict.BLOCKED, verdict)
 
@@ -612,9 +1013,37 @@ class EvidenceTests(unittest.TestCase):
         value = profile()
         value["target"]["provider"] = "etw-wpr"
         value["scenarios"][0]["criteria"].append(
-            {"id": "ready-latency", "type": "native_metric", "metric": "scheduler.ready_latency_us", "field": "max", "operator": "<=", "threshold": 50, "max_alignment_error_ns": 1000, "sample_plan": {"basis": "external-standard", "reference": "TEST-SAMPLE-100", "min_samples": 100}, "max_duration_ms": 30000, "native_unit": "us", "native_semantics": {"start_event": "thread_ready", "end_event": "thread_running", "clock": "qpc"}}
+            {
+                "id": "ready-latency",
+                "type": "native_metric",
+                "metric": "scheduler.ready_latency_us",
+                "field": "max",
+                "operator": "<=",
+                "threshold": 50,
+                "max_alignment_error_ns": 1000,
+                "sample_plan": {
+                    "basis": "external-standard",
+                    "reference": "TEST-SAMPLE-100",
+                    "min_samples": 100,
+                },
+                "max_duration_ms": 30000,
+                "native_unit": "us",
+                "native_semantics": {
+                    "start_event": "thread_ready",
+                    "end_event": "thread_running",
+                    "clock": "qpc",
+                },
+            }
         )
-        native = {"provider": "etw-wpr", "run_id": "R1", "lost_events": 0, "source_trace_sha256": "a" * 64, "correlation": {"marker": "R1", "alignment_error_ns": 1001}, "window": {"complete": True, "n": 100, "duration_ms": 1000}, "metrics": {"scheduler.ready_latency_us": {"max": 42}}}
+        native = {
+            "provider": "etw-wpr",
+            "run_id": "R1",
+            "lost_events": 0,
+            "source_trace_sha256": "a" * 64,
+            "correlation": {"marker": "R1", "alignment_error_ns": 1001},
+            "window": {"complete": True, "n": 100, "duration_ms": 1000},
+            "metrics": {"scheduler.ready_latency_us": {"max": 42}},
+        }
         _, _, verdict = evaluate(value, "boot", good_log(), native)
         self.assertEqual(Verdict.BLOCKED, verdict)
 
@@ -622,9 +1051,33 @@ class EvidenceTests(unittest.TestCase):
         value = profile()
         value["target"]["provider"] = "etw-wpr"
         value["scenarios"][0]["criteria"].append(
-            {"id": "ready-latency", "type": "native_metric", "metric": "scheduler.ready_latency_us", "field": "max", "operator": "<=", "threshold": 70, "max_alignment_error_ns": 1000, "sample_plan": {"basis": "external-standard", "reference": "TEST-SAMPLE-100", "min_samples": 100}, "max_duration_ms": 30000, "native_unit": "us", "native_semantics": {"start_event": "thread_ready", "end_event": "thread_running", "clock": "qpc"}}
+            {
+                "id": "ready-latency",
+                "type": "native_metric",
+                "metric": "scheduler.ready_latency_us",
+                "field": "max",
+                "operator": "<=",
+                "threshold": 70,
+                "max_alignment_error_ns": 1000,
+                "sample_plan": {
+                    "basis": "external-standard",
+                    "reference": "TEST-SAMPLE-100",
+                    "min_samples": 100,
+                },
+                "max_duration_ms": 30000,
+                "native_unit": "us",
+                "native_semantics": {
+                    "start_event": "thread_ready",
+                    "end_event": "thread_running",
+                    "clock": "qpc",
+                },
+            }
         )
-        semantic_log = good_log().replace("unit=us", "unit=us start_event=thread_ready end_event=thread_running clock=cycle_counter", 1)
+        semantic_log = good_log().replace(
+            "unit=us",
+            "unit=us start_event=thread_ready end_event=thread_running clock=cycle_counter",
+            1,
+        )
         _, results, verdict = evaluate(value, "boot", semantic_log)
         self.assertEqual(Verdict.BLOCKED, verdict)
 
@@ -648,7 +1101,13 @@ class ProviderAndPermissionTests(unittest.TestCase):
     def test_action_output_is_bounded(self) -> None:
         value = profile()
         value["_project_root"] = str(ROOT)
-        value["actions"]["noisy"] = {"executable": sys.executable, "args": ["-c", "print('x' * 100)"], "risk": "passive", "timeout_seconds": 10, "max_output_bytes": 10}
+        value["actions"]["noisy"] = {
+            "executable": sys.executable,
+            "args": ["-c", "print('x' * 100)"],
+            "risk": "passive",
+            "timeout_seconds": 10,
+            "max_output_bytes": 10,
+        }
         result = run_action(value, "noisy", set())
         self.assertEqual("BLOCKED", result["status"])
         self.assertEqual(">10", result["output_bytes"])
@@ -667,7 +1126,13 @@ class ProviderAndPermissionTests(unittest.TestCase):
             thread = threading.Thread(target=send)
             thread.start()
             value = profile()
-            value["transport"] = {"type": "tcp-client", "host": "127.0.0.1", "port": port, "timeout_seconds": 2, "max_bytes": 100000}
+            value["transport"] = {
+                "type": "tcp-client",
+                "host": "127.0.0.1",
+                "port": port,
+                "timeout_seconds": 2,
+                "max_bytes": 100000,
+            }
             with tempfile.TemporaryDirectory() as temp:
                 output = Path(temp) / "capture.log"
                 result = capture_tcp(value, value["scenarios"][0], output)

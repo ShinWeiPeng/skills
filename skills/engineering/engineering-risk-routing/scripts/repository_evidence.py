@@ -46,11 +46,7 @@ def _git_paths(root: Path, *arguments: str) -> list[str]:
         capture_output=True,
         text=True,
     )
-    return [
-        item.replace("\\", "/")
-        for item in completed.stdout.split("\0")
-        if item
-    ]
+    return [item.replace("\\", "/") for item in completed.stdout.split("\0") if item]
 
 
 class GitFilesystemRepositoryEvidenceAdapter:
@@ -95,12 +91,15 @@ class GitFilesystemRepositoryEvidenceAdapter:
         if not root.is_dir():
             raise ValueError(f"project root is not a readable directory: {root}")
 
-        is_git = subprocess.run(
-            ["git", "rev-parse", "--is-inside-work-tree"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-        ).returncode == 0
+        is_git = (
+            subprocess.run(
+                ["git", "rev-parse", "--is-inside-work-tree"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+            ).returncode
+            == 0
+        )
 
         rows: list[dict[str, Any]] = []
         if is_git:
@@ -134,9 +133,7 @@ class GitFilesystemRepositoryEvidenceAdapter:
                         retained_directories.append(directory)
                 directories[:] = retained_directories
                 for filename in files:
-                    relative = (
-                        (current_path / filename).relative_to(root).as_posix()
-                    )
+                    relative = (current_path / filename).relative_to(root).as_posix()
                     row = self._artifact_row(root, relative, "untracked")
                     if row is not None:
                         rows.append(row)

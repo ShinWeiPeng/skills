@@ -18,7 +18,18 @@
     "reason_code": {"type": "string", "minLength": 1},
     "collisions": {"type": "array"},
     "minimal_scaffold_allowed": {"type": "boolean"},
-    "product_code_allowed": {"type": "boolean"}
+    "product_code_allowed": {"type": "boolean"},
+    "canonical_spec": {"type": "string", "minLength": 1},
+    "spec_verification_status": {"enum": ["not-run", "pass", "blocked"]},
+    "program_files": {"type": "array", "items": {"type": "string"}},
+    "dirty_files": {"type": "array", "items": {"type": "string"}},
+    "confirmation_required": {"type": "boolean"},
+    "format_write_allowed": {"type": "boolean"},
+    "format_completed": {"type": "boolean"},
+    "delivery_validation": {"const": "separate"},
+    "install_permission": {"enum": ["not-requested", "missing", "denied", "authorized"]},
+    "install_status": {"enum": ["not-needed", "not-run", "pass", "fail"]},
+    "pre_write_clean_status": {"enum": ["not-run", "pass", "fail"]}
   },
   "additionalProperties": true
 }

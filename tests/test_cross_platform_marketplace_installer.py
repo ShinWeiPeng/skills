@@ -31,7 +31,9 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
         self.assertIn("%k", entry["Exec"])
         self.assertIn("install-marketplace-gui.sh", entry["Exec"])
         for named_terminal in ("gnome-terminal", "konsole", "xfce4-terminal"):
-            self.assertNotIn(named_terminal, desktop_launcher.read_text(encoding="utf-8"))
+            self.assertNotIn(
+                named_terminal, desktop_launcher.read_text(encoding="utf-8")
+            )
         desktop_validator = shutil.which("desktop-file-validate")
         if desktop_validator:
             validation = subprocess.run(
@@ -40,7 +42,9 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 capture_output=True,
                 check=False,
             )
-            self.assertEqual(0, validation.returncode, validation.stdout + validation.stderr)
+            self.assertEqual(
+                0, validation.returncode, validation.stdout + validation.stderr
+            )
 
     def test_linux_gui_launcher_keeps_success_and_failure_results_visible(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -51,9 +55,7 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
             shutil.copy2(ROOT / "scripts" / "install-marketplace-gui.sh", gui_launcher)
             installer = temp / "Install Governed Engineering Skills.sh"
             installer.write_text(
-                "#!/bin/sh\n"
-                'printf "installer exit %s\\n" "$1"\n'
-                'exit "$1"\n',
+                '#!/bin/sh\nprintf "installer exit %s\\n" "$1"\nexit "$1"\n',
                 encoding="utf-8",
             )
             gui_launcher.chmod(0o755)
@@ -109,7 +111,9 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
         self.assertEqual("dnf", providers["platforms"]["fedora"]["provider"])
 
         marketplace = json.loads(
-            (ROOT / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8")
+            (ROOT / ".agents" / "plugins" / "marketplace.json").read_text(
+                encoding="utf-8"
+            )
         )
         self.assertEqual("governed-engineering-development", marketplace["name"])
 
@@ -124,8 +128,12 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
         self.assertIn("@('login','status')", windows_text)
         self.assertIn("@('plugin','add'", windows_text)
 
-        self.assertIn("install-marketplace.ps1", windows_launcher.read_text(encoding="utf-8"))
-        self.assertIn("install-marketplace.sh", linux_launcher.read_text(encoding="utf-8"))
+        self.assertIn(
+            "install-marketplace.ps1", windows_launcher.read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            "install-marketplace.sh", linux_launcher.read_text(encoding="utf-8")
+        )
 
     def test_linux_installer_upgrades_old_codex_and_installs_marketplace(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -159,7 +167,7 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 '  "plugin marketplace upgrade governed-engineering") exit 0 ;;\n'
                 '  "plugin add governed-engineering-skills@governed-engineering") exit 0 ;;\n'
                 '  "plugin list --json") printf \'{"installed":[{"pluginId":"governed-engineering-skills@governed-engineering"}]}\\n\' ;;\n'
-                '  *) exit 1 ;;\n'
+                "  *) exit 1 ;;\n"
                 "esac\n",
                 encoding="utf-8",
             )
@@ -201,7 +209,9 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 if line.startswith("cwd ")
             ]
             self.assertTrue(codex_working_directories)
-            self.assertEqual([str(temp)] * len(codex_working_directories), codex_working_directories)
+            self.assertEqual(
+                [str(temp)] * len(codex_working_directories), codex_working_directories
+            )
 
             command_log.write_text("", encoding="utf-8")
             environment["MARKETPLACE_JSON"] = json.dumps(
@@ -225,7 +235,11 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 capture_output=True,
                 check=False,
             )
-            self.assertEqual(0, matching_result.returncode, matching_result.stdout + matching_result.stderr)
+            self.assertEqual(
+                0,
+                matching_result.returncode,
+                matching_result.stdout + matching_result.stderr,
+            )
             self.assertIn(
                 "codex plugin marketplace upgrade governed-engineering",
                 command_log.read_text(encoding="utf-8"),
@@ -255,13 +269,18 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 with self.subTest(conflict_source=conflict_source):
                     command_log.write_text("", encoding="utf-8")
                     marketplaces = (
-                        conflict_source if isinstance(conflict_source, list) else [conflict_source]
+                        conflict_source
+                        if isinstance(conflict_source, list)
+                        else [conflict_source]
                     )
                     environment["MARKETPLACE_JSON"] = json.dumps(
                         {"marketplaces": marketplaces}
                     )
                     conflict_result = subprocess.run(
-                        [str(ROOT / "scripts" / "install-marketplace.sh"), "--non-interactive"],
+                        [
+                            str(ROOT / "scripts" / "install-marketplace.sh"),
+                            "--non-interactive",
+                        ],
                         cwd=ROOT,
                         env=environment,
                         text=True,
@@ -269,7 +288,10 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                         check=False,
                     )
                     self.assertEqual(1, conflict_result.returncode)
-                    self.assertIn("conflicts with the required Git Marketplace", conflict_result.stderr)
+                    self.assertIn(
+                        "conflicts with the required Git Marketplace",
+                        conflict_result.stderr,
+                    )
                     conflict_commands = command_log.read_text(encoding="utf-8")
                     self.assertNotIn("plugin marketplace add", conflict_commands)
                     self.assertNotIn("plugin marketplace upgrade", conflict_commands)
@@ -287,7 +309,9 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(1, inventory_failure.returncode)
-            self.assertIn("Marketplace inventory could not be read", inventory_failure.stderr)
+            self.assertIn(
+                "Marketplace inventory could not be read", inventory_failure.stderr
+            )
             failure_commands = command_log.read_text(encoding="utf-8")
             self.assertNotIn("plugin marketplace add", failure_commands)
             self.assertNotIn("plugin marketplace upgrade", failure_commands)

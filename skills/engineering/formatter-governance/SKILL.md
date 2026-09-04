@@ -21,13 +21,41 @@ state merely because spec or architecture files were created later.
   build metadata, contributor docs, CI, and existing format scripts. Preserve the
   discovered repository formatter, style, file scope, and invocation. Pass the
   formatter identity separately from JSON `check` and `write` argv arrays; never
-  combine a command into the identity or replace it with a governed default.
+  combine a command into the identity. If no repository CLI formatter is
+  discoverable, use the governed language mapping as the fallback.
 - If either ProjectState axis or the applicable repository convention is
   indeterminate, report `BLOCKED`; do not guess.
 
 Keep check and write commands distinct. A check must be non-mutating. A formatting
 write requires the user's repository-mutation authorization and may touch only the
 declared target root and file scope.
+
+## Confirm full-program formatting
+
+When a governed canonical SPEC is present, ask exactly once whether to format the
+complete program-source scope. SPEC presence triggers the question but is neither
+AI-authorship evidence nor write authorization. An affirmative answer authorizes
+only product source and tests; exclude documentation, configuration, generated
+files, vendored dependencies, and build output.
+Declining skips only the formatting write; it does not waive the ordinary
+non-mutating pre-product formatter gate below.
+
+Before the full-format write, require every targeted program file to be clean in
+Git. A dirty target is `BLOCKED`; unrelated dirty files neither block the operation
+nor enter its scope. Run `scripts/formatter_policy.py full-format` to record the
+canonical SPEC, confirmation, selected policy, exact scope, clean-target evidence,
+CLI availability, installation outcome, write result, and follow-up check result.
+
+Only deterministic non-interactive CLI write and check commands are authoritative.
+IDE formatting is not accepted as execution evidence. Tests, typechecks, and builds
+remain separate delivery validations.
+
+For a discovered repository formatter, require exactly one `.` or `<files>` scope
+placeholder in each write and check argv. The policy expands that sole placeholder
+to the reviewed program-file list. Outside the formatter executable and any fixed
+subcommands declared by its identity, permit only option tokens; reject additional
+file or directory operands, globs, absolute paths, and option values that could
+name another scope.
 
 ## Preflight greenfield scaffold
 
@@ -44,8 +72,8 @@ behavior.
 
 Installing or downloading a formatter is an external mutation. Request explicit
 authorization through the native permission boundary immediately before it. A
-missing or declined authorization is `BLOCKED`, not permission to substitute a
-different formatter.
+missing or declined authorization, or a failed installation, is `BLOCKED`, not
+permission to substitute a different formatter.
 
 ## Gate product mutation
 

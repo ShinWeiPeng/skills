@@ -90,10 +90,7 @@ def validate_boundary_catalog(
             )
             continue
         row_id = raw.get("id")
-        if (
-            not _is_nonempty_string(row_id)
-            or not ID_PATTERN.fullmatch(str(row_id))
-        ):
+        if not _is_nonempty_string(row_id) or not ID_PATTERN.fullmatch(str(row_id)):
             _diag(
                 diagnostics,
                 "BND001",
@@ -184,8 +181,7 @@ def validate_boundary_catalog(
         if consumer and consumer_contract in types:
             contract_owner = str(types[str(consumer_contract)].get("owner", ""))
             direct_reuse = (
-                producer_contract is not None
-                and consumer_contract == producer_contract
+                producer_contract is not None and consumer_contract == producer_contract
             )
             if direct_reuse and contract_owner != consumer:
                 if contract_owner not in modules[consumer].get("depends_on", []):
@@ -269,7 +265,11 @@ def validate_boundary_catalog(
                     )
                 target.add(edge)
         for source, target in allowed:
-            if source in modules and target in modules and target not in modules[source].get("depends_on", []):
+            if (
+                source in modules
+                and target in modules
+                and target not in modules[source].get("depends_on", [])
+            ):
                 _diag(
                     diagnostics,
                     "BND006",
@@ -277,7 +277,11 @@ def validate_boundary_catalog(
                     f"allowed edge {source}->{target} is absent from depends_on",
                 )
         for source, target in forbidden:
-            if source in modules and target in modules and target in modules[source].get("depends_on", []):
+            if (
+                source in modules
+                and target in modules
+                and target in modules[source].get("depends_on", [])
+            ):
                 _diag(
                     diagnostics,
                     "BND006",

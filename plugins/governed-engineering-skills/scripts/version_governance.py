@@ -126,7 +126,11 @@ def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
     """Hash the logical Plugin sources independent of their repository location."""
     entries: list[tuple[str, Path]] = []
     for item in root.rglob("*"):
-        if item.is_file() and _fingerprint_path(item, root) and item.name != "artifact-inventory.json":
+        if (
+            item.is_file()
+            and _fingerprint_path(item, root)
+            and item.name != "artifact-inventory.json"
+        ):
             entries.append((item.relative_to(root).as_posix(), item))
     if root.resolve() == PLUGIN_ROOT.resolve() and not (root / "skills").exists():
         for bucket_name in ("engineering", "productivity"):
@@ -182,9 +186,7 @@ def synchronize_production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
             detail.append(f"missing={','.join(missing)}")
         if extra:
             detail.append(f"extra={','.join(extra)}")
-        raise ValueError(
-            "release-state fields are invalid: " + "; ".join(detail)
-        )
+        raise ValueError("release-state fields are invalid: " + "; ".join(detail))
     fingerprint = production_fingerprint(root)
     state["production_fingerprint"] = fingerprint
     _write_json(state_path, state)
@@ -261,8 +263,7 @@ def _validate_intent(
     unknown = sorted(set(intent) - INTENT_FIELDS)
     if unknown:
         errors.append(
-            "release intent contains obsolete or unknown fields: "
-            + ", ".join(unknown)
+            "release intent contains obsolete or unknown fields: " + ", ".join(unknown)
         )
     intended_value = intent.get("changesets", [])
     if not isinstance(intended_value, list):
@@ -273,7 +274,9 @@ def _validate_intent(
         if len(intended) != len(intended_value):
             errors.append("release intent changesets must be unique")
     if intended != pending_changesets:
-        errors.append("release intent changesets do not match pending plugin changesets")
+        errors.append(
+            "release intent changesets do not match pending plugin changesets"
+        )
 
     bumps: list[str] = []
     for changeset_id in sorted(pending_changesets):
@@ -405,9 +408,7 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
                     str(package.get("name", "")),
                 )
             except OSError as exc:
-                errors.append(
-                    f"applied changeset {changeset_id} is missing: {exc}"
-                )
+                errors.append(f"applied changeset {changeset_id} is missing: {exc}")
             else:
                 if declared is None:
                     errors.append(
@@ -431,7 +432,10 @@ def validate_repository(root: Path = PLUGIN_ROOT, *, ci: bool = True) -> list[st
         errors.append("release intent exists without pending plugin changesets")
 
     actual_fingerprint = production_fingerprint(root)
-    if state.get("production_fingerprint") != actual_fingerprint and not pending_changesets:
+    if (
+        state.get("production_fingerprint") != actual_fingerprint
+        and not pending_changesets
+    ):
         errors.append("release-state production fingerprint is stale")
     return list(dict.fromkeys(errors))
 
@@ -474,18 +478,14 @@ def apply_release(
         try:
             declared = _changeset_bump(changeset_path, str(package["name"]))
         except OSError as exc:
-            raise ValueError(
-                f"changeset {changeset_id} is missing: {exc}"
-            ) from exc
+            raise ValueError(f"changeset {changeset_id} is missing: {exc}") from exc
         if declared is None:
             raise ValueError(f"changeset {changeset_id} has an invalid declaration")
         bumps.append(declared)
     if not bumps:
         raise ValueError("release requires at least one new plugin changeset")
     if _highest_bump(bumps) != bump:
-        raise ValueError(
-            "release bump must match the highest pending changeset bump"
-        )
+        raise ValueError("release bump must match the highest pending changeset bump")
     changelog_entry = _render_changelog_entry(target, summary)
 
     archive_root = root / ".changeset" / "applied" / current

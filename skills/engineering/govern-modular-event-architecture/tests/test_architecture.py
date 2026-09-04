@@ -210,7 +210,11 @@ def valid_manifest(*, c_ast: bool = False) -> dict:
                     "purpose": "Report successful feature completion.",
                     "emitted_when": "State has committed.",
                     "payload_fields": [
-                        {"name": "value", "type": "integer", "meaning": "Fixture value."}
+                        {
+                            "name": "value",
+                            "type": "integer",
+                            "meaning": "Fixture value.",
+                        }
                     ],
                     "intended_consumers": ["app"],
                 },
@@ -370,9 +374,7 @@ def localized_manifest() -> dict:
         "adapter": "連接外部輸入輸出技術",
     }
     for item in manifest["modules"]:
-        item["description"]["diagram_summaries"] = {
-            "zh-TW": summaries[item["id"]]
-        }
+        item["description"]["diagram_summaries"] = {"zh-TW": summaries[item["id"]]}
     return manifest
 
 
@@ -469,15 +471,11 @@ def realtime_design_manifest() -> dict:
                 "relative_deadline_ns": period_ns,
                 "release_jitter_ns": 0,
                 "blocking_ns": 0,
-                "demand_components": [
-                    {"mapping": mapping_id, "budget_ns": budget_ns}
-                ],
+                "demand_components": [{"mapping": mapping_id, "budget_ns": budget_ns}],
             },
         }
 
-    def mapping(
-        mapping_id: str, profile_id: str, unit_id: str, wcet: str
-    ) -> dict:
+    def mapping(mapping_id: str, profile_id: str, unit_id: str, wcet: str) -> dict:
         return {
             "id": mapping_id,
             "profile": profile_id,
@@ -490,7 +488,10 @@ def realtime_design_manifest() -> dict:
             "wcet": wcet,
         }
 
-    manifest["execution_profiles"] = [candidate("candidate-a"), candidate("candidate-b")]
+    manifest["execution_profiles"] = [
+        candidate("candidate-a"),
+        candidate("candidate-b"),
+    ]
     manifest["execution_units"] = [
         unit(
             "candidate-a-task",
@@ -715,19 +716,13 @@ class SchemaV2Tests(unittest.TestCase):
         self,
     ) -> None:
         malformed = localized_manifest()
-        malformed["modules"][0]["description"]["diagram_summaries"] = [
-            "組合系統"
-        ]
-        diagnostics = validate_manifest(
-            malformed, Path("architecture/manifest.yaml")
-        )
+        malformed["modules"][0]["description"]["diagram_summaries"] = ["組合系統"]
+        diagnostics = validate_manifest(malformed, Path("architecture/manifest.yaml"))
         self.assertTrue(any(item.rule_id == "DESC013" for item in diagnostics))
 
         mismatch = localized_manifest()
         mismatch["standard_version"] = "2.1.0"
-        diagnostics = validate_manifest(
-            mismatch, Path("architecture/manifest.yaml")
-        )
+        diagnostics = validate_manifest(mismatch, Path("architecture/manifest.yaml"))
         self.assertTrue(any(item.rule_id == "VER001" for item in diagnostics))
 
     def test_hard_realtime_bare_metal_profile_triggers_and_passes_study(self) -> None:
@@ -755,7 +750,9 @@ class SchemaV2Tests(unittest.TestCase):
             diagnostics,
         )
 
-    def test_realtime_study_requires_distinct_candidates_and_human_selection(self) -> None:
+    def test_realtime_study_requires_distinct_candidates_and_human_selection(
+        self,
+    ) -> None:
         manifest = realtime_design_manifest()
         study = manifest["realtime_scheduling_studies"][0]
         study["candidate_profiles"] = ["candidate-a", "candidate-a"]
@@ -768,7 +765,9 @@ class SchemaV2Tests(unittest.TestCase):
 
     def test_selected_hard_realtime_candidate_must_pass_rta(self) -> None:
         manifest = realtime_design_manifest()
-        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = 100_000
+        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = (
+            100_000
+        )
         diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
         rules = {item.rule_id for item in diagnostics}
         self.assertIn("SCHED061", rules)
@@ -777,7 +776,9 @@ class SchemaV2Tests(unittest.TestCase):
 
     def test_selected_hard_realtime_deadline_miss_cannot_be_baselined(self) -> None:
         manifest = realtime_design_manifest()
-        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = 100_000
+        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = (
+            100_000
+        )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             manifest_path = root / "architecture" / "manifest.yaml"
@@ -837,9 +838,7 @@ class SchemaV2Tests(unittest.TestCase):
         ):
             with self.subTest(method=method):
                 manifest = realtime_design_manifest()
-                manifest["realtime_scheduling_studies"][0][
-                    "analysis_method"
-                ] = method
+                manifest["realtime_scheduling_studies"][0]["analysis_method"] = method
                 diagnostics = validate_manifest(
                     manifest, Path("architecture/manifest.yaml")
                 )
@@ -868,9 +867,9 @@ class SchemaV2Tests(unittest.TestCase):
                 "method": "runtime-evidence",
             },
         ]
-        manifest["execution_units"][0]["realtime_task"][
-            "relative_deadline_ns"
-        ] = 100_000
+        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = (
+            100_000
+        )
 
         diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
         rules = {item.rule_id for item in diagnostics}
@@ -978,9 +977,7 @@ class SchemaV2Tests(unittest.TestCase):
 
     def test_obsolete_rtos_specific_fields_are_configuration_blocked(self) -> None:
         manifest = realtime_design_manifest()
-        manifest["rtos_design_studies"] = manifest.pop(
-            "realtime_scheduling_studies"
-        )
+        manifest["rtos_design_studies"] = manifest.pop("realtime_scheduling_studies")
         manifest["execution_profiles"][0]["overheads"]["timer_isr_ns"] = 1
         manifest["execution_units"][0]["rtos"] = {}
         manifest["execution_units"][0]["rtos_isr"] = {}
@@ -1020,7 +1017,9 @@ class SchemaV2Tests(unittest.TestCase):
             diagnostics,
         )
 
-    def test_source_set_overlap_and_nonproduction_declaration_are_blocking(self) -> None:
+    def test_source_set_overlap_and_nonproduction_declaration_are_blocking(
+        self,
+    ) -> None:
         manifest = valid_manifest()
         manifest["source_sets"].append(
             {
@@ -1038,9 +1037,20 @@ class SchemaV2Tests(unittest.TestCase):
         manifest = valid_manifest()
         manifest["types"] = [
             type_entry(
-                "feature", "tests/generated.h", "GeneratedTestType", "struct",
-                "domain-value", "module-public",
-                [{"name": "value", "type": "int", "role": "domain-value", "meaning": "Test value."}],
+                "feature",
+                "tests/generated.h",
+                "GeneratedTestType",
+                "struct",
+                "domain-value",
+                "module-public",
+                [
+                    {
+                        "name": "value",
+                        "type": "int",
+                        "role": "domain-value",
+                        "meaning": "Test value.",
+                    }
+                ],
             )
         ]
         diagnostics = validate_manifest(manifest, Path("architecture/manifest.yaml"))
@@ -1164,9 +1174,7 @@ class SchemaV2Tests(unittest.TestCase):
 
     def test_unresolved_parent_mapping_is_blocking(self) -> None:
         manifest = valid_manifest()
-        consumer = module(
-            "consumer", "L1", "domain", "src/consumer", "app", []
-        )
+        consumer = module("consumer", "L1", "domain", "src/consumer", "app", [])
         manifest["modules"].append(consumer)
         producer_contract = type_entry(
             "feature",
@@ -1310,9 +1318,7 @@ class SchemaV2Tests(unittest.TestCase):
 
     def test_renderer_adds_function_first_localized_views_only_for_2_2(self) -> None:
         legacy = render_documents(valid_manifest())
-        self.assertNotIn(
-            "Main Function Tree", legacy[Path("ARCHITECTURE.md")]
-        )
+        self.assertNotIn("Main Function Tree", legacy[Path("ARCHITECTURE.md")])
         self.assertIn('n_app["app (L0)"]', legacy[Path("ARCHITECTURE.md")])
 
         documents = render_documents(localized_manifest())
@@ -1363,8 +1369,7 @@ class CAnalyzerV2Tests(unittest.TestCase):
             source.write_text("int main_value;\n", encoding="utf-8")
             entry = {
                 "command": (
-                    f'clang++ "-I{root / "Library With Spaces" / "src"}" '
-                    f'-c "{source}"'
+                    f'clang++ "-I{root / "Library With Spaces" / "src"}" -c "{source}"'
                 ),
                 "file": str(source),
                 "_source": source,
@@ -1435,12 +1440,8 @@ class CAnalyzerV2Tests(unittest.TestCase):
             "int od_generated_state;\n",
             encoding="utf-8",
         )
-        manifest["source_sets"][0]["exclude"].append(
-            "src/adapter/generated/**"
-        )
-        manifest["source_sets"][1]["include"] = [
-            "src/adapter/generated/**"
-        ]
+        manifest["source_sets"][0]["exclude"].append("src/adapter/generated/**")
+        manifest["source_sets"][1]["include"] = ["src/adapter/generated/**"]
         commands = json.loads(
             (root / "compile_commands.json").read_text(encoding="utf-8")
         )
@@ -1449,7 +1450,9 @@ class CAnalyzerV2Tests(unittest.TestCase):
                 "directory": str(root),
                 "file": "src/adapter/generated/od.c",
                 "arguments": [
-                    "clang", "-std=c11", "-c",
+                    "clang",
+                    "-std=c11",
+                    "-c",
                     "src/adapter/generated/od.c",
                 ],
             }
@@ -1498,7 +1501,9 @@ class CAnalyzerV2Tests(unittest.TestCase):
             self.write_fixture(root)
             tests = root / "tests"
             tests.mkdir()
-            (tests / "probe.c").write_text("int probe(void) { return 0; }\n", encoding="utf-8")
+            (tests / "probe.c").write_text(
+                "int probe(void) { return 0; }\n", encoding="utf-8"
+            )
             commands = json.loads(
                 (root / "compile_commands.json").read_text(encoding="utf-8")
             )
@@ -1752,8 +1757,7 @@ class CAnalyzerV2Tests(unittest.TestCase):
             root = Path(directory)
             self.write_fixture(root)
             (root / "src" / "app" / "app.h").write_text(
-                "typedef struct { int value; } AppContract;\n"
-                "void app_port(void);\n",
+                "typedef struct { int value; } AppContract;\nvoid app_port(void);\n",
                 encoding="utf-8",
             )
             (root / "src" / "feature" / "feature.h").write_text(
@@ -2092,7 +2096,9 @@ class CAnalyzerV2Tests(unittest.TestCase):
                 encoding="utf-8",
             )
             diagnostics, _ = analyze(
-                valid_manifest(c_ast=True), root / "architecture" / "manifest.yaml", root
+                valid_manifest(c_ast=True),
+                root / "architecture" / "manifest.yaml",
+                root,
             )
         self.assertTrue(any(item.rule_id == "CTYPE001" for item in diagnostics))
 
@@ -2197,7 +2203,9 @@ class CAnalyzerV2Tests(unittest.TestCase):
                 encoding="utf-8",
             )
             diagnostics, _ = analyze(
-                valid_manifest(c_ast=True), root / "architecture" / "manifest.yaml", root
+                valid_manifest(c_ast=True),
+                root / "architecture" / "manifest.yaml",
+                root,
             )
         self.assertTrue(any(item.rule_id == "CFUN001" for item in diagnostics))
 
@@ -2255,9 +2263,9 @@ class ToolingTests(unittest.TestCase):
                 "method": "runtime-evidence",
             },
         ]
-        manifest["execution_units"][0]["realtime_task"][
-            "relative_deadline_ns"
-        ] = 100_000
+        manifest["execution_units"][0]["realtime_task"]["relative_deadline_ns"] = (
+            100_000
+        )
         manifest["realtime_scheduling_studies"][0]["soft_acceptance_plans"] = [
             {
                 "workload": "feature-workload",
@@ -2299,9 +2307,7 @@ class ToolingTests(unittest.TestCase):
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 destination.write_text(content, encoding="utf-8")
             report_path = (
-                architecture
-                / "generated"
-                / "realtime-study-feature-task-study.md"
+                architecture / "generated" / "realtime-study-feature-task-study.md"
             )
             report_path.write_text(
                 report_path.read_text(encoding="utf-8") + "\nmanual edit\n",
@@ -2316,7 +2322,9 @@ class ToolingTests(unittest.TestCase):
             )
         )
 
-    def test_realtime_study_markdown_missing_and_obsolete_files_are_detected(self) -> None:
+    def test_realtime_study_markdown_missing_and_obsolete_files_are_detected(
+        self,
+    ) -> None:
         manifest = realtime_design_manifest()
         with tempfile.TemporaryDirectory() as directory:
             architecture = Path(directory) / "architecture"
@@ -2331,14 +2339,10 @@ class ToolingTests(unittest.TestCase):
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 destination.write_text(content, encoding="utf-8")
             expected_report = (
-                architecture
-                / "generated"
-                / "realtime-study-feature-task-study.md"
+                architecture / "generated" / "realtime-study-feature-task-study.md"
             )
             expected_report.unlink()
-            obsolete_report = (
-                architecture / "generated" / "realtime-study-obsolete.md"
-            )
+            obsolete_report = architecture / "generated" / "realtime-study-obsolete.md"
             obsolete_report.write_text(
                 "<!-- GENERATED BY govern-modular-event-architecture; DO NOT EDIT -->\n",
                 encoding="utf-8",
@@ -2446,16 +2450,12 @@ class ToolingTests(unittest.TestCase):
             project = root / "project"
             bootstrap(project, spec)
             generated = yaml.safe_load(
-                (project / "architecture" / "manifest.yaml").read_text(
-                    encoding="utf-8"
-                )
+                (project / "architecture" / "manifest.yaml").read_text(encoding="utf-8")
             )
             self.assertEqual("2.2.0", generated["standard_version"])
             self.assertEqual("2.2.0", generated["schema_version"])
             baseline = yaml.safe_load(
-                (project / "architecture" / "baseline.yaml").read_text(
-                    encoding="utf-8"
-                )
+                (project / "architecture" / "baseline.yaml").read_text(encoding="utf-8")
             )
             self.assertEqual("2.2.0", baseline["schema_version"])
 
@@ -2515,9 +2515,7 @@ class ToolingTests(unittest.TestCase):
                     text=True,
                     check=False,
                 )
-                self.assertEqual(
-                    0, result.returncode, result.stdout + result.stderr
-                )
+                self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
     def test_generated_views_match_skill_manifest(self) -> None:
         manifest_path = SKILL_ROOT / "architecture" / "manifest.yaml"

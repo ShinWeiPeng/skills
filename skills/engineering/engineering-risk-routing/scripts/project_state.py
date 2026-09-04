@@ -87,7 +87,9 @@ def assess_project_state(
             stateful_context = "present"
         elif _is_stateful_context(path):
             row["classification"] = "ambiguous"
-            row["reason"] = "empty formal context does not prove durable project knowledge"
+            row["reason"] = (
+                "empty formal context does not prove durable project knowledge"
+            )
             ambiguous_context = True
         else:
             row["classification"] = "ambiguous"
@@ -107,15 +109,9 @@ def assess_project_state(
     ):
         implementation = "indeterminate"
     if (
-        (
-            ambiguous_context
-            or (
-                ambiguous_generic_artifact
-                and not strong_evidence_present
-            )
-        )
-        and stateful_context == "absent"
-    ):
+        ambiguous_context
+        or (ambiguous_generic_artifact and not strong_evidence_present)
+    ) and stateful_context == "absent":
         stateful_context = "indeterminate"
 
     return {

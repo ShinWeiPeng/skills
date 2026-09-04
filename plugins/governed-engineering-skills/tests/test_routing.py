@@ -8,7 +8,9 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
-CLASSIFIER_PATH = PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "scripts" / "classify_risk.py"
+CLASSIFIER_PATH = (
+    PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "scripts" / "classify_risk.py"
+)
 SPEC = importlib.util.spec_from_file_location("classify_risk", CLASSIFIER_PATH)
 assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -29,7 +31,9 @@ class RoutingFixtures(unittest.TestCase):
         contract = schema["$defs"]["RoutingDecision"]
         self.assertEqual(set(contract["required"]) | {"blockers"}, set(result))
         self.assertIn(result["status"], contract["properties"]["status"]["enum"])
-        self.assertIn(result["risk_class"], contract["properties"]["risk_class"]["enum"])
+        self.assertIn(
+            result["risk_class"], contract["properties"]["risk_class"]["enum"]
+        )
 
     def test_read_only_code_flow_is_r0(self) -> None:
         result = classify("請唯讀導讀這段程式的資料流")
@@ -52,7 +56,9 @@ class RoutingFixtures(unittest.TestCase):
         self.assertIn("validate-on-device", result["required_gates"])
 
     def test_direct_implement_is_blocked_before_governance(self) -> None:
-        result = classify("Refactor module architecture", entry_skill="implement", passed_gates=set())
+        result = classify(
+            "Refactor module architecture", entry_skill="implement", passed_gates=set()
+        )
         self.assertEqual("BLOCKED", result["status"])
 
     def test_direct_implement_resumes_after_governance(self) -> None:
@@ -81,7 +87,9 @@ class RoutingFixtures(unittest.TestCase):
             },
         )
         self.assertEqual("BLOCKED", result["status"])
-        self.assertTrue(any("validate-on-device" in item for item in result["blockers"]))
+        self.assertTrue(
+            any("validate-on-device" in item for item in result["blockers"])
+        )
 
     def test_missing_legacy_governance_requires_as_is_baseline(self) -> None:
         result = classify(
@@ -93,7 +101,9 @@ class RoutingFixtures(unittest.TestCase):
             "as-is architecture inventory and baseline required",
             result["blockers"],
         )
-        self.assertEqual("govern-modular-event-architecture", result["required_gates"][1])
+        self.assertEqual(
+            "govern-modular-event-architecture", result["required_gates"][1]
+        )
 
     def test_learning_note_is_outside_engineering_router(self) -> None:
         result = classify("把今天內容整理成 HackMD 學習筆記")

@@ -136,7 +136,11 @@ regardless of size or an explicitly requested skill such as `tdd`.
   facts, not user decisions.
 - After spec verification, the delivery parent invokes `/formatter-governance`
   before handing modifying work to TDD or implementation. Preserve its original
-  ProjectState evidence and stop on a formatter `BLOCKED` verdict.
+  ProjectState evidence and stop on a formatter `BLOCKED` verdict. When the verified
+  canonical SPEC triggers full-program formatting, let that skill ask once for
+  write authorization, protect the clean product-and-test scope, prefer a
+  repository CLI with governed fallback, and keep installation permission plus CLI
+  write/check evidence inside the same formatter gate.
 
 Before commit, invoke `spec-governance.prepare-commit`. Staged or tracked local
 working state blocks commit. Ask whether to delete the bundle, keep it local, or

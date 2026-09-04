@@ -69,14 +69,25 @@ def _capture_timeout(profile: dict[str, Any], scenario: dict[str, Any]) -> float
 
 def _session_complete(data: bytearray, scenario: dict[str, Any]) -> bool:
     text = data.decode("utf-8", errors="ignore")
-    begin = re.search(rf"VAL_SESSION_BEGIN\b[^\r\n]*\brun=([^\s]+)[^\r\n]*\bscenario={re.escape(str(scenario['id']))}\b", text)
+    begin = re.search(
+        rf"VAL_SESSION_BEGIN\b[^\r\n]*\brun=([^\s]+)[^\r\n]*\bscenario={re.escape(str(scenario['id']))}\b",
+        text,
+    )
     if begin is None:
         return False
     reason = re.escape(str(scenario["completion"]["session_end_reason"]))
-    return re.search(rf"VAL_SESSION_END\b[^\r\n]*\brun={re.escape(begin.group(1))}\b[^\r\n]*\breason={reason}\b", text) is not None
+    return (
+        re.search(
+            rf"VAL_SESSION_END\b[^\r\n]*\brun={re.escape(begin.group(1))}\b[^\r\n]*\breason={reason}\b",
+            text,
+        )
+        is not None
+    )
 
 
-def capture_tcp(profile: dict[str, Any], scenario: dict[str, Any], output: Path) -> dict[str, Any]:
+def capture_tcp(
+    profile: dict[str, Any], scenario: dict[str, Any], output: Path
+) -> dict[str, Any]:
     cfg = _binding(profile)
     timeout = _capture_timeout(profile, scenario)
     max_bytes = int(cfg.get("max_bytes", 1048576))
@@ -123,15 +134,35 @@ def capture_tcp(profile: dict[str, Any], scenario: dict[str, Any], output: Path)
     output.write_bytes(bytes(data))
     capped = len(data) >= max_bytes
     complete = _session_complete(data, scenario)
-    reason = "capture reached max_bytes; completeness cannot be proven" if capped else (None if complete else "matching session completion was not observed before the bounded capture ended")
-    return {"status": "PASS" if complete and not capped else "BLOCKED", "reason": reason, "completion_seen": complete, "bytes": len(data), "elapsed_seconds": time.monotonic() - started, "output": str(output)}
+    reason = (
+        "capture reached max_bytes; completeness cannot be proven"
+        if capped
+        else (
+            None
+            if complete
+            else "matching session completion was not observed before the bounded capture ended"
+        )
+    )
+    return {
+        "status": "PASS" if complete and not capped else "BLOCKED",
+        "reason": reason,
+        "completion_seen": complete,
+        "bytes": len(data),
+        "elapsed_seconds": time.monotonic() - started,
+        "output": str(output),
+    }
 
 
-def capture_serial(profile: dict[str, Any], scenario: dict[str, Any], output: Path, approvals: set[str]) -> dict[str, Any]:
+def capture_serial(
+    profile: dict[str, Any], scenario: dict[str, Any], output: Path, approvals: set[str]
+) -> dict[str, Any]:
     cfg = _binding(profile)
     if cfg.get("dtr") is None or cfg.get("rts") is None:
         if "serial-open-reset" not in approvals:
-            return {"status": "BLOCKED", "reason": "DTR/RTS are unknown; serial-open-reset approval is required"}
+            return {
+                "status": "BLOCKED",
+                "reason": "DTR/RTS are unknown; serial-open-reset approval is required",
+            }
     try:
         import serial
     except ImportError:
@@ -163,13 +194,30 @@ def capture_serial(profile: dict[str, Any], scenario: dict[str, Any], output: Pa
     output.write_bytes(bytes(data))
     capped = len(data) >= max_bytes
     complete = _session_complete(data, scenario)
-    reason = "capture reached max_bytes; completeness cannot be proven" if capped else (None if complete else "matching session completion was not observed before the bounded capture ended")
-    return {"status": "PASS" if complete and not capped else "BLOCKED", "reason": reason, "completion_seen": complete, "bytes": len(data), "elapsed_seconds": time.monotonic() - started, "output": str(output)}
+    reason = (
+        "capture reached max_bytes; completeness cannot be proven"
+        if capped
+        else (
+            None
+            if complete
+            else "matching session completion was not observed before the bounded capture ended"
+        )
+    )
+    return {
+        "status": "PASS" if complete and not capped else "BLOCKED",
+        "reason": reason,
+        "completion_seen": complete,
+        "bytes": len(data),
+        "elapsed_seconds": time.monotonic() - started,
+        "output": str(output),
+    }
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def read_bounded_json(path: Path, max_bytes: int = 1048576) -> dict[str, Any]:
@@ -182,16 +230,25 @@ def read_bounded_json(path: Path, max_bytes: int = 1048576) -> dict[str, Any]:
             data.extend(chunk)
             if len(data) > max_bytes:
                 raise ValueError(f"{path} exceeds {max_bytes} bytes")
-    value = json.loads(data.decode("utf-8"), parse_constant=lambda token: (_ for _ in ()).throw(ValueError(f"non-standard JSON number {token}")))
+    value = json.loads(
+        data.decode("utf-8"),
+        parse_constant=lambda token: (_ for _ in ()).throw(
+            ValueError(f"non-standard JSON number {token}")
+        ),
+    )
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return value
 
 
-def hash_evidence_reference(project_root: Path, value: str, max_bytes: int) -> dict[str, Any]:
+def hash_evidence_reference(
+    project_root: Path, value: str, max_bytes: int
+) -> dict[str, Any]:
     root = project_root.resolve()
     candidate = Path(value)
-    path = candidate.resolve() if candidate.is_absolute() else (root / candidate).resolve()
+    path = (
+        candidate.resolve() if candidate.is_absolute() else (root / candidate).resolve()
+    )
     if not path.is_relative_to(root):
         raise ValueError("evidence path escapes the project root")
     digest = hashlib.sha256()
@@ -202,7 +259,11 @@ def hash_evidence_reference(project_root: Path, value: str, max_bytes: int) -> d
             if size > max_bytes:
                 raise ValueError("evidence file exceeds transport.max_bytes")
             digest.update(chunk)
-    return {"path": path.relative_to(root).as_posix(), "sha256": digest.hexdigest(), "bytes": size}
+    return {
+        "path": path.relative_to(root).as_posix(),
+        "sha256": digest.hexdigest(),
+        "bytes": size,
+    }
 
 
 def write_text_exclusive(path: Path, text: str) -> None:

@@ -121,11 +121,7 @@ def run_gate(
         "analyzers": analyzers,
         "diagnostics": diagnostics,
     }
-    if (
-        phase != "design"
-        and check_adoption_docs
-        and adoption is not None
-    ):
+    if phase != "design" and check_adoption_docs and adoption is not None:
         adoption_diagnostics = compare_adoption_documents(
             manifest_path,
             manifest,
@@ -137,9 +133,7 @@ def run_gate(
         code = _exit_code(diagnostics)
         evidence["exit_code"] = code
         evidence["gate_result"] = "PASS" if code == 0 else "BLOCKED"
-        evidence["readiness_status"] = readiness_status(
-            diagnostics, phase=phase
-        )
+        evidence["readiness_status"] = readiness_status(diagnostics, phase=phase)
     return code, evidence
 
 
@@ -234,8 +228,7 @@ def _render_command(args: argparse.Namespace) -> int:
         ]
         if blockers:
             summary = "; ".join(
-                f"{item.get('rule_id')} {item.get('location')}"
-                for item in blockers[:5]
+                f"{item.get('rule_id')} {item.get('location')}" for item in blockers[:5]
             )
             raise ValueError(
                 "refusing to render from invalid authoritative inputs: " + summary
@@ -277,7 +270,9 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     gate = commands.add_parser("gate", help="run one governed phase gate")
     gate.add_argument("--phase", choices=PHASES, required=True)
-    gate.add_argument("--manifest", type=Path, default=Path("architecture/manifest.yaml"))
+    gate.add_argument(
+        "--manifest", type=Path, default=Path("architecture/manifest.yaml")
+    )
     gate.add_argument(
         "--adoption", type=Path, default=Path("architecture/adoption.yaml")
     )

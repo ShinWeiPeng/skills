@@ -6,12 +6,10 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-PACKET = (ROOT / "references" / "debug-model-packet.md").read_text(
+PACKET = (ROOT / "references" / "debug-model-packet.md").read_text(encoding="utf-8")
+DOCS = (ROOT.parents[2] / "docs" / "engineering" / "diagnosing-bugs.md").read_text(
     encoding="utf-8"
 )
-DOCS = (
-    ROOT.parents[2] / "docs" / "engineering" / "diagnosing-bugs.md"
-).read_text(encoding="utf-8")
 
 
 class DiagnosingBugsContractTests(unittest.TestCase):
@@ -33,9 +31,9 @@ class DiagnosingBugsContractTests(unittest.TestCase):
         self.assertIn("No red-capable command, no Phase 2", phase_1)
 
     def test_risk_triggers_and_stateless_skip_are_explicit(self) -> None:
-        alignment = SKILL.split(
-            "## Phase 2.5 — Align a shared computation model", 1
-        )[1].split("## Phase 3 — Hypothesise", 1)[0]
+        alignment = SKILL.split("## Phase 2.5 — Align a shared computation model", 1)[
+            1
+        ].split("## Phase 3 — Hypothesise", 1)[0]
         for required in (
             "multiple counters",
             "state machines",
@@ -48,9 +46,9 @@ class DiagnosingBugsContractTests(unittest.TestCase):
                 self.assertIn(required, alignment)
 
     def test_understanding_gate_blocks_premature_diagnosis(self) -> None:
-        alignment = SKILL.split(
-            "### Understanding gate", 1
-        )[1].split("## Phase 3 — Hypothesise", 1)[0]
+        alignment = SKILL.split("### Understanding gate", 1)[1].split(
+            "## Phase 3 — Hypothesise", 1
+        )[0]
         for required in (
             "stop and ask the user to confirm",
             "does not ask the user to agree with a root cause or fix",
@@ -96,9 +94,7 @@ class DiagnosingBugsContractTests(unittest.TestCase):
                 self.assertIn(required, PACKET)
 
     def test_diagram_never_replaces_arithmetic(self) -> None:
-        self.assertIn(
-            "does **not** replace exact counter arithmetic", PACKET
-        )
+        self.assertIn("does **not** replace exact counter arithmetic", PACKET)
         self.assertIn(
             "Never infer per-event order from periodic or aggregated snapshots",
             PACKET,
@@ -131,9 +127,7 @@ class DiagnosingBugsContractTests(unittest.TestCase):
             "link back to a flow node, counter/state contract, trace row, and evidence item",
             PACKET,
         )
-        self.assertIn(
-            "predict which counters, states, and outputs will change", PACKET
-        )
+        self.assertIn("predict which counters, states, and outputs will change", PACKET)
         self.assertIn("`PASS`, `FAIL`, or `BLOCKED`", PACKET)
 
     def test_promoted_docs_explain_the_packet_and_gate(self) -> None:

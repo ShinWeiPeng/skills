@@ -62,7 +62,9 @@ def _platform_key() -> str:
     if sys.platform.startswith("linux"):
         return f"linux-{architecture}"
     raise ToolchainProviderError(
-        "CAST002", "toolchain.platform", f"unsupported host operating system: {sys.platform}"
+        "CAST002",
+        "toolchain.platform",
+        f"unsupported host operating system: {sys.platform}",
     )
 
 
@@ -239,7 +241,10 @@ def _probe(cindex: Any, target: str) -> str:
             "provider-native-probe.c",
             args=["-x", "c", "-std=c11"],
             unsaved_files=[
-                ("provider-native-probe.c", "int provider_native_probe(void) { return 0; }\n")
+                (
+                    "provider-native-probe.c",
+                    "int provider_native_probe(void) { return 0; }\n",
+                )
             ],
         )
     except Exception as exc:
@@ -261,7 +266,7 @@ def _probe(cindex: Any, target: str) -> str:
         ("provider-probe.c", "int provider_probe(void) { return 0; }\n"),
         (
             "provider-inline-asm.c",
-            "void provider_probe_asm(void) { __asm__ volatile(\"memw\" ::: \"memory\"); }\n",
+            'void provider_probe_asm(void) { __asm__ volatile("memw" ::: "memory"); }\n',
         ),
     )
     for filename, source in fixtures:
@@ -308,7 +313,9 @@ class EspressifLibclangToolchainAdapter:
         try:
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            raise ToolchainProviderError("CAST002", str(receipt_path), str(exc)) from exc
+            raise ToolchainProviderError(
+                "CAST002", str(receipt_path), str(exc)
+            ) from exc
         expected_receipt = {
             "schema": RECEIPT_SCHEMA,
             "provider": str(provider["id"]),
@@ -323,7 +330,9 @@ class EspressifLibclangToolchainAdapter:
         for key, value in expected_receipt.items():
             if receipt.get(key) != value:
                 raise ToolchainProviderError(
-                    "CAST002", f"{receipt_path}:{key}", "receipt does not match the lock"
+                    "CAST002",
+                    f"{receipt_path}:{key}",
+                    "receipt does not match the lock",
                 )
         actual_library_hash = _sha256(library_path)
         if actual_library_hash != expected_receipt["library_sha256"]:
@@ -336,7 +345,9 @@ class EspressifLibclangToolchainAdapter:
             try:
                 from clang import cindex
             except (ImportError, OSError) as exc:
-                raise ToolchainProviderError("CAST001", "python-binding", str(exc)) from exc
+                raise ToolchainProviderError(
+                    "CAST001", "python-binding", str(exc)
+                ) from exc
             try:
                 cindex.Config.set_library_file(str(library_path))
             except Exception as exc:
@@ -420,7 +431,9 @@ class EspressifLibclangToolchainAdapter:
                 ) from exc
             if "20.1.1" not in clang_version:
                 raise ToolchainProviderError(
-                    "CAST001", str(library), f"unexpected native clang version: {clang_version}"
+                    "CAST001",
+                    str(library),
+                    f"unexpected native clang version: {clang_version}",
                 )
             receipt = {
                 "schema": RECEIPT_SCHEMA,

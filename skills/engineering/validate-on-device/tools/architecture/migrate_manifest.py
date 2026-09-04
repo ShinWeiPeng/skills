@@ -14,7 +14,13 @@ from typing import Any
 
 import yaml
 
-from check_architecture import LEGACY_SCHEMA_VERSION, LEGACY_STANDARD_VERSION, SCHEMA_VERSION, STANDARD_VERSION, load_yaml
+from check_architecture import (
+    LEGACY_SCHEMA_VERSION,
+    LEGACY_STANDARD_VERSION,
+    SCHEMA_VERSION,
+    STANDARD_VERSION,
+    load_yaml,
+)
 
 
 def _dump(data: dict[str, Any]) -> str:
@@ -22,9 +28,15 @@ def _dump(data: dict[str, Any]) -> str:
 
 
 def migrate(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
-    if data.get("schema_version") == SCHEMA_VERSION and data.get("standard_version") == STANDARD_VERSION:
+    if (
+        data.get("schema_version") == SCHEMA_VERSION
+        and data.get("standard_version") == STANDARD_VERSION
+    ):
         return copy.deepcopy(data), []
-    if data.get("schema_version") != LEGACY_SCHEMA_VERSION or data.get("standard_version") != LEGACY_STANDARD_VERSION:
+    if (
+        data.get("schema_version") != LEGACY_SCHEMA_VERSION
+        or data.get("standard_version") != LEGACY_STANDARD_VERSION
+    ):
         raise ValueError("only standard/schema 1.0.0 can migrate to 1.1.0")
 
     migrated = copy.deepcopy(data)
@@ -44,9 +56,21 @@ def migrate(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
         module["implementation_status"] = "implemented"
         module["description"] = {
             "purpose": purpose,
-            "input_ports": [str(port.get("id")) for port in owned_ports if port.get("direction") == "input"],
-            "output_ports": [str(port.get("id")) for port in owned_ports if port.get("direction") == "output"],
-            "emitted_events": [str(event.get("id")) for event in events if event.get("owner") == module_id],
+            "input_ports": [
+                str(port.get("id"))
+                for port in owned_ports
+                if port.get("direction") == "input"
+            ],
+            "output_ports": [
+                str(port.get("id"))
+                for port in owned_ports
+                if port.get("direction") == "output"
+            ],
+            "emitted_events": [
+                str(event.get("id"))
+                for event in events
+                if event.get("owner") == module_id
+            ],
             "owned_state": [],
             "side_effects": [],
             "errors": [],
@@ -68,12 +92,18 @@ def migrate(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
         )
 
     module_symbols = {
-        str(module.get("id")): str(module.get("public_symbols", [{}])[0].get("symbol", "TODO"))
+        str(module.get("id")): str(
+            module.get("public_symbols", [{}])[0].get("symbol", "TODO")
+        )
         for module in modules
     }
     for port in ports:
         port_id = str(port.get("id", "port"))
-        timing = "sync" if port.get("kind") in {"command", "query", "dependency"} else "async"
+        timing = (
+            "sync"
+            if port.get("kind") in {"command", "query", "dependency"}
+            else "async"
+        )
         port["description"] = {
             "purpose": f"TODO: describe {port_id}",
             "data": "TODO: describe data crossing this boundary",
@@ -81,7 +111,9 @@ def migrate(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
             "immediate_rejections": [],
         }
         port["symbols"] = [module_symbols.get(str(port.get("owner")), "TODO")]
-        checklist.append(f"{port_id}: complete purpose, data semantics, timing, rejection cases, and symbols")
+        checklist.append(
+            f"{port_id}: complete purpose, data semantics, timing, rejection cases, and symbols"
+        )
 
     for event in events:
         event_id = str(event.get("id", "event"))
@@ -91,7 +123,9 @@ def migrate(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
             "payload_fields": [],
             "intended_consumers": [],
         }
-        checklist.append(f"{event_id}: complete purpose, emission condition, payload fields, and consumers")
+        checklist.append(
+            f"{event_id}: complete purpose, emission condition, payload fields, and consumers"
+        )
 
     migrated["flows"] = []
     checklist.append("Define L0/L1-owned end-to-end flows before completing migration")
@@ -119,11 +153,19 @@ def migrate_file(path: Path, write: bool = False) -> tuple[str, list[str], bool]
     if baseline_path.is_file():
         baseline = load_yaml(baseline_path)
         operations.append(
-            (baseline_path, baseline_path.read_text(encoding="utf-8"), _dump(migrate_baseline(baseline)))
+            (
+                baseline_path,
+                baseline_path.read_text(encoding="utf-8"),
+                _dump(migrate_baseline(baseline)),
+            )
         )
-        checklist.append("baseline.yaml: schema version advances to 1.1.0; violation entries remain unchanged")
+        checklist.append(
+            "baseline.yaml: schema version advances to 1.1.0; violation entries remain unchanged"
+        )
 
-    changed_operations = [operation for operation in operations if operation[1] != operation[2]]
+    changed_operations = [
+        operation for operation in operations if operation[1] != operation[2]
+    ]
     diff = "".join(
         "".join(
             difflib.unified_diff(
@@ -169,7 +211,9 @@ def main(argv: list[str] | None = None) -> int:
         for item in checklist:
             print(f"- {item}")
     if args.write and changed:
-        print(f"Updated migration files beside {args.manifest}; each changed file has a .bak backup")
+        print(
+            f"Updated migration files beside {args.manifest}; each changed file has a .bak backup"
+        )
     return 0
 
 

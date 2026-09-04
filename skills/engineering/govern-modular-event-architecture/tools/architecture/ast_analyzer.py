@@ -75,8 +75,7 @@ def _roots(
 ) -> dict[str, list[Path]]:
     return {
         module_id: [
-            (project_root / str(raw)).resolve()
-            for raw in module.get("paths", [])
+            (project_root / str(raw)).resolve() for raw in module.get("paths", [])
         ]
         for module_id, module in modules.items()
     }
@@ -211,11 +210,7 @@ def _command_arguments(entry: dict[str, Any]) -> list[str]:
 
 
 def _strip_outer_quotes(value: str) -> str:
-    if (
-        len(value) >= 2
-        and value[0] == value[-1]
-        and value[0] in {"'", '"'}
-    ):
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
         return value[1:-1]
     return value
 
@@ -289,9 +284,7 @@ def _parse_arguments(
             continue
         if argument in takes_value:
             if index + 1 < len(original):
-                result.extend(
-                    [argument, _strip_outer_quotes(original[index + 1])]
-                )
+                result.extend([argument, _strip_outer_quotes(original[index + 1])])
             index += 2
             continue
         if argument.startswith(
@@ -324,10 +317,7 @@ def _parse_arguments(
         target_triple != "native"
         and compiler is not None
         and compiler.is_file()
-        and any(
-            token in compiler.name.lower()
-            for token in ("gcc", "g++", "cc", "c++")
-        )
+        and any(token in compiler.name.lower() for token in ("gcc", "g++", "cc", "c++"))
         and not any(argument.startswith("--gcc-toolchain=") for argument in result)
     ):
         result.append(f"--gcc-toolchain={compiler.parent.parent}")
@@ -406,7 +396,9 @@ def _declaration_kind(cursor: Any, cindex: Any) -> tuple[str | None, Any]:
     return None, cursor
 
 
-def _type_shape(symbol_cursor: Any, shape_cursor: Any, kind: str, cindex: Any) -> dict[str, Any]:
+def _type_shape(
+    symbol_cursor: Any, shape_cursor: Any, kind: str, cindex: Any
+) -> dict[str, Any]:
     if kind in {"struct", "union", "class"}:
         return {
             "fields": [
@@ -539,8 +531,7 @@ def _catalog_type_checks(
             continue
         if declaration["kind"] in {"struct", "union", "class"}:
             actual = [
-                (item["name"], item["type"])
-                for item in declaration.get("fields", [])
+                (item["name"], item["type"]) for item in declaration.get("fields", [])
             ]
             declared = [
                 (
@@ -559,7 +550,9 @@ def _catalog_type_checks(
                         f"catalog fields {declared!r} do not match AST fields {actual!r}",
                     )
                 )
-        elif declaration["kind"] == "enum" and expected.get("values") != declaration.get("values"):
+        elif declaration["kind"] == "enum" and expected.get(
+            "values"
+        ) != declaration.get("values"):
             diagnostics.append(
                 Diagnostic(
                     "CTYPE003",
@@ -589,9 +582,7 @@ def _catalog_type_checks(
             )
         )
     return {
-        str(item.get("id")): item
-        for item in catalog.values()
-        if isinstance(item, dict)
+        str(item.get("id")): item for item in catalog.values() if isinstance(item, dict)
     }
 
 
@@ -736,16 +727,22 @@ def _mutable_global(cursor: Any, cindex: Any) -> bool:
     canonical = cursor.type.get_canonical()
     if canonical.is_const_qualified():
         return False
-    if canonical.kind in {
-        cindex.TypeKind.CONSTANTARRAY,
-        cindex.TypeKind.INCOMPLETEARRAY,
-        cindex.TypeKind.VARIABLEARRAY,
-    } and canonical.element_type.is_const_qualified():
+    if (
+        canonical.kind
+        in {
+            cindex.TypeKind.CONSTANTARRAY,
+            cindex.TypeKind.INCOMPLETEARRAY,
+            cindex.TypeKind.VARIABLEARRAY,
+        }
+        and canonical.element_type.is_const_qualified()
+    ):
         return False
     return True
 
 
-def _assignment_write(reference: Any, ancestors: tuple[Any, ...], cindex: Any) -> tuple[bool, bool]:
+def _assignment_write(
+    reference: Any, ancestors: tuple[Any, ...], cindex: Any
+) -> tuple[bool, bool]:
     """Return (write, address_escape) using conservative AST ancestry."""
     for ancestor in reversed(ancestors):
         if ancestor.kind in {
@@ -763,7 +760,8 @@ def _assignment_write(reference: Any, ancestors: tuple[Any, ...], cindex: Any) -
             children = list(ancestor.get_children())
             tokens = [token.spelling for token in ancestor.get_tokens()]
             has_assignment = any(
-                token in {"=", "+=", "-=", "*=", "/=", "%=", "|=", "&=", "^=", "<<=", ">>="}
+                token
+                in {"=", "+=", "-=", "*=", "/=", "%=", "|=", "&=", "^=", "<<=", ">>="}
                 for token in tokens
             )
             if has_assignment and children:
@@ -821,9 +819,7 @@ def _state_checks(
         path = _cursor_path(cursor)
         if path is None or not _inside(path, project_root):
             continue
-        classification, _ = classify_path(
-            manifest, _relative(path, project_root)
-        )
+        classification, _ = classify_path(manifest, _relative(path, project_root))
         if classification not in {"production", "generated-production"}:
             continue
         if _mutable_global(cursor, cindex):
@@ -881,7 +877,9 @@ def _state_checks(
                         f"AST owner/storage {actual_owner!r}/{actual_storage!r} does not match catalog {expected_owner!r}/{expected_storage!r}",
                     )
                 )
-            if _normal_type(cursor.type.spelling) != _normal_type(str(item.get("type", ""))):
+            if _normal_type(cursor.type.spelling) != _normal_type(
+                str(item.get("type", ""))
+            ):
                 diagnostics.append(
                     Diagnostic(
                         "CSTATE002",
@@ -917,10 +915,10 @@ def _state_checks(
         if isinstance(item, dict) and item.get("id")
     }
     for type_id, item in type_catalog.items():
-        if (
-            item.get("visibility") != "private"
-            or item.get("semantic_kind") not in {"runtime-state", "private-helper"}
-        ):
+        if item.get("visibility") != "private" or item.get("semantic_kind") not in {
+            "runtime-state",
+            "private-helper",
+        }:
             continue
         owner = modules.get(str(item.get("owner")), {})
         declaration_path = str(item.get("declaration", {}).get("path", ""))
@@ -941,9 +939,7 @@ def _state_checks(
         path = _cursor_path(cursor)
         if path is None or not _inside(path, project_root):
             continue
-        classification, _ = classify_path(
-            manifest, _relative(path, project_root)
-        )
+        classification, _ = classify_path(manifest, _relative(path, project_root))
         if classification not in {"production", "generated-production"}:
             continue
         source_owner = _owner(path, roots)
@@ -964,7 +960,12 @@ def _state_checks(
                 else item.get("read_authority", [])
             )
             if source_owner not in authorities:
-                key = (rule, _relative(path, project_root), _cursor_line(cursor), cursor.spelling)
+                key = (
+                    rule,
+                    _relative(path, project_root),
+                    _cursor_line(cursor),
+                    cursor.spelling,
+                )
                 if key not in seen:
                     diagnostics.append(
                         Diagnostic(
@@ -984,7 +985,10 @@ def _state_checks(
                         f"private state object {item.get('id')!r} escapes through an address or mutable pointer",
                     )
                 )
-        elif cursor.kind == cindex.CursorKind.VAR_DECL and cursor.storage_class == cindex.StorageClass.EXTERN:
+        elif (
+            cursor.kind == cindex.CursorKind.VAR_DECL
+            and cursor.storage_class == cindex.StorageClass.EXTERN
+        ):
             referenced = cursor.get_definition()
             item = (
                 usr_to_item.get(referenced.get_usr())
@@ -1024,7 +1028,9 @@ def _state_checks(
             type_name = str(getattr(parent_type, "spelling", ""))
             if type_name in private_runtime_symbols:
                 declaration_path = _cursor_path(parent_type)
-                target_owner = _owner(declaration_path, roots) if declaration_path else None
+                target_owner = (
+                    _owner(declaration_path, roots) if declaration_path else None
+                )
                 if target_owner and target_owner != source_owner:
                     diagnostics.append(
                         Diagnostic(
@@ -1158,11 +1164,7 @@ def analyze_ast(
     ordered_sources = sorted(governed_sources)
     configured_workers = ast.get("worker_count")
     try:
-        worker_count = (
-            int(configured_workers)
-            if configured_workers is not None
-            else 1
-        )
+        worker_count = int(configured_workers) if configured_workers is not None else 1
     except (TypeError, ValueError):
         worker_count = 0
     if worker_count < 1 or worker_count > 16:
@@ -1285,9 +1287,7 @@ def analyze_ast(
                 include_edges.append(
                     (including, included, int(inclusion.location.line))
                 )
-        timing["includes_seconds"] = round(
-            time.perf_counter() - includes_started, 6
-        )
+        timing["includes_seconds"] = round(time.perf_counter() - includes_started, 6)
         walk_started = time.perf_counter()
         walked = list(_walk(translation_unit.cursor, project_root))
         timing["walk_seconds"] = round(time.perf_counter() - walk_started, 6)
@@ -1345,9 +1345,7 @@ def analyze_ast(
     if missing_headers:
         return evidence
 
-    declarations, usr_to_key = _type_declarations(
-        all_cursors, project_root, cindex
-    )
+    declarations, usr_to_key = _type_declarations(all_cursors, project_root, cindex)
     _catalog_type_checks(manifest, declarations, project_root, diagnostics)
     _type_dependency_checks(
         all_cursors,

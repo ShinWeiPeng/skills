@@ -9,11 +9,7 @@ from pathlib import Path
 from typing import Any
 
 
-RULES_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "references"
-    / "intent-rules.json"
-)
+RULES_PATH = Path(__file__).resolve().parents[1] / "references" / "intent-rules.json"
 
 
 def load_intent_rules(path: Path = RULES_PATH) -> dict[str, Any]:
@@ -23,10 +19,13 @@ def load_intent_rules(path: Path = RULES_PATH) -> dict[str, Any]:
 def _term_matches(term: str, normalized_prompt: str) -> bool:
     normalized_term = term.casefold()
     if normalized_term.isascii():
-        return re.search(
-            rf"(?<!\w){re.escape(normalized_term)}(?!\w)",
-            normalized_prompt,
-        ) is not None
+        return (
+            re.search(
+                rf"(?<!\w){re.escape(normalized_term)}(?!\w)",
+                normalized_prompt,
+            )
+            is not None
+        )
     return normalized_term in normalized_prompt
 
 
@@ -41,9 +40,11 @@ def _mixed_modification_matches(
             return rf"(?<!\w){escaped}(?!\w)"
         return escaped
 
-    connector = "(?:" + "|".join(
-        token_pattern(item) for item in config["mixed_action_connectors"]
-    ) + ")"
+    connector = (
+        "(?:"
+        + "|".join(token_pattern(item) for item in config["mixed_action_connectors"])
+        + ")"
+    )
     for term in modification_matches:
         normalized_term = term.casefold()
         term_pattern = token_pattern(normalized_term)
@@ -88,20 +89,14 @@ def classify_intent(
             "requires_modification": True,
         }
     modification_matches = [
-        term
-        for term in config["modification_terms"]
-        if _term_matches(term, normalized)
+        term for term in config["modification_terms"] if _term_matches(term, normalized)
     ]
     inferred_intent = "indeterminate"
     inferred_matches: list[str] = []
     for intent in config["precedence"]:
-        candidate = next(
-            item for item in config["intents"] if item["intent"] == intent
-        )
+        candidate = next(item for item in config["intents"] if item["intent"] == intent)
         matches = [
-            term
-            for term in candidate["terms"]
-            if _term_matches(term, normalized)
+            term for term in candidate["terms"] if _term_matches(term, normalized)
         ]
         if matches:
             inferred_intent = intent
@@ -183,9 +178,7 @@ def select_workflow(
     grilling_complete = bool(
         completed & {"grilling", "grill-me", "grill-with-docs"}
     ) or (
-        effective_resume
-        and spec_state == "confirmed"
-        and "spec-verified" in completed
+        effective_resume and spec_state == "confirmed" and "spec-verified" in completed
     )
 
     def decision(
@@ -294,9 +287,7 @@ def select_workflow(
             "spec-governance",
             reason=resolved_spec["reason"],
             resume_target=(
-                "spec-context-decision"
-                if spec_state == "ambiguous"
-                else "spec-repair"
+                "spec-context-decision" if spec_state == "ambiguous" else "spec-repair"
             ),
         ) | {"status": "BLOCKED"}
 

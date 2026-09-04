@@ -8,12 +8,7 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
-CONTRACT = (
-    SKILLS_ROOT
-    / "ask-matt"
-    / "references"
-    / "decision-question-contract.md"
-)
+CONTRACT = SKILLS_ROOT / "ask-matt" / "references" / "decision-question-contract.md"
 
 
 def read(path: Path) -> str:
@@ -86,9 +81,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
             self.assertIn("resume target", normalized, msg=skill)
 
         explain = read(SKILLS_ROOT / "explain-code-flow" / "SKILL.md")
-        clarify = read(
-            SKILLS_ROOT / "clarify-improvement-proposals" / "SKILL.md"
-        )
+        clarify = read(SKILLS_ROOT / "clarify-improvement-proposals" / "SKILL.md")
         self.assertIn("stop before presenting the options", explain)
         self.assertIn("hand off before showing the options", clarify)
 
@@ -115,7 +108,9 @@ class DecisionQuestionContractTests(unittest.TestCase):
             normalized_ask_matt,
         )
 
-    def test_grilling_persists_and_materializes_before_product_authorization(self) -> None:
+    def test_grilling_persists_and_materializes_before_product_authorization(
+        self,
+    ) -> None:
         grilling = read(SKILLS_ROOT / "grilling" / "SKILL.md")
         governance = read(SKILLS_ROOT / "spec-governance" / "SKILL.md")
         ask_matt = read(SKILLS_ROOT / "ask-matt" / "SKILL.md")
@@ -132,9 +127,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
         self.assertIn("spec-governance.prepare-commit", ask_matt)
 
     def test_plugin_entry_metadata_advertises_cross_mode_choices(self) -> None:
-        manifest = json.loads(
-            read(PLUGIN_ROOT / ".codex-plugin" / "plugin.json")
-        )
+        manifest = json.loads(read(PLUGIN_ROOT / ".codex-plugin" / "plugin.json"))
         default_prompt = "\n".join(manifest["interface"]["defaultPrompt"])
 
         self.assertIn("two or three", default_prompt)

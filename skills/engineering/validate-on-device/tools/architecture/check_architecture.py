@@ -101,7 +101,9 @@ def _is_nonempty_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def _check_version(data: dict[str, Any], key: str, expected: str, diagnostics: list[Diagnostic]) -> None:
+def _check_version(
+    data: dict[str, Any], key: str, expected: str, diagnostics: list[Diagnostic]
+) -> None:
     value = data.get(key)
     if value != expected:
         _diag(
@@ -162,7 +164,10 @@ def dependency_violation(
         if target_level != "L2" or target.get("parent") != source.get("id"):
             return "DEP002", "L1 may depend only on its child L2 public contracts"
     if source_level == "L2":
-        return "DEP002", "L2 functional components must not depend on other module implementations"
+        return (
+            "DEP002",
+            "L2 functional components must not depend on other module implementations",
+        )
     if source_level == "L3+" and target_level in {"L0", "L1", "L2"}:
         allowed_owners = port_owner_by_implementation.get(str(source.get("id")), set())
         if target.get("id") not in allowed_owners:
@@ -182,7 +187,13 @@ def _validate_manifest_v1_0(
 
     project = _required_mapping(data, "project", diagnostics)
     if not _is_nonempty_string(project.get("name")):
-        _diag(diagnostics, "SCH003", "project.name", "must be a non-empty string", configuration=True)
+        _diag(
+            diagnostics,
+            "SCH003",
+            "project.name",
+            "must be a non-empty string",
+            configuration=True,
+        )
 
     raw_modules = _required_list(data, "modules", diagnostics)
     raw_ports = _required_list(data, "ports", diagnostics)
@@ -194,51 +205,125 @@ def _validate_manifest_v1_0(
     for index, raw in enumerate(raw_modules):
         location = f"modules[{index}]"
         if not isinstance(raw, dict):
-            _diag(diagnostics, "SCH004", location, "must be a mapping", configuration=True)
+            _diag(
+                diagnostics, "SCH004", location, "must be a mapping", configuration=True
+            )
             continue
         module_id = raw.get("id")
         if not _is_nonempty_string(module_id):
-            _diag(diagnostics, "SCH005", f"{location}.id", "must be a non-empty string", configuration=True)
+            _diag(
+                diagnostics,
+                "SCH005",
+                f"{location}.id",
+                "must be a non-empty string",
+                configuration=True,
+            )
             continue
         module_id = str(module_id)
         if module_id in modules:
-            _diag(diagnostics, "SCH006", module_id, "duplicate module id", configuration=True)
+            _diag(
+                diagnostics,
+                "SCH006",
+                module_id,
+                "duplicate module id",
+                configuration=True,
+            )
             continue
         modules[module_id] = raw
         level = raw.get("level")
         role = raw.get("role")
         if level not in ROLE_BY_LEVEL:
-            _diag(diagnostics, "LVL001", module_id, f"invalid level {level!r}", configuration=True)
+            _diag(
+                diagnostics,
+                "LVL001",
+                module_id,
+                f"invalid level {level!r}",
+                configuration=True,
+            )
         elif role not in ROLE_BY_LEVEL[level]:
-            _diag(diagnostics, "LVL002", module_id, f"role {role!r} is invalid for {level}")
+            _diag(
+                diagnostics,
+                "LVL002",
+                module_id,
+                f"role {role!r} is invalid for {level}",
+            )
         if not _is_nonempty_string(raw.get("responsibility")):
-            _diag(diagnostics, "MOD001", module_id, "responsibility must be non-empty", configuration=True)
+            _diag(
+                diagnostics,
+                "MOD001",
+                module_id,
+                "responsibility must be non-empty",
+                configuration=True,
+            )
         paths = raw.get("paths")
-        if not isinstance(paths, list) or not paths or not all(_is_nonempty_string(item) for item in paths):
-            _diag(diagnostics, "MOD002", module_id, "paths must contain project-relative strings", configuration=True)
+        if (
+            not isinstance(paths, list)
+            or not paths
+            or not all(_is_nonempty_string(item) for item in paths)
+        ):
+            _diag(
+                diagnostics,
+                "MOD002",
+                module_id,
+                "paths must contain project-relative strings",
+                configuration=True,
+            )
         else:
             for path in paths:
                 normalized = Path(str(path)).as_posix().rstrip("/")
                 if Path(str(path)).is_absolute() or normalized.startswith("../"):
-                    _diag(diagnostics, "MOD003", module_id, f"path must be project-relative: {path}", configuration=True)
+                    _diag(
+                        diagnostics,
+                        "MOD003",
+                        module_id,
+                        f"path must be project-relative: {path}",
+                        configuration=True,
+                    )
                 if normalized in all_paths:
-                    _diag(diagnostics, "MOD004", normalized, f"path is also owned by {all_paths[normalized]}")
+                    _diag(
+                        diagnostics,
+                        "MOD004",
+                        normalized,
+                        f"path is also owned by {all_paths[normalized]}",
+                    )
                 all_paths[normalized] = module_id
         for list_key in ("depends_on", "implements_ports"):
             if not isinstance(raw.get(list_key), list):
-                _diag(diagnostics, "SCH007", f"{module_id}.{list_key}", "must be a list", configuration=True)
+                _diag(
+                    diagnostics,
+                    "SCH007",
+                    f"{module_id}.{list_key}",
+                    "must be a list",
+                    configuration=True,
+                )
 
     for module_id, module in modules.items():
         level = module.get("level")
         parent = module.get("parent")
         if level == "L1":
             if parent not in modules or modules.get(parent, {}).get("level") != "L0":
-                _diag(diagnostics, "LVL003", module_id, "L1 parent must reference an L0 module")
+                _diag(
+                    diagnostics,
+                    "LVL003",
+                    module_id,
+                    "L1 parent must reference an L0 module",
+                )
         elif level == "L2":
             if parent not in modules or modules.get(parent, {}).get("level") != "L1":
-                _diag(diagnostics, "LVL003", module_id, "L2 parent must reference an L1 module")
+                _diag(
+                    diagnostics,
+                    "LVL003",
+                    module_id,
+                    "L2 parent must reference an L1 module",
+                )
         elif parent is not None:
-            _diag(diagnostics, "LVL004", module_id, "L0 and L3+ parent must be null", severity="SHOULD")
+            _diag(
+                diagnostics,
+                "LVL004",
+                module_id,
+                "L0 and L3+ parent must be null",
+                severity="SHOULD",
+            )
 
     ports: dict[str, dict[str, Any]] = {}
     port_owner_by_implementation: dict[str, set[str]] = {}
@@ -247,59 +332,130 @@ def _validate_manifest_v1_0(
     for index, raw in enumerate(raw_ports):
         location = f"ports[{index}]"
         if not isinstance(raw, dict):
-            _diag(diagnostics, "SCH008", location, "must be a mapping", configuration=True)
+            _diag(
+                diagnostics, "SCH008", location, "must be a mapping", configuration=True
+            )
             continue
         port_id = raw.get("id")
         if not _is_nonempty_string(port_id):
-            _diag(diagnostics, "SCH009", f"{location}.id", "must be a non-empty string", configuration=True)
+            _diag(
+                diagnostics,
+                "SCH009",
+                f"{location}.id",
+                "must be a non-empty string",
+                configuration=True,
+            )
             continue
         port_id = str(port_id)
         if port_id in ports:
-            _diag(diagnostics, "SCH010", port_id, "duplicate port id", configuration=True)
+            _diag(
+                diagnostics, "SCH010", port_id, "duplicate port id", configuration=True
+            )
             continue
         ports[port_id] = raw
         owner = raw.get("owner")
         if owner not in modules:
-            _diag(diagnostics, "PRT001", port_id, "owner must reference a module", configuration=True)
+            _diag(
+                diagnostics,
+                "PRT001",
+                port_id,
+                "owner must reference a module",
+                configuration=True,
+            )
         if raw.get("direction") not in {"input", "output"}:
-            _diag(diagnostics, "PRT002", port_id, "direction must be input or output", configuration=True)
+            _diag(
+                diagnostics,
+                "PRT002",
+                port_id,
+                "direction must be input or output",
+                configuration=True,
+            )
         if raw.get("kind") not in allowed_port_kinds:
-            _diag(diagnostics, "PRT003", port_id, "invalid port kind", configuration=True)
+            _diag(
+                diagnostics, "PRT003", port_id, "invalid port kind", configuration=True
+            )
         if not _is_nonempty_string(raw.get("contract")):
-            _diag(diagnostics, "PRT004", port_id, "contract must be a project-relative path", configuration=True)
+            _diag(
+                diagnostics,
+                "PRT004",
+                port_id,
+                "contract must be a project-relative path",
+                configuration=True,
+            )
         implemented_by = raw.get("implemented_by")
         if not isinstance(implemented_by, list):
-            _diag(diagnostics, "SCH011", f"{port_id}.implemented_by", "must be a list", configuration=True)
+            _diag(
+                diagnostics,
+                "SCH011",
+                f"{port_id}.implemented_by",
+                "must be a list",
+                configuration=True,
+            )
             implemented_by = []
         for adapter in implemented_by:
             if adapter not in modules or modules.get(adapter, {}).get("level") != "L3+":
-                _diag(diagnostics, "PRT005", port_id, f"implementation {adapter!r} must be an L3+ module")
+                _diag(
+                    diagnostics,
+                    "PRT005",
+                    port_id,
+                    f"implementation {adapter!r} must be an L3+ module",
+                )
             elif owner in modules:
-                port_owner_by_implementation.setdefault(str(adapter), set()).add(str(owner))
-        if raw.get("direction") == "output" and raw.get("kind") in {"event", "error"} and owner in modules:
+                port_owner_by_implementation.setdefault(str(adapter), set()).add(
+                    str(owner)
+                )
+        if (
+            raw.get("direction") == "output"
+            and raw.get("kind") in {"event", "error"}
+            and owner in modules
+        ):
             output_count[str(owner)] = output_count.get(str(owner), 0) + 1
 
     for owner, count in output_count.items():
         if modules[owner].get("level") in {"L0", "L1", "L2"} and count > 1:
-            _diag(diagnostics, "PRT006", owner, "functional module must expose one event/error output sink")
+            _diag(
+                diagnostics,
+                "PRT006",
+                owner,
+                "functional module must expose one event/error output sink",
+            )
 
     graph: dict[str, set[str]] = {module_id: set() for module_id in modules}
     for module_id, module in modules.items():
         for target_id in module.get("depends_on", []):
             if target_id not in modules:
-                _diag(diagnostics, "DEP000", module_id, f"unknown dependency {target_id!r}", configuration=True)
+                _diag(
+                    diagnostics,
+                    "DEP000",
+                    module_id,
+                    f"unknown dependency {target_id!r}",
+                    configuration=True,
+                )
                 continue
             graph[module_id].add(str(target_id))
-            violation = dependency_violation(module, modules[str(target_id)], port_owner_by_implementation)
+            violation = dependency_violation(
+                module, modules[str(target_id)], port_owner_by_implementation
+            )
             if violation:
-                _diag(diagnostics, violation[0], f"{module_id}->{target_id}", violation[1])
+                _diag(
+                    diagnostics, violation[0], f"{module_id}->{target_id}", violation[1]
+                )
     cycle = _find_cycle(graph)
     if cycle:
-        _diag(diagnostics, "DEP004", "->".join(cycle), "module dependency cycle is forbidden")
+        _diag(
+            diagnostics,
+            "DEP004",
+            "->".join(cycle),
+            "module dependency cycle is forbidden",
+        )
 
     for module_id, module in modules.items():
         declared_ports = set(str(item) for item in module.get("implements_ports", []))
-        actual_ports = {port_id for port_id, port in ports.items() if module_id in port.get("implemented_by", [])}
+        actual_ports = {
+            port_id
+            for port_id, port in ports.items()
+            if module_id in port.get("implemented_by", [])
+        }
         if declared_ports != actual_ports:
             _diag(
                 diagnostics,
@@ -313,68 +469,165 @@ def _validate_manifest_v1_0(
     for index, raw in enumerate(raw_events):
         location = f"events[{index}]"
         if not isinstance(raw, dict):
-            _diag(diagnostics, "SCH012", location, "must be a mapping", configuration=True)
+            _diag(
+                diagnostics, "SCH012", location, "must be a mapping", configuration=True
+            )
             continue
         event_id = raw.get("id")
         if not _is_nonempty_string(event_id):
-            _diag(diagnostics, "SCH013", f"{location}.id", "must be a non-empty string", configuration=True)
+            _diag(
+                diagnostics,
+                "SCH013",
+                f"{location}.id",
+                "must be a non-empty string",
+                configuration=True,
+            )
             continue
         event_id = str(event_id)
         if event_id in events:
-            _diag(diagnostics, "SCH014", event_id, "duplicate event id", configuration=True)
+            _diag(
+                diagnostics,
+                "SCH014",
+                event_id,
+                "duplicate event id",
+                configuration=True,
+            )
             continue
         events.add(event_id)
         owner = raw.get("owner")
         output_port = raw.get("output_port")
         if owner not in modules:
-            _diag(diagnostics, "EVT001", event_id, "owner must reference a module", configuration=True)
+            _diag(
+                diagnostics,
+                "EVT001",
+                event_id,
+                "owner must reference a module",
+                configuration=True,
+            )
         if output_port not in ports:
-            _diag(diagnostics, "EVT002", event_id, "output_port must reference a port", configuration=True)
+            _diag(
+                diagnostics,
+                "EVT002",
+                event_id,
+                "output_port must reference a port",
+                configuration=True,
+            )
         else:
             port = ports[str(output_port)]
             if port.get("owner") != owner or port.get("direction") != "output":
-                _diag(diagnostics, "EVT003", event_id, "output_port must be an output owned by the event owner")
+                _diag(
+                    diagnostics,
+                    "EVT003",
+                    event_id,
+                    "output_port must be an output owned by the event owner",
+                )
         envelope = raw.get("envelope")
         if not isinstance(envelope, list):
-            _diag(diagnostics, "EVT004", event_id, "envelope must be a list", configuration=True)
+            _diag(
+                diagnostics,
+                "EVT004",
+                event_id,
+                "envelope must be a list",
+                configuration=True,
+            )
         else:
             missing = CORE_ENVELOPE.difference(str(item) for item in envelope)
             if missing:
-                _diag(diagnostics, "EVT004", event_id, f"missing envelope fields: {sorted(missing)}")
+                _diag(
+                    diagnostics,
+                    "EVT004",
+                    event_id,
+                    f"missing envelope fields: {sorted(missing)}",
+                )
         lifecycle = raw.get("lifecycle")
         if not isinstance(lifecycle, list):
-            _diag(diagnostics, "EVT005", event_id, "lifecycle must be a list", configuration=True)
+            _diag(
+                diagnostics,
+                "EVT005",
+                event_id,
+                "lifecycle must be a list",
+                configuration=True,
+            )
         else:
             missing = CORE_LIFECYCLE.difference(str(item) for item in lifecycle)
             if missing:
-                _diag(diagnostics, "EVT005", event_id, f"missing lifecycle states: {sorted(missing)}")
+                _diag(
+                    diagnostics,
+                    "EVT005",
+                    event_id,
+                    f"missing lifecycle states: {sorted(missing)}",
+                )
         delivery = raw.get("delivery")
         if delivery not in {"at-most-once", "at-least-once"}:
-            _diag(diagnostics, "EVT006", event_id, "delivery must be at-most-once or at-least-once", configuration=True)
-        if delivery == "at-least-once" and not _is_nonempty_string(raw.get("idempotency")):
-            _diag(diagnostics, "EVT007", event_id, "at-least-once requires an idempotency strategy")
+            _diag(
+                diagnostics,
+                "EVT006",
+                event_id,
+                "delivery must be at-most-once or at-least-once",
+                configuration=True,
+            )
+        if delivery == "at-least-once" and not _is_nonempty_string(
+            raw.get("idempotency")
+        ):
+            _diag(
+                diagnostics,
+                "EVT007",
+                event_id,
+                "at-least-once requires an idempotency strategy",
+            )
 
     valid_exceptions: list[dict[str, Any]] = []
     manifest_dir = manifest_path.parent
     for index, raw in enumerate(raw_exceptions):
         location = f"adr_exceptions[{index}]"
         if not isinstance(raw, dict):
-            _diag(diagnostics, "ADR001", location, "must be a mapping", configuration=True)
+            _diag(
+                diagnostics, "ADR001", location, "must be a mapping", configuration=True
+            )
             continue
-        required = ("rule_id", "scope", "adr", "status", "approved_by", "approval_reference")
+        required = (
+            "rule_id",
+            "scope",
+            "adr",
+            "status",
+            "approved_by",
+            "approval_reference",
+        )
         if any(not _is_nonempty_string(raw.get(key)) for key in required):
-            _diag(diagnostics, "ADR001", location, "accepted exception requires rule, scope, ADR, approver, and approval reference")
+            _diag(
+                diagnostics,
+                "ADR001",
+                location,
+                "accepted exception requires rule, scope, ADR, approver, and approval reference",
+            )
             continue
         if raw.get("status") != "accepted":
-            _diag(diagnostics, "ADR002", location, "only accepted ADRs can suppress a MUST rule")
+            _diag(
+                diagnostics,
+                "ADR002",
+                location,
+                "only accepted ADRs can suppress a MUST rule",
+            )
             continue
-        approver_words = set(re.findall(r"[a-z]+", str(raw.get("approved_by", "")).lower()))
+        approver_words = set(
+            re.findall(r"[a-z]+", str(raw.get("approved_by", "")).lower())
+        )
         if approver_words.intersection(BANNED_AI_APPROVERS):
-            _diag(diagnostics, "ADR003", location, "AI systems cannot approve their own architecture exception")
+            _diag(
+                diagnostics,
+                "ADR003",
+                location,
+                "AI systems cannot approve their own architecture exception",
+            )
             continue
         adr_path = manifest_dir / str(raw["adr"])
         if not adr_path.is_file():
-            _diag(diagnostics, "ADR004", location, f"ADR file does not exist: {raw['adr']}")
+            _diag(
+                diagnostics,
+                "ADR004",
+                location,
+                f"ADR file does not exist: {raw['adr']}",
+            )
             continue
         valid_exceptions.append(raw)
 
@@ -383,32 +636,87 @@ def _validate_manifest_v1_0(
         try:
             baseline = load_yaml(baseline_path)
             if baseline.get("schema_version") != LEGACY_SCHEMA_VERSION:
-                _diag(diagnostics, "BAS001", str(baseline_path), "baseline schema version mismatch", configuration=True)
+                _diag(
+                    diagnostics,
+                    "BAS001",
+                    str(baseline_path),
+                    "baseline schema version mismatch",
+                    configuration=True,
+                )
             violations = baseline.get("violations")
             if not isinstance(violations, list):
-                _diag(diagnostics, "BAS002", str(baseline_path), "violations must be a list", configuration=True)
+                _diag(
+                    diagnostics,
+                    "BAS002",
+                    str(baseline_path),
+                    "violations must be a list",
+                    configuration=True,
+                )
             else:
                 for entry in violations:
-                    if isinstance(entry, dict) and _is_nonempty_string(entry.get("rule_id")) and _is_nonempty_string(entry.get("location")):
-                        baseline_entries.add((str(entry["rule_id"]), str(entry["location"])))
+                    if (
+                        isinstance(entry, dict)
+                        and _is_nonempty_string(entry.get("rule_id"))
+                        and _is_nonempty_string(entry.get("location"))
+                    ):
+                        baseline_entries.add(
+                            (str(entry["rule_id"]), str(entry["location"]))
+                        )
                     else:
-                        _diag(diagnostics, "BAS003", str(baseline_path), "invalid baseline entry", configuration=True)
+                        _diag(
+                            diagnostics,
+                            "BAS003",
+                            str(baseline_path),
+                            "invalid baseline entry",
+                            configuration=True,
+                        )
         except ManifestError as exc:
-            _diag(diagnostics, "BAS000", str(baseline_path), str(exc), configuration=True)
+            _diag(
+                diagnostics, "BAS000", str(baseline_path), str(exc), configuration=True
+            )
 
     if previous_baseline_path is not None:
         previous_entries: set[tuple[str, str]] = set()
         try:
             previous = load_yaml(previous_baseline_path)
             for entry in previous.get("violations", []):
-                if isinstance(entry, dict) and _is_nonempty_string(entry.get("rule_id")) and _is_nonempty_string(entry.get("location")):
-                    previous_entries.add((str(entry["rule_id"]), str(entry["location"])))
-            for rule_id, location in sorted(baseline_entries.difference(previous_entries)):
-                _diag(diagnostics, "BAS004", f"{rule_id}:{location}", "baseline growth is forbidden; fix the violation or obtain a user-approved ADR")
+                if (
+                    isinstance(entry, dict)
+                    and _is_nonempty_string(entry.get("rule_id"))
+                    and _is_nonempty_string(entry.get("location"))
+                ):
+                    previous_entries.add(
+                        (str(entry["rule_id"]), str(entry["location"]))
+                    )
+            for rule_id, location in sorted(
+                baseline_entries.difference(previous_entries)
+            ):
+                _diag(
+                    diagnostics,
+                    "BAS004",
+                    f"{rule_id}:{location}",
+                    "baseline growth is forbidden; fix the violation or obtain a user-approved ADR",
+                )
         except ManifestError as exc:
-            _diag(diagnostics, "BAS000", str(previous_baseline_path), str(exc), configuration=True)
+            _diag(
+                diagnostics,
+                "BAS000",
+                str(previous_baseline_path),
+                str(exc),
+                configuration=True,
+            )
 
-    protected_rules = {"ADR001", "ADR002", "ADR003", "ADR004", "BAS000", "BAS001", "BAS002", "BAS003", "BAS004"}
+    protected_rules = {
+        "ADR001",
+        "ADR002",
+        "ADR003",
+        "ADR004",
+        "BAS000",
+        "BAS001",
+        "BAS002",
+        "BAS003",
+        "BAS004",
+    }
     for diagnostic in diagnostics:
         if diagnostic.configuration or diagnostic.rule_id in protected_rules:
             continue
@@ -417,7 +725,9 @@ def _validate_manifest_v1_0(
             continue
         for exception in valid_exceptions:
             scope = str(exception["scope"])
-            if diagnostic.rule_id == exception["rule_id"] and diagnostic.location.startswith(scope):
+            if diagnostic.rule_id == exception[
+                "rule_id"
+            ] and diagnostic.location.startswith(scope):
                 diagnostic.disposition = f"adr:{exception['adr']}"
                 break
     return diagnostics
@@ -435,7 +745,9 @@ def validate_manifest(
     schema_version = data.get("schema_version")
     standard_version = data.get("standard_version")
     if schema_version == LEGACY_SCHEMA_VERSION:
-        return _validate_manifest_v1_0(data, manifest_path, baseline_path, previous_baseline_path)
+        return _validate_manifest_v1_0(
+            data, manifest_path, baseline_path, previous_baseline_path
+        )
     if schema_version == SCHEMA_VERSION:
         from schema_v1_1 import validate_manifest_v1_1
 
@@ -469,7 +781,9 @@ def exit_code(diagnostics: Iterable[Diagnostic]) -> int:
     diagnostics = list(diagnostics)
     if any(item.configuration and item.disposition == "active" for item in diagnostics):
         return 2
-    if any(item.severity == "MUST" and item.disposition == "active" for item in diagnostics):
+    if any(
+        item.severity == "MUST" and item.disposition == "active" for item in diagnostics
+    ):
         return 1
     return 0
 
@@ -480,7 +794,9 @@ def render_text(diagnostics: list[Diagnostic]) -> str:
     lines: list[str] = []
     for item in diagnostics:
         disposition = "" if item.disposition == "active" else f" [{item.disposition}]"
-        lines.append(f"{item.severity} {item.rule_id} {item.location}: {item.message}{disposition}")
+        lines.append(
+            f"{item.severity} {item.rule_id} {item.location}: {item.message}{disposition}"
+        )
     code = exit_code(diagnostics)
     lines.append("PASS" if code == 0 else ("FAIL" if code == 1 else "ERROR"))
     return "\n".join(lines)
@@ -503,9 +819,19 @@ def main(argv: list[str] | None = None) -> int:
             check_docs=True,
         )
     except ManifestError as exc:
-        diagnostics = [Diagnostic("TOOL002", "MUST", str(args.manifest), str(exc), True)]
+        diagnostics = [
+            Diagnostic("TOOL002", "MUST", str(args.manifest), str(exc), True)
+        ]
     if args.format == "json":
-        print(json.dumps({"exit_code": exit_code(diagnostics), "diagnostics": [asdict(item) for item in diagnostics]}, indent=2))
+        print(
+            json.dumps(
+                {
+                    "exit_code": exit_code(diagnostics),
+                    "diagnostics": [asdict(item) for item in diagnostics],
+                },
+                indent=2,
+            )
+        )
     else:
         print(render_text(diagnostics))
     return exit_code(diagnostics)

@@ -24,10 +24,11 @@ class ArchitectureSmokeTest(unittest.TestCase):
             "--format",
             "text",
         ]
-        result = subprocess.run(command, cwd=PROJECT_ROOT, capture_output=True, text=True)
+        result = subprocess.run(
+            command, cwd=PROJECT_ROOT, capture_output=True, text=True
+        )
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
 
 if __name__ == "__main__":
     unittest.main()
-

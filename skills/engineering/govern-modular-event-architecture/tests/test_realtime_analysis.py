@@ -105,15 +105,13 @@ def task(
         "profile": profile_id,
         "kind": "dedicated-task",
         "priority": priority,
-            "realtime_task": {
+        "realtime_task": {
             "core": core,
             "activation": activation,
             "relative_deadline_ns": deadline_ns,
             "release_jitter_ns": 0,
             "blocking_ns": 0,
-            "demand_components": [
-                {"mapping": mapping_id, "budget_ns": budget_ns}
-            ],
+            "demand_components": [{"mapping": mapping_id, "budget_ns": budget_ns}],
         },
     }
     mapping = {
@@ -129,19 +127,33 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_periodic_sporadic_and_server_tasks_pass_rm_rta(self) -> None:
         candidate = profile()
         fast, fast_map = task(
-            "fast", candidate["id"], "fast-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=3,
+            "fast",
+            candidate["id"],
+            "fast-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=3,
         )
         event, event_map = task(
-            "event", candidate["id"], "event-map",
-            period_ns=20_000_000, deadline_ns=20_000_000,
-            budget_ns=1_000_000, priority=2, kind="sporadic",
+            "event",
+            candidate["id"],
+            "event-map",
+            period_ns=20_000_000,
+            deadline_ns=20_000_000,
+            budget_ns=1_000_000,
+            priority=2,
+            kind="sporadic",
         )
         server, server_map = task(
-            "server", candidate["id"], "server-map",
-            period_ns=50_000_000, deadline_ns=50_000_000,
-            budget_ns=2_000_000, priority=1, kind="server",
+            "server",
+            candidate["id"],
+            "server-map",
+            period_ns=50_000_000,
+            deadline_ns=50_000_000,
+            budget_ns=2_000_000,
+            priority=1,
+            kind="server",
         )
         result = analyze(
             candidate,
@@ -190,14 +202,22 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_equal_rate_tie_breaks_by_deadline_then_id(self) -> None:
         candidate = profile()
         alpha, alpha_map = task(
-            "alpha", candidate["id"], "alpha-map",
-            period_ns=10_000_000, deadline_ns=9_000_000,
-            budget_ns=500_000, priority=2,
+            "alpha",
+            candidate["id"],
+            "alpha-map",
+            period_ns=10_000_000,
+            deadline_ns=9_000_000,
+            budget_ns=500_000,
+            priority=2,
         )
         beta, beta_map = task(
-            "beta", candidate["id"], "beta-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=500_000, priority=1,
+            "beta",
+            candidate["id"],
+            "beta-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=500_000,
+            priority=1,
         )
         result = analyze(
             candidate,
@@ -211,14 +231,24 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_partitioned_cores_and_cross_core_cost_are_accounted(self) -> None:
         candidate = profile(cores=2)
         producer, producer_map = task(
-            "producer", candidate["id"], "producer-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=1, core=0,
+            "producer",
+            candidate["id"],
+            "producer-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
+            core=0,
         )
         consumer, consumer_map = task(
-            "consumer", candidate["id"], "consumer-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=1, core=1,
+            "consumer",
+            candidate["id"],
+            "consumer-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
+            core=1,
         )
         channel = {
             "id": "handoff",
@@ -258,14 +288,22 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_invalid_cross_core_claim_is_blocked(self) -> None:
         candidate = profile()
         first, first_map = task(
-            "first", candidate["id"], "first-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=500_000, priority=2,
+            "first",
+            candidate["id"],
+            "first-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=500_000,
+            priority=2,
         )
         second, second_map = task(
-            "second", candidate["id"], "second-map",
-            period_ns=20_000_000, deadline_ns=20_000_000,
-            budget_ns=500_000, priority=1,
+            "second",
+            candidate["id"],
+            "second-map",
+            period_ns=20_000_000,
+            deadline_ns=20_000_000,
+            budget_ns=500_000,
+            priority=1,
         )
         channel = {
             "id": "invalid-channel",
@@ -292,9 +330,13 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_deadline_miss_and_flow_miss_fail(self) -> None:
         candidate = profile()
         overloaded, overloaded_map = task(
-            "overloaded", candidate["id"], "overloaded-map",
-            period_ns=10_000_000, deadline_ns=1_000_000,
-            budget_ns=2_000_000, priority=1,
+            "overloaded",
+            candidate["id"],
+            "overloaded-map",
+            period_ns=10_000_000,
+            deadline_ns=1_000_000,
+            budget_ns=2_000_000,
+            priority=1,
         )
         result = analyze(
             candidate,
@@ -306,9 +348,13 @@ class RealtimeAnalysisTests(unittest.TestCase):
         self.assertEqual("FAIL", result["tasks"]["overloaded"]["rta_verdict"])
 
         feasible, feasible_map = task(
-            "feasible", candidate["id"], "feasible-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=1,
+            "feasible",
+            candidate["id"],
+            "feasible-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
         )
         chain = {
             "id": "too-short-flow",
@@ -355,9 +401,7 @@ class RealtimeAnalysisTests(unittest.TestCase):
             workloads=workloads,
         )
         self.assertEqual("PASS", result["verdict"], result)
-        self.assertEqual(
-            "SOFT_RISK", result["tasks"]["soft-worker"]["rta_verdict"]
-        )
+        self.assertEqual("SOFT_RISK", result["tasks"]["soft-worker"]["rta_verdict"])
         self.assertTrue(result["soft_risks"])
         self.assertFalse(result["failures"])
 
@@ -479,9 +523,7 @@ class RealtimeAnalysisTests(unittest.TestCase):
             },
         )
         self.assertEqual("FAIL", result["verdict"], result)
-        self.assertEqual(
-            "hard-real-time", result["tasks"]["mixed"]["timing_class"]
-        )
+        self.assertEqual("hard-real-time", result["tasks"]["mixed"]["timing_class"])
         self.assertEqual("FAIL", result["tasks"]["mixed"]["rta_verdict"])
 
     def test_unsupported_analysis_method_is_blocked(self) -> None:
@@ -495,7 +537,9 @@ class RealtimeAnalysisTests(unittest.TestCase):
         )
         self.assertEqual("BLOCKED", result["verdict"])
         self.assertFalse(result["scheduler_compatible"])
-        self.assertTrue(any("no installed analyzer" in item for item in result["problems"]))
+        self.assertTrue(
+            any("no installed analyzer" in item for item in result["problems"])
+        )
 
     def test_utilization_bound_is_inconclusive_not_failure(self) -> None:
         candidate = profile()
@@ -503,9 +547,13 @@ class RealtimeAnalysisTests(unittest.TestCase):
         mappings = {}
         for index, period in enumerate((5_000_000, 10_000_000, 20_000_000), start=1):
             unit, mapping = task(
-                f"task-{index}", candidate["id"], f"map-{index}",
-                period_ns=period, deadline_ns=period,
-                budget_ns=period * 28 // 100, priority=4 - index,
+                f"task-{index}",
+                candidate["id"],
+                f"map-{index}",
+                period_ns=period,
+                deadline_ns=period,
+                budget_ns=period * 28 // 100,
+                priority=4 - index,
             )
             units[unit["id"]] = unit
             mappings[mapping["id"]] = mapping
@@ -517,27 +565,37 @@ class RealtimeAnalysisTests(unittest.TestCase):
         candidate = profile()
         candidate["analysis_phase"] = "final"
         unit, mapping = task(
-            "task", candidate["id"], "mapping",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=1,
+            "task",
+            candidate["id"],
+            "mapping",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
         )
-        result = analyze(
-            candidate, {"task": unit}, {"mapping": mapping}, {}
-        )
+        result = analyze(candidate, {"task": unit}, {"mapping": mapping}, {})
         self.assertEqual("BLOCKED", result["verdict"])
         self.assertTrue(any("final_ns" in item for item in result["problems"]))
 
     def test_arbitrary_deadline_uses_multi_job_busy_period(self) -> None:
         candidate = profile()
         fast, fast_map = task(
-            "fast", candidate["id"], "fast-map",
-            period_ns=5_000_000, deadline_ns=5_000_000,
-            budget_ns=1_000_000, priority=2,
+            "fast",
+            candidate["id"],
+            "fast-map",
+            period_ns=5_000_000,
+            deadline_ns=5_000_000,
+            budget_ns=1_000_000,
+            priority=2,
         )
         slow, slow_map = task(
-            "slow", candidate["id"], "slow-map",
-            period_ns=10_000_000, deadline_ns=25_000_000,
-            budget_ns=7_000_000, priority=1,
+            "slow",
+            candidate["id"],
+            "slow-map",
+            period_ns=10_000_000,
+            deadline_ns=25_000_000,
+            budget_ns=7_000_000,
+            priority=1,
         )
         slow["realtime_task"]["blocking_ns"] = 2_000_000
         result = analyze(
@@ -562,14 +620,22 @@ class RealtimeAnalysisTests(unittest.TestCase):
             "timer_interrupt_ns": 0,
         }
         fast, fast_map = task(
-            "fast", baseline_profile["id"], "fast-map",
-            period_ns=5_000_000, deadline_ns=5_000_000,
-            budget_ns=500_000, priority=2,
+            "fast",
+            baseline_profile["id"],
+            "fast-map",
+            period_ns=5_000_000,
+            deadline_ns=5_000_000,
+            budget_ns=500_000,
+            priority=2,
         )
         slow, slow_map = task(
-            "slow", baseline_profile["id"], "slow-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=1,
+            "slow",
+            baseline_profile["id"],
+            "slow-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
         )
         baseline = analyze(
             baseline_profile,
@@ -596,14 +662,22 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_priority_mismatch_and_copy_accounting_mismatch_are_blocked(self) -> None:
         candidate = profile()
         fast, fast_map = task(
-            "fast", candidate["id"], "fast-map",
-            period_ns=5_000_000, deadline_ns=5_000_000,
-            budget_ns=500_000, priority=1,
+            "fast",
+            candidate["id"],
+            "fast-map",
+            period_ns=5_000_000,
+            deadline_ns=5_000_000,
+            budget_ns=500_000,
+            priority=1,
         )
         slow, slow_map = task(
-            "slow", candidate["id"], "slow-map",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=500_000, priority=2,
+            "slow",
+            candidate["id"],
+            "slow-map",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=500_000,
+            priority=2,
         )
         channel = {
             "id": "queue",
@@ -615,9 +689,7 @@ class RealtimeAnalysisTests(unittest.TestCase):
                 "notification_latency_ns": 0,
                 "release_jitter_ns": 0,
                 "copy_cost_ns": 100_000,
-                "cpu_cost_accounting": [
-                    {"unit": "fast", "cost_ns": 10_000}
-                ],
+                "cpu_cost_accounting": [{"unit": "fast", "cost_ns": 10_000}],
             },
         }
         result = analyze(
@@ -637,13 +709,15 @@ class RealtimeAnalysisTests(unittest.TestCase):
     def test_isr_interference_is_explicit_and_increases_response(self) -> None:
         candidate = profile()
         unit, mapping = task(
-            "task", candidate["id"], "mapping",
-            period_ns=10_000_000, deadline_ns=10_000_000,
-            budget_ns=1_000_000, priority=1,
+            "task",
+            candidate["id"],
+            "mapping",
+            period_ns=10_000_000,
+            deadline_ns=10_000_000,
+            budget_ns=1_000_000,
+            priority=1,
         )
-        baseline = analyze(
-            candidate, {"task": unit}, {"mapping": mapping}, {}
-        )
+        baseline = analyze(candidate, {"task": unit}, {"mapping": mapping}, {})
         isr = {
             "id": "uart-isr",
             "profile": candidate["id"],
@@ -676,7 +750,9 @@ class RealtimeAnalysisTests(unittest.TestCase):
             {},
         )
         self.assertEqual("BLOCKED", missing["verdict"])
-        self.assertTrue(any("interrupt_interference" in item for item in missing["problems"]))
+        self.assertTrue(
+            any("interrupt_interference" in item for item in missing["problems"])
+        )
 
 
 if __name__ == "__main__":

@@ -181,7 +181,7 @@ Skills I use daily for code work.
 - **[explain-code-flow](./skills/engineering/explain-code-flow/SKILL.md)** — Guide code understanding from governed system flows to implementation details.
 - **[govern-modular-event-architecture](./skills/engineering/govern-modular-event-architecture/SKILL.md)** — Govern architecture boundaries, owned types and state, algorithms, and scheduling evidence.
 - **[spec-governance](./skills/engineering/spec-governance/SKILL.md)** — Persist and verify the canonical specification for modifying work.
-- **[formatter-governance](./skills/engineering/formatter-governance/SKILL.md)** — Select and verify a repository-aware formatter policy before product-code mutation.
+- **[formatter-governance](./skills/engineering/formatter-governance/SKILL.md)** — Select and verify repository-aware formatter policy, including confirmed full-program writes, before product-code mutation.
 - **[validate-on-device](./skills/engineering/validate-on-device/SKILL.md)** — Collect bounded device and operating-system runtime evidence.
 - **[prototype](./skills/engineering/prototype/SKILL.md)** — Build a throwaway prototype to answer a design question — a runnable terminal app for state/logic questions, or several radically different UI variations toggleable from one route.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)** — Disciplined diagnosis loop for hard bugs and performance regressions: reproduce → minimise → hypothesise → instrument → fix → regression-test.

@@ -24,14 +24,10 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
 
         self.assertEqual(3, len(data_rows))
         self.assertTrue(
-            data_rows[0].startswith(
-                "| `2.1.0` | `2.1.0` | Supported | Supported after"
-            )
+            data_rows[0].startswith("| `2.1.0` | `2.1.0` | Supported | Supported after")
         )
         self.assertTrue(
-            data_rows[1].startswith(
-                "| `2.2.0` | `2.2.0` | Supported | Supported after"
-            )
+            data_rows[1].startswith("| `2.2.0` | `2.2.0` | Supported | Supported after")
         )
         self.assertTrue(data_rows[2].startswith("| Any other pair, including `1.x` |"))
 
@@ -69,9 +65,7 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
 
     def test_capability_and_project_validity_are_distinct(self) -> None:
         self.assertIn("Distinguish capability from project validity:", SKILL)
-        self.assertIn(
-            "it is not evidence that the project itself is invalid", SKILL
-        )
+        self.assertIn("it is not evidence that the project itself is invalid", SKILL)
         self.assertIn(
             "lacks complete evidence is `BLOCKED` for formal System/Parent guidance",
             SKILL,
@@ -148,9 +142,9 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
         )
 
     def test_level_1_flow_final_self_check_is_complete(self) -> None:
-        checks = SKILL.split(
-            "## Validate the response contract before returning", 1
-        )[1].split("## Save only on explicit request", 1)[0]
+        checks = SKILL.split("## Validate the response contract before returning", 1)[
+            1
+        ].split("## Save only on explicit request", 1)[0]
         for required in (
             "project-to-Parent-to-Flow breadcrumb",
             "owner, description, trigger, source data meaning, and entrypoint",

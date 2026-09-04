@@ -1,8 +1,8 @@
 ---
 spec_version: 1
 spec_id: SPEC-0017
-revision: 8
-status: confirmed
+revision: 9
+status: implemented
 change_set: ai-authorship-format-all
 ---
 
@@ -127,12 +127,12 @@ in the ordinary delivery validation flow.
 
 | ID | Requirements | Criterion | Validation Method | Evidence |
 |---|---|---|---|---|
-| AC-001 | REQ-001 | A canonical-SPEC fixture produces one formatter confirmation; affirmative input may continue, while decline or ambiguity performs no formatting write. | Focused contract and temporary-directory integration tests. | Pending execution. |
-| AC-002 | REQ-002 | A mixed-file fixture selects product source and tests while excluding documentation, configuration, generated, vendor, and build-output paths. | Focused scope-classification tests. | Pending execution. |
-| AC-003 | REQ-003 | Non-greenfield fixtures retain a discoverable repository CLI formatter and select the governed language formatter only when no repository CLI is discoverable; greenfield fixtures use the governed mapping. | Focused formatter-precedence and fallback tests. | Pending execution. |
-| AC-004 | REQ-004 | A dirty targeted source or test fixture returns `BLOCKED` with byte-identical files; a fixture dirty only outside the selected scope may continue and preserves unrelated files. | Temporary-repository integration tests with Git status and before/after hashes. | Pending execution. |
-| AC-005 | REQ-005 | Greenfield and non-greenfield fixtures require explicit CLI write and check argv, reject IDE-only evidence, accept the selected formatter's successful non-mutating CLI check, and leave project tests/typechecks/builds to the delivery validation contract. | Focused policy-contract and integration tests. | Pending execution. |
-| AC-006 | REQ-006 | Missing-CLI fixtures require native installation authorization; denial, missing evidence, and installation failure remain `BLOCKED`, while authorized successful installation proceeds to the non-mutating formatter check. | Focused permission-boundary and temporary-environment tests. | Pending execution. |
+| AC-001 | REQ-001 | A canonical-SPEC fixture produces one formatter confirmation; affirmative input may continue, while decline or ambiguity performs no formatting write. | Focused contract and temporary-directory integration tests. | PASS: affirmative, decline, and ambiguity confirmation contract tests |
+| AC-002 | REQ-002 | A mixed-file fixture selects product source and tests while excluding documentation, configuration, generated, vendor, and build-output paths. | Focused scope-classification tests. | PASS: mixed program-scope exclusion tests |
+| AC-003 | REQ-003 | Non-greenfield fixtures retain a discoverable repository CLI formatter and select the governed language formatter only when no repository CLI is discoverable; greenfield fixtures use the governed mapping. | Focused formatter-precedence and fallback tests. | PASS: repository precedence, governed fallback, and greenfield selection tests |
+| AC-004 | REQ-004 | A dirty targeted source or test fixture returns `BLOCKED` with byte-identical files; a fixture dirty only outside the selected scope may continue and preserves unrelated files. | Temporary-repository integration tests with Git status and before/after hashes. | PASS: dirty-target and unrelated-dirty-file Git integration tests |
+| AC-005 | REQ-005 | Greenfield and non-greenfield fixtures require explicit CLI write and check argv, reject IDE-only evidence, accept the selected formatter's successful non-mutating CLI check, and leave project tests/typechecks/builds to the delivery validation contract. | Focused policy-contract and integration tests. | PASS: CLI-only write/check and exact-scope regression tests |
+| AC-006 | REQ-006 | Missing-CLI fixtures require native installation authorization; denial, missing evidence, and installation failure remain `BLOCKED`, while authorized successful installation proceeds to the non-mutating formatter check. | Focused permission-boundary and temporary-environment tests. | PASS: native authorization and installation outcome tests |
 
 ## Relationships
 
@@ -170,7 +170,9 @@ None.
 
 - Grilling: PASS.
 - Spec governance: decision-complete; reconfirmation required.
-- TDD and code review: required after confirmation and fresh execution authorization.
+- TDD: PASS.
+- Standards review: PASS.
+- Spec review: PASS.
 
 ## Revision History
 
@@ -184,3 +186,4 @@ None.
 | 6 | 2026-08-27 | Selected deterministic CLI formatter write and check without IDE or formatter-specific semantic-check dependencies. |
 | 7 | 2026-08-27 | Reopened before clarification: Add governed CLI fallback and authorized formatter installation when an existing project has no formatter CLI. |
 | 8 | 2026-08-27 | Added governed CLI fallback and native-authorized installation for missing formatter tooling. |
+| 9 | 2026-09-04 | Recorded implementation PASS evidence. |

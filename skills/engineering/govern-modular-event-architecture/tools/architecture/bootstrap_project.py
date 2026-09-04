@@ -41,25 +41,69 @@ def _governance_files(
 ) -> dict[Path, str | Path]:
     files: dict[Path, str | Path] = {
         project_root / "AGENTS.md": ASSETS / "AGENTS.md.tmpl",
-        project_root / "architecture" / "decisions" / "ADR-0001-modular-event-architecture.md": ASSETS / "ADR-0001-modular-event-architecture.md.tmpl",
-        project_root / "tests" / "architecture" / "test_architecture.py": ASSETS / "test_architecture.py.tmpl",
-        project_root / "tools" / "architecture" / "architecture_cli.py": SKILL_ROOT / "scripts" / "architecture_cli.py",
-        project_root / "tools" / "architecture" / "check_architecture.py": SKILL_ROOT / "scripts" / "check_architecture.py",
-        project_root / "tools" / "architecture" / "governance_adoption.py": SKILL_ROOT / "scripts" / "governance_adoption.py",
-        project_root / "tools" / "architecture" / "python_analyzer.py": SKILL_ROOT / "scripts" / "python_analyzer.py",
-        project_root / "tools" / "architecture" / "schema_description.py": SKILL_ROOT / "scripts" / "schema_description.py",
-        project_root / "tools" / "architecture" / "schema_v2.py": SKILL_ROOT / "scripts" / "schema_v2.py",
-        project_root / "tools" / "architecture" / "realtime_analysis.py": SKILL_ROOT / "scripts" / "realtime_analysis.py",
-        project_root / "tools" / "architecture" / "type_catalog.py": SKILL_ROOT / "scripts" / "type_catalog.py",
-        project_root / "tools" / "architecture" / "state_catalog.py": SKILL_ROOT / "scripts" / "state_catalog.py",
-        project_root / "tools" / "architecture" / "source_sets.py": SKILL_ROOT / "scripts" / "source_sets.py",
-        project_root / "tools" / "architecture" / "boundary_catalog.py": SKILL_ROOT / "scripts" / "boundary_catalog.py",
-        project_root / "tools" / "architecture" / "ast_analyzer.py": SKILL_ROOT / "scripts" / "ast_analyzer.py",
-        project_root / "tools" / "architecture" / "c_analyzer.py": SKILL_ROOT / "scripts" / "c_analyzer.py",
-        project_root / "tools" / "architecture" / "libclang_toolchain_contract.py": SKILL_ROOT / "scripts" / "libclang_toolchain_contract.py",
-        project_root / "tools" / "architecture" / "libclang_toolchain_adapter.py": SKILL_ROOT / "scripts" / "libclang_toolchain_adapter.py",
-        project_root / "tools" / "architecture" / "render_architecture.py": SKILL_ROOT / "scripts" / "render_architecture.py",
-        project_root / "tools" / "architecture" / "requirements.txt": SKILL_ROOT / "requirements-architecture.txt",
+        project_root
+        / "architecture"
+        / "decisions"
+        / "ADR-0001-modular-event-architecture.md": ASSETS
+        / "ADR-0001-modular-event-architecture.md.tmpl",
+        project_root / "tests" / "architecture" / "test_architecture.py": ASSETS
+        / "test_architecture.py.tmpl",
+        project_root / "tools" / "architecture" / "architecture_cli.py": SKILL_ROOT
+        / "scripts"
+        / "architecture_cli.py",
+        project_root / "tools" / "architecture" / "check_architecture.py": SKILL_ROOT
+        / "scripts"
+        / "check_architecture.py",
+        project_root / "tools" / "architecture" / "governance_adoption.py": SKILL_ROOT
+        / "scripts"
+        / "governance_adoption.py",
+        project_root / "tools" / "architecture" / "python_analyzer.py": SKILL_ROOT
+        / "scripts"
+        / "python_analyzer.py",
+        project_root / "tools" / "architecture" / "schema_description.py": SKILL_ROOT
+        / "scripts"
+        / "schema_description.py",
+        project_root / "tools" / "architecture" / "schema_v2.py": SKILL_ROOT
+        / "scripts"
+        / "schema_v2.py",
+        project_root / "tools" / "architecture" / "realtime_analysis.py": SKILL_ROOT
+        / "scripts"
+        / "realtime_analysis.py",
+        project_root / "tools" / "architecture" / "type_catalog.py": SKILL_ROOT
+        / "scripts"
+        / "type_catalog.py",
+        project_root / "tools" / "architecture" / "state_catalog.py": SKILL_ROOT
+        / "scripts"
+        / "state_catalog.py",
+        project_root / "tools" / "architecture" / "source_sets.py": SKILL_ROOT
+        / "scripts"
+        / "source_sets.py",
+        project_root / "tools" / "architecture" / "boundary_catalog.py": SKILL_ROOT
+        / "scripts"
+        / "boundary_catalog.py",
+        project_root / "tools" / "architecture" / "ast_analyzer.py": SKILL_ROOT
+        / "scripts"
+        / "ast_analyzer.py",
+        project_root / "tools" / "architecture" / "c_analyzer.py": SKILL_ROOT
+        / "scripts"
+        / "c_analyzer.py",
+        project_root
+        / "tools"
+        / "architecture"
+        / "libclang_toolchain_contract.py": SKILL_ROOT
+        / "scripts"
+        / "libclang_toolchain_contract.py",
+        project_root
+        / "tools"
+        / "architecture"
+        / "libclang_toolchain_adapter.py": SKILL_ROOT
+        / "scripts"
+        / "libclang_toolchain_adapter.py",
+        project_root / "tools" / "architecture" / "render_architecture.py": SKILL_ROOT
+        / "scripts"
+        / "render_architecture.py",
+        project_root / "tools" / "architecture" / "requirements.txt": SKILL_ROOT
+        / "requirements-architecture.txt",
     }
     if include_c_toolchain:
         files[project_root / "architecture" / "toolchain-lock.yaml"] = (
@@ -79,8 +123,15 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
             "applicable_analyzers": [
                 name
                 for name, configured in (
-                    ("python", spec.get("python_analyzer", {}).get("status") == "required"),
-                    ("c-cpp", spec.get("c_analyzer", {}).get("ast", {}).get("status") == "required"),
+                    (
+                        "python",
+                        spec.get("python_analyzer", {}).get("status") == "required",
+                    ),
+                    (
+                        "c-cpp",
+                        spec.get("c_analyzer", {}).get("ast", {}).get("status")
+                        == "required",
+                    ),
                 )
                 if configured
             ],
@@ -136,7 +187,9 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
     )
     document_contents = render_documents(spec)
     extra_paths = [manifest_path, adoption_path, baseline_path]
-    extra_paths.extend(manifest_path.parent / relative for relative in document_contents)
+    extra_paths.extend(
+        manifest_path.parent / relative for relative in document_contents
+    )
     extra_paths.extend(
         [
             manifest_path.parent / "generated" / "adoption-readiness.md",
@@ -145,7 +198,10 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
     )
     existing = sorted(path for path in [*files, *extra_paths] if path.exists())
     if existing:
-        raise FileExistsError("refusing to overwrite governance files:\n" + "\n".join(str(path) for path in existing))
+        raise FileExistsError(
+            "refusing to overwrite governance files:\n"
+            + "\n".join(str(path) for path in existing)
+        )
 
     replacements = {
         "PROJECT_NAME": str(spec["project"]["name"]),
@@ -161,7 +217,9 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
             shutil.copy2(source_path, destination)
         written.append(destination)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(yaml.safe_dump(spec, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    manifest_path.write_text(
+        yaml.safe_dump(spec, sort_keys=False, allow_unicode=True), encoding="utf-8"
+    )
     written.append(manifest_path)
     written.extend(write_documents(spec, manifest_path))
     adoption_path.write_text(

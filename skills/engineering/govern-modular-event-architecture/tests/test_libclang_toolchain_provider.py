@@ -93,7 +93,9 @@ class LibclangToolchainProviderTests(unittest.TestCase):
         return path
 
     def _install(self, lock: Path, archive: Path) -> None:
-        fake_cindex = SimpleNamespace(Config=SimpleNamespace(set_library_file=lambda _: None))
+        fake_cindex = SimpleNamespace(
+            Config=SimpleNamespace(set_library_file=lambda _: None)
+        )
         with (
             mock.patch(
                 "libclang_toolchain_adapter.urllib.request.urlretrieve",
@@ -107,7 +109,9 @@ class LibclangToolchainProviderTests(unittest.TestCase):
                 "libclang_toolchain_adapter._probe",
                 return_value="Espressif clang version 20.1.1",
             ),
-            mock.patch.dict(sys.modules, {"clang": SimpleNamespace(cindex=fake_cindex)}),
+            mock.patch.dict(
+                sys.modules, {"clang": SimpleNamespace(cindex=fake_cindex)}
+            ),
         ):
             provider.EspressifLibclangToolchainAdapter().install(lock)
 
@@ -188,12 +192,7 @@ class LibclangToolchainProviderTests(unittest.TestCase):
         )
         lock = self._lock(archive)
         self._install(lock, archive)
-        cache = (
-            self.cache_override
-            / "espressif"
-            / "esp-clang-libs"
-            / "20.1.1_test"
-        )
+        cache = self.cache_override / "espressif" / "esp-clang-libs" / "20.1.1_test"
         self.assertFalse((cache / "esp-clang" / "lib" / "libLLVM.so").exists())
 
     def test_safe_hardlink_entry_is_ignored_by_install(self) -> None:
@@ -205,12 +204,7 @@ class LibclangToolchainProviderTests(unittest.TestCase):
         )
         lock = self._lock(archive)
         self._install(lock, archive)
-        cache = (
-            self.cache_override
-            / "espressif"
-            / "esp-clang-libs"
-            / "20.1.1_test"
-        )
+        cache = self.cache_override / "espressif" / "esp-clang-libs" / "20.1.1_test"
         self.assertFalse((cache / "esp-clang" / "lib" / "libLLVM.so").exists())
 
     def test_unsafe_symlink_target_is_rejected_by_install(self) -> None:
@@ -239,12 +233,7 @@ class LibclangToolchainProviderTests(unittest.TestCase):
     def test_incomplete_cache_is_cast002(self) -> None:
         archive = self._archive()
         lock = self._lock(archive)
-        cache = (
-            self.cache_override
-            / "espressif"
-            / "esp-clang-libs"
-            / "20.1.1_test"
-        )
+        cache = self.cache_override / "espressif" / "esp-clang-libs" / "20.1.1_test"
         cache.mkdir(parents=True)
         with self.assertRaises(ToolchainProviderError) as caught:
             provider.EspressifLibclangToolchainAdapter().verify(
@@ -269,7 +258,9 @@ class LibclangToolchainProviderTests(unittest.TestCase):
     def test_backend_probe_failure_is_cast001(self) -> None:
         archive = self._archive()
         lock = self._lock(archive)
-        fake_cindex = SimpleNamespace(Config=SimpleNamespace(set_library_file=lambda _: None))
+        fake_cindex = SimpleNamespace(
+            Config=SimpleNamespace(set_library_file=lambda _: None)
+        )
         failure = ToolchainProviderError("CAST001", "xtensa", "no backend")
         with (
             mock.patch(
@@ -281,7 +272,9 @@ class LibclangToolchainProviderTests(unittest.TestCase):
                 return_value="20.1.5",
             ),
             mock.patch("libclang_toolchain_adapter._probe", side_effect=failure),
-            mock.patch.dict(sys.modules, {"clang": SimpleNamespace(cindex=fake_cindex)}),
+            mock.patch.dict(
+                sys.modules, {"clang": SimpleNamespace(cindex=fake_cindex)}
+            ),
             self.assertRaises(ToolchainProviderError) as caught,
         ):
             provider.EspressifLibclangToolchainAdapter().install(lock)

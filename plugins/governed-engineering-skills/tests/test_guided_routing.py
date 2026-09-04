@@ -14,9 +14,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PLUGIN_ROOT = REPOSITORY_ROOT / "dist" / "governed-engineering-skills"
 ARCHITECTURE_ROOT = REPOSITORY_ROOT / "architecture"
 TEST_BUILD_ROOT = REPOSITORY_ROOT / ".test-tmp" / "guided-routing"
-SCRIPTS_ROOT = (
-    PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "scripts"
-)
+SCRIPTS_ROOT = PLUGIN_ROOT / "skills" / "engineering-risk-routing" / "scripts"
 
 
 def load_module(name: str, path: Path):
@@ -258,8 +256,9 @@ class RepositoryEvidenceAdapterTests(unittest.TestCase):
             )
 
             result = (
-                REPOSITORY_EVIDENCE.GitFilesystemRepositoryEvidenceAdapter()
-                .collect(root)
+                REPOSITORY_EVIDENCE.GitFilesystemRepositoryEvidenceAdapter().collect(
+                    root
+                )
             )
 
         self.assertEqual(
@@ -277,9 +276,7 @@ class RepositoryEvidenceAdapterTests(unittest.TestCase):
                 for row in result
             ],
         )
-        included = [
-            row for row in result if row["exclusion_reason"] is None
-        ]
+        included = [row for row in result if row["exclusion_reason"] is None]
         self.assertEqual(
             [
                 ("tracked.py", "tracked"),
@@ -312,8 +309,9 @@ class RepositoryEvidenceAdapterTests(unittest.TestCase):
             )
 
             evidence = (
-                REPOSITORY_EVIDENCE.GitFilesystemRepositoryEvidenceAdapter()
-                .collect(root)
+                REPOSITORY_EVIDENCE.GitFilesystemRepositoryEvidenceAdapter().collect(
+                    root
+                )
             )
 
         self.assertEqual(1, len(evidence))
@@ -338,9 +336,8 @@ class RepositoryEvidenceAdapterTests(unittest.TestCase):
                 side_effect=AssertionError("symlink target metadata was read"),
             ),
         ):
-            row = (
-                REPOSITORY_EVIDENCE.GitFilesystemRepositoryEvidenceAdapter
-                ._artifact_row(Path.cwd(), "outside.py", "tracked")
+            row = REPOSITORY_EVIDENCE.GitFilesystemRepositoryEvidenceAdapter._artifact_row(
+                Path.cwd(), "outside.py", "tracked"
             )
 
         self.assertEqual(0, row["size_bytes"])
@@ -349,18 +346,14 @@ class RepositoryEvidenceAdapterTests(unittest.TestCase):
 
 class IntentAssessmentTests(unittest.TestCase):
     def test_thesis_trace_greenfield_wording_is_modifying(self) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "我想做一個自己用的投資工具"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("我想做一個自己用的投資工具")
 
         self.assertEqual("implementation-design", result["intent"])
         self.assertTrue(result["requires_modification"])
         self.assertIn("做", result["matched_terms"])
 
     def test_new_feature_is_modifying_implementation_design(self) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "在月報頁面新增匯出 CSV 按鈕"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("在月報頁面新增匯出 CSV 按鈕")
 
         self.assertEqual("implementation-design", result["intent"])
         self.assertTrue(result["requires_modification"])
@@ -403,25 +396,19 @@ class IntentAssessmentTests(unittest.TestCase):
         self.assertFalse(result["requires_modification"])
 
     def test_explaining_how_update_works_remains_read_only(self) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "how does update work"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("how does update work")
 
         self.assertEqual("code-understanding", result["intent"])
         self.assertFalse(result["requires_modification"])
 
     def test_semicolon_separated_review_and_fix_is_mixed(self) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "review this; fix the bug"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("review this; fix the bug")
 
         self.assertEqual("review", result["intent"])
         self.assertTrue(result["requires_modification"])
 
     def test_chinese_comma_separated_review_and_fix_is_mixed(self) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "檢視程式碼，修正錯誤"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("檢視程式碼，修正錯誤")
 
         self.assertEqual("review", result["intent"])
         self.assertTrue(result["requires_modification"])
@@ -429,17 +416,13 @@ class IntentAssessmentTests(unittest.TestCase):
     def test_chinese_code_understanding_with_do_word_remains_read_only(
         self,
     ) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "解釋這段程式碼在做什麼"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("解釋這段程式碼在做什麼")
 
         self.assertEqual("code-understanding", result["intent"])
         self.assertFalse(result["requires_modification"])
 
     def test_chinese_code_understanding_then_modify_is_mixed(self) -> None:
-        result = WORKFLOW_SELECTION.classify_intent(
-            "解釋這段流程，然後修改錯誤處理"
-        )
+        result = WORKFLOW_SELECTION.classify_intent("解釋這段流程，然後修改錯誤處理")
 
         self.assertEqual("code-understanding", result["intent"])
         self.assertTrue(result["requires_modification"])
@@ -507,16 +490,16 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         self.assertEqual(["開始執行"], result["matched_terms"])
         self.assertTrue(result["requires_modification"])
 
-    def test_quoted_or_negated_start_execution_phrase_is_not_resume_intent(self) -> None:
+    def test_quoted_or_negated_start_execution_phrase_is_not_resume_intent(
+        self,
+    ) -> None:
         for prompt in ("請解釋「開始執行」的意思", "不要開始執行"):
             with self.subTest(prompt=prompt):
                 result = WORKFLOW_SELECTION.classify_intent(prompt)
                 self.assertNotEqual("confirmed-spec-resume", result["intent"])
 
     def test_greenfield_modification_starts_with_grill_me(self) -> None:
-        intent = WORKFLOW_SELECTION.classify_intent(
-            "建立一個自己使用的投資工具"
-        )
+        intent = WORKFLOW_SELECTION.classify_intent("建立一個自己使用的投資工具")
         project_state = PROJECT_STATE.assess_project_state([])
 
         result = WORKFLOW_SELECTION.select_workflow(
@@ -819,7 +802,13 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         result = WORKFLOW_SELECTION.select_workflow(
             WORKFLOW_SELECTION.classify_intent("開始執行"),
             PROJECT_STATE.assess_project_state(
-                [{"path": spec_context["selected_path"], "tracking": "tracked", "size_bytes": 100}]
+                [
+                    {
+                        "path": spec_context["selected_path"],
+                        "tracking": "tracked",
+                        "size_bytes": 100,
+                    }
+                ]
             ),
             self.RISK,
             available_skills=self.SKILLS,
@@ -1001,9 +990,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
             available_skills=self.SKILLS,
         )
         before_design_question = WORKFLOW_SELECTION.select_workflow(
-            WORKFLOW_SELECTION.classify_intent(
-                "比較 Boot 固定與滑動視窗的設計選項"
-            ),
+            WORKFLOW_SELECTION.classify_intent("比較 Boot 固定與滑動視窗的設計選項"),
             project_state,
             self.RISK,
             available_skills=self.SKILLS,
@@ -1020,9 +1007,7 @@ class GuidedWorkflowSelectionTests(unittest.TestCase):
         self.assertEqual("explain-code-flow", explanation["selected_skill"])
         self.assertEqual("grilling", before_design_question["selected_skill"])
         self.assertEqual("grilling", numeric_answer["selected_skill"])
-        self.assertEqual(
-            "spec-governance", before_design_question["resume_target"]
-        )
+        self.assertEqual("spec-governance", before_design_question["resume_target"])
         self.assertEqual("spec-governance", numeric_answer["resume_target"])
 
     def test_decision_complete_clears_signal_and_restores_normal_routing(self) -> None:
@@ -1167,18 +1152,14 @@ class GuidedRoutingContractTests(unittest.TestCase):
             PLUGIN_ROOT / "skills" / "grill-with-docs" / "SKILL.md"
         ).read_text(encoding="utf-8")
         algorithm = (
-            ARCHITECTURE_ROOT
-            / "algorithms"
-            / "ALG-0003-ordered-workflow-selection.md"
+            ARCHITECTURE_ROOT / "algorithms" / "ALG-0003-ordered-workflow-selection.md"
         ).read_text(encoding="utf-8")
         canonical_spec_adr = (
             ARCHITECTURE_ROOT
             / "decisions"
             / "ADR-0011-canonical-change-set-specification.md"
         ).read_text(encoding="utf-8")
-        manifest = (ARCHITECTURE_ROOT / "manifest.yaml").read_text(
-            encoding="utf-8"
-        )
+        manifest = (ARCHITECTURE_ROOT / "manifest.yaml").read_text(encoding="utf-8")
 
         self.assertIn("resume_confirmed_spec=true", ask_matt)
         self.assertIn("--resume-confirmed-spec", risk_routing)
@@ -1221,9 +1202,9 @@ class GuidedRoutingContractTests(unittest.TestCase):
             "--unresolved-decision",
             options["properties"]["has_unresolved_decision"]["description"],
         )
-        unresolved_description = options["properties"][
-            "has_unresolved_decision"
-        ]["description"]
+        unresolved_description = options["properties"]["has_unresolved_decision"][
+            "description"
+        ]
         self.assertIn("true if and only if", unresolved_description)
         self.assertIn("short or numeric answers", unresolved_description)
         self.assertIn("no open decisions remain", unresolved_description)
@@ -1383,7 +1364,9 @@ class GuidedRoutingContractTests(unittest.TestCase):
             json.loads(resume_route.stdout)["selected_skill"],
         )
 
-    def test_cli_exact_start_execution_resolves_one_many_zero_and_explicit_path(self) -> None:
+    def test_cli_exact_start_execution_resolves_one_many_zero_and_explicit_path(
+        self,
+    ) -> None:
         build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
 
@@ -1411,13 +1394,21 @@ class GuidedRoutingContractTests(unittest.TestCase):
             root = Path(directory)
             specs_dir = root / "specs"
             specs_dir.mkdir()
-            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "init"], cwd=root, check=True, capture_output=True, text=True
+            )
 
             zero = invoke(root, "開始執行")
 
             first_path = specs_dir / "SPEC-0001-payment-retry.md"
             first_path.write_text(CONFIRMED_SPEC_TEXT, encoding="utf-8")
-            subprocess.run(["git", "add", first_path.as_posix()], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "add", first_path.as_posix()],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             one = invoke(root, "開始執行")
 
             second_path = specs_dir / "SPEC-0002-order-retry.md"
@@ -1427,7 +1418,13 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            subprocess.run(["git", "add", second_path.as_posix()], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "add", second_path.as_posix()],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             many = invoke(root, "開始執行")
             explicit = invoke(root, "開始執行 specs/SPEC-0002-order-retry.md")
 
@@ -1440,7 +1437,10 @@ class GuidedRoutingContractTests(unittest.TestCase):
         one_result = json.loads(one.stdout)
         self.assertEqual(0, one.returncode)
         self.assertEqual("spec-governance", one_result["selected_skill"])
-        self.assertEqual("specs/SPEC-0001-payment-retry.md", one_result["spec_context"]["selected_path"])
+        self.assertEqual(
+            "specs/SPEC-0001-payment-retry.md",
+            one_result["spec_context"]["selected_path"],
+        )
 
         many_result = json.loads(many.stdout)
         self.assertEqual(2, many.returncode)
@@ -1450,7 +1450,10 @@ class GuidedRoutingContractTests(unittest.TestCase):
 
         explicit_result = json.loads(explicit.stdout)
         self.assertEqual(0, explicit.returncode)
-        self.assertEqual("specs/SPEC-0002-order-retry.md", explicit_result["spec_context"]["selected_path"])
+        self.assertEqual(
+            "specs/SPEC-0002-order-retry.md",
+            explicit_result["spec_context"]["selected_path"],
+        )
 
     def test_cli_pass_output_is_one_summary_line(self) -> None:
         build_root = TEST_BUILD_ROOT

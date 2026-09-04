@@ -126,10 +126,14 @@ class SkillIntegrationContractTests(unittest.TestCase):
             text = read(SKILLS_ROOT / skill / "SKILL.md")
             self.assertIn("$govern-modular-event-architecture", text, skill)
             self.assertIn("Flow cost review", text, skill)
-        governance = read(SKILLS_ROOT / "govern-modular-event-architecture" / "SKILL.md")
+        governance = read(
+            SKILLS_ROOT / "govern-modular-event-architecture" / "SKILL.md"
+        )
         self.assertIn("flow-cost-review.md", governance)
 
-    def test_architecture_report_requires_execution_and_evolution_evidence(self) -> None:
+    def test_architecture_report_requires_execution_and_evolution_evidence(
+        self,
+    ) -> None:
         report = collapse_whitespace(
             read(SKILLS_ROOT / "improve-codebase-architecture" / "HTML-REPORT.md")
         )

@@ -377,8 +377,8 @@ modules:
   public_headers: []
   description:
     purpose: Select and enforce one formatter policy before product-code mutation,
-      preserving repository style for existing projects and applying governed
-      defaults only to greenfield projects.
+      preserving repository CLI style, applying governed fallbacks, and governing
+      confirmed full-program formatting writes.
     diagram_summaries:
       zh-TW: 在產品程式碼修改前選擇並執行單一格式化政策
     input_ports:
@@ -393,6 +393,8 @@ modules:
         configuration writes before product behavior exists.
     - description: Invoke the selected formatter only after its availability and
         exact target root are verified.
+    - description: Format the confirmed clean product-source and test scope only
+        after affirmative authorization, then run the same CLI's non-mutating check.
     errors:
     - id: formatter_policy_unresolved
       condition: ProjectState, repository formatter identity, command policy, or
@@ -409,14 +411,24 @@ modules:
         check semantics do not pass.
       event: formatter-governance.blocked
       handling: Stop product-code mutation and report the failed prerequisite.
+    - id: formatter_full_write_blocked
+      condition: Canonical SPEC confirmation is absent or ambiguous, a targeted
+        program file is dirty, CLI evidence is missing, or installation fails.
+      event: formatter-governance.blocked
+      handling: Preserve all target bytes and stop before the full-format write.
     invariants:
     - Greenfield selection uses one governed language mapping; existing projects
-      preserve their repository formatter and style.
+      preserve their repository formatter and style or use the governed fallback
+      only when no repository CLI formatter is discoverable.
     - Indeterminate project state, target-root ambiguity, path collisions, missing
       authorization, unavailable tooling, or a failing non-mutating check blocks
       product-code mutation.
     - Minimal scaffold never overwrites an existing path and never creates an
       accidental nested project.
+    - Canonical SPEC presence triggers one confirmation but never proves AI
+      authorship or authorizes a formatting write.
+    - Full-program formatting includes clean product source and tests while
+      excluding documentation, configuration, generated, vendor, and build paths.
   entrypoints:
   - path: skills/engineering/formatter-governance/SKILL.md
     symbol: formatter-governance
@@ -1264,11 +1276,13 @@ ports:
   contract: skills/engineering/formatter-governance/references/formatter-policy-request.schema.json
   implemented_by: []
   description:
-    purpose: Evaluate formatter selection, exact-root scaffold safety, and the
-      pre-product mutation gate through one stable CLI contract.
+    purpose: Evaluate formatter selection, exact-root scaffold safety, full-program
+      confirmation and scope, and the pre-product mutation gate through one stable
+      CLI contract.
     data: ProjectState, language or repository formatter identity and argv, exact
       root and scaffold paths, prior evidence statuses, tool availability, check
-      status, and native permission outcome.
+      status, canonical SPEC, confirmation, clean-target evidence, CLI write and
+      check outcomes, and native permission outcome.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -1283,8 +1297,9 @@ ports:
   implemented_by: []
   description:
     purpose: Publish the formatter policy PASS or BLOCKED decision with bounded evidence.
-    data: Project kind and root, formatter identity, check and write argv, collisions,
-      prerequisite statuses, mutation allowances, and diagnostic reason.
+    data: Project kind and root, formatter identity, check and write argv, program
+      and dirty file scopes, confirmation, installation and execution outcomes,
+      mutation allowances, and diagnostic reason.
     timing: sync
     immediate_rejections: []
   symbols:
@@ -2684,9 +2699,10 @@ flows:
   - id: governed-change-set-lifecycle.formatter-gate
     order: 8
     module: formatter_governance_domain
-    action: Select the repository formatter policy, reject ambiguous or colliding
-      targets, and require an available formatter plus a passing non-mutating check
-      before product-code mutation.
+    action: Select the repository formatter policy or governed fallback, confirm and
+      protect any full-program write, reject ambiguous, colliding, or dirty targets,
+      and require an available CLI formatter plus a passing non-mutating check before
+      product-code mutation.
     receives:
     - formatter-governance.evaluate
     emits:
@@ -2695,6 +2711,8 @@ flows:
     side_effects:
     - Create only collision-free minimal scaffold and formatter configuration when
       the confirmed change set targets a greenfield project.
+    - Format clean product source and tests only after affirmative confirmation and
+      follow the write with the selected formatter CLI's non-mutating check.
   - id: governed-change-set-lifecycle.implement-review
     order: 9
     module: delivery_workflow_domain

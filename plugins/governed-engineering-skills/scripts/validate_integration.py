@@ -16,14 +16,34 @@ from version_governance import validate_repository
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
 EXPECTED_SKILLS = {
-    "ask-matt", "diagnosing-bugs", "grill-with-docs", "triage",
-    "improve-codebase-architecture", "setup-matt-pocock-skills", "tdd",
-    "to-spec", "to-tickets", "wayfinder", "implement", "prototype",
-    "research", "domain-modeling", "codebase-design", "code-review",
-    "resolving-merge-conflicts", "grill-me", "grilling", "handoff", "teach",
-    "writing-great-skills", "clarify-improvement-proposals", "explain-code-flow",
-    "govern-modular-event-architecture", "validate-on-device",
-    "engineering-risk-routing", "spec-governance",
+    "ask-matt",
+    "diagnosing-bugs",
+    "grill-with-docs",
+    "triage",
+    "improve-codebase-architecture",
+    "setup-matt-pocock-skills",
+    "tdd",
+    "to-spec",
+    "to-tickets",
+    "wayfinder",
+    "implement",
+    "prototype",
+    "research",
+    "domain-modeling",
+    "codebase-design",
+    "code-review",
+    "resolving-merge-conflicts",
+    "grill-me",
+    "grilling",
+    "handoff",
+    "teach",
+    "writing-great-skills",
+    "clarify-improvement-proposals",
+    "explain-code-flow",
+    "govern-modular-event-architecture",
+    "validate-on-device",
+    "engineering-risk-routing",
+    "spec-governance",
 }
 IMPLICIT_ROUTE_SKILLS = {
     "ask-matt",
@@ -45,9 +65,11 @@ def main() -> int:
     if "hackmd-note-writer" in actual:
         errors.append("hackmd-note-writer must remain outside this plugin")
     for route_name in ("ask-matt", "handoff"):
-        route_text = (SKILLS_ROOT / route_name / "SKILL.md").read_text(
-            encoding="utf-8"
-        ).casefold()
+        route_text = (
+            (SKILLS_ROOT / route_name / "SKILL.md")
+            .read_text(encoding="utf-8")
+            .casefold()
+        )
         if "hackmd" in route_text or "note-writer" in route_text:
             errors.append(f"{route_name}: learning-note routing must remain absent")
 
@@ -65,17 +87,12 @@ def main() -> int:
             errors.append(f"{name}: missing agents/openai.yaml")
         elif name in IMPLICIT_ROUTE_SKILLS:
             metadata = openai_yaml.read_text(encoding="utf-8")
-            if (
-                "disable-model-invocation: true" in text
-                or re.search(
-                    r"^\s*allow_implicit_invocation:\s*false\s*$",
-                    metadata,
-                    re.MULTILINE,
-                )
+            if "disable-model-invocation: true" in text or re.search(
+                r"^\s*allow_implicit_invocation:\s*false\s*$",
+                metadata,
+                re.MULTILINE,
             ):
-                errors.append(
-                    f"{name}: automatic route requires implicit invocation"
-                )
+                errors.append(f"{name}: automatic route requires implicit invocation")
 
     manifest = json.loads(
         (PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
@@ -88,7 +105,12 @@ def main() -> int:
 
     user_absolute_path = re.compile(r"[A-Za-z]:[\\/]+Users[\\/]+[^\\/]+", re.IGNORECASE)
     for path in PLUGIN_ROOT.rglob("*"):
-        if not path.is_file() or path.suffix.lower() in {".pyc", ".png", ".jpg", ".jpeg"}:
+        if not path.is_file() or path.suffix.lower() in {
+            ".pyc",
+            ".png",
+            ".jpg",
+            ".jpeg",
+        }:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         if user_absolute_path.search(text):

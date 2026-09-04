@@ -110,9 +110,8 @@ def validate_state_catalog(
         location = f"state_objects[{index}]"
         item = _mapping(raw, diagnostics, "STA001", location)
         object_id = item.get("id")
-        if (
-            not _is_nonempty_string(object_id)
-            or not ID_PATTERN.fullmatch(str(object_id))
+        if not _is_nonempty_string(object_id) or not ID_PATTERN.fullmatch(
+            str(object_id)
         ):
             _diag(
                 diagnostics,
@@ -136,7 +135,9 @@ def validate_state_catalog(
         owner_id = str(item.get("owner", ""))
         owner = modules.get(owner_id)
         if owner is None:
-            _diag(diagnostics, "STA002", f"{object_id}.owner", "must reference a module")
+            _diag(
+                diagnostics, "STA002", f"{object_id}.owner", "must reference a module"
+            )
             owner = {}
         language = str(item.get("language", "")).lower()
         if not _is_nonempty_string(item.get("language")):
@@ -308,7 +309,11 @@ def validate_state_catalog(
                 object_id,
                 "private state cannot grant authority to another module",
             )
-        if language in C_LANGUAGES and storage == "external-linkage" and visibility == "private":
+        if (
+            language in C_LANGUAGES
+            and storage == "external-linkage"
+            and visibility == "private"
+        ):
             _diag(
                 diagnostics,
                 "STA005",

@@ -15,11 +15,7 @@ TEST_TEMP_ROOT = REPOSITORY_ROOT / ".test-tmp" / "test-spec-governance"
 TEST_TEMP_ROOT.mkdir(parents=True, exist_ok=True)
 tempfile.tempdir = str(TEST_TEMP_ROOT)
 MODULE_PATH = (
-    PLUGIN_ROOT
-    / "skills"
-    / "spec-governance"
-    / "scripts"
-    / "spec_contract.py"
+    PLUGIN_ROOT / "skills" / "spec-governance" / "scripts" / "spec_contract.py"
 )
 
 
@@ -139,21 +135,29 @@ class CanonicalSpecValidationTests(unittest.TestCase):
         self.assertTrue(any("REQ-999" in error for error in result["errors"]))
 
     def test_open_decision_and_invalid_relation_block_confirmation(self) -> None:
-        text = confirmed_spec().replace(
-            "None.\n\n## Routing/Gates",
-            "- Choose jitter strategy.\n\n## Routing/Gates",
-        ).replace(
-            "| REQ-001 | depends_on | DEC-001 |",
-            "| REQ-001 | depends_on | DEC-999 |",
+        text = (
+            confirmed_spec()
+            .replace(
+                "None.\n\n## Routing/Gates",
+                "- Choose jitter strategy.\n\n## Routing/Gates",
+            )
+            .replace(
+                "| REQ-001 | depends_on | DEC-001 |",
+                "| REQ-001 | depends_on | DEC-999 |",
+            )
         )
 
         result = SPEC_CONTRACT.validate_spec_text(text)
 
         self.assertEqual("BLOCKED", result["verdict"])
-        self.assertTrue(any("open decisions" in error.casefold() for error in result["errors"]))
+        self.assertTrue(
+            any("open decisions" in error.casefold() for error in result["errors"])
+        )
         self.assertTrue(any("DEC-999" in error for error in result["errors"]))
 
-    def test_dangling_cross_spec_reference_blocks_without_repository_evidence(self) -> None:
+    def test_dangling_cross_spec_reference_blocks_without_repository_evidence(
+        self,
+    ) -> None:
         text = confirmed_spec().replace(
             "| REQ-001 | depends_on | DEC-001 |",
             "| REQ-001 | refines | SPEC-9999 |",
@@ -165,9 +169,7 @@ class CanonicalSpecValidationTests(unittest.TestCase):
         self.assertTrue(any("SPEC-9999" in error for error in result["errors"]))
 
     def test_implemented_requires_pass_evidence_and_spec_review(self) -> None:
-        blocked = SPEC_CONTRACT.validate_spec_text(
-            confirmed_spec(status="implemented")
-        )
+        blocked = SPEC_CONTRACT.validate_spec_text(confirmed_spec(status="implemented"))
         passed = SPEC_CONTRACT.validate_spec_text(
             confirmed_spec(
                 status="implemented",
@@ -314,7 +316,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
         self.assertEqual(["Choose retry owner."], second["open_decisions"])
         self.assertEqual(first["conflicts"], second["conflicts"])
 
-    def test_materialization_does_not_require_product_authorization_and_uses_next_number(self) -> None:
+    def test_materialization_does_not_require_product_authorization_and_uses_next_number(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             specs = root / "specs"
@@ -354,7 +358,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                 self.assertEqual("BLOCKED", result["verdict"])
             self.assertFalse((root / "specs").exists())
 
-    def test_working_bundle_persists_snapshot_and_normalized_hash_linked_journal(self) -> None:
+    def test_working_bundle_persists_snapshot_and_normalized_hash_linked_journal(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             started = SPEC_CONTRACT.start_working_bundle(
@@ -382,7 +388,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual("continuous", reference["continuity"])
             self.assertTrue((root / reference["snapshot_path"]).is_file())
             journal_path = root / reference["journal_path"]
-            first_event = json.loads(journal_path.read_text(encoding="utf-8").splitlines()[0])
+            first_event = json.loads(
+                journal_path.read_text(encoding="utf-8").splitlines()[0]
+            )
             self.assertEqual("start", first_event["event_type"])
             self.assertEqual(reference["snapshot_hash"], first_event["snapshot_hash"])
             self.assertIn("event_hash", first_event)
@@ -423,7 +431,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual(events[0]["event_hash"], events[1]["previous_event_hash"])
             self.assertEqual(["REQ-001"], events[1]["affected_ids"])
 
-    def test_reconcile_tracks_discussion_context_ids_without_journal_prose(self) -> None:
+    def test_reconcile_tracks_discussion_context_ids_without_journal_prose(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             started = SPEC_CONTRACT.start_working_bundle(
@@ -459,7 +469,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual("PASS", result["verdict"])
             self.assertEqual(["DISC-002"], result["delta"]["added_ids"])
             event = json.loads(
-                (root / reference["journal_path"]).read_text(encoding="utf-8").splitlines()[-1]
+                (root / reference["journal_path"])
+                .read_text(encoding="utf-8")
+                .splitlines()[-1]
             )
             self.assertEqual(["DISC-002"], event["affected_ids"])
             self.assertNotIn("The payment domain.", json.dumps(event))
@@ -518,7 +530,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual("TASK-42", migrated["task_ref"])
             self.assertEqual("feature/payment-retry", migrated["branch_ref"])
 
-    def test_start_discovers_legacy_bundle_instead_of_creating_second_identity(self) -> None:
+    def test_start_discovers_legacy_bundle_instead_of_creating_second_identity(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
@@ -566,9 +580,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             )
             (legacy_dir / "working.md").write_text(legacy_snapshot, encoding="utf-8")
             destination = (
-                root
-                / "spec-governance"
-                / "WORKING-SPEC-aaaaaaaaaaaa-payment-retry.md"
+                root / "spec-governance" / "WORKING-SPEC-aaaaaaaaaaaa-payment-retry.md"
             )
             destination.parent.mkdir(parents=True)
             destination_text = confirmed_spec(
@@ -587,7 +599,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertTrue((legacy_dir / "working.md").is_file())
             self.assertEqual(destination_text, destination.read_text(encoding="utf-8"))
 
-    def test_legacy_stale_snapshot_hash_blocks_migration_and_preserves_source(self) -> None:
+    def test_legacy_stale_snapshot_hash_blocks_migration_and_preserves_source(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
@@ -624,7 +638,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual(journal_before, journal_path.read_bytes())
             self.assertFalse((root / "spec-governance").exists())
 
-    def test_legacy_partial_publish_failure_rolls_back_and_restores_source(self) -> None:
+    def test_legacy_partial_publish_failure_rolls_back_and_restores_source(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             legacy_id = "WSP-aaaaaaaaaaaa-payment-retry"
@@ -659,7 +675,9 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                     raise OSError("simulated snapshot publish failure")
                 real_replace(source, destination)
 
-            with patch.object(SPEC_CONTRACT.os, "replace", side_effect=fail_snapshot_publish):
+            with patch.object(
+                SPEC_CONTRACT.os, "replace", side_effect=fail_snapshot_publish
+            ):
                 result = SPEC_CONTRACT.resolve_working_bundle(root, reference=legacy_id)
 
             self.assertEqual("invalid", result["state"])
@@ -668,18 +686,24 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual(journal_before, journal_path.read_bytes())
             destination_root = root / "spec-governance"
             self.assertFalse(
-                any(destination_root.glob("WORKING-SPEC-*")) if destination_root.exists() else False
+                any(destination_root.glob("WORKING-SPEC-*"))
+                if destination_root.exists()
+                else False
             )
 
     def test_sensitive_discussion_values_are_visibly_redacted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            source = confirmed_spec(spec_id="SPEC-0000", status="working").replace(
-                "**User answer:** `Use exponential backoff.`",
-                "**User answer:** `password=hunter2; owner@example.com`",
-            ).replace(
-                "Retries are inconsistent.",
-                "Retries are inconsistent. Authorization: Bearer abc.def.ghi; call +886 912 345 678.",
+            source = (
+                confirmed_spec(spec_id="SPEC-0000", status="working")
+                .replace(
+                    "**User answer:** `Use exponential backoff.`",
+                    "**User answer:** `password=hunter2; owner@example.com`",
+                )
+                .replace(
+                    "Retries are inconsistent.",
+                    "Retries are inconsistent. Authorization: Bearer abc.def.ghi; call +886 912 345 678.",
+                )
             )
 
             result = SPEC_CONTRACT.start_working_bundle(root, "payment-retry", source)
@@ -696,17 +720,21 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertNotIn("+886 912 345 678", snapshot)
 
     def test_discussion_context_rejects_unknown_impact_and_transcript(self) -> None:
-        source = confirmed_spec(spec_id="SPEC-0000", status="working").replace(
-            "**Resulting impact:** REQ-001, DEC-001, AC-001.",
-            "**Resulting impact:** REQ-999.",
-        ).replace(
-            "## Acceptance Criteria",
-            """# Full Transcript
+        source = (
+            confirmed_spec(spec_id="SPEC-0000", status="working")
+            .replace(
+                "**Resulting impact:** REQ-001, DEC-001, AC-001.",
+                "**Resulting impact:** REQ-999.",
+            )
+            .replace(
+                "## Acceptance Criteria",
+                """# Full Transcript
 
 User: first
 Assistant: first
 
 ## Acceptance Criteria""",
+            )
         )
 
         errors = SPEC_CONTRACT._working_structure_errors(
@@ -744,7 +772,9 @@ Assistant: first
             self.assertEqual("stale working specification", result["reason"])
             self.assertEqual(before, snapshot_path.read_text(encoding="utf-8"))
 
-    def test_working_resolution_is_explicit_then_task_then_branch_then_unique(self) -> None:
+    def test_working_resolution_is_explicit_then_task_then_branch_then_unique(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             first = SPEC_CONTRACT.start_working_bundle(
@@ -786,9 +816,15 @@ Assistant: first
             )
 
             self.assertEqual("ambiguous", ambiguous["state"])
-            self.assertEqual(first["working_id"], explicit["working_spec"]["working_id"])
-            self.assertEqual(second["working_id"], by_task["working_spec"]["working_id"])
-            self.assertEqual(first["working_id"], by_branch["working_spec"]["working_id"])
+            self.assertEqual(
+                first["working_id"], explicit["working_spec"]["working_id"]
+            )
+            self.assertEqual(
+                second["working_id"], by_task["working_spec"]["working_id"]
+            )
+            self.assertEqual(
+                first["working_id"], by_branch["working_spec"]["working_id"]
+            )
 
     def test_invalid_journal_chain_marks_continuity_unavailable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -846,7 +882,9 @@ Assistant: first
             self.assertEqual("BLOCKED", result["verdict"])
             self.assertEqual(["Choose retry owner."], result["open_decisions"])
 
-    def test_missing_journal_starts_unavailable_continuity_epoch_from_markdown(self) -> None:
+    def test_missing_journal_starts_unavailable_continuity_epoch_from_markdown(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             started = SPEC_CONTRACT.start_working_bundle(
@@ -882,7 +920,9 @@ Assistant: first
             self.assertEqual("unavailable", event["continuity"])
             self.assertIsNone(event["previous_event_hash"])
 
-    def test_decision_complete_bundle_materializes_before_product_authorization(self) -> None:
+    def test_decision_complete_bundle_materializes_before_product_authorization(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             started = SPEC_CONTRACT.start_working_bundle(
@@ -903,7 +943,9 @@ Assistant: first
             self.assertTrue((root / result["canonical_spec"]["path"]).is_file())
             self.assertFalse(result["product_execution_authorized"])
 
-    def test_confirmed_spec_reopens_same_identity_and_no_delta_retains_authorization(self) -> None:
+    def test_confirmed_spec_reopens_same_identity_and_no_delta_retains_authorization(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             path = root / "specs" / "SPEC-0001-payment-retry.md"
@@ -944,12 +986,17 @@ Assistant: first
                 reason="Retry limit might change.",
             )
             reference = reopened["working_spec"]
-            changed = (root / reference["snapshot_path"]).read_text(encoding="utf-8").replace(
-                "Retry at most three times.",
-                "Retry at most four times.",
-            ).replace(
-                "A fourth attempt is never made.",
-                "A fifth attempt is never made.",
+            changed = (
+                (root / reference["snapshot_path"])
+                .read_text(encoding="utf-8")
+                .replace(
+                    "Retry at most three times.",
+                    "Retry at most four times.",
+                )
+                .replace(
+                    "A fourth attempt is never made.",
+                    "A fifth attempt is never made.",
+                )
             )
             reconciled = SPEC_CONTRACT.reconcile_working_bundle(
                 root,
@@ -1051,7 +1098,9 @@ Assistant: first
             self.assertEqual("BLOCKED", result["verdict"])
             self.assertIn("cannot reopen", result["reason"])
 
-    def test_commit_preparation_requires_disposition_and_never_performs_it(self) -> None:
+    def test_commit_preparation_requires_disposition_and_never_performs_it(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             SPEC_CONTRACT.start_working_bundle(
@@ -1073,11 +1122,15 @@ Assistant: first
             )
 
             self.assertEqual("BLOCKED", blocked["verdict"])
-            self.assertCountEqual(["archive", "delete", "keep-local"], blocked["options"])
+            self.assertCountEqual(
+                ["archive", "delete", "keep-local"], blocked["options"]
+            )
             self.assertEqual("PASS", passed["verdict"])
             self.assertFalse(passed["action_performed"])
 
-    def test_commit_preparation_blocks_staged_local_bundle_even_with_disposition(self) -> None:
+    def test_commit_preparation_blocks_staged_local_bundle_even_with_disposition(
+        self,
+    ) -> None:
         result = SPEC_CONTRACT.prepare_commit(
             Path("."),
             disposition="keep-local",
@@ -1125,7 +1178,9 @@ Assistant: first
             self.assertEqual("BLOCKED", blocked["verdict"])
             self.assertEqual("PASS", passed["verdict"])
             self.assertEqual("implemented", passed["canonical_spec"]["status"])
-            self.assertEqual("specs/SPEC-0001-payment-retry.md", passed["canonical_spec"]["path"])
+            self.assertEqual(
+                "specs/SPEC-0001-payment-retry.md", passed["canonical_spec"]["path"]
+            )
             self.assertIn("status: implemented", path.read_text(encoding="utf-8"))
             self.assertIn(
                 f"| 2 | {date.today().isoformat()} | Recorded implementation PASS evidence. |",
@@ -1164,7 +1219,9 @@ class SpecContextResolutionTests(unittest.TestCase):
             result = SPEC_CONTRACT.resolve_spec_context(root, "")
 
             self.assertEqual("confirmed", result["state"])
-            self.assertEqual(selected.relative_to(root).as_posix(), result["selected_path"])
+            self.assertEqual(
+                selected.relative_to(root).as_posix(), result["selected_path"]
+            )
 
     def test_explicit_path_wins_and_multiple_fallback_candidates_block(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -1186,9 +1243,13 @@ class SpecContextResolutionTests(unittest.TestCase):
                 ],
                 ambiguous["candidates"],
             )
-            self.assertEqual(first.relative_to(root).as_posix(), explicit["selected_path"])
+            self.assertEqual(
+                first.relative_to(root).as_posix(), explicit["selected_path"]
+            )
 
-    def test_user_explicit_path_precedes_tracker_path_and_tracker_precedes_branch(self) -> None:
+    def test_user_explicit_path_precedes_tracker_path_and_tracker_precedes_branch(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             explicit_path = self.write_spec(root, "SPEC-0001", "payment-retry")
@@ -1208,8 +1269,12 @@ class SpecContextResolutionTests(unittest.TestCase):
                 branch="feature/audit-log",
             )
 
-            self.assertEqual(explicit_path.relative_to(root).as_posix(), explicit["selected_path"])
-            self.assertEqual(tracker_path.relative_to(root).as_posix(), tracker["selected_path"])
+            self.assertEqual(
+                explicit_path.relative_to(root).as_posix(), explicit["selected_path"]
+            )
+            self.assertEqual(
+                tracker_path.relative_to(root).as_posix(), tracker["selected_path"]
+            )
 
     def test_branch_match_precedes_unique_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -1223,9 +1288,13 @@ class SpecContextResolutionTests(unittest.TestCase):
                 branch="feature/invoice-export",
             )
 
-            self.assertEqual(selected.relative_to(root).as_posix(), result["selected_path"])
+            self.assertEqual(
+                selected.relative_to(root).as_posix(), result["selected_path"]
+            )
 
-    def test_verify_confirmed_spec_passes_without_new_delta_and_blocks_with_one(self) -> None:
+    def test_verify_confirmed_spec_passes_without_new_delta_and_blocks_with_one(
+        self,
+    ) -> None:
         passed = SPEC_CONTRACT.verify_spec(confirmed_spec())
         blocked = SPEC_CONTRACT.verify_spec(
             confirmed_spec(),
@@ -1266,7 +1335,9 @@ class SpecContextResolutionTests(unittest.TestCase):
                 blocked["canonical_spec"]["path"],
             )
 
-    def test_filename_metadata_mismatch_and_duplicate_spec_ids_are_invalid(self) -> None:
+    def test_filename_metadata_mismatch_and_duplicate_spec_ids_are_invalid(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             mismatched = root / "specs" / "SPEC-0001-wrong-name.md"

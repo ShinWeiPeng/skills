@@ -30,14 +30,16 @@ def classify(
     passed = passed_gates or set()
 
     engineering_terms = {
-        term.casefold()
-        for item in config["classes"]
-        for term in item["terms"]
+        term.casefold() for item in config["classes"] for term in item["terms"]
     }
     note_matches = [
-        term for term in config["out_of_scope"]["terms"] if term.casefold() in normalized
+        term
+        for term in config["out_of_scope"]["terms"]
+        if term.casefold() in normalized
     ]
-    engineering_matches = sorted(term for term in engineering_terms if term in normalized)
+    engineering_matches = sorted(
+        term for term in engineering_terms if term in normalized
+    )
     if note_matches and not engineering_matches:
         return {
             "task_class": config["out_of_scope"]["task_class"],

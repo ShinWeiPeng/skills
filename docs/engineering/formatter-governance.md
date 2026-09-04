@@ -8,8 +8,13 @@ each product surface, then start a new chat or Codex task.
 ## What it does
 
 Formatter governance chooses and verifies the formatting policy before product code
-is written. Greenfield projects receive governed defaults, while existing projects
-keep their established formatter and style.
+is written. Greenfield projects receive governed defaults, existing projects keep
+their established CLI formatter, and projects without one use the governed fallback.
+
+When a canonical SPEC exists, the skill asks before formatting product source and
+tests. That question never treats SPEC presence as proof of AI authorship, and the
+write cannot proceed across pre-existing edits in targeted program files.
+Declining the write still leaves the ordinary non-mutating pre-product check in place.
 
 ## When to reach for it
 
@@ -24,10 +29,18 @@ permit only the minimum greenfield scaffold needed to configure tooling, then st
 product work until the formatter is available and the check passes. Existing paths
 and ambiguous project roots fail closed.
 
+Full-program formatting uses one deterministic CLI path for both write and check.
+Documentation, configuration, generated code, vendored dependencies, and build
+output stay outside the scope; ordinary tests and builds remain separate evidence.
+Repository formatter commands must expose exactly one `.` or `<files>` scope
+placeholder, which is replaced by the reviewed program-file list; any additional
+path, directory, glob, or external scope operand blocks the write.
+
 ## It's working if
 
 - Greenfield and existing projects take different, evidence-backed branches.
 - Existing files remain byte-for-byte unchanged when scaffold preflight blocks.
+- Dirty product or test targets block a full-format write while unrelated files stay untouched.
 - Reports name the exact root, check command, result, and permission outcome.
 
 ## Where it fits

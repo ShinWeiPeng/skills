@@ -129,8 +129,7 @@ class RepositoryPolicyTests(unittest.TestCase):
             encoding="utf-8",
         )
         (root / ".changeset" / f"{change_id}.md").write_text(
-            f'---\n"governed-engineering-skills": {bump}\n---\n\n'
-            f"{source_text}\n",
+            f'---\n"governed-engineering-skills": {bump}\n---\n\n{source_text}\n',
             encoding="utf-8",
         )
 
@@ -175,7 +174,9 @@ class RepositoryPolicyTests(unittest.TestCase):
         source.write_bytes(b"\x00first\r\nsecond")
         binary_crlf_fingerprint = MODULE.production_fingerprint(root)
         source.write_bytes(b"\x00first\nsecond")
-        self.assertNotEqual(binary_crlf_fingerprint, MODULE.production_fingerprint(root))
+        self.assertNotEqual(
+            binary_crlf_fingerprint, MODULE.production_fingerprint(root)
+        )
 
     def test_ci_rejects_cachebuster_but_local_validation_accepts_it(self) -> None:
         root = self.make_repo()
@@ -424,9 +425,9 @@ class RepositoryPolicyTests(unittest.TestCase):
 
 class ReleaseWorkflowContractTests(unittest.TestCase):
     def _workflow(self) -> str:
-        return (
-            REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
-        ).read_text(encoding="utf-8")
+        return (REPOSITORY_ROOT / ".github" / "workflows" / "release.yml").read_text(
+            encoding="utf-8"
+        )
 
     def _release_tooling_job(self) -> str:
         workflow = self._workflow()
@@ -486,7 +487,9 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
 
     def test_version_pull_request_selection_ignores_closed_pull_requests(self) -> None:
         workflow = self._workflow()
-        marker = "      - name: Create or update the governed plugin Version Pull Request"
+        marker = (
+            "      - name: Create or update the governed plugin Version Pull Request"
+        )
         self.assertIn(marker, workflow)
         _, _, after = workflow.partition(marker)
         step, _, _ = after.partition("\n      - name:")
@@ -501,7 +504,9 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         )
         self.assertNotIn("changeset-release/main", step)
 
-    def test_release_tag_is_created_only_when_missing_and_stale_tags_block(self) -> None:
+    def test_release_tag_is_created_only_when_missing_and_stale_tags_block(
+        self,
+    ) -> None:
         workflow = self._workflow()
         marker = "      - name: Create missing governed plugin release tag"
         self.assertIn(marker, workflow)

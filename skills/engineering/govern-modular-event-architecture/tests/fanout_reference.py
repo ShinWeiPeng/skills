@@ -13,12 +13,16 @@ class SubscriberFailure:
     error: Exception
 
 
-def publish_all(event: Any, subscribers: Iterable[Callable[[Any], None]]) -> list[SubscriberFailure]:
+def publish_all(
+    event: Any, subscribers: Iterable[Callable[[Any], None]]
+) -> list[SubscriberFailure]:
     """Invoke every subscriber in configured order and aggregate failures."""
     failures: list[SubscriberFailure] = []
     for index, subscriber in enumerate(subscribers):
         try:
             subscriber(event)
-        except Exception as exc:  # Subscriber boundaries intentionally isolate failures.
+        except (
+            Exception
+        ) as exc:  # Subscriber boundaries intentionally isolate failures.
             failures.append(SubscriberFailure(index, exc))
     return failures
