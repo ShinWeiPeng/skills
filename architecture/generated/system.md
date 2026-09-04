@@ -9,6 +9,7 @@ flowchart TD
     n_workflow_routing_domain["workflow_routing_domain (L1)<br/>意圖分類、專案狀態評估與技能交接選擇"]
     n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>從規劃、實作到審查的受治理交付流程"]
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
+    n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
@@ -30,7 +31,9 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_delivery_workflow_domain -.->|depends| n_spec_governance_domain
+    n_delivery_workflow_domain -.->|depends| n_formatter_governance_domain
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
+    n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter
@@ -56,6 +59,7 @@ flowchart TD
 | `workflow_routing_domain` | L1 | domain | `guided_workflow_router` | implemented | Own deterministic engineering-intent classification, three-state project assessment, capability fallback, and final skill handoff selection. |
 | `delivery_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Move an engineering idea or defect through planning, implementation, and review without bypassing required gates. |
 | `spec_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Persist and reconcile engineering discussion into one canonical change-set specification, materialize it when decision-complete, and verify traceability before implementation. |
+| `formatter_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Select and enforce one formatter policy before product-code mutation, preserving repository style for existing projects and applying governed defaults only to greenfield projects. |
 | `governance_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation. |
 | `codex_plugin_adapter` | L3+ | adapter | `-` | implemented | Bind the integrated skill directory to Codex plugin discovery. |
 | `repository_evidence_adapter` | L3+ | adapter | `-` | implemented | Enumerate tracked and non-ignored untracked repository evidence without mutating Git, the index, or the worktree. |
@@ -143,6 +147,21 @@ flowchart TD
 - **Invariants:** Every answered decision is persisted before the next decision question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.
 - **Entrypoints:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (cli)
 - **Public Symbols:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)
+
+### `formatter_governance_domain`
+
+- **Purpose:** Select and enforce one formatter policy before product-code mutation, preserving repository style for existing projects and applying governed defaults only to greenfield projects.
+- **Parent:** `delivery_workflow_domain`
+- **Implementation Status:** `implemented`
+- **Input Ports:** `formatter-governance.evaluate`
+- **Output Ports:** `formatter-governance.result`
+- **Emitted Events:** `formatter-governance.blocked`
+- **Owned State:** None
+- **Side Effects:** Permit only collision-free minimal scaffold and formatter configuration writes before product behavior exists. (`-`); Invoke the selected formatter only after its availability and exact target root are verified. (`-`)
+- **Errors:** `formatter_policy_unresolved`: ProjectState, repository formatter identity, command policy, or prerequisite evidence is missing or indeterminate. → `formatter-governance.blocked` → Preserve the repository and stop before scaffold or product-code mutation.; `formatter_target_unsafe`: The exact target root is invalid, a scaffold path escapes or repeats the root, or any target or ancestor path already exists. → `formatter-governance.blocked` → Report structured collision evidence and preserve every existing byte.; `formatter_check_failed`: Tool authorization, availability, non-mutating check, or observed check semantics do not pass. → `formatter-governance.blocked` → Stop product-code mutation and report the failed prerequisite.
+- **Invariants:** Greenfield selection uses one governed language mapping; existing projects preserve their repository formatter and style.; Indeterminate project state, target-root ambiguity, path collisions, missing authorization, unavailable tooling, or a failing non-mutating check blocks product-code mutation.; Minimal scaffold never overwrites an existing path and never creates an accidental nested project.
+- **Entrypoints:** [`formatter-governance`](../../skills/engineering/formatter-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/formatter-governance/scripts/formatter_policy.py) (cli)
+- **Public Symbols:** [`formatter-governance`](../../skills/engineering/formatter-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/formatter-governance/scripts/formatter_policy.py) (function)
 
 ### `governance_workflow_domain`
 
@@ -343,6 +362,8 @@ flowchart TD
 | `workflow-routing.select` | `workflow_routing_domain` | input | query | sync | Select the authoritative skill handoff after intent, project state, risk, capability, and complexity checks.: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities, wayfinder threshold evidence, exact fresh-task confirmed-Spec resume intent, and caller-supplied unresolved-decision lifecycle evidence for a non-discoverable choice that shapes the change set. | `select_workflow` |
 | `repository-evidence.collect` | `workflow_routing_domain` | output | query | sync | Read repository paths and Git tracking status for project-state assessment.: One project root produces normalized RepositoryEvidence rows. | `RepositoryEvidencePort` |
 | `spec-governance.start` | `spec_governance_domain` | input | command | sync | Create, migrate, or resolve one flat project-root working specification pair.: Project root, change-set slug and optional working, task, or branch evidence produce one immutable WorkingSpecReference. | `spec-governance` |
+| `formatter-governance.evaluate` | `formatter_governance_domain` | input | query | sync | Evaluate formatter selection, exact-root scaffold safety, and the pre-product mutation gate through one stable CLI contract.: ProjectState, language or repository formatter identity and argv, exact root and scaffold paths, prior evidence statuses, tool availability, check status, and native permission outcome. | `main` |
+| `formatter-governance.result` | `formatter_governance_domain` | output | event | sync | Publish the formatter policy PASS or BLOCKED decision with bounded evidence.: Project kind and root, formatter identity, check and write argv, collisions, prerequisite statuses, mutation allowances, and diagnostic reason. | `main` |
 | `spec-governance.reconcile` | `spec_governance_domain` | input | command | sync | Reconcile and persist one newly confirmed discussion statement before another decision question.: Expected working revision and hash, existing durable context, and one confirmed statement produce a new snapshot, normalized journal event, and consistency verdict. | `spec-governance` |
 | `spec-governance.materialize` | `spec_governance_domain` | input | command | sync | Persist one decision-complete working specification as the canonical repository artifact.: A PASS SpecConsistencyAssessment produces one versioned Markdown specification without granting product execution authority. | `spec-governance` |
 | `spec-governance.reopen` | `spec_governance_domain` | input | command | sync | Reopen a confirmed unimplemented specification in place before clarifying a possible contract change.: Expected canonical revision, reason, and specification path produce a working canonical revision plus a local flat WORKING-SPEC pair. | `spec-governance` |
@@ -356,6 +377,7 @@ flowchart TD
 
 | ID | Owner | Delivery | Emitted when | Purpose | Consumers |
 |---|---|---|---|---|---|
+| `formatter-governance.blocked` | `formatter_governance_domain` | at-most-once | Any formatter-governance prerequisite fails closed. | Report that formatter selection, scaffold safety, permission, or the non-mutating check prevents delivery from continuing. | `delivery_workflow_domain` |
 | `local-install.blocked` | `local_install_adapter` | at-most-once | Artifact validation, Codex resolution, Marketplace registration, Plugin installation, or page launch fails. | Report that local Codex installation cannot continue safely. | `plugin_assembly_composition` |
 | `plugin-distribution.blocked` | `plugin_assembly_composition` | at-most-once | Python runtime, exact-target ACL recovery, artifact, publication, evidence, or output-ownership validation fails. | Report that Python admission, bounded artifact-access recovery, Plugin assembly, or personal Marketplace publication cannot continue safely. | `plugin_release_governance_technical` |
 | `plugin-integration.blocked` | `integration_validation_technical` | at-most-once | Inventory, metadata, portability, or isolation validation fails. | Report that the assembled Plugin violates an integration contract. | `plugin_release_governance_technical` |

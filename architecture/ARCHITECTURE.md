@@ -23,6 +23,7 @@ flowchart TD
     n_workflow_routing_domain["workflow_routing_domain (L1)<br/>意圖分類、專案狀態評估與技能交接選擇"]
     n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>從規劃、實作到審查的受治理交付流程"]
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
+    n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
     n_python_runtime_selection_domain["python_runtime_selection_domain (L1)<br/>選取並驗證相容的 Python 執行環境"]
@@ -31,6 +32,7 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
+    n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_plugin_assembly_composition -->|owns| n_python_runtime_selection_domain
 ```
@@ -61,7 +63,7 @@ flowchart TD
 ### `delivery_workflow_domain`
 
 - **Purpose:** Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
-- **Children:** `spec_governance_domain`
+- **Children:** `spec_governance_domain`, `formatter_governance_domain`
 - **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
 - **Protection Rationale:** Product mutation and commits require task and repository authorization; specification lifecycle writes do not grant that authority.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
 
@@ -71,6 +73,13 @@ flowchart TD
 - **Children:** None
 - **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
 - **Protection Rationale:** Every answered decision is persisted before the next decision question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.; Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.; The caller's expected revision or snapshot hash does not match the persisted working specification. → Preserve the persisted snapshot, reload it, and reconcile the answer again without allocating replacement IDs.
+
+### `formatter_governance_domain`
+
+- **Purpose:** Select and enforce one formatter policy before product-code mutation, preserving repository style for existing projects and applying governed defaults only to greenfield projects.
+- **Children:** None
+- **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
+- **Protection Rationale:** Greenfield selection uses one governed language mapping; existing projects preserve their repository formatter and style.; Indeterminate project state, target-root ambiguity, path collisions, missing authorization, unavailable tooling, or a failing non-mutating check blocks product-code mutation.; Minimal scaffold never overwrites an existing path and never creates an accidental nested project.; ProjectState, repository formatter identity, command policy, or prerequisite evidence is missing or indeterminate. → Preserve the repository and stop before scaffold or product-code mutation.; The exact target root is invalid, a scaffold path escapes or repeats the root, or any target or ancestor path already exists. → Report structured collision evidence and preserve every existing byte.; Tool authorization, availability, non-mutating check, or observed check semantics do not pass. → Stop product-code mutation and report the failed prerequisite.
 
 ### `governance_workflow_domain`
 
@@ -129,6 +138,7 @@ flowchart TD
     n_workflow_routing_domain["workflow_routing_domain (L1)<br/>意圖分類、專案狀態評估與技能交接選擇"]
     n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>從規劃、實作到審查的受治理交付流程"]
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
+    n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_governance_workflow_domain["governance_workflow_domain (L1)<br/>決策完整性、架構、流程成本與執行證據治理"]
     n_codex_plugin_adapter["codex_plugin_adapter (L3+)<br/>將整合技能目錄接入 Codex 外掛探索機制"]
     n_repository_evidence_adapter["repository_evidence_adapter (L3+)<br/>以唯讀方式蒐集可稽核的儲存庫狀態證據"]
@@ -150,7 +160,9 @@ flowchart TD
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
     n_delivery_workflow_domain -.->|depends| n_spec_governance_domain
+    n_delivery_workflow_domain -.->|depends| n_formatter_governance_domain
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
+    n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
     n_guided_workflow_router -->|owns| n_governance_workflow_domain
     n_repository_evidence_adapter -.->|depends| n_workflow_routing_domain
     n_plugin_assembly_composition -.->|depends| n_codex_plugin_adapter

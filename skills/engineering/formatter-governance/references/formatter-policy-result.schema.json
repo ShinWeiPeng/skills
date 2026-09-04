@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "formatter-policy-result.schema.json",
+  "title": "FormatterPolicyResult",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "project_kind": {"enum": ["greenfield", "existing", "indeterminate"]},
+    "project_root": {"type": "string", "minLength": 1},
+    "formatter": {"type": "string", "minLength": 1},
+    "language": {"type": "string", "minLength": 1},
+    "check": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "write": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "selection_status": {"enum": ["PASS", "BLOCKED"]},
+    "preflight_status": {"enum": ["PASS", "BLOCKED", "NOT-APPLICABLE"]},
+    "reason": {"type": "string", "minLength": 1},
+    "reason_code": {"type": "string", "minLength": 1},
+    "collisions": {"type": "array"},
+    "minimal_scaffold_allowed": {"type": "boolean"},
+    "product_code_allowed": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}

@@ -17,6 +17,11 @@ references, conflicts, or open decisions are `BLOCKED`.
 
 Use /tdd where possible, at pre-agreed seams.
 
+Before handing off to TDD or authoring product source, the delivery workflow invokes
+`/formatter-governance` with the original ProjectState evidence. Continue only after
+its applicable non-mutating formatter gate passes; keep formatter mappings with
+their owning skill.
+
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
 Once done, use /code-review to review the work.

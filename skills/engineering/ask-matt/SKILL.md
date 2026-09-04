@@ -134,6 +134,9 @@ regardless of size or an explicitly requested skill such as `tdd`.
   actual contract delta retains the authorization; an actual delta requires a new
   exact `開始執行`. Compiler errors and test failures that can be investigated are
   facts, not user decisions.
+- After spec verification, the delivery parent invokes `/formatter-governance`
+  before handing modifying work to TDD or implementation. Preserve its original
+  ProjectState evidence and stop on a formatter `BLOCKED` verdict.
 
 Before commit, invoke `spec-governance.prepare-commit`. Staged or tracked local
 working state blocks commit. Ask whether to delete the bundle, keep it local, or

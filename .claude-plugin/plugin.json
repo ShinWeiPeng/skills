@@ -41,6 +41,7 @@
     "./skills/engineering/code-review",
     "./skills/engineering/resolving-merge-conflicts",
     "./skills/engineering/spec-governance",
+    "./skills/engineering/formatter-governance",
     "./skills/engineering/validate-on-device",
     "./skills/productivity/grill-me",
     "./skills/productivity/grilling",

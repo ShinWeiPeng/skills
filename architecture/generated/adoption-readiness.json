@@ -47,6 +47,7 @@
           "skills/engineering/engineering-risk-routing/scripts/project_state.py",
           "skills/engineering/engineering-risk-routing/scripts/repository_evidence.py",
           "skills/engineering/engineering-risk-routing/scripts/workflow_selection.py",
+          "skills/engineering/formatter-governance/scripts/formatter_policy.py",
           "skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py",
           "skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py",
           "skills/engineering/govern-modular-event-architecture/scripts/bootstrap_project.py",
@@ -99,6 +100,14 @@
         "configuration": false,
         "disposition": "active",
         "location": "spec_governance_domain",
+        "message": "one or more symbols have no installed language analyzer",
+        "rule_id": "SYM004",
+        "severity": "SHOULD"
+      },
+      {
+        "configuration": false,
+        "disposition": "active",
+        "location": "formatter_governance_domain",
         "message": "one or more symbols have no installed language analyzer",
         "rule_id": "SYM004",
         "severity": "SHOULD"

@@ -8,8 +8,11 @@
 flowchart TD
     n_delivery_workflow_domain["delivery_workflow_domain (L1)<br/>從規劃、實作到審查的受治理交付流程"]
     n_spec_governance_domain["spec_governance_domain (L2)<br/>規格保存、調和、具體化與追溯驗證"]
+    n_formatter_governance_domain["formatter_governance_domain (L2)<br/>在產品程式碼修改前選擇並執行單一格式化政策"]
     n_delivery_workflow_domain -.->|depends| n_spec_governance_domain
+    n_delivery_workflow_domain -.->|depends| n_formatter_governance_domain
     n_delivery_workflow_domain -->|owns| n_spec_governance_domain
+    n_delivery_workflow_domain -->|owns| n_formatter_governance_domain
 ```
 
 ## Modules
@@ -18,6 +21,7 @@ flowchart TD
 |---|---|---|---|---|---|
 | `delivery_workflow_domain` | L1 | domain | `guided_workflow_router` | implemented | Move an engineering idea or defect through planning, implementation, and review without bypassing required gates. |
 | `spec_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Persist and reconcile engineering discussion into one canonical change-set specification, materialize it when decision-complete, and verify traceability before implementation. |
+| `formatter_governance_domain` | L2 | component | `delivery_workflow_domain` | implemented | Select and enforce one formatter policy before product-code mutation, preserving repository style for existing projects and applying governed defaults only to greenfield projects. |
 
 ### `delivery_workflow_domain`
 
@@ -49,11 +53,28 @@ flowchart TD
 - **Entrypoints:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (cli)
 - **Public Symbols:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)
 
+### `formatter_governance_domain`
+
+- **Purpose:** Select and enforce one formatter policy before product-code mutation, preserving repository style for existing projects and applying governed defaults only to greenfield projects.
+- **Parent:** `delivery_workflow_domain`
+- **Implementation Status:** `implemented`
+- **Input Ports:** `formatter-governance.evaluate`
+- **Output Ports:** `formatter-governance.result`
+- **Emitted Events:** `formatter-governance.blocked`
+- **Owned State:** None
+- **Side Effects:** Permit only collision-free minimal scaffold and formatter configuration writes before product behavior exists. (`-`); Invoke the selected formatter only after its availability and exact target root are verified. (`-`)
+- **Errors:** `formatter_policy_unresolved`: ProjectState, repository formatter identity, command policy, or prerequisite evidence is missing or indeterminate. → `formatter-governance.blocked` → Preserve the repository and stop before scaffold or product-code mutation.; `formatter_target_unsafe`: The exact target root is invalid, a scaffold path escapes or repeats the root, or any target or ancestor path already exists. → `formatter-governance.blocked` → Report structured collision evidence and preserve every existing byte.; `formatter_check_failed`: Tool authorization, availability, non-mutating check, or observed check semantics do not pass. → `formatter-governance.blocked` → Stop product-code mutation and report the failed prerequisite.
+- **Invariants:** Greenfield selection uses one governed language mapping; existing projects preserve their repository formatter and style.; Indeterminate project state, target-root ambiguity, path collisions, missing authorization, unavailable tooling, or a failing non-mutating check blocks product-code mutation.; Minimal scaffold never overwrites an existing path and never creates an accidental nested project.
+- **Entrypoints:** [`formatter-governance`](../../skills/engineering/formatter-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/formatter-governance/scripts/formatter_policy.py) (cli)
+- **Public Symbols:** [`formatter-governance`](../../skills/engineering/formatter-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/formatter-governance/scripts/formatter_policy.py) (function)
+
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
 |---|---|---|---|---|---|---|
 | `spec-governance.start` | `spec_governance_domain` | input | command | sync | Create, migrate, or resolve one flat project-root working specification pair.: Project root, change-set slug and optional working, task, or branch evidence produce one immutable WorkingSpecReference. | `spec-governance` |
+| `formatter-governance.evaluate` | `formatter_governance_domain` | input | query | sync | Evaluate formatter selection, exact-root scaffold safety, and the pre-product mutation gate through one stable CLI contract.: ProjectState, language or repository formatter identity and argv, exact root and scaffold paths, prior evidence statuses, tool availability, check status, and native permission outcome. | `main` |
+| `formatter-governance.result` | `formatter_governance_domain` | output | event | sync | Publish the formatter policy PASS or BLOCKED decision with bounded evidence.: Project kind and root, formatter identity, check and write argv, collisions, prerequisite statuses, mutation allowances, and diagnostic reason. | `main` |
 | `spec-governance.reconcile` | `spec_governance_domain` | input | command | sync | Reconcile and persist one newly confirmed discussion statement before another decision question.: Expected working revision and hash, existing durable context, and one confirmed statement produce a new snapshot, normalized journal event, and consistency verdict. | `spec-governance` |
 | `spec-governance.materialize` | `spec_governance_domain` | input | command | sync | Persist one decision-complete working specification as the canonical repository artifact.: A PASS SpecConsistencyAssessment produces one versioned Markdown specification without granting product execution authority. | `spec-governance` |
 | `spec-governance.reopen` | `spec_governance_domain` | input | command | sync | Reopen a confirmed unimplemented specification in place before clarifying a possible contract change.: Expected canonical revision, reason, and specification path produce a working canonical revision plus a local flat WORKING-SPEC pair. | `spec-governance` |
@@ -66,6 +87,7 @@ flowchart TD
 
 | ID | Owner | Delivery | Emitted when | Purpose | Consumers |
 |---|---|---|---|---|---|
+| `formatter-governance.blocked` | `formatter_governance_domain` | at-most-once | Any formatter-governance prerequisite fails closed. | Report that formatter selection, scaffold safety, permission, or the non-mutating check prevents delivery from continuing. | `delivery_workflow_domain` |
 | `spec-governance.blocked` | `spec_governance_domain` | at-most-once | A reconciliation or verification has unresolved blocking evidence. | Tell delivery orchestration that specification work cannot continue safely. | `delivery_workflow_domain` |
 | `delivery.tracker-publication-pending` | `delivery_workflow_domain` | at-most-once | Canonical materialization succeeds and tracker publication fails. | Preserve durable context while reporting that its tracker snapshot remains pending. | `guided_workflow_router` |
 
@@ -104,6 +126,7 @@ sequenceDiagram
     participant n_delivery_workflow_domain as delivery_workflow_domain<br/>從規劃、實作到審查的受治理交付流程
     participant n_spec_governance_domain as spec_governance_domain<br/>規格保存、調和、具體化與追溯驗證
     participant n_governance_workflow_domain as governance_workflow_domain<br/>決策完整性、架構、流程成本與執行證據治理
+    participant n_formatter_governance_domain as formatter_governance_domain<br/>在產品程式碼修改前選擇並執行單一格式化政策
     n_delivery_workflow_domain->>+n_spec_governance_domain: Create, transactionally migrate, or resolve one project-root flat WORKING-SPEC pair before the first decision question; migration validates a complete temporary pair and restores the legacy source on failure.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: step 1
     n_spec_governance_domain->>n_spec_governance_domain: Classify the confirmed statement, update stable relationships, and report and persist the working specification delta, conflicts, and open decisions before another decision question.
@@ -116,6 +139,9 @@ sequenceDiagram
     n_delivery_workflow_domain->>n_delivery_workflow_domain: Publish a tracker snapshot that names the repository specification as canonical.
     n_delivery_workflow_domain->>+n_spec_governance_domain: Verify requirement-to-acceptance-to-validation traceability and return to grilling only when the request introduces a new decision or conflict.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: spec-governance.verify result
+    n_delivery_workflow_domain->>+n_formatter_governance_domain: Select the repository formatter policy, reject ambiguous or colliding targets, and require an available formatter plus a passing non-mutating check before product-code mutation.
+    Note right of n_formatter_governance_domain: formatter-governance.blocked
+    n_formatter_governance_domain-->>-n_delivery_workflow_domain: formatter-governance.evaluate result
     n_delivery_workflow_domain->>n_delivery_workflow_domain: Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes.
     n_delivery_workflow_domain->>+n_spec_governance_domain: Reject staged local working state and require delete, keep-local, or archive disposition before the delivery workflow commits.
     n_spec_governance_domain-->>-n_delivery_workflow_domain: spec-governance.prepare-commit result
@@ -132,8 +158,9 @@ sequenceDiagram
 | 5 | `delivery_workflow_domain` | Present the confirmed specification and wait for exact product execution authorization; reopen it before clarification when a possible contract change appears. | `spec-governance.reopen` | None | None | Reopen one confirmed unimplemented specification in place when required. |
 | 6 | `delivery_workflow_domain` | Publish a tracker snapshot that names the repository specification as canonical. | None | None | None | Create or update one tracker Issue when configured. |
 | 7 | `spec_governance_domain` | Verify requirement-to-acceptance-to-validation traceability and return to grilling only when the request introduces a new decision or conflict. | `spec-governance.verify` | None | None | None |
-| 8 | `delivery_workflow_domain` | Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes. | None | None | None | Update the canonical specification with PASS evidence and implemented status. |
-| 9 | `spec_governance_domain` | Reject staged local working state and require delete, keep-local, or archive disposition before the delivery workflow commits. | `spec-governance.prepare-commit` | None | None | None |
+| 8 | `formatter_governance_domain` | Select the repository formatter policy, reject ambiguous or colliding targets, and require an available formatter plus a passing non-mutating check before product-code mutation. | `formatter-governance.evaluate` | `formatter-governance.blocked` | None | Create only collision-free minimal scaffold and formatter configuration when the confirmed change set targets a greenfield project. |
+| 9 | `delivery_workflow_domain` | Implement through the agreed test seams, run two-axis review, and mark the canonical specification implemented only after the Spec axis passes. | None | None | None | Update the canonical specification with PASS evidence and implemented status. |
+| 10 | `spec_governance_domain` | Reject staged local working state and require delete, keep-local, or archive disposition before the delivery workflow commits. | `spec-governance.prepare-commit` | None | None | None |
 
 - **Success:** The implemented behavior is traceable to one canonical specification whose requirements and acceptance criteria have verified PASS evidence.
 - **Errors:** Reconciliation finds an unresolved conflict or conclusion-changing decision. → `spec-governance.blocked` → Remain in grilling and ask exactly one conclusion-changing question.

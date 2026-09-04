@@ -10,6 +10,10 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Invoke `$engineering-risk-routing` and follow its shared governed entry gate. Report governance checker and runtime-evidence status as prerequisites alongside, but not merged into or used to reorder, the existing Standards and Spec findings.
 
+The delivery parent also invokes `/formatter-governance` in non-mutating check mode.
+Report its evidence as a prerequisite; standalone review never authorizes a format
+write and does not copy the formatter mapping.
+
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
 The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.

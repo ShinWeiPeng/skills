@@ -9,6 +9,10 @@ TDD is the red → green loop. This skill is the reference that makes that loop 
 
 Before writing a test or production code, invoke `$engineering-risk-routing` and follow its shared governed entry gate. Host tests cannot substitute for an R2 architecture gate or R3 runtime evidence.
 
+The delivery workflow must invoke `/formatter-governance` after spec verification
+and before this skill authors the first test or product source. Stop if the formatter
+gate is `BLOCKED`; do not copy formatter mappings into this skill.
+
 When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
 
 ## What a good test is

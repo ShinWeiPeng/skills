@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "aliases": {
+    "c++": "cpp",
+    "c#": "csharp",
+    "js": "javascript",
+    "ts": "typescript",
+    "yml": "yaml"
+  },
+  "languages": {
+    "python": {"formatter": "ruff", "check": ["ruff", "format", "--check", "."], "write": ["ruff", "format", "."]},
+    "javascript": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
+    "typescript": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
+    "json": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
+    "css": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
+    "markdown": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
+    "yaml": {"formatter": "prettier", "check": ["prettier", ".", "--check"], "write": ["prettier", ".", "--write"]},
+    "c": {"formatter": "clang-format", "check": ["clang-format", "--dry-run", "--Werror", "<files>"], "write": ["clang-format", "-i", "<files>"]},
+    "cpp": {"formatter": "clang-format", "check": ["clang-format", "--dry-run", "--Werror", "<files>"], "write": ["clang-format", "-i", "<files>"]},
+    "go": {"formatter": "gofmt", "check": ["gofmt", "-l", "<files>"], "write": ["gofmt", "-w", "<files>"], "check_pass": "exit zero and empty stdout"},
+    "rust": {"formatter": "rustfmt", "check": ["cargo", "fmt", "--all", "--", "--check"], "write": ["cargo", "fmt", "--all"]},
+    "csharp": {"formatter": "dotnet format", "check": ["dotnet", "format", "--verify-no-changes"], "write": ["dotnet", "format"]},
+    "java": {"formatter": "google-java-format", "check": ["google-java-format", "--dry-run", "--set-exit-if-changed", "<files>"], "write": ["google-java-format", "--replace", "<files>"]}
+  }
+}

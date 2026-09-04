@@ -1,0 +1,11 @@
+{
+  "bump": "minor",
+  "changesets": [
+    "formatter-governance"
+  ],
+  "summary": {
+    "Added": [
+      "Centralized formatter governance for greenfield defaults, repository-style preservation, safe scaffold preflight, and pre-product checks."
+    ]
+  }
+}

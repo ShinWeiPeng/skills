@@ -260,6 +260,7 @@ modules:
   parent: guided_workflow_router
   depends_on:
   - spec_governance_domain
+  - formatter_governance_domain
   implements_ports: []
   public_headers: []
   description:
@@ -362,6 +363,72 @@ modules:
     symbol: spec-governance
     kind: skill
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: main
+    kind: function
+- id: formatter_governance_domain
+  level: L2
+  role: component
+  implementation_status: implemented
+  paths:
+  - skills/engineering/formatter-governance
+  parent: delivery_workflow_domain
+  depends_on: []
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Select and enforce one formatter policy before product-code mutation,
+      preserving repository style for existing projects and applying governed
+      defaults only to greenfield projects.
+    diagram_summaries:
+      zh-TW: 在產品程式碼修改前選擇並執行單一格式化政策
+    input_ports:
+    - formatter-governance.evaluate
+    output_ports:
+    - formatter-governance.result
+    emitted_events:
+    - formatter-governance.blocked
+    owned_state: []
+    side_effects:
+    - description: Permit only collision-free minimal scaffold and formatter
+        configuration writes before product behavior exists.
+    - description: Invoke the selected formatter only after its availability and
+        exact target root are verified.
+    errors:
+    - id: formatter_policy_unresolved
+      condition: ProjectState, repository formatter identity, command policy, or
+        prerequisite evidence is missing or indeterminate.
+      event: formatter-governance.blocked
+      handling: Preserve the repository and stop before scaffold or product-code mutation.
+    - id: formatter_target_unsafe
+      condition: The exact target root is invalid, a scaffold path escapes or repeats
+        the root, or any target or ancestor path already exists.
+      event: formatter-governance.blocked
+      handling: Report structured collision evidence and preserve every existing byte.
+    - id: formatter_check_failed
+      condition: Tool authorization, availability, non-mutating check, or observed
+        check semantics do not pass.
+      event: formatter-governance.blocked
+      handling: Stop product-code mutation and report the failed prerequisite.
+    invariants:
+    - Greenfield selection uses one governed language mapping; existing projects
+      preserve their repository formatter and style.
+    - Indeterminate project state, target-root ambiguity, path collisions, missing
+      authorization, unavailable tooling, or a failing non-mutating check blocks
+      product-code mutation.
+    - Minimal scaffold never overwrites an existing path and never creates an
+      accidental nested project.
+  entrypoints:
+  - path: skills/engineering/formatter-governance/SKILL.md
+    symbol: formatter-governance
+    kind: skill
+  - path: skills/engineering/formatter-governance/scripts/formatter_policy.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: skills/engineering/formatter-governance/SKILL.md
+    symbol: formatter-governance
+    kind: skill
+  - path: skills/engineering/formatter-governance/scripts/formatter_policy.py
     symbol: main
     kind: function
 - id: governance_workflow_domain
@@ -1190,6 +1257,38 @@ ports:
       condition: More than one working specification matches without an explicit reference.
   symbols:
   - spec-governance
+- id: formatter-governance.evaluate
+  owner: formatter_governance_domain
+  direction: input
+  kind: query
+  contract: skills/engineering/formatter-governance/references/formatter-policy-request.schema.json
+  implemented_by: []
+  description:
+    purpose: Evaluate formatter selection, exact-root scaffold safety, and the
+      pre-product mutation gate through one stable CLI contract.
+    data: ProjectState, language or repository formatter identity and argv, exact
+      root and scaffold paths, prior evidence statuses, tool availability, check
+      status, and native permission outcome.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: Required structured input or exact-root evidence is missing or malformed.
+  symbols:
+  - main
+- id: formatter-governance.result
+  owner: formatter_governance_domain
+  direction: output
+  kind: event
+  contract: skills/engineering/formatter-governance/references/formatter-policy-result.schema.json
+  implemented_by: []
+  description:
+    purpose: Publish the formatter policy PASS or BLOCKED decision with bounded evidence.
+    data: Project kind and root, formatter identity, check and write argv, collisions,
+      prerequisite statuses, mutation allowances, and diagnostic reason.
+    timing: sync
+    immediate_rejections: []
+  symbols:
+  - main
 - id: spec-governance.reconcile
   owner: spec_governance_domain
   direction: input
@@ -1323,6 +1422,19 @@ ports:
   symbols:
   - LibclangToolchainPort
 events:
+- id: formatter-governance.blocked
+  owner: formatter_governance_domain
+  output_port: formatter-governance.result
+  delivery: at-most-once
+  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
+  lifecycle: [received, validated, processing, succeeded, failed]
+  description:
+    purpose: Report that formatter selection, scaffold safety, permission, or the
+      non-mutating check prevents delivery from continuing.
+    emitted_when: Any formatter-governance prerequisite fails closed.
+    payload_fields:
+    - {name: reason, type: string, meaning: Bounded formatter-policy diagnostic.}
+    intended_consumers: [delivery_workflow_domain]
 - id: local-install.blocked
   owner: local_install_adapter
   output_port: local-install.result
@@ -2569,8 +2681,22 @@ flows:
     emits: []
     state_changes: []
     side_effects: []
-  - id: governed-change-set-lifecycle.implement-review
+  - id: governed-change-set-lifecycle.formatter-gate
     order: 8
+    module: formatter_governance_domain
+    action: Select the repository formatter policy, reject ambiguous or colliding
+      targets, and require an available formatter plus a passing non-mutating check
+      before product-code mutation.
+    receives:
+    - formatter-governance.evaluate
+    emits:
+    - formatter-governance.blocked
+    state_changes: []
+    side_effects:
+    - Create only collision-free minimal scaffold and formatter configuration when
+      the confirmed change set targets a greenfield project.
+  - id: governed-change-set-lifecycle.implement-review
+    order: 9
     module: delivery_workflow_domain
     action: Implement through the agreed test seams, run two-axis review, and mark
       the canonical specification implemented only after the Spec axis passes.
@@ -2580,7 +2706,7 @@ flows:
     side_effects:
     - Update the canonical specification with PASS evidence and implemented status.
   - id: governed-change-set-lifecycle.prepare-commit
-    order: 9
+    order: 10
     module: spec_governance_domain
     action: Reject staged local working state and require delete, keep-local, or
       archive disposition before the delivery workflow commits.
