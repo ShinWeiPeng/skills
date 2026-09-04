@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import re
 import shutil
@@ -100,83 +101,52 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _repository_files(repo_root: Path, relative_root: Path) -> list[Path]:
-    completed = subprocess.run(
-        [
-            "git",
-            "ls-files",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-            "--",
-            relative_root.as_posix(),
-        ],
-        cwd=repo_root,
-        text=True,
-        capture_output=True,
-        check=False,
+def _version_governance(repo_root: Path):
+    version_tool = repo_root / SHELL_PATH / "scripts" / "version_governance.py"
+    spec = importlib.util.spec_from_file_location(
+        "governed_plugin_version_governance", version_tool
     )
-    if completed.returncode != 0:
-        raise DistributionError(
-            completed.stderr.strip() or "unable to inventory repository files"
-        )
-    prefix = relative_root.as_posix().rstrip("/") + "/"
-    paths: list[Path] = []
-    for line in completed.stdout.splitlines():
-        normalized = line.replace("\\", "/")
-        if not normalized.startswith(prefix):
-            continue
-        relative = Path(normalized)
-        source = repo_root / relative
-        if (
-            source.is_file()
-            and "__pycache__" not in relative.parts
-            and source.suffix != ".pyc"
-        ):
-            paths.append(relative)
-    return sorted(paths, key=lambda item: item.as_posix())
+    if spec is None or spec.loader is None:
+        raise DistributionError("unable to load Plugin release governance")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def promoted_skills(repo_root: Path) -> dict[str, Path]:
+def _assembly_source_inventory(repo_root: Path) -> list[tuple[str, Path]]:
+    module = _version_governance(repo_root)
+    try:
+        return module.assembly_source_inventory(repo_root)
+    except ValueError as exc:
+        raise DistributionError(str(exc)) from exc
+
+
+def promoted_skills(
+    repo_root: Path,
+    source_inventory: list[tuple[str, Path]] | None = None,
+) -> dict[str, Path]:
     result: dict[str, Path] = {}
-    for bucket in PROMOTED_BUCKETS:
-        root = repo_root / bucket
-        for skill in sorted(
-            (path for path in root.iterdir() if path.is_dir()),
-            key=lambda item: item.name,
-        ):
-            if skill.name in result:
-                raise DistributionError(f"duplicate promoted skill name: {skill.name}")
-            if not (skill / "SKILL.md").is_file():
-                raise DistributionError(
-                    f"promoted skill is missing SKILL.md: {skill.relative_to(repo_root)}"
-                )
-            result[skill.name] = skill
+    inventory = (
+        source_inventory
+        if source_inventory is not None
+        else _assembly_source_inventory(repo_root)
+    )
+    for logical_path, source in inventory:
+        parts = Path(logical_path).parts
+        if len(parts) != 3 or parts[0] != "skills" or parts[2] != "SKILL.md":
+            continue
+        name = parts[1]
+        if name in result:
+            raise DistributionError(f"duplicate promoted skill name: {name}")
+        result[name] = source.parent
     return result
 
 
-def _copy_repository_tree(
-    repo_root: Path, relative_root: Path, destination: Path
-) -> None:
-    for relative in _repository_files(repo_root, relative_root):
-        within_root = relative.relative_to(relative_root)
-        if within_root.parts and within_root.parts[0] == "skills":
-            continue
-        target = destination / within_root
+def _copy_inventory(entries: list[tuple[str, Path]], destination: Path) -> None:
+    for logical_path, source in entries:
+        target = destination / logical_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(repo_root / relative, target)
-
-
-def _copy_skill(source: Path, destination: Path) -> None:
-    shutil.copytree(
-        source,
-        destination,
-        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "validation-evidence.md"),
-    )
-    skill_file = destination / "SKILL.md"
-    text = skill_file.read_text(encoding="utf-8")
-    normalized = strip_claude_invocation_frontmatter(text)
-    skill_file.write_text(normalized, encoding="utf-8", newline="")
+        shutil.copyfile(source, target)
 
 
 def _assert_replaceable_output(repo_root: Path, output: Path) -> None:
@@ -261,15 +231,23 @@ def _normalize_windows_inherited_acl(staging: Path) -> None:
             )
 
 
-def assemble(repo_root: Path, output: Path) -> dict[str, object]:
+def assemble(
+    repo_root: Path,
+    output: Path,
+    *,
+    source_inventory: list[tuple[str, Path]] | None = None,
+) -> dict[str, object]:
     repo_root = repo_root.resolve()
     output = output.resolve()
     shell = repo_root / SHELL_PATH
     if not shell.is_dir():
         raise DistributionError(f"plugin shell is missing: {shell}")
-    if (shell / "skills").exists():
-        raise DistributionError("tracked plugin shell must not contain a skills tree")
-    skills = promoted_skills(repo_root)
+    inventory = (
+        source_inventory
+        if source_inventory is not None
+        else _assembly_source_inventory(repo_root)
+    )
+    skills = promoted_skills(repo_root, inventory)
     for name, source in skills.items():
         classify_invocation_mode(
             (source / "SKILL.md").read_text(encoding="utf-8"),
@@ -282,9 +260,12 @@ def assemble(repo_root: Path, output: Path) -> dict[str, object]:
         tempfile.mkdtemp(prefix=f".{output.name}-staging-", dir=output.parent)
     )
     try:
-        _copy_repository_tree(repo_root, SHELL_PATH, staging)
-        for name, source in skills.items():
-            _copy_skill(source, staging / "skills" / name)
+        _copy_inventory(inventory, staging)
+        for name in skills:
+            skill_file = staging / "skills" / name / "SKILL.md"
+            text = skill_file.read_text(encoding="utf-8")
+            normalized = strip_claude_invocation_frontmatter(text)
+            skill_file.write_text(normalized, encoding="utf-8", newline="")
         _synchronize_release_state_fingerprint(staging)
         result = _inventory(staging)
         (staging / INVENTORY_NAME).write_bytes(_json_bytes(result))
@@ -317,6 +298,103 @@ def validate_artifact(repo_root: Path, artifact: Path) -> dict[str, object]:
                 "artifact differs from authoritative repository sources"
             )
     return actual
+
+
+def rehearse_release(repo_root: Path) -> dict[str, object]:
+    """Run release-tooling validation in a tracked-file-only temporary checkout."""
+    repo_root = repo_root.resolve()
+    completed = subprocess.run(
+        ["git", "ls-files", "--cached", "-z"],
+        cwd=repo_root,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise DistributionError(
+            completed.stderr.decode(errors="replace").strip()
+            or "unable to inventory tracked repository files"
+        )
+    with tempfile.TemporaryDirectory(prefix="governed-release-rehearsal-") as temporary:
+        checkout = Path(temporary) / "repository"
+        checkout.mkdir()
+        checked_out = subprocess.run(
+            [
+                "git",
+                "checkout-index",
+                "--all",
+                "--force",
+                f"--prefix={checkout.as_posix().rstrip('/')}/",
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if checked_out.returncode != 0:
+            raise DistributionError(
+                checked_out.stderr.strip()
+                or "unable to materialize the tracked release rehearsal checkout"
+            )
+        tracked_paths = [
+            raw_path.decode("utf-8").replace("\\", "/")
+            for raw_path in completed.stdout.split(b"\0")
+            if raw_path
+        ]
+        rehearsal_inventory = (
+            _version_governance(repo_root).REHEARSAL_SOURCE_INVENTORY
+        )
+        (checkout / rehearsal_inventory).write_bytes(
+            _json_bytes(tracked_paths)
+        )
+        version_governance = _version_governance(checkout)
+        plugin_root = checkout / SHELL_PATH
+        release_errors = version_governance.validate_repository(plugin_root, ci=True)
+        if release_errors:
+            raise DistributionError(
+                "release rehearsal metadata failed: " + "; ".join(release_errors)
+            )
+        version_governance.apply_pending_intent(
+            plugin_root,
+            refresh_rehearsal_inventory=True,
+        )
+        artifact = checkout / "dist" / PLUGIN_NAME
+        result = assemble(checkout, artifact)
+        commands = (
+            [sys.executable, str(checkout / "scripts" / "validate_distribution.py")],
+            [
+                sys.executable,
+                str(artifact / "scripts" / "version_governance.py"),
+                "check",
+            ],
+        )
+        for command in commands:
+            validated = subprocess.run(
+                command, cwd=checkout, text=True, capture_output=True, check=False
+            )
+            if validated.returncode != 0:
+                detail = validated.stderr.strip() or validated.stdout.strip()
+                raise DistributionError(
+                    f"release rehearsal validation failed: {detail}"
+                )
+        tag = subprocess.run(
+            [
+                sys.executable,
+                str(artifact / "scripts" / "version_governance.py"),
+                "tag",
+            ],
+            cwd=checkout,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        expected_tag = f"{PLUGIN_NAME}@{result['version']}"
+        if tag.returncode != 0 or tag.stdout.strip() != expected_tag:
+            detail = tag.stderr.strip() or tag.stdout.strip() or "no tag returned"
+            raise DistributionError(
+                f"release rehearsal tag eligibility failed: {detail}"
+            )
+        validate_artifact(checkout, artifact)
+        return result
 
 
 def localize_artifact(
@@ -561,7 +639,9 @@ def validate_marketplace_publication(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("assemble", "validate", "localize"))
+    parser.add_argument(
+        "command", choices=("assemble", "validate", "localize", "rehearse")
+    )
     parser.add_argument(
         "--repo-root", type=Path, default=Path(__file__).resolve().parents[1]
     )
@@ -618,12 +698,14 @@ def main() -> int:
                 )
         elif args.command == "validate":
             result = validate_artifact(repo_root, artifact)
-        else:
+        elif args.command == "localize":
             result = localize_artifact(
                 repo_root,
                 artifact,
                 cachebuster=args.cachebuster,
             )
+        else:
+            result = rehearse_release(repo_root)
     except (DistributionError, OSError, KeyError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}")
         return 1

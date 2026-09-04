@@ -631,6 +631,7 @@ modules:
     diagram_summaries:
       zh-TW: 組裝單一外掛並產生個人 Git 市集發佈樹
     input_ports:
+    - plugin-release.inventory
     - plugin-release.synchronize-artifact
     - plugin-install.local
     - plugin-artifact-access.repair
@@ -643,6 +644,8 @@ modules:
     side_effects:
     - description: Replace only selected ignored output directories with a
         deterministic Plugin artifact and Marketplace publication tree.
+    - description: Rehearse release validation in a temporary checkout populated
+        exclusively from the current tracked working-tree files.
     - description: Apply a local-only cache identity to the ignored validated
         artifact without changing formal release metadata.
     - description: Invoke the local installation adapter only after the assembled
@@ -674,6 +677,8 @@ modules:
     invariants:
     - Root engineering and productivity buckets are the only editable Skill source.
     - The tracked Plugin shell never contains a skills directory.
+    - Plugin assembly and production fingerprinting consume the same deterministic
+      source-to-artifact inventory and reject duplicate logical artifact paths.
     - Every artifact records one complete file inventory and SHA-256 content fingerprint.
     - Assembly stages the complete replacement before removing a previous validated artifact.
     - Assembled release-state mutation is delegated to Plugin release governance before inventory creation.
@@ -685,6 +690,9 @@ modules:
       dist/governed-engineering-skills directory and never a repository root, ancestor,
       sibling, outside path, symbolic link, junction, or other reparse point.
     - "`marketplace-release` is generated and never becomes an editable Skill source."
+    - Release readiness is reported only after a tracked-file-only rehearsal passes
+      assembly, distribution, artifact, version, Marketplace-candidate, and tag
+      eligibility validation.
   entrypoints:
   - path: scripts/assemble_plugin.py
     symbol: main
@@ -710,6 +718,9 @@ modules:
     kind: function
   - path: scripts/assemble_plugin.py
     symbol: write_marketplace_publication
+    kind: function
+  - path: scripts/assemble_plugin.py
+    symbol: rehearse_release
     kind: function
   - path: scripts/validate_distribution.py
     symbol: validate
@@ -958,6 +969,7 @@ modules:
   parent: null
   depends_on: []
   implements_ports:
+  - plugin-release.inventory
   - plugin-release.synchronize-artifact
   public_headers: []
   description:
@@ -993,11 +1005,16 @@ modules:
       file is modified.
     - Production fingerprint synchronization rejects the tracked incomplete Plugin
       shell and accepts only a populated assembled Skill tree.
+    - Production fingerprints hash only entries selected by the deterministic
+      assembly inventory, independent of ignored or untracked workspace artifacts.
   entrypoints:
   - path: plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: main
     kind: cli
   public_symbols:
+  - path: plugins/governed-engineering-skills/scripts/version_governance.py
+    symbol: assembly_source_inventory
+    kind: function
   - path: plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: validate_repository
     kind: function
@@ -1199,6 +1216,26 @@ ports:
         is missing, malformed, or lacks its fingerprint field.
     - code: unavailable
       condition: The assembled Plugin fingerprint cannot be calculated.
+  symbols: [assemble]
+- id: plugin-release.inventory
+  owner: plugin_assembly_composition
+  direction: input
+  kind: query
+  contract: plugins/governed-engineering-skills/scripts/version_governance.py
+  implemented_by:
+  - plugin_release_governance_technical
+  description:
+    purpose: Enumerate the deterministic source-to-artifact files shared by Plugin
+      assembly and production fingerprinting.
+    data: Repository root mapped to unique normalized Plugin artifact paths and
+      their source files.
+    timing: sync
+    immediate_rejections:
+    - code: invalid
+      condition: A selected source is missing, outside an authoritative source root,
+        or maps to a duplicate logical artifact path.
+    - code: unavailable
+      condition: The tracked repository inventory cannot be read.
   symbols: [assemble]
 - id: plugin-distribution.result
   owner: plugin_assembly_composition

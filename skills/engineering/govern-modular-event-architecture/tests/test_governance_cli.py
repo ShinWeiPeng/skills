@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 import yaml
@@ -138,9 +139,48 @@ class GovernanceCliTests(unittest.TestCase):
             None,
             phase="development",
             expected_schema_version="2.1.0",
+            as_of=date(2026, 8, 30),
         )
         self.assertEqual([], baseline_diagnostics)
         self.assertEqual("baseline", development[0]["disposition"])
+
+        on_review_date = copy.deepcopy(diagnostics)
+        self.assertEqual(
+            [],
+            apply_baseline(
+                on_review_date,
+                approved,
+                None,
+                phase="development",
+                expected_schema_version="2.1.0",
+                as_of=date(2026, 8, 31),
+            ),
+        )
+
+        after_review_date = apply_baseline(
+            copy.deepcopy(diagnostics),
+            approved,
+            None,
+            phase="development",
+            expected_schema_version="2.1.0",
+            as_of=date(2026, 9, 1),
+        )
+        self.assertTrue(
+            any(item["rule_id"] == "BAS007" for item in after_review_date)
+        )
+
+        production_expired = copy.deepcopy(approved)
+        production_expired["violations"][0]["review_by"] = "2000-01-01"
+        production_clock_diagnostics = apply_baseline(
+            copy.deepcopy(diagnostics),
+            production_expired,
+            None,
+            phase="development",
+            expected_schema_version="2.1.0",
+        )
+        self.assertTrue(
+            any(item["rule_id"] == "BAS007" for item in production_clock_diagnostics)
+        )
 
         release = copy.deepcopy(diagnostics)
         release_diagnostics = apply_baseline(
@@ -149,6 +189,7 @@ class GovernanceCliTests(unittest.TestCase):
             None,
             phase="release",
             expected_schema_version="2.1.0",
+            as_of=date(2026, 8, 31),
         )
         self.assertTrue(
             any(item["rule_id"] == "BAS006" for item in release_diagnostics)
@@ -163,6 +204,7 @@ class GovernanceCliTests(unittest.TestCase):
             None,
             phase="development",
             expected_schema_version="2.1.0",
+            as_of=date(2026, 8, 31),
         )
         self.assertTrue(any(item["rule_id"] == "BAS003" for item in invalid))
 
@@ -172,6 +214,7 @@ class GovernanceCliTests(unittest.TestCase):
             None,
             phase="development",
             expected_schema_version="2.1.0",
+            as_of=date(2026, 8, 31),
         )
         self.assertTrue(any(item["rule_id"] == "BAS005" for item in stale))
 
@@ -181,6 +224,7 @@ class GovernanceCliTests(unittest.TestCase):
             {"schema_version": "2.1.0", "violations": []},
             phase="development",
             expected_schema_version="2.1.0",
+            as_of=date(2026, 8, 31),
         )
         self.assertTrue(any(item["rule_id"] == "BAS004" for item in growth))
 

@@ -94,8 +94,6 @@ def _load_json(path: Path) -> dict:
 def validate(repo_root: Path) -> list[str]:
     errors: list[str] = []
     plugin_shell = repo_root / "plugins" / PLUGIN_NAME
-    if (plugin_shell / "skills").exists():
-        errors.append("plugin shell contains a duplicate skills tree")
     for relative in REQUIRED_INSTALLER_PATHS:
         if not (repo_root / relative).is_file():
             errors.append(f"required installer surface is missing: {relative}")

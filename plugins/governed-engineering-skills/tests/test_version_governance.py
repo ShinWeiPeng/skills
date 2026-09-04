@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -178,6 +180,42 @@ class RepositoryPolicyTests(unittest.TestCase):
             binary_crlf_fingerprint, MODULE.production_fingerprint(root)
         )
 
+    def test_source_fingerprint_ignores_workspace_only_artifacts(self) -> None:
+        untracked = PLUGIN_ROOT / "untracked-fingerprint-probe.txt"
+        ignored = PLUGIN_ROOT / "build" / "fingerprint-probe" / "generated.txt"
+        self.addCleanup(untracked.unlink, missing_ok=True)
+        self.addCleanup(shutil.rmtree, ignored.parents[0], True)
+        baseline = MODULE.production_fingerprint(PLUGIN_ROOT)
+
+        untracked.write_text("must not affect release identity\n", encoding="utf-8")
+        ignored.parent.mkdir(parents=True)
+        ignored.write_text("must not affect release identity\n", encoding="utf-8")
+
+        self.assertEqual(baseline, MODULE.production_fingerprint(PLUGIN_ROOT))
+
+    def test_source_fingerprint_changes_for_tracked_production_bytes(self) -> None:
+        source = PLUGIN_ROOT / "scripts" / "validate_integration.py"
+        original = source.read_bytes()
+        baseline = MODULE.production_fingerprint(PLUGIN_ROOT)
+        try:
+            source.write_bytes(original + b"\n# tracked production probe\n")
+            self.assertNotEqual(baseline, MODULE.production_fingerprint(PLUGIN_ROOT))
+        finally:
+            source.write_bytes(original)
+
+    def test_assembly_inventory_rejects_a_missing_tracked_source(self) -> None:
+        completed = subprocess.CompletedProcess(
+            [],
+            0,
+            stdout="plugins/governed-engineering-skills/missing.py\n",
+            stderr="",
+        )
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(
+            MODULE.subprocess, "run", return_value=completed
+        ):
+            with self.assertRaisesRegex(ValueError, "tracked Plugin source is missing"):
+                MODULE.assembly_source_inventory(Path(directory))
+
     def test_ci_rejects_cachebuster_but_local_validation_accepts_it(self) -> None:
         root = self.make_repo()
         manifest_path = root / ".codex-plugin" / "plugin.json"
@@ -249,6 +287,38 @@ class RepositoryPolicyTests(unittest.TestCase):
         self.assertEqual("0.2.1", MODULE.apply_pending_intent(root))
         self.assertFalse(intent_path.exists())
         self.assertEqual([], MODULE.validate_repository(root, ci=True))
+
+    def test_normal_apply_intent_never_refreshes_rehearsal_state(self) -> None:
+        root = self.make_repo()
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        self.write_intent(root, bump="patch", changesets=["patch-fix"])
+
+        with mock.patch.object(
+            MODULE,
+            "_refresh_rehearsal_inventory",
+            side_effect=AssertionError("normal apply must not refresh rehearsal state"),
+        ):
+            self.assertEqual("0.2.1", MODULE.apply_pending_intent(root))
+
+    def test_rehearsal_inventory_is_validated_before_release_writes(self) -> None:
+        root = self.make_repo()
+        self.write_change(root, "patch-fix", "patch", source_text="patch")
+        intent_path = self.write_intent(
+            root,
+            bump="patch",
+            changesets=["patch-fix"],
+        )
+        package_path = root / "package.json"
+        package_before = package_path.read_bytes()
+
+        with self.assertRaisesRegex(ValueError, "inventory is unreadable"):
+            MODULE.apply_pending_intent(
+                root,
+                refresh_rehearsal_inventory=True,
+            )
+
+        self.assertEqual(package_before, package_path.read_bytes())
+        self.assertTrue(intent_path.is_file())
 
     def test_intent_bump_matches_highest_pending_changeset(self) -> None:
         root = self.make_repo()
@@ -440,6 +510,7 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
     def test_release_validation_assembles_one_plugin_candidate(self) -> None:
         release_tooling_job = self._release_tooling_job()
         for required in (
+            "python scripts/assemble_plugin.py rehearse",
             "python scripts/assemble_plugin.py assemble",
             "python scripts/validate_distribution.py",
             "python plugins/governed-engineering-skills/scripts/version_governance.py check",
@@ -453,6 +524,12 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             "npx changeset status",
         ):
             self.assertNotIn(forbidden, release_tooling_job)
+
+    def test_publication_waits_for_both_validation_jobs(self) -> None:
+        workflow = self._workflow()
+        release_job = workflow.partition("\n  release:")[2]
+        self.assertIn("needs:\n      - governance-validation\n      - release-tooling-validation", release_job)
+        self.assertIn("if: steps.version.outputs.changed == 'false'", release_job)
 
     def test_root_release_tooling_is_removed(self) -> None:
         for obsolete_path in (

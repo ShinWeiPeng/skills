@@ -40,8 +40,10 @@ EXPECTED_SKILLS = {
     "writing-great-skills",
     "clarify-improvement-proposals",
     "explain-code-flow",
+    "formatter-governance",
     "govern-modular-event-architecture",
     "validate-on-device",
+    "verification-ladder",
     "engineering-risk-routing",
     "spec-governance",
 }

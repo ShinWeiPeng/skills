@@ -72,6 +72,7 @@ candidate is assembled from that shell plus the repository-root promoted Skill
 buckets. Before version validation or publication, run from the repository root:
 
 ```powershell
+python scripts/assemble_plugin.py rehearse
 python scripts/assemble_plugin.py assemble --marketplace-publication
 python scripts/validate_distribution.py
 python scripts/assemble_plugin.py validate

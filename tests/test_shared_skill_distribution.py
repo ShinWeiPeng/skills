@@ -139,6 +139,41 @@ class SharedSkillDistributionTests(unittest.TestCase):
             with self.assertRaises(module.DistributionError):
                 module.validate_artifact(REPO_ROOT, first)
 
+    def test_assembly_ignores_untracked_and_ignored_workspace_files(self) -> None:
+        module = load_assembler()
+        untracked = PLUGIN_SHELL / "untracked-release-probe.txt"
+        ignored = PLUGIN_SHELL / ".tmp" / "release-probe" / "generated.txt"
+        untracked_skill = (
+            REPO_ROOT / "skills" / "engineering" / "untracked-release-skill"
+        )
+        self.addCleanup(untracked.unlink, missing_ok=True)
+        self.addCleanup(shutil.rmtree, ignored.parents[0], True)
+        self.addCleanup(shutil.rmtree, untracked_skill, True)
+
+        with tempfile.TemporaryDirectory() as output_dir:
+            baseline_path = Path(output_dir) / "baseline"
+            dirty_path = Path(output_dir) / "dirty"
+            baseline = module.assemble(REPO_ROOT, baseline_path)
+
+            untracked.write_text("must not ship\n", encoding="utf-8")
+            ignored.parent.mkdir(parents=True)
+            ignored.write_text("must not ship\n", encoding="utf-8")
+            (untracked_skill / "agents").mkdir(parents=True)
+            (untracked_skill / "SKILL.md").write_text(
+                "---\nname: untracked-release-skill\n---\nIgnored.\n",
+                encoding="utf-8",
+            )
+            (untracked_skill / "agents" / "openai.yaml").write_text(
+                "interface:\n  display_name: Ignored\n",
+                encoding="utf-8",
+            )
+            dirty = module.assemble(REPO_ROOT, dirty_path)
+
+            self.assertEqual(baseline, dirty)
+            self.assertFalse((dirty_path / untracked.name).exists())
+            self.assertFalse((dirty_path / ".tmp").exists())
+            self.assertFalse((dirty_path / "skills" / untracked_skill.name).exists())
+
     def test_validation_rejects_absent_missing_and_extra_artifacts(self) -> None:
         module = load_assembler()
         with tempfile.TemporaryDirectory() as output_dir:
@@ -165,6 +200,12 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 first["content_fingerprint"], second["content_fingerprint"]
             )
 
+    def test_clean_checkout_release_rehearsal_passes(self) -> None:
+        module = load_assembler()
+        result = module.rehearse_release(REPO_ROOT)
+        self.assertEqual("governed-engineering-skills", result["plugin_name"])
+        self.assertEqual("0.10.1", result["version"])
+
     def test_empty_partial_artifact_is_recovered_safely(self) -> None:
         module = load_assembler()
         with tempfile.TemporaryDirectory() as output_dir:
@@ -181,7 +222,7 @@ class SharedSkillDistributionTests(unittest.TestCase):
             original = module.assemble(REPO_ROOT, artifact)
             with mock.patch.object(
                 module,
-                "_copy_skill",
+                "_copy_inventory",
                 side_effect=module.DistributionError("simulated partial copy"),
             ):
                 with self.assertRaises(module.DistributionError):

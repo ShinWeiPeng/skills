@@ -197,6 +197,8 @@ def validate_adoption(
 def _parse_baseline(
     baseline: dict[str, Any] | None,
     expected_schema_version: Any = SCHEMA_VERSION,
+    *,
+    as_of: date | None = None,
 ) -> tuple[dict[tuple[str, str], dict[str, Any]], list[dict[str, Any]]]:
     diagnostics: list[dict[str, Any]] = []
     entries: dict[tuple[str, str], dict[str, Any]] = {}
@@ -246,7 +248,7 @@ def _parse_baseline(
                 )
             )
             continue
-        if review_by < date.today():
+        if review_by < (as_of or date.today()):
             diagnostics.append(
                 _diagnostic(
                     "BAS007", location, "temporary deferral review date has expired"
@@ -270,11 +272,14 @@ def apply_baseline(
     *,
     phase: str,
     expected_schema_version: Any = SCHEMA_VERSION,
+    as_of: date | None = None,
 ) -> list[dict[str, Any]]:
     """Apply exact approved deferrals and return baseline-policy diagnostics."""
-    entries, policy = _parse_baseline(baseline, expected_schema_version)
+    entries, policy = _parse_baseline(
+        baseline, expected_schema_version, as_of=as_of
+    )
     previous, previous_policy = _parse_baseline(
-        previous_baseline, expected_schema_version
+        previous_baseline, expected_schema_version, as_of=as_of
     )
     if previous_baseline is not None:
         policy.extend(previous_policy)

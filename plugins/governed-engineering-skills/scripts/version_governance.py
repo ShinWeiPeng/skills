@@ -47,6 +47,9 @@ FINGERPRINT_EXCLUDED_FILES = (
     "architecture/adoption.yaml",
     "architecture/baseline.yaml",
 )
+PLUGIN_SOURCE_ROOT = Path("plugins") / "governed-engineering-skills"
+PROMOTED_SOURCE_ROOTS = (Path("skills/engineering"), Path("skills/productivity"))
+REHEARSAL_SOURCE_INVENTORY = ".governed-release-source-inventory.json"
 
 
 def parse_semver(
@@ -122,23 +125,119 @@ def _fingerprint_bytes(path: Path) -> bytes:
     return content.replace(b"\r\n", b"\n")
 
 
-def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
-    """Hash the logical Plugin sources independent of their repository location."""
+def _rehearsal_inventory_paths(repository_root: Path) -> list[str]:
+    inventory_path = repository_root / REHEARSAL_SOURCE_INVENTORY
+    try:
+        raw_paths = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("release rehearsal source inventory is unreadable") from exc
+    if not isinstance(raw_paths, list) or any(
+        not isinstance(path, str)
+        or not path
+        or Path(path).is_absolute()
+        or ".." in Path(path).parts
+        for path in raw_paths
+    ):
+        raise ValueError("release rehearsal source inventory is invalid")
+    if len(raw_paths) != len(set(raw_paths)):
+        raise ValueError("release rehearsal source inventory contains duplicates")
+    return raw_paths
+
+
+def assembly_source_inventory(
+    repository_root: Path = REPOSITORY_ROOT,
+) -> list[tuple[str, Path]]:
+    """Map tracked repository sources to their unique Plugin artifact paths."""
+    repository_root = repository_root.resolve()
+    completed = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--cached",
+            "--",
+            PLUGIN_SOURCE_ROOT.as_posix(),
+            *(root.as_posix() for root in PROMOTED_SOURCE_ROOTS),
+        ],
+        cwd=repository_root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode == 0:
+        repository_paths = [
+            Path(line.replace("\\", "/"))
+            for line in completed.stdout.splitlines()
+        ]
+    else:
+        try:
+            raw_paths = _rehearsal_inventory_paths(repository_root)
+        except ValueError as exc:
+            detail = completed.stderr.strip() or "tracked inventory unavailable"
+            raise ValueError(f"unable to inventory tracked Plugin sources: {detail}") from exc
+        repository_paths = [Path(path) for path in raw_paths]
+
+    entries: dict[str, Path] = {}
+    plugin_prefix = PLUGIN_SOURCE_ROOT.as_posix() + "/"
+    promoted_prefixes = tuple(
+        (root.as_posix() + "/", root) for root in PROMOTED_SOURCE_ROOTS
+    )
+    for repository_path in repository_paths:
+        source = repository_root / repository_path
+        if "__pycache__" in repository_path.parts or source.suffix == ".pyc":
+            continue
+        if repository_path.name == "validation-evidence.md" and any(
+            repository_path.is_relative_to(root) for root in PROMOTED_SOURCE_ROOTS
+        ):
+            continue
+        if not source.is_file():
+            raise ValueError(f"tracked Plugin source is missing: {repository_path.as_posix()}")
+
+        normalized = repository_path.as_posix()
+        logical_path: str | None = None
+        if normalized.startswith(plugin_prefix):
+            within_plugin = repository_path.relative_to(PLUGIN_SOURCE_ROOT)
+            if within_plugin.parts and within_plugin.parts[0] == "skills":
+                raise ValueError(
+                    f"tracked Plugin shell must not contain skills: {normalized}"
+                )
+            logical_path = within_plugin.as_posix()
+        else:
+            for prefix, promoted_root in promoted_prefixes:
+                if not normalized.startswith(prefix):
+                    continue
+                within_bucket = repository_path.relative_to(promoted_root)
+                if len(within_bucket.parts) < 2:
+                    break
+                logical_path = (Path("skills") / within_bucket).as_posix()
+                break
+        if logical_path is None:
+            continue
+        if logical_path in entries:
+            raise ValueError(f"duplicate Plugin artifact path: {logical_path}")
+        entries[logical_path] = source
+    return sorted(entries.items())
+
+
+def _artifact_inventory(root: Path) -> list[tuple[str, Path]]:
     entries: list[tuple[str, Path]] = []
     for item in root.rglob("*"):
-        if (
-            item.is_file()
-            and _fingerprint_path(item, root)
-            and item.name != "artifact-inventory.json"
-        ):
+        if item.is_file() and item.name != "artifact-inventory.json":
             entries.append((item.relative_to(root).as_posix(), item))
-    if root.resolve() == PLUGIN_ROOT.resolve() and not (root / "skills").exists():
-        for bucket_name in ("engineering", "productivity"):
-            bucket = REPOSITORY_ROOT / "skills" / bucket_name
-            for item in bucket.rglob("*"):
-                if item.is_file() and _fingerprint_path(item, REPOSITORY_ROOT):
-                    relative = item.relative_to(bucket)
-                    entries.append(((Path("skills") / relative).as_posix(), item))
+    return sorted(entries)
+
+
+def production_fingerprint(root: Path = PLUGIN_ROOT) -> str:
+    """Hash the logical Plugin sources independent of their repository location."""
+    root = root.resolve()
+    if root == PLUGIN_ROOT.resolve() and not (root / "skills").exists():
+        inventory = assembly_source_inventory(REPOSITORY_ROOT)
+    else:
+        inventory = _artifact_inventory(root)
+    entries = [
+        (logical_path, path)
+        for logical_path, path in inventory
+        if _fingerprint_path(Path(logical_path), Path("."))
+    ]
     digest = hashlib.sha256()
     for logical_path, path in sorted(entries, key=lambda item: item[0]):
         relative = logical_path.encode("utf-8")
@@ -522,7 +621,11 @@ def apply_release(
     return target
 
 
-def apply_pending_intent(root: Path = PLUGIN_ROOT) -> str | None:
+def apply_pending_intent(
+    root: Path = PLUGIN_ROOT,
+    *,
+    refresh_rehearsal_inventory: bool = False,
+) -> str | None:
     """Apply one isolated stable plugin release intent for the Version PR."""
     intent_path = root / ".changeset" / "release-intent.json"
     if not intent_path.is_file():
@@ -531,6 +634,12 @@ def apply_pending_intent(root: Path = PLUGIN_ROOT) -> str | None:
     if errors:
         raise ValueError("; ".join(errors))
     intent = _read_json(intent_path)
+    previous_state = _read_json(root / ".changeset" / "release-state.json")
+    rehearsal_paths = (
+        _rehearsal_inventory_paths(root.parents[1])
+        if refresh_rehearsal_inventory
+        else None
+    )
     target = apply_release(
         root,
         bump=str(intent.get("bump", "")),
@@ -538,7 +647,42 @@ def apply_pending_intent(root: Path = PLUGIN_ROOT) -> str | None:
         changeset_ids=[str(item) for item in intent.get("changesets", [])],
     )
     intent_path.unlink()
+    if rehearsal_paths is not None:
+        _refresh_rehearsal_inventory(root, previous_state, rehearsal_paths)
     return target
+
+
+def _refresh_rehearsal_inventory(
+    root: Path,
+    previous_state: dict[str, Any],
+    tracked_paths: list[str],
+) -> None:
+    """Reflect release-intent mutations in an explicit rehearsal inventory."""
+    repository_root = root.parents[1]
+    inventory_path = repository_root / REHEARSAL_SOURCE_INVENTORY
+    plugin_relative = root.relative_to(repository_root)
+    archive_root = (
+        plugin_relative
+        / ".changeset"
+        / "applied"
+        / str(previous_state["current_version"])
+    )
+    for changeset_id in previous_state["applied_changesets"]:
+        archived = archive_root / f"{changeset_id}.md"
+        if (repository_root / archived).is_file():
+            tracked_paths.append(archived.as_posix())
+    refreshed = sorted(
+        {
+            str(path)
+            for path in tracked_paths
+            if (repository_root / str(path)).is_file()
+        }
+    )
+    inventory_path.write_text(
+        json.dumps(refreshed, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def _load_json(path: str) -> Any:
