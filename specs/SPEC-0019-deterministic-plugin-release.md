@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0019
-revision: 4
+revision: 5
 status: implemented
 change_set: deterministic-plugin-release
 ---
@@ -104,3 +104,4 @@ None.
 | 2 | 2026-09-04 | Selected durable repair for fingerprint, clock, and release-publication readiness. |
 | 3 | 2026-09-04 | Selected one deterministic assembly inventory as fingerprint input authority. |
 | 4 | 2026-09-04 | Recorded passing implementation evidence and completed the Spec review gate. |
+| 5 | 2026-09-04 | Corrected the versioned-artifact fixture to stage release-intent mutations before tracked-only assembly. |

@@ -256,6 +256,7 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(0, applied.returncode, applied.stdout + applied.stderr)
+            subprocess.run(["git", "add", "-A"], cwd=repository, check=True)
 
             artifact = temporary_root / "governed-engineering-skills"
             module.assemble(repository, artifact)
