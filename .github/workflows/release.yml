@@ -173,8 +173,9 @@ jobs:
         shell: bash
         run: |
           python plugins/governed-engineering-skills/scripts/version_governance.py apply-intent
+          git add -A
           python plugins/governed-engineering-skills/scripts/version_governance.py check
-          if git diff --quiet; then
+          if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"

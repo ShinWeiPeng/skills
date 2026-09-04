@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0019
-revision: 5
+revision: 6
 status: implemented
 change_set: deterministic-plugin-release
 ---
@@ -105,3 +105,4 @@ None.
 | 3 | 2026-09-04 | Selected one deterministic assembly inventory as fingerprint input authority. |
 | 4 | 2026-09-04 | Recorded passing implementation evidence and completed the Spec review gate. |
 | 5 | 2026-09-04 | Corrected the versioned-artifact fixture to stage release-intent mutations before tracked-only assembly. |
+| 6 | 2026-09-04 | Made the Version job stage its candidate before tracked-only metadata validation and cached-diff detection. |

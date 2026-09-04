@@ -555,10 +555,12 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn(
             "\n          python plugins/governed-engineering-skills/"
             "scripts/version_governance.py apply-intent"
+            "\n          git add -A"
             "\n          python plugins/governed-engineering-skills/"
             "scripts/version_governance.py check",
             step,
         )
+        self.assertIn("if git diff --cached --quiet; then", step)
         self.assertNotIn("npm", step)
         self.assertNotIn("GITHUB_TOKEN", step)
 
