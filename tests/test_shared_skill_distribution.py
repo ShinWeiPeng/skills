@@ -202,9 +202,33 @@ class SharedSkillDistributionTests(unittest.TestCase):
 
     def test_clean_checkout_release_rehearsal_passes(self) -> None:
         module = load_assembler()
+        # Rehearsal consumes the Git index, including any pending release intent.
+        def indexed_json(relative: str) -> dict:
+            completed = subprocess.run(
+                ["git", "show", f":{relative}"],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                check=True,
+            )
+            return json.loads(completed.stdout)
+
+        shell = "plugins/governed-engineering-skills"
+        expected_version = indexed_json(f"{shell}/.codex-plugin/plugin.json")["version"]
+        intent_path = f"{shell}/.changeset/release-intent.json"
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", intent_path],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if tracked.returncode == 0:
+            intent = indexed_json(intent_path)
+            expected_version = module._version_governance(REPO_ROOT).next_version(
+                expected_version, bump=intent["bump"]
+            )
         result = module.rehearse_release(REPO_ROOT)
         self.assertEqual("governed-engineering-skills", result["plugin_name"])
-        self.assertEqual("0.10.1", result["version"])
+        self.assertEqual(expected_version, result["version"])
 
     def test_empty_partial_artifact_is_recovered_safely(self) -> None:
         module = load_assembler()
