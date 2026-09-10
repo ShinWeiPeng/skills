@@ -413,6 +413,12 @@ modules:
     symbol: record_question
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: question_surface_policy
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: update_question
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: pending_decision
     kind: function
   - path: skills/engineering/spec-governance/scripts/execution_state.py
@@ -442,6 +448,12 @@ modules:
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: record_question
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: question_surface_policy
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: update_question
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: pending_decision

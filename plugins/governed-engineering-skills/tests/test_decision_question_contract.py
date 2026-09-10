@@ -24,7 +24,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
         self.assertIn("every governed engineering workflow", contract)
         for phrase in (
             "two or three",
-            "structured choice tool",
+            "menu-producing question tools",
             "numbered text",
             "one decision question at a time",
             "free-form",
@@ -45,7 +45,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
         for phrase in (
             "Default/execution mode",
             "numbered text",
-            "already in Plan mode",
+            "already-active Plan mode",
             "no response deadline",
         ):
             self.assertIn(phrase, contract)
@@ -146,7 +146,9 @@ class DecisionQuestionContractTests(unittest.TestCase):
         manifest = json.loads(read(PLUGIN_ROOT / ".codex-plugin" / "plugin.json"))
         default_prompt = "\n".join(manifest["interface"]["defaultPrompt"])
 
-        self.assertIn("two or three", default_prompt)
+        self.assertIn("must not invoke menu tools", default_prompt)
+        self.assertNotIn("prefer structured choices", default_prompt)
+        self.assertIn("open text question", default_prompt)
         self.assertIn("numbered text", default_prompt)
         self.assertIn("Reassess every user turn", default_prompt)
         self.assertIn("unresolved-decision", default_prompt)

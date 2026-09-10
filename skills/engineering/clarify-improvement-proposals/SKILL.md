@@ -23,7 +23,7 @@ Separate discovery from recommendation. Resolve every ambiguity before treating 
 2. Resolve discoverable facts from evidence instead of asking the user.
 3. Maintain an exhaustive ambiguity ledger covering goals, success criteria, scope, users, product features, behavior, constraints, compatibility, architecture, algorithm screening, candidate methods, data assumptions, quantitative quality thresholds, delivery, and validation.
 4. Ask about every unresolved decision. Re-evaluate the ledger after each answer because answers can introduce new ambiguities.
-5. Follow the shared Decision Question Contract supplied by `/ask-matt`. Use numbered text in Default/execution mode; use its available choice surface only when already in Plan mode.
+5. Follow the shared Decision Question Contract supplied by `/ask-matt`. Default/execution mode must not invoke menu tools. Use numbered text only if permitted, otherwise one persisted open text question; only already-active Plan may use a permitted menu after shared preflight.
 6. Ask one decision at a time, then stop and wait for the user. Do not produce a final proposal with unresolved decisions.
 
 For a repository-modifying proposal, this skill owns discovery, the ambiguity
@@ -73,9 +73,10 @@ prototype or benchmark remains unresolved.
 
 ## Enforce presentation and mode checkpoints
 
-Before clarification, preserve the current mode. In Default/execution mode, use
-numbered text options and wait for a numeric or free-form answer. If already in
-Plan mode, use its available structured choice tool. Follow the shared contract
+Before clarification, preserve the current mode and run the shared question-policy
+preflight. Default/execution mode must not invoke menu tools, including async
+questions. Use numbered text if permitted, otherwise one concise persisted open
+question. Only already-active Plan may use its permitted menu. Follow the shared contract
 for host constraints and pending-question recovery; never switch modes merely to
 show options.
 

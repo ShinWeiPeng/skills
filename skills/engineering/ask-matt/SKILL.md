@@ -23,6 +23,10 @@ Before any governed engineering workflow asks the user to choose a design or
 specification outcome, read and enforce
 [the shared Decision Question Contract](references/decision-question-contract.md).
 The contract applies to explicit downstream skills as well as inferred routes.
+Before any question surface, run spec-governance question-policy with current host
+instructions and saved question context. Default must not invoke menu tools; use
+permitted numbered text or one persisted open text question. Only already-active
+Plan may use a permitted menu. Apply the same policy to retries and alternatives.
 
 ## Ordered route
 

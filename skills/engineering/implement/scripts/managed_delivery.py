@@ -18,7 +18,7 @@ from execution_state import (
     read_execution_state,
     write_execution_state,
 )
-from spec_contract import assess_discussion_completion
+from spec_contract import assess_discussion_completion, question_surface_policy
 from spec_delivery import verify_delivery_admission
 
 
@@ -234,6 +234,7 @@ def audit_trace(events: list[dict]) -> dict:
     context = None
     observed = {}
     question_count = 0
+    host = None
     violations = []
     if not isinstance(events, list) or any(
         not isinstance(event, dict) for event in events
@@ -248,6 +249,50 @@ def audit_trace(events: list[dict]) -> dict:
         if not isinstance(kind, str):
             violations.append({"index": index, "reason": "trace kind must be text"})
             continue
+        if kind == "mode_change" and turn is not None:
+            # Only a new host turn can establish an already-active Plan mode.
+            host = None
+            observed = {}
+            continue
+        if kind == "question_tool":
+            record = (
+                context.get("question_record", {})
+                if isinstance(context, dict)
+                else None
+            )
+            failed = (
+                record.get("failed_surfaces", {}) if isinstance(record, dict) else None
+            )
+            if not isinstance(failed, dict):
+                violations.append(
+                    {"index": index, "reason": "invalid question failure evidence"}
+                )
+                continue
+            if (
+                turn is None
+                or question_surface_policy(host, event.get("tool"), failed)["verdict"]
+                != "PASS"
+            ):
+                violations.append(
+                    {
+                        "index": index,
+                        "reason": "question tool forbidden by current mode",
+                    }
+                )
+            continue
+        if kind == "reply":
+            if turn is None or not isinstance(observed.get("presentation"), dict):
+                violations.append(
+                    {"index": index, "reason": "reply missing question evidence"}
+                )
+            else:
+                observed["presentation"] = {
+                    **observed["presentation"],
+                    "reply_text": event.get("text"),
+                    "stage": "emitted",
+                    "source_ref": event.get("source_ref"),
+                }
+            continue
         if kind == "turn_start":
             if turn is not None:
                 violations.append(
@@ -256,6 +301,7 @@ def audit_trace(events: list[dict]) -> dict:
             turn = index
             authorized = False
             question_count = 0
+            host = event.get("host")
             context = event.get("context")
             observed = {}
             if not isinstance(context, dict) or (
@@ -323,6 +369,13 @@ def audit_trace(events: list[dict]) -> dict:
             )
             continue
         if kind == "turn_end":
+            if "question_presented" in observed and (
+                not isinstance(observed.get("presentation"), dict)
+                or observed["presentation"].get("stage") != "emitted"
+            ):
+                violations.append(
+                    {"index": index, "reason": "no observed emitted question reply"}
+                )
             assessment = assess_discussion_completion(
                 context,
                 {
@@ -357,7 +410,18 @@ def audit_trace(events: list[dict]) -> dict:
                         "reason": "multiple decision questions in one turn",
                     }
                 )
+            presentation = event.get("presentation")
+            if not isinstance(presentation, dict) or presentation.get("host") != host:
+                violations.append(
+                    {
+                        "index": index,
+                        "reason": "missing or mismatched host presentation evidence",
+                    }
+                )
+            if isinstance(presentation, dict):
+                presentation = {**presentation, "stage": "prepared"}
             observed.update(
+                presentation=presentation,
                 question_presented=event.get("question"),
                 presentation_ref=event.get("presentation_ref"),
             )

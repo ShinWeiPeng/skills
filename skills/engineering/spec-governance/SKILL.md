@@ -186,3 +186,49 @@ result as `context_error` plus the concrete blocker and required input. This
 permits reporting an evidenced recovery problem without pretending a SPEC was
 resolved. Unrecognized pause wording remains blocked for clarification; never
 convert a product-only stop into a discussion pause.
+
+## Mode and question presentation lifecycle
+
+Use the shared [Decision Question Contract](../ask-matt/references/decision-question-contract.md)
+before every surface selection, including retries and alternative requests.
+Default/execution mode must not invoke menu tools. Use numbered text only when
+host instructions permit it; otherwise persist one open question. Already-active
+Plan may use a permitted menu; do not change mode to obtain permission.
+
+Run `question-policy --project-root <root> --reference <working-id> --task-ref
+<task> --host <json> --surface <surface>` and observe its result before presentation.
+Host evidence contains mode, mode_ref, policy_ref, numbered_text_allowed and
+menu_tool_allowed from the actual current instructions. Surfaces are numbered-text,
+open-text, structured-menu, request_user_input or request_user_input_async. Default
+and unknown modes never permit menus. Failed surfaces stay blocked until explicit
+retry/recovery evidence is saved. No result authorizes product operations.
+
+`question --kind open-text` accepts no options; absent kind remains legacy choice
+with two or three options. Reconciliation accepts a free-form answer for either.
+`question-update --project-root <root> --working-id <id> --request <json>
+--expected-revision <revision> --expected-hash <hash>` preserves identity and records
+history. The request includes action, question_version, original user_text and
+source_ref. Action revise adds question, kind and options; presentation-failed and
+retry-requested add surface. Updates never count as design answers. Use revise
+before changing choice to open text or expanding alternatives. Reload afterwards;
+stale answer versions and out-of-range numeric choices remain blocked.
+
+Question observations additionally require presentation: host, surface, stage
+(prepared or emitted), text, full reply_text and source_ref. Choice text is the
+saved question plus a blank line and exactly numbered saved options; open text is
+the saved question itself. The reply must contain that text. Include question_tools
+with every observed question tool name and current host at observation.host so
+completion also rejects a prohibited call even if text later repairs the reply.
+A prepared file or accepted request alone proves no delivery. finish-turn reports
+delivery_verified=false; independent emitted-reply trace review checks the actual
+final response. Retain failed-surface feedback in the existing Question Record and
+journal; never automatically resend a failed popup or treat feedback as an answer.
+
+Place the saved question as the final block of the reply. Introductory prose may
+precede it; do not add numbered alternatives elsewhere or append unpersisted
+options. Completion compares all numbered lines with the saved option list.
+
+For an allowed Plan menu, presentation.text records its exact saved question and
+options. The final reply may repeat just that question; do not repeat numbered
+choices when the host prohibits them. Menu payload evidence and actual reply
+remain separate, and neither proves that the user saw the menu.

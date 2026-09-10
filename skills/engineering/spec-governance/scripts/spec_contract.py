@@ -92,7 +92,11 @@ def pending_decision(text: str) -> dict[str, Any] | None:
     question = json.loads(match.group(1))
     if (
         not isinstance(question, dict)
-        or set(question) != {"id", "version", "question", "options"}
+        or set(question)
+        not in (
+            {"id", "version", "question", "options"},
+            {"id", "version", "question", "options", "kind"},
+        )
         or not isinstance(question["id"], str)
         or not re.fullmatch(r"Q-[A-Za-z0-9-]+", question["id"])
         or type(question["version"]) is not int
@@ -100,7 +104,12 @@ def pending_decision(text: str) -> dict[str, Any] | None:
         or not isinstance(question["question"], str)
         or not question["question"].strip()
         or not isinstance(question["options"], list)
-        or not 2 <= len(question["options"]) <= 3
+        or (question.get("kind", "choice") not in ("choice", "open-text"))
+        or (
+            len(question["options"]) != 0
+            if question.get("kind") == "open-text"
+            else not 2 <= len(question["options"]) <= 3
+        )
         or any(
             not isinstance(item, str) or not item.strip()
             for item in question["options"]
@@ -109,6 +118,246 @@ def pending_decision(text: str) -> dict[str, Any] | None:
     ):
         raise ValueError("invalid pending decision contract")
     return question
+
+
+def question_surface_policy(
+    host: dict[str, Any], surface: str, failed_surfaces: dict[str, str] | None = None
+) -> dict[str, Any]:
+    """Deny menu selection in Default before any question-tool invocation."""
+    denied = {
+        "verdict": "BLOCKED",
+        "menu_allowed": False,
+        "surface_allowed": False,
+        "product_code_allowed": False,
+        "evidence_trust": "caller-attested",
+    }
+    if not isinstance(host, dict) or not isinstance(surface, str):
+        return denied
+    if not all(
+        isinstance(host.get(k), str) and host[k].strip()
+        for k in ("mode_ref", "policy_ref")
+    ):
+        return denied
+    mode = host.get("mode")
+    if mode not in ("default", "plan"):
+        return denied
+    menu = surface in (
+        "structured-menu",
+        "request_user_input",
+        "request_user_input_async",
+    )
+    failed = failed_surfaces if failed_surfaces is not None else {}
+    if not isinstance(failed, dict):
+        return denied
+    menu_allowed = (
+        mode == "plan"
+        and host.get("menu_tool_allowed") is True
+        and "structured-menu" not in failed
+    )
+    if ("structured-menu" if menu else surface) in failed:
+        return denied
+    allowed = (
+        (menu and menu_allowed)
+        or (surface == "numbered-text" and host.get("numbered_text_allowed") is True)
+        or surface == "open-text"
+    )
+    return denied | {
+        "verdict": "PASS" if allowed else "BLOCKED",
+        "surface_allowed": allowed,
+        "menu_allowed": menu_allowed,
+    }
+
+
+def _question_record(text: str) -> dict[str, Any]:
+    raw = _sections(text).get("question record")
+    if raw is None:
+        return {"question_id": None, "history": [], "failed_surfaces": {}}
+    match = re.fullmatch(r"```json\s*\n(.*?)\n```", raw, re.DOTALL)
+    record = json.loads(match.group(1)) if match else None
+    if (
+        not isinstance(record, dict)
+        or not isinstance(record.get("history"), list)
+        or not isinstance(record.get("failed_surfaces"), dict)
+        or not isinstance(record.get("question_id"), str)
+        or not re.fullmatch(r"Q-[A-Za-z0-9-]+", record["question_id"])
+        or any(
+            k not in ("structured-menu", "numbered-text", "open-text")
+            or not isinstance(v, str)
+            or not v.strip()
+            for k, v in record["failed_surfaces"].items()
+        )
+        or any(
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("question"), dict)
+            or entry.get("action")
+            not in ("revise", "presentation-failed", "retry-requested")
+            for entry in record["history"]
+        )
+    ):
+        raise ValueError("invalid question presentation record")
+    return record
+
+
+def _question_update_snapshot(text: str, request: dict[str, Any], revision: int) -> str:
+    pending = pending_decision(text)
+    if (
+        not pending
+        or not isinstance(request, dict)
+        or request.get("question_version") != pending["version"]
+    ):
+        raise ValueError("missing or stale question update")
+    if not all(
+        isinstance(request.get(k), str) and request[k].strip()
+        for k in ("source_ref", "user_text")
+    ):
+        raise ValueError("question update requires original user feedback evidence")
+    record = _question_record(text)
+    if record.get("question_id") != pending["id"]:
+        record["failed_surfaces"] = {}
+    record["question_id"] = pending["id"]
+    action = request.get("action")
+    entry = {
+        "action": action,
+        "question": pending,
+        "source_ref": request["source_ref"],
+        "user_text": request["user_text"],
+    }
+    if action == "revise":
+        revised = {
+            "id": pending["id"],
+            "version": revision + 1,
+            "question": request.get("question"),
+            "options": request.get("options"),
+            "kind": request.get("kind", "choice"),
+        }
+        text = _replace_pending_decision(text, revised)
+        pending_decision(text)
+    elif action in ("presentation-failed", "retry-requested"):
+        surface = request.get("surface")
+        if surface not in (
+            "structured-menu",
+            "request_user_input_async",
+            "request_user_input",
+            "numbered-text",
+            "open-text",
+        ):
+            raise ValueError("unknown failed surface")
+        surface = (
+            "structured-menu" if surface.startswith("request_user_input") else surface
+        )
+        entry["surface"] = surface
+        if action == "presentation-failed":
+            record["failed_surfaces"][surface] = request["source_ref"]
+        else:
+            record["failed_surfaces"].pop(surface, None)
+    else:
+        raise ValueError("unknown question update action")
+    record["history"].append(entry)
+    text = re.sub(r"(?ims)^## Question Record\s*\n.*?(?=^## |\Z)", "", text)
+    section = (
+        "## Question Record\n\n```json\n"
+        + json.dumps(record, ensure_ascii=False, indent=2)
+        + "\n```\n\n"
+    )
+    return re.sub(
+        r"(?m)^## Revision History",
+        lambda _: section + "## Revision History",
+        text,
+        count=1,
+    )
+
+
+def update_question(
+    project_root: Path,
+    working_id: str,
+    request: dict[str, Any],
+    *,
+    expected_revision: int,
+    expected_hash: str,
+) -> dict[str, Any]:
+    """Record presentation feedback or explicitly version alternatives; never answer them."""
+    resolved = resolve_working_bundle(project_root, reference=working_id)
+    if resolved["state"] != "working":
+        return {"verdict": "BLOCKED", "reason": resolved["reason"]}
+    ref = resolved["working_spec"]
+    if ref["status"] != "working":
+        return {"verdict": "BLOCKED", "reason": "reopen before revising a question"}
+    current = (project_root / ref["snapshot_path"]).read_text(encoding="utf-8")
+    try:
+        rendered = _question_update_snapshot(current, request, expected_revision)
+    except (ValueError, TypeError, KeyError) as error:
+        return {"verdict": "BLOCKED", "reason": str(error)}
+    return reconcile_working_bundle(
+        project_root,
+        working_id,
+        rendered,
+        {},
+        expected_revision=expected_revision,
+        expected_hash=expected_hash,
+        question_update=request,
+    )
+
+
+def _presentation_matches(
+    question: dict[str, Any], evidence: Any, record: dict[str, Any]
+) -> bool:
+    if (
+        not isinstance(evidence, dict)
+        or not isinstance(record, dict)
+        or not isinstance(record.get("failed_surfaces", {}), dict)
+    ):
+        return False
+    surface = evidence.get("surface")
+    if (
+        question_surface_policy(
+            evidence.get("host"), surface, record.get("failed_surfaces", {})
+        )["verdict"]
+        != "PASS"
+    ):
+        return False
+    surface = (
+        "structured-menu"
+        if surface in ("request_user_input", "request_user_input_async")
+        else surface
+    )
+    if surface in record.get("failed_surfaces", {}):
+        return False
+    if evidence.get("stage") not in ("prepared", "emitted"):
+        return False
+    if (
+        not isinstance(evidence.get("source_ref"), str)
+        or not evidence["source_ref"].strip()
+    ):
+        return False
+    content = evidence.get("text")
+    reply = evidence.get("reply_text")
+    if not isinstance(content, str) or not isinstance(reply, str):
+        return False
+    expected = question["question"]
+    options = question["options"]
+    numbered_lines = re.findall(r"(?m)^\s*\d+[.)]\s+(.+)$", reply)
+    if surface == "open-text":
+        return (
+            question.get("kind") == "open-text"
+            and content == expected
+            and reply.rstrip().endswith(expected)
+            and not numbered_lines
+        )
+    if question.get("kind") == "open-text":
+        return False
+    expected += "\n\n" + "\n".join(
+        f"{i}. {option}" for i, option in enumerate(options, 1)
+    )
+    if content != expected:
+        return False
+    if surface == "structured-menu" and not numbered_lines:
+        # Options belong to the permitted Plan menu; the final reply repeats its question.
+        return reply.rstrip().endswith(question["question"])
+    return (
+        evidence["host"].get("numbered_text_allowed") is True
+        and numbered_lines == options
+        and reply.rstrip().endswith(expected)
+    )
 
 
 def _replace_pending_decision(text: str, question: dict[str, Any] | None) -> str:
@@ -145,6 +394,9 @@ def assess_turn_context(
     text = (project_root / working["snapshot_path"]).read_text(encoding="utf-8")
     try:
         question = pending_decision(text)
+        question_record = _question_record(text)
+        if question and question_record.get("question_id") != question["id"]:
+            question_record["failed_surfaces"] = {}
     except (ValueError, TypeError) as error:
         return {"state": "invalid", "reason": str(error)}
     consistency = _snapshot_consistency(text, text)
@@ -169,9 +421,10 @@ def assess_turn_context(
         "state": "pending" if question or consistency["open_decisions"] else "ready",
         "working_spec": working,
         "pending_question": question,
+        "question_record": question_record,
         "presentation": {
             "markdown": question["question"]
-            + "\n\n"
+            + ("\n\n" if question["options"] else "")
             + "\n".join(
                 f"{index}. {option}"
                 for index, option in enumerate(question["options"], 1)
@@ -206,6 +459,12 @@ def assess_discussion_completion(
         return result
     if observation.get("unreconciled_decision"):
         return result | {"next_action": "reconcile"}
+    question_tools = observation.get("question_tools", [])
+    if not isinstance(question_tools, list) or any(
+        question_surface_policy(observation.get("host"), tool)["verdict"] != "PASS"
+        for tool in question_tools
+    ):
+        return result | {"reason": "observed question tool forbidden by current mode"}
     # A recorded context failure may itself be the blocker requiring user input.
     blocker = observation.get("blocker")
     if (
@@ -298,17 +557,29 @@ def assess_discussion_completion(
         options = question.get("options")
         if (
             not isinstance(options, list)
-            or not 2 <= len(options) <= 3
+            or (
+                len(options) != 0
+                if question.get("kind") == "open-text"
+                else not 2 <= len(options) <= 3
+            )
             or any(not isinstance(x, str) or not x.strip() for x in options)
         ):
             return result
-        if observation.get("question_presented") == question and has_text(
-            observation, ("presentation_ref",)
+        if (
+            observation.get("question_presented") == question
+            and has_text(observation, ("presentation_ref",))
+            and _presentation_matches(
+                question,
+                observation.get("presentation"),
+                context.get("question_record", {}),
+            )
         ):
             return result | {
                 "verdict": "PASS",
                 "can_end_turn": True,
                 "next_action": "await-answer",
+                "presentation_stage": observation["presentation"]["stage"],
+                "delivery_verified": False,
             }
         return result | {"next_action": "present-pending-question"}
     if context.get("open_decisions"):
@@ -352,8 +623,11 @@ def record_question(
     *,
     expected_revision: int,
     expected_hash: str,
+    question_kind: str = "choice",
 ) -> dict[str, Any]:
     """Persist options before presentation, without a deadline or mode dependency."""
+    if question_kind not in ("choice", "open-text"):
+        return {"verdict": "BLOCKED", "reason": "unknown question kind"}
     resolved = resolve_working_bundle(project_root, reference=working_id)
     if resolved["state"] != "working":
         return {"verdict": "BLOCKED", "reason": resolved["reason"]}
@@ -377,6 +651,7 @@ def record_question(
                 "version": expected_revision + 1,
                 "question": question_text,
                 "options": options,
+                **({"kind": "open-text"} if question_kind == "open-text" else {}),
             },
         )
         pending_decision(rendered)
@@ -1519,6 +1794,7 @@ def reconcile_working_bundle(
     question_id: str | None = None,
     question_version: int | None = None,
     answer: str | None = None,
+    question_update: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Persist a complete next snapshot with optimistic revision/hash checks."""
     if not (
@@ -1548,11 +1824,25 @@ def reconcile_working_bundle(
     try:
         pending = pending_decision(current)
         next_pending = pending_decision(next_snapshot)
+        current_record = _question_record(current)
+        next_record = _question_record(next_snapshot)
+        if question_update is None and current_record != next_record:
+            raise ValueError(
+                "question history and failed surfaces require an explicit question update"
+            )
     except (ValueError, TypeError) as error:
         return {"verdict": "BLOCKED", "reason": str(error)}
     answering = any(
         item is not None for item in (question_id, question_version, answer)
     )
+    if question_update is not None:
+        try:
+            if answering or next_snapshot != _question_update_snapshot(
+                current, question_update, current_revision
+            ):
+                raise ValueError("question update does not match preserved state")
+        except (ValueError, TypeError, KeyError) as error:
+            return {"verdict": "BLOCKED", "reason": str(error)}
     if answering:
         if (
             not pending
@@ -1564,6 +1854,15 @@ def reconcile_working_bundle(
             return {
                 "verdict": "BLOCKED",
                 "reason": "missing, stale or duplicate explicit answer",
+            }
+        if (
+            pending["options"]
+            and re.fullmatch(r"\d+", answer.strip())
+            and not 1 <= int(answer.strip()) <= len(pending["options"])
+        ):
+            return {
+                "verdict": "BLOCKED",
+                "reason": "numeric answer is outside current options",
             }
         # Require the supplied synthesis to retain the human answer in a new DISC record.
         before_disc = _discussion_rows(current)
@@ -1591,7 +1890,7 @@ def reconcile_working_bundle(
                 "reason": "answer must be persisted in a new DISC record",
             }
         next_snapshot = _replace_pending_decision(next_snapshot, None)
-    elif pending != next_pending and pending is not None:
+    elif pending != next_pending and pending is not None and question_update is None:
         return {
             "verdict": "BLOCKED",
             "reason": "pending question requires an explicit versioned answer",
@@ -2448,9 +2747,25 @@ def main() -> int:
     question_parser.add_argument("--working-id", required=True)
     question_parser.add_argument("--question-id", required=True)
     question_parser.add_argument("--question", required=True)
-    question_parser.add_argument("--option", action="append", required=True)
+    question_parser.add_argument("--option", action="append", default=[])
+    question_parser.add_argument(
+        "--kind", choices=("choice", "open-text"), default="choice"
+    )
     question_parser.add_argument("--expected-revision", type=int, required=True)
     question_parser.add_argument("--expected-hash", required=True)
+
+    policy_parser = subparsers.add_parser("question-policy")
+    policy_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    policy_parser.add_argument("--reference", required=True)
+    policy_parser.add_argument("--task-ref", required=True)
+    policy_parser.add_argument("--host", type=Path, required=True)
+    policy_parser.add_argument("--surface", required=True)
+    update_parser = subparsers.add_parser("question-update")
+    update_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    update_parser.add_argument("--working-id", required=True)
+    update_parser.add_argument("--request", type=Path, required=True)
+    update_parser.add_argument("--expected-revision", type=int, required=True)
+    update_parser.add_argument("--expected-hash", required=True)
 
     finish_parser = subparsers.add_parser("finish-turn")
     finish_parser.add_argument("--project-root", type=Path, default=Path.cwd())
@@ -2485,6 +2800,36 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+    if args.command in ("question-policy", "question-update"):
+        try:
+            if args.command == "question-policy":
+                context = assess_turn_context(
+                    args.project_root, reference=args.reference, task_ref=args.task_ref
+                )
+                result = question_surface_policy(
+                    json.loads(args.host.read_text(encoding="utf-8")),
+                    args.surface,
+                    context.get("question_record", {}).get("failed_surfaces", {}),
+                )
+                if context.get("state") != "pending":
+                    result.update(
+                        verdict="BLOCKED",
+                        menu_allowed=False,
+                        surface_allowed=False,
+                        reason="persist and reload the current question before presentation",
+                    )
+            else:
+                result = update_question(
+                    args.project_root,
+                    args.working_id,
+                    json.loads(args.request.read_text(encoding="utf-8")),
+                    expected_revision=args.expected_revision,
+                    expected_hash=args.expected_hash,
+                )
+        except (OSError, ValueError, TypeError) as error:
+            result = {"verdict": "BLOCKED", "reason": str(error)}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["verdict"] == "PASS" else 2
     if args.command == "finish-turn":
         try:
             result = finish_discussion_turn(
@@ -2564,6 +2909,7 @@ def main() -> int:
             args.option,
             expected_revision=args.expected_revision,
             expected_hash=args.expected_hash,
+            question_kind=args.kind,
         )
     elif args.command == "turn-context":
         result = assess_turn_context(

@@ -142,3 +142,25 @@ Completion observations also include `project_root` exactly as recovered in
 turn-context. Context changes invalidate presentation and observed admission;
 question count persists until the next turn. Raw source references and pause
 interpretation must be checked against the original messages.
+
+## Question tool and reply evidence
+
+Apply ask-matt's Decision Question Contract and spec-governance question-policy
+before selecting any question tool. Default forbids menus regardless of availability
+or retry. Only an already-active Plan with current host permission may use one.
+Record actual host evidence on turn_start.host (mode, mode_ref, policy_ref,
+numbered_text_allowed, menu_tool_allowed). Unknown mode does not permit a menu.
+A mid-turn mode_change invalidates presentation evidence; it never unlocks Plan.
+
+Normalize every actual question tool invocation as question_tool with tool name,
+including accepted calls later followed by correct text. The auditor checks current
+mode and saved failed surfaces. A question event additionally supplies presentation
+as specified by spec-governance. The auditor forces its stage to prepared; neither
+accepted=true nor a draft reference counts as an emitted reply. Record a separate
+reply event with actual final text and source_ref before turn_end. The auditor
+checks that text contains the current saved question in the permitted form.
+
+Missing/false normalization cannot establish compliance: preserve raw host, tool
+and reply source references for independent review. This plugin does not disable
+arbitrary host tool calls or authenticate visibility. Unit fixtures are not actual
+model observations. Report each evidence category and any missing coverage honestly.

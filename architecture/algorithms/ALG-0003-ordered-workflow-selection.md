@@ -235,3 +235,20 @@ question, concrete evidenced blocker or explicit discussion pause. With decision
 complete, materialize and present the proposal. This deterministic assessment
 and per-turn delivery trace audit own no additional persistent state and never
 authorize product execution. Source observation authenticity remains caller-attested.
+
+## Mode and presentation policy (SPEC-0025)
+
+The existing spec_governance_domain owns question_surface_policy and update_question.
+Before presentation, consumers obtain actual current host mode/policy evidence and
+check the selected surface. Default/unknown never allow menus; restrictive Default
+uses a persisted open question. Only already-active permitted Plan can allow menus.
+The router carries saved question context; consumers run the shared preflight before
+any dependent tool call. No new state store or host mode transition is introduced.
+
+Optional question kind preserves legacy choice records. Question Record stores
+version history and failed surfaces in the existing working snapshot/journal.
+Feedback is not an answer; revisions retain ID, advance version and invalidate old
+answer mappings. Completion checks the actual prepared question text; the delivery
+auditor separately validates emitted reply and every normalized question tool call.
+Both use the same policy. Caller evidence still requires raw trace corroboration,
+and no PASS grants execution authority or proves the user saw a surface.

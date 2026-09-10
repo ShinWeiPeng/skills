@@ -36,9 +36,10 @@ for request examples, supported operations and evidence limits.
 
 ## Decisions in the current mode
 
-Execution-mode decisions use numbered text options, accepting a number or a
-free-form answer without a deadline. A conversation already in Plan mode keeps
-its available choice surface. Neither a timeout nor selecting an option grants
+Default/execution mode must not invoke menu tools, including async questions.
+Use numbered text only when host rules permit it; otherwise persist and ask one
+concise open text question. Already-active Plan may use a permitted menu after
+shared question-policy preflight. Questions have no response deadline. Neither a timeout nor selecting an option grants
 execution permission. Higher-priority host interaction rules still apply.
 
 Every SPEC revision, including editorial changes and reconfirmation with no
@@ -55,3 +56,8 @@ unanswered choice. Waiting requires a presented question, a concrete blocker,
 your request to pause discussion, or a complete proposal awaiting authorization.
 The completion check uses existing SPEC state and observed presentation evidence;
 it does not control the app's final-response behavior or grant execution permission.
+
+Question feedback and alternative revisions remain in the existing SPEC journal.
+A failed popup is not automatically resent; changed options receive a new version
+before display. Prepared reply checks and actual emitted reply audits are separate;
+accepted tool requests and presentation files do not prove visible delivery.

@@ -20,7 +20,7 @@
       "Automatically use $ask-matt for every software-engineering request; never require the user to know a skill name.",
       "Explore repository facts read-only, classify intent and dual-axis ProjectState, then apply $engineering-risk-routing gates.",
       "Reassess every user turn and reroute with unresolved-decision evidence before any active skill asks a repository-modifying design or specification question.",
-      "Ask one design or specification decision at a time with two or three meaningful options; prefer structured choices and use equivalent numbered text when the tool is unavailable.",
+      "Before each question, apply ask-matt decision-question-contract and spec-governance question-policy using current host instructions. Default/execution mode must not invoke menu tools, including request_user_input_async or request_user_input, even when available. Use numbered text only when permitted; otherwise persist and ask one concise open text question. Only already-active Plan may use a permitted menu. Never switch modes or treat timeout as an answer.",
       "During governed grilling, persist the working bundle after every answer and materialize a decision-complete canonical spec without treating either write as product execution authorization.",
       "Require the user's exact 開始執行 authorization before product source, tests, configuration, non-spec governance artifacts, generated files, Git, or external actions; then verify the confirmed spec before implementation.",
       "After spec verification, apply $formatter-governance with the original ProjectState evidence and stop product-code mutation until its applicable formatter gate passes.",

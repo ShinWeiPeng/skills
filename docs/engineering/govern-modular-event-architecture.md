@@ -26,12 +26,18 @@ This is the formal architecture gate used by [clarify-improvement-proposals](htt
 
 ## Decisions in the current mode
 
-Execution-mode decisions use numbered text options, accepting a number or a
-free-form answer without a deadline. A conversation already in Plan mode keeps
-its available choice surface. Neither a timeout nor selecting an option grants
+Default/execution mode must not invoke menu tools, including async questions.
+Use numbered text only when host rules permit it; otherwise persist and ask one
+concise open text question. Already-active Plan may use a permitted menu after
+shared question-policy preflight. Questions have no response deadline. Neither a timeout nor selecting an option grants
 execution permission. Higher-priority host interaction rules still apply.
 
 Every SPEC revision, including editorial changes and reconfirmation with no
 semantic change, requires a fresh `開始執行` covering that revision. Discussion
 continues to update SPEC while product work waits. Final evidence updates also
 end the previous permission; subsequent product work needs fresh authorization.
+
+Question feedback and alternative revisions remain in the existing SPEC journal.
+A failed popup is not automatically resent; changed options receive a new version
+before display. Prepared reply checks and actual emitted reply audits are separate;
+accepted tool requests and presentation files do not prove visible delivery.
