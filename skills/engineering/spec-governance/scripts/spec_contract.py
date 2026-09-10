@@ -9,6 +9,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -78,6 +79,153 @@ def _sections(text: str) -> dict[str, str]:
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
         sections[match.group(1).strip().casefold()] = text[match.end() : end].strip()
     return sections
+
+
+def pending_decision(text: str) -> dict[str, Any] | None:
+    """Read the durable question; malformed state must never look like no question."""
+    section = _sections(text).get("pending decision")
+    if section is None:
+        return None
+    match = re.fullmatch(r"```json\s*\n(.*?)\n```", section, re.DOTALL)
+    if not match:
+        raise ValueError("invalid pending decision encoding")
+    question = json.loads(match.group(1))
+    if (
+        not isinstance(question, dict)
+        or set(question) != {"id", "version", "question", "options"}
+        or not isinstance(question["id"], str)
+        or not re.fullmatch(r"Q-[A-Za-z0-9-]+", question["id"])
+        or type(question["version"]) is not int
+        or question["version"] < 1
+        or not isinstance(question["question"], str)
+        or not question["question"].strip()
+        or not isinstance(question["options"], list)
+        or not 2 <= len(question["options"]) <= 3
+        or any(
+            not isinstance(item, str) or not item.strip()
+            for item in question["options"]
+        )
+        or len(set(question["options"])) != len(question["options"])
+    ):
+        raise ValueError("invalid pending decision contract")
+    return question
+
+
+def _replace_pending_decision(text: str, question: dict[str, Any] | None) -> str:
+    text = re.sub(r"(?ims)^## Pending Decision\s*\n.*?(?=^## |\Z)", "", text)
+    if question is not None:
+        section = (
+            "## Pending Decision\n\n```json\n"
+            + json.dumps(question, ensure_ascii=False, indent=2)
+            + "\n```\n\n"
+        )
+        text = re.sub(
+            r"(?im)^## Revision History\s*$",
+            lambda match: section + match.group(0),
+            text,
+            count=1,
+        )
+    return text
+
+
+def assess_turn_context(
+    project_root: Path, *, reference: str | None = None, task_ref: str | None = None
+) -> dict[str, Any]:
+    """Recover a question and open decisions from the existing authoritative pair."""
+    resolved = resolve_working_bundle(
+        project_root, reference=reference, task_ref=task_ref
+    )
+    if resolved["state"] == "absent":
+        return {"state": "absent", "pending_question": None, "open_decisions": []}
+    if resolved["state"] != "working":
+        return {"state": "invalid", "reason": resolved["reason"]}
+    working = resolved["working_spec"]
+    if task_ref and working.get("task_ref") != task_ref:
+        return {"state": "invalid", "reason": "working specification task mismatch"}
+    text = (project_root / working["snapshot_path"]).read_text(encoding="utf-8")
+    try:
+        question = pending_decision(text)
+    except (ValueError, TypeError) as error:
+        return {"state": "invalid", "reason": str(error)}
+    consistency = _snapshot_consistency(text, text)
+    canonical_path = (
+        project_root / "specs" / f"{working['spec_id']}-{working['change_set']}.md"
+    )
+    canonical_matches = (
+        _contract_hash(text)
+        == _contract_hash(canonical_path.read_text(encoding="utf-8"))
+        if canonical_path.is_file()
+        else None
+    )
+    return {
+        "state": "pending" if question or consistency["open_decisions"] else "ready",
+        "working_spec": working,
+        "pending_question": question,
+        "presentation": {
+            "markdown": question["question"]
+            + "\n\n"
+            + "\n".join(
+                f"{index}. {option}"
+                for index, option in enumerate(question["options"], 1)
+            ),
+            "response_deadline": None,
+            "request_mode_change": False,
+        }
+        if question
+        else None,
+        "open_decisions": consistency["open_decisions"],
+        "conflicts": consistency["conflicts"],
+        "canonical_matches": canonical_matches,
+    }
+
+
+def record_question(
+    project_root: Path,
+    working_id: str,
+    question_id: str,
+    question_text: str,
+    options: list[str],
+    *,
+    expected_revision: int,
+    expected_hash: str,
+) -> dict[str, Any]:
+    """Persist options before presentation, without a deadline or mode dependency."""
+    resolved = resolve_working_bundle(project_root, reference=working_id)
+    if resolved["state"] != "working":
+        return {"verdict": "BLOCKED", "reason": resolved["reason"]}
+    ref = resolved["working_spec"]
+    if ref["status"] != "working":
+        return {
+            "verdict": "BLOCKED",
+            "reason": "reopen the specification before a new question",
+        }
+    text = (project_root / ref["snapshot_path"]).read_text(encoding="utf-8")
+    try:
+        if pending_decision(text):
+            return {
+                "verdict": "BLOCKED",
+                "reason": "recover the existing pending question first",
+            }
+        rendered = _replace_pending_decision(
+            text,
+            {
+                "id": question_id,
+                "version": expected_revision + 1,
+                "question": question_text,
+                "options": options,
+            },
+        )
+        pending_decision(rendered)
+    except (ValueError, TypeError) as error:
+        return {"verdict": "BLOCKED", "reason": str(error)}
+    return reconcile_working_bundle(
+        project_root,
+        working_id,
+        rendered,
+        {},
+        expected_revision=expected_revision,
+        expected_hash=expected_hash,
+    )
 
 
 def _table(section: str) -> list[dict[str, str]]:
@@ -205,6 +353,11 @@ def validate_spec_text(
             conflicts.append({"source": source, "target": target})
 
     open_decisions = sections.get("open decisions", "")
+    try:
+        if pending_decision(text):
+            errors.append("unanswered pending decision prevents canonical verification")
+    except (ValueError, TypeError) as error:
+        errors.append(str(error))
     if status in {"confirmed", "implemented"} and not _open_decisions_are_empty(
         open_decisions
     ):
@@ -604,6 +757,12 @@ def _snapshot_consistency(
             for line in open_section.splitlines()
             if line.strip()
         ]
+    try:
+        question = pending_decision(current_text)
+        if question:
+            open_decisions.append(f"{question['id']}@{question['version']}")
+    except (ValueError, TypeError) as error:
+        open_decisions.append(str(error))
     return {
         "verdict": "BLOCKED" if conflicts or open_decisions else "PASS",
         "delta": delta,
@@ -756,7 +915,11 @@ def _contract_hash(text: str) -> str:
     if revision_history is not None:
         heading = re.search(r"(?m)^##\s+Revision History\s*$", rendered)
         if heading:
-            rendered = rendered[: heading.end()] + "\n"
+            next_section = re.search(r"(?m)^##\s+", rendered[heading.end() :])
+            tail = (
+                rendered[heading.end() + next_section.start() :] if next_section else ""
+            )
+            rendered = rendered[: heading.end()] + "\n" + tail
     return _sha256_text(rendered.strip() + "\n")
 
 
@@ -1067,6 +1230,55 @@ def start_working_bundle(
         }
     matching = [row for row in discovered if row.get("change_set") == slug]
     if len(matching) == 1:
+        if preserve_spec_identity:
+            ref = matching[0]
+            snapshot_path, journal_path = _working_paths(
+                project_root, ref["working_id"]
+            )
+            previous = snapshot_path.read_text(encoding="utf-8")
+            metadata, errors = _metadata(text)
+            if (
+                errors
+                or ref["status"] != "confirmed"
+                or ref["spec_id"] != metadata.get("spec_id")
+                or _contract_hash(previous) != baseline_contract_hash
+            ):
+                return {
+                    "verdict": "BLOCKED",
+                    "reason": "existing working bundle does not match the reopen baseline",
+                }
+            rendered = _replace_metadata(
+                text,
+                working_id=ref["working_id"],
+                task_ref=task_ref if task_ref is not None else ref.get("task_ref"),
+                branch_ref=branch if branch is not None else ref.get("branch_ref"),
+            )
+            errors = _working_structure_errors(rendered)
+            if errors:
+                return {
+                    "verdict": "BLOCKED",
+                    "reason": "invalid reopened snapshot",
+                    "errors": errors,
+                }
+            _, continuity = _read_journal(journal_path)
+            _atomic_write(snapshot_path, rendered)
+            _append_journal_event(
+                journal_path,
+                event_type="reopen",
+                working_id=ref["working_id"],
+                revision=int(metadata["revision"]),
+                previous_snapshot_hash=_sha256_text(previous),
+                snapshot_hash=_sha256_text(rendered),
+                continuity=continuity,
+                baseline_contract_hash=baseline_contract_hash,
+            )
+            return {
+                "verdict": "PASS",
+                "working_spec": _working_reference(
+                    project_root, snapshot_path, journal_path
+                ),
+                "created": False,
+            }
         return {"verdict": "PASS", "working_spec": matching[0], "created": False}
     if len(matching) > 1:
         return {
@@ -1140,6 +1352,9 @@ def reconcile_working_bundle(
     *,
     expected_revision: int,
     expected_hash: str,
+    question_id: str | None = None,
+    question_version: int | None = None,
+    answer: str | None = None,
 ) -> dict[str, Any]:
     """Persist a complete next snapshot with optimistic revision/hash checks."""
     if not (
@@ -1165,6 +1380,57 @@ def reconcile_working_bundle(
             "working_spec": _working_reference(
                 project_root, snapshot_path, journal_path
             ),
+        }
+    try:
+        pending = pending_decision(current)
+        next_pending = pending_decision(next_snapshot)
+    except (ValueError, TypeError) as error:
+        return {"verdict": "BLOCKED", "reason": str(error)}
+    answering = any(
+        item is not None for item in (question_id, question_version, answer)
+    )
+    if answering:
+        if (
+            not pending
+            or question_id != pending["id"]
+            or question_version != pending["version"]
+            or not isinstance(answer, str)
+            or not answer.strip()
+        ):
+            return {
+                "verdict": "BLOCKED",
+                "reason": "missing, stale or duplicate explicit answer",
+            }
+        # Require the supplied synthesis to retain the human answer in a new DISC record.
+        before_disc = _discussion_rows(current)
+        after_disc = _discussion_rows(next_snapshot)
+
+        def records_answer(row: dict[str, str]) -> bool:
+            field = re.search(
+                r"(?ms)^-\s+\*\*User answer:\*\*\s*(.*?)(?=^-\s+\*\*|\Z)",
+                row["content"],
+            )
+            return bool(
+                field
+                and field.group(1).strip().strip("`") == answer.strip()
+                and pending["question"] in row["content"]
+                and all(option in row["content"] for option in pending["options"])
+            )
+
+        if not any(
+            records_answer(row)
+            for key, row in after_disc.items()
+            if key not in before_disc
+        ):
+            return {
+                "verdict": "BLOCKED",
+                "reason": "answer must be persisted in a new DISC record",
+            }
+        next_snapshot = _replace_pending_decision(next_snapshot, None)
+    elif pending != next_pending and pending is not None:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "pending question requires an explicit versioned answer",
         }
     rendered = _redact_sensitive_content(
         _replace_metadata(
@@ -1438,7 +1704,7 @@ def materialize_working_bundle(
     baseline_hash = next(
         (
             event.get("baseline_contract_hash")
-            for event in events
+            for event in reversed(events)
             if event.get("baseline_contract_hash")
         ),
         None,
@@ -1472,7 +1738,9 @@ def materialize_working_bundle(
         "canonical_spec": reference,
         "working_spec": _working_reference(project_root, snapshot_path, journal_path),
         "actual_contract_delta": actual_delta,
-        "authorization_retained": bool(existing and not actual_delta),
+        "authorization_retained": bool(
+            existing and baseline_hash is not None and not actual_delta
+        ),
         "product_execution_authorized": False,
     }
 
@@ -1975,6 +2243,8 @@ def mark_spec_implemented(
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     validate_parser = subparsers.add_parser("validate")
@@ -2007,6 +2277,23 @@ def main() -> int:
     reconcile_parser.add_argument("--delta", type=Path, required=True)
     reconcile_parser.add_argument("--expected-revision", type=int, required=True)
     reconcile_parser.add_argument("--expected-hash", required=True)
+    reconcile_parser.add_argument("--question-id")
+    reconcile_parser.add_argument("--question-version", type=int)
+    reconcile_parser.add_argument("--answer")
+
+    question_parser = subparsers.add_parser("question")
+    question_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    question_parser.add_argument("--working-id", required=True)
+    question_parser.add_argument("--question-id", required=True)
+    question_parser.add_argument("--question", required=True)
+    question_parser.add_argument("--option", action="append", required=True)
+    question_parser.add_argument("--expected-revision", type=int, required=True)
+    question_parser.add_argument("--expected-hash", required=True)
+
+    turn_parser = subparsers.add_parser("turn-context")
+    turn_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    turn_parser.add_argument("--reference")
+    turn_parser.add_argument("--task-ref")
 
     materialize_parser = subparsers.add_parser("materialize")
     materialize_parser.add_argument("--project-root", type=Path, default=Path.cwd())
@@ -2084,6 +2371,25 @@ def main() -> int:
             json.loads(args.delta.read_text(encoding="utf-8")),
             expected_revision=args.expected_revision,
             expected_hash=args.expected_hash,
+            question_id=args.question_id,
+            question_version=args.question_version,
+            answer=args.answer,
+        )
+    elif args.command == "question":
+        result = record_question(
+            args.project_root,
+            args.working_id,
+            args.question_id,
+            args.question,
+            args.option,
+            expected_revision=args.expected_revision,
+            expected_hash=args.expected_hash,
+        )
+    elif args.command == "turn-context":
+        result = assess_turn_context(
+            args.project_root,
+            reference=args.reference,
+            task_ref=args.task_ref,
         )
     elif args.command == "materialize":
         result = materialize_working_bundle(

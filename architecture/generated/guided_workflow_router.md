@@ -87,9 +87,9 @@ flowchart TD
 - **Owned State:** None
 - **Side Effects:** None
 - **Errors:** None
-- **Invariants:** Product mutation and commits require task and repository authorization; specification lifecycle writes do not grant that authority.; Every repository-modifying change set has one canonical specification before implementation.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
-- **Entrypoints:** [`implement`](../../skills/engineering/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)
-- **Public Symbols:** [`implement`](../../skills/engineering/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)
+- **Invariants:** Product mutation and commits require task and repository authorization; specification lifecycle writes do not grant that authority.; Every repository-modifying change set has one canonical specification before implementation.; Governed delivery reloads the current canonical hash, working identity and explicit human execution instruction.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
+- **Entrypoints:** [`implement`](../../skills/engineering/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)<br>[`assess_delivery_turn_context`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)<br>[`verify_delivery_admission`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)<br>[`main`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)
+- **Public Symbols:** [`implement`](../../skills/engineering/implement/SKILL.md) (skill)<br>[`assess_delivery_spec_context`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)<br>[`assess_delivery_turn_context`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)<br>[`verify_delivery_admission`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)<br>[`main`](../../skills/engineering/implement/scripts/spec_delivery.py) (function)
 
 ### `governance_workflow_domain`
 

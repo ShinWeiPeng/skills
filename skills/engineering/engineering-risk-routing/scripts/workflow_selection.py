@@ -160,6 +160,8 @@ def select_workflow(
     has_unresolved_decision: bool = False,
     spec_context: dict[str, Any] | None = None,
     resume_confirmed_spec: bool = False,
+    turn_context: dict[str, Any] | None = None,
+    turn_kind: str = "auto",
 ) -> dict[str, Any]:
     """Select the authoritative workflow handoff after ordered assessments."""
     completed = completed_stages or set()
@@ -199,6 +201,7 @@ def select_workflow(
             "fallback": fallback,
             "reason": reason,
             "resume_target": resume_target,
+            "turn_context": turn_context,
         }
 
     def capability_checked(
@@ -232,6 +235,46 @@ def select_workflow(
             fallback=preferred,
         )
 
+    if turn_kind not in {"auto", "read-only", "decision-answer", "change-request"}:
+        return decision(None, status="BLOCKED", reason="Invalid turn kind.")
+    read_only_skill = intent_assessment.get("explicit_skill") or {
+        "review": "code-review",
+        "diagnosis": "diagnosing-bugs",
+        "verification-planning": "verification-ladder",
+    }.get(intent, "explain-code-flow")
+    if turn_context and turn_context.get("state") == "invalid":
+        return capability_checked(
+            "spec-governance",
+            reason=turn_context["reason"],
+            resume_target="turn-context-repair",
+        ) | {"status": "BLOCKED"}
+    if turn_context and turn_context.get("state") == "pending":
+        if turn_kind == "read-only" and not modifies:
+            return capability_checked(
+                read_only_skill,
+                reason="Read-only follow-up preserves the unanswered decision.",
+                resume_target="spec-governance",
+            )
+        return capability_checked(
+            "spec-governance",
+            reason="Recover and reconcile the durable pending decision before continuing.",
+            resume_target="grilling",
+        ) | {"status": "BLOCKED"}
+    if turn_kind == "decision-answer":
+        return capability_checked(
+            "spec-governance",
+            reason="An answer without matching pending state must be reconciled, never executed.",
+            resume_target="turn-context-repair",
+        ) | {"status": "BLOCKED"}
+    if turn_kind == "change-request":
+        modifies = True
+        if intent == "indeterminate":
+            intent = "implementation-design"
+    if turn_kind == "read-only" and not modifies and not has_unresolved_decision:
+        return capability_checked(
+            read_only_skill,
+            reason="Explicit factual follow-up does not create a change set.",
+        )
     if has_unresolved_decision:
         return capability_checked(
             "grilling",

@@ -22,6 +22,8 @@ The idea `implement` runs on is the **seam** — the stable interface a feature 
 
 Around that core it keeps the loop tight — typecheck often, run single test files as it goes, run the whole suite once at the end — then closes out with a review pass and a commit to the current branch.
 
+Delivery reloads the actual canonical specification and rejects stale verification hashes, pending questions and mismatched task state. The original explicit execution instruction remains the final human checkpoint. This protects the governed plugin entry point and does not claim to intercept arbitrary host tool calls.
+
 ## Where it fits
 
 `implement` is the build step near the end of the main chain, just before the review:

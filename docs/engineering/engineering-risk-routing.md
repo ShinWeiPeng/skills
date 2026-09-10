@@ -18,6 +18,8 @@ Codex invokes this automatically through the engineering router. Use it directly
 
 Its leading idea is **preserve the gate**: unavailable architecture, proposal, code-flow, or runtime evidence remains blocking rather than being replaced by a guess.
 
+The router accepts task and working references and reloads pending decisions before classifying short replies. A factual read-only turn preserves the question; a decision answer returns to specification reconciliation. Keyword hints for Git tracking supplement durable context rather than replacing it.
+
 ## Where it fits
 
 This is routing infrastructure behind [ask-matt](https://aihero.dev/skills-ask-matt), not a standalone planning method.

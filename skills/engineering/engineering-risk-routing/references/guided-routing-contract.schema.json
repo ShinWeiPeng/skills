@@ -122,6 +122,7 @@
         "resume_target"
       ],
       "properties": {
+        "turn_context": {"type": ["object", "null"]},
         "selected_skill": {"type": ["string", "null"]},
         "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},
         "intent_assessment": {"$ref": "#/$defs/IntentAssessment"},

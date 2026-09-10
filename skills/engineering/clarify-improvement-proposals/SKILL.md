@@ -74,9 +74,12 @@ After all decisions are resolved:
    `spec-governance.materialize`; this spec-only write does not authorize product
    execution.
 2. Do not implement while in Plan mode.
-3. Tell the user to switch to Default mode or another named execution-capable mode.
+3. Only if actually in Plan mode and the decision-complete proposal is ready for
+   execution, explain that implementation requires an execution-capable mode.
+   Never request mode changes merely to show options, or in response to timeout.
 4. Ask the user to send the repository's exact `開始執行` authorization.
-5. Begin implementation only after the mode change and explicit confirmation can be verified.
+5. Begin implementation only when the current mode supports execution and explicit
+   confirmation is verified. Remaining in Default mode requires no mode change.
 
 If the user explicitly requests a preliminary proposal, label every assumption and unresolved decision. Do not present it as final.
 

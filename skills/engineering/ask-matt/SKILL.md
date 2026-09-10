@@ -41,6 +41,27 @@ explicit skill
 
 ## Turn-boundary rerouting
 
+On every turn, call the router with the current task's `--task-ref` and, once
+resolved, `--working-reference`. The router reloads the persisted working pair;
+do not rely on a remembered `has_unresolved_decision` boolean. Never select a
+different task's spec to make a route pass. Use `--turn-kind read-only` for a
+factual follow-up, `decision-answer` for an explicit answer, and `change-request`
+for a semantic modification not recognized by the keyword hints. Missing or
+ambiguous context blocks dependent modification and must be recovered.
+
+Pending questions route through spec-governance even when the latest input is
+empty, numeric, a mode change, or `開始執行`. A read-only follow-up can proceed while
+preserving that pending state. Changes to Git tracking and configuration are
+modifying work. After an answer, reconcile against the saved question ID/version
+and working revision/hash before rerouting; do not clear pending state yourself.
+
+Before governed delivery, run the `implement/scripts/spec_delivery.py` admission
+CLI with the resolved canonical path, hash captured at verification, original
+explicit execution instruction, working reference and task reference. It reloads
+the actual spec and rejects stale, invalid, pending or mismatched state. Neither
+an old `spec-verified` label nor proposal adoption replaces this check. This is
+a plugin workflow boundary, not interception of arbitrary tool calls.
+
 Reassess every user turn through the authoritative router. A short reply such as a
 numbered choice inherits a pending governed decision; do not classify it in
 isolation and let the previously active skill retain control.

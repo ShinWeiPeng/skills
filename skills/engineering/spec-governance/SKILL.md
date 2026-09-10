@@ -42,6 +42,24 @@ canonical resolution.
 
 ## Reconcile loop
 
+Before presenting a required question, use `scripts/spec_contract.py question
+--project-root <root> --working-id <id> --question-id <Q-id> --question <text>
+--option <first> --option <second> --expected-revision <revision>
+--expected-hash <hash>`. The pending question is part of the existing Markdown
+snapshot, with a version and exact options; the journal remains normalized.
+A persisted question returns BLOCKED because a decision is now pending; inspect
+the returned working reference to distinguish successful persistence from errors.
+
+Recover with `turn-context --reference <working-id> --task-ref <task-id>`.
+There is no response deadline. A question-tool timeout, empty result or mode
+change must not clear pending state. When an explicit answer arrives, pass
+`--question-id`, `--question-version` and `--answer` to `reconcile`, together with
+the next full snapshot containing a new DISC record of that answer and the
+expected working revision/hash. The owner clears the pending question only after
+those checks; remaining conflicts or open decisions still block materialization.
+Free-form answers and explicit withdrawal are valid answers. Empty, stale and
+duplicate answers are rejected. Reopen a confirmed spec before a new question.
+
 Before the first decision, invoke `start` or `status`. After each user answer:
 
 1. Reload the authoritative WORKING-SPEC Markdown; reuse unchanged REQ, DEC, AC,

@@ -1,0 +1,8 @@
+{
+  "bump": "minor",
+  "changesets": ["spec-turn-continuity"],
+  "summary": {
+    "Added": ["Versioned pending-question persistence and governed delivery admission CLI."],
+    "Fixed": ["Short answers and unanswered choices retain specification context without timeout-based continuation or unnecessary mode changes."]
+  }
+}

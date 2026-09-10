@@ -17,6 +17,15 @@ references, conflicts, or open decisions are `BLOCKED`.
 
 Use /tdd where possible, at pre-agreed seams.
 
+Immediately before governed mutation, run `scripts/spec_delivery.py --project-root
+<root> --spec <canonical-path> --expected-hash <verified-file-sha256>
+--authorization <original-explicit-execution-instruction> --working-reference
+<working-id> --task-ref <task-id>`. Require `product_code_allowed: true` and PASS.
+Record the hash during spec verification, not by replacing a stale hash after an
+unreviewed change. Replay the actual user authorization, never synthesize it from
+proposal adoption, a numbered answer, silence or mode changes. This CLI checks the
+plugin's governed entry point; it is not a host-wide write interceptor.
+
 Before handing off to TDD or authoring product source, the delivery workflow invokes
 `/formatter-governance` with the original ProjectState evidence. Continue only after
 its applicable non-mutating formatter gate passes; keep formatter mappings with

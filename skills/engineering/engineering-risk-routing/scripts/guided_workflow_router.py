@@ -18,7 +18,7 @@ if str(DELIVERY_SCRIPTS_ROOT) not in sys.path:
 from classify_risk import classify
 from project_state import assess_project_state
 from repository_evidence import GitFilesystemRepositoryEvidenceAdapter
-from spec_delivery import assess_delivery_spec_context
+from spec_delivery import assess_delivery_spec_context, assess_delivery_turn_context
 from workflow_selection import classify_intent, select_workflow
 
 
@@ -72,12 +72,29 @@ def route(
     tracker_spec_path: str | None = None,
     branch: str | None = None,
     resume_confirmed_spec: bool = False,
+    working_reference: str | None = None,
+    task_ref: str | None = None,
+    turn_kind: str = "auto",
 ) -> dict[str, Any]:
     capabilities = (
         discover_available_skills() if available_skills is None else available_skills
     )
     artifacts = GitFilesystemRepositoryEvidenceAdapter().collect(project_root)
     project = assess_project_state(artifacts)
+    turn_context = assess_delivery_turn_context(
+        project_root,
+        reference=working_reference,
+        task_ref=task_ref,
+    )
+    active_working = turn_context.get("working_spec")
+    if (
+        active_working
+        and not tracker_spec_path
+        and active_working["spec_id"] != "SPEC-0000"
+    ):
+        tracker_spec_path = (
+            f"specs/{active_working['spec_id']}-{active_working['change_set']}.md"
+        )
     spec_context = assess_delivery_spec_context(
         project_root,
         prompt,
@@ -102,6 +119,8 @@ def route(
         has_unresolved_decision=has_unresolved_decision,
         spec_context=spec_context,
         resume_confirmed_spec=resume_confirmed_spec,
+        turn_context=turn_context,
+        turn_kind=turn_kind,
     )
 
 
@@ -130,6 +149,13 @@ def main() -> int:
         ),
     )
     parser.add_argument("--branch")
+    parser.add_argument("--working-reference")
+    parser.add_argument("--task-ref")
+    parser.add_argument(
+        "--turn-kind",
+        choices=["auto", "read-only", "decision-answer", "change-request"],
+        default="auto",
+    )
     parser.add_argument(
         "--json",
         action="store_true",
@@ -155,6 +181,9 @@ def main() -> int:
         tracker_spec_path=args.tracker_spec_path,
         branch=args.branch,
         resume_confirmed_spec=args.resume_confirmed_spec,
+        working_reference=args.working_reference,
+        task_ref=args.task_ref,
+        turn_kind=args.turn_kind,
     )
     print(format_route_output(result, force_json=args.json))
     return 0 if result["status"] in {"PASS", "DEGRADED"} else 2

@@ -46,3 +46,11 @@ false; spec discovery without the flag follows ProjectState interview precedence
 ## Contracts
 
 Validate output against [routing-contract.schema.json](references/routing-contract.schema.json). `GateResult` is the evidence contract used by handoffs and resume checks; Codex may report it but must not invent PASS evidence.
+
+## Durable turn evidence
+
+Pass `--task-ref` and the resolved `--working-reference` to the guided router.
+Use `--turn-kind read-only` only for factual follow-ups; it does not clear pending
+questions. `decision-answer` must return to reconciliation before delivery.
+`change-request` supplies semantic modification evidence when keyword hints are
+insufficient. Invalid or mismatched persisted context fails closed.

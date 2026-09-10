@@ -35,6 +35,22 @@ evidence.
 
 ## Presentation and fallback
 
+Required decisions have no response deadline. Do not switch to Plan mode merely
+to expose a choice tool, or switch back because a question tool times out.
+Timeout, empty results, preselection, mode changes and unrelated new messages are
+not answers or execution authorization. Persist the exact question and its two or
+three options using `spec_contract.py question` before displaying them. Recover
+the same question ID/version after interruption; do not silently replace options.
+
+Use an available asynchronous question surface without an expiry when supported.
+If the host closes that surface, keep complete Markdown options in the reply and
+the working spec, then yield for the user's explicit answer. Do not busy-poll,
+keep a tool blocked indefinitely, or treat elapsed time as permission to proceed.
+Independent read-only work may continue; dependent modifications remain blocked.
+Cancel a required question only when the user explicitly withdraws or replaces it,
+recording that answer through reconciliation. Do not claim to control host UI
+timers unless that capability has actually been verified.
+
 Use the structured choice tool when it is available. When it is unavailable,
 present the same two or three options as numbered text and wait for the user's
 answer. Missing structured UI alone never blocks the workflow and never requires a

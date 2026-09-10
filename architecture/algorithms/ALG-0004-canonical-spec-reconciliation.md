@@ -86,3 +86,20 @@ resumed implementation.
 - Approver: pending human review
 - Approval date: pending
 - Approval reference: pending
+
+## SPEC-0020 continuity extension
+
+Approved scope: task 01a085c7-8a93-7a73-b625-2b09168538ec, plugin-only repair
+selected by the user and explicitly authorized with 開始執行.
+
+Persist one versioned question inside the authoritative Markdown before presenting
+options. Recovery has no time input: elapsed time cannot change pending state.
+Require explicit non-empty answer, matching question version, matching working
+revision/hash and a new DISC record before clearing the question. Duplicate or
+stale responses preserve the previous snapshot. Other open decisions and conflicts
+remain blockers. Delivery reloads canonical identity, current file hash and
+traceability plus working identity/status before admitting the original human
+execution instruction. No global host interception is claimed.
+
+Validation: test_turn_continuity.py covers restart, stale/duplicate answers,
+read-only follow-ups, conflict preservation and explicit delivery admission.

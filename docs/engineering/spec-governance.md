@@ -16,6 +16,8 @@ Codex invokes this automatically for every repository-modifying engineering chan
 
 Its leading idea is **one canonical spec**: requirements, decisions, acceptance criteria, discussion context, and validation evidence stay traceable in one lifecycle.
 
+Required questions are saved with their exact options and a version before presentation. They have no response deadline. Answers are reconciled against that saved version and recorded in Discussion Context; stale or duplicate answers cannot silently clear pending decisions.
+
 ## Where it fits
 
 This is the durable contract between grilling, implementation, and review. [ask-matt](https://aihero.dev/skills-ask-matt) routes modifying work through it.

@@ -27,10 +27,10 @@
     },
     {
       "intent": "implementation-design",
-      "terms": ["implement", "build", "develop", "make", "add", "create", "change", "modify", "update", "fix", "refactor", "remove", "delete", "test", "deploy", "新增", "建立", "開發", "做", "修改", "更新", "修正", "重構", "移除", "刪除", "測試", "部署", "架構"]
+      "terms": ["取消追蹤", "排除 commit", "排除commit", "git rm --cached", "implement", "build", "develop", "make", "add", "create", "change", "modify", "update", "fix", "refactor", "remove", "delete", "test", "deploy", "新增", "建立", "開發", "做", "修改", "更新", "修正", "重構", "移除", "刪除", "測試", "部署", "架構"]
     }
   ],
-  "modification_terms": ["implement", "build", "develop", "make", "add", "create", "change", "modify", "update", "fix", "refactor", "remove", "delete", "test", "deploy", "新增", "建立", "開發", "做", "修改", "更新", "修正", "重構", "移除", "刪除", "測試", "部署"],
+  "modification_terms": ["取消追蹤", "排除 commit", "排除commit", "git rm --cached", "implement", "build", "develop", "make", "add", "create", "change", "modify", "update", "fix", "refactor", "remove", "delete", "test", "deploy", "新增", "建立", "開發", "做", "修改", "更新", "修正", "重構", "移除", "刪除", "測試", "部署"],
   "modifying_explicit_skills": [
     "implement",
     "prototype",

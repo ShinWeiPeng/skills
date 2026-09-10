@@ -281,6 +281,7 @@ modules:
     - Product mutation and commits require task and repository authorization;
       specification lifecycle writes do not grant that authority.
     - Every repository-modifying change set has one canonical specification before implementation.
+    - Governed delivery reloads the current canonical hash, working identity and explicit human execution instruction.
     - A confirmed specification is verified rather than re-interviewed only with
       explicit resume evidence and no new decision or conflict.
   entrypoints:
@@ -290,12 +291,30 @@ modules:
   - path: skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_spec_context
     kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: assess_delivery_turn_context
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: verify_delivery_admission
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: main
+    kind: function
   public_symbols:
   - path: skills/engineering/implement/SKILL.md
     symbol: implement
     kind: skill
   - path: skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_spec_context
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: assess_delivery_turn_context
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: verify_delivery_admission
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: main
     kind: function
 - id: spec_governance_domain
   level: L2
@@ -345,6 +364,8 @@ modules:
         again without allocating replacement IDs.
     invariants:
     - Every answered decision is persisted before the next decision question.
+    - Versioned pending questions survive timeout and mode changes without a deadline.
+    - Only an explicit matching answer with a new DISC record clears a pending question.
     - Specification lifecycle writes never authorize product, Git, or external mutations.
     - Confirmed specifications have unique stable IDs, resolved relations, no open decisions,
         and at least one acceptance criterion per requirement.
@@ -359,12 +380,30 @@ modules:
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: main
     kind: cli
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: assess_turn_context
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: record_question
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: pending_decision
+    kind: function
   public_symbols:
   - path: skills/engineering/spec-governance/SKILL.md
     symbol: spec-governance
     kind: skill
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: main
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: assess_turn_context
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: record_question
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: pending_decision
     kind: function
 - id: formatter_governance_domain
   level: L2
@@ -1894,6 +1933,11 @@ types:
     type: nullable-string
     role: contract-control
     meaning: Workflow target after decisions, gates, or capabilities are resolved.
+  - name: turn_context
+    type: nullable-object
+    role: metadata
+    meaning: Immutable recovered task decision evidence including exact pending options and working identity.
+
 - id: spec-context-assessment
   owner: workflow_routing_domain
   language: json-schema
