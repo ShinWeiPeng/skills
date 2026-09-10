@@ -211,3 +211,27 @@ the real case output `implementation=absent`, `stateful_context=present`,
 - Approver: pending human review
 - Approval date: pending
 - Approval reference: pending
+
+## SPEC-0022 execution boundary extension
+
+Route success carries no product-write permission. The delivery parent observes
+the selected workflow before dependent tools. Spec-owned execution receipts bind
+project/task identity and exact canonical, snapshot and journal hashes. Managed
+operations serialize receipt changes, reject stale or suspended state, then check
+one reviewed target hash before atomic replacement. This conservative equality
+policy rejects even non-semantic revision drift; it never refreshes old evidence.
+Direct host tools and caller-authored evidence authenticity remain outside the
+plugin guarantee. Validate both managed denial hash invariants and actual assistant
+trace behavior across project types; missing model trace evidence stays BLOCKED.
+
+## Discussion completion (SPEC-0024)
+
+The existing SPEC context now includes a read-only continuation assessment.
+Mixed user messages preserve all answers, changes and factual questions; reconcile
+before selecting the next pending decision. Completion compares current saved
+question identity/version/content and working context with observed presentation.
+A persisted decision with remaining open decisions cannot end a turn without a
+question, concrete evidenced blocker or explicit discussion pause. With decisions
+complete, materialize and present the proposal. This deterministic assessment
+and per-turn delivery trace audit own no additional persistent state and never
+authorize product execution. Source observation authenticity remains caller-attested.

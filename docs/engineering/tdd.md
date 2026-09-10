@@ -39,3 +39,15 @@ grill-with-docs → to-spec → to-tickets → implement → code-review
 ```
 
 [implement](https://aihero.dev/skills-implement) is the chain's build step, and it drives `tdd` internally to build each ticket test-first before handing off to [code-review](https://aihero.dev/skills-code-review) — so `tdd` is the engine inside that step rather than a step of its own. You can also reach for it directly, whenever there's a concrete behaviour to build without a full spec. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), which it leans on to find deep-module seams worth testing at. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+
+## Discussion remains active while execution is paused
+
+Across new and existing projects, accepting a requirement updates the current SPEC
+before implementation. A pause stops product work while later decisions continue
+to be recorded. Routing success never grants write permission. Managed delivery
+binds explicit execution evidence to the current project, task and specification,
+and checks it inside each supported file replacement. Direct host tools remain
+outside that boundary; real assistant traces are required in addition to unit tests.
+
+See the [managed delivery contract](https://github.com/ShinWeiPeng/skills/blob/main/skills/engineering/implement/references/managed-delivery.md)
+for request examples, supported operations and evidence limits.

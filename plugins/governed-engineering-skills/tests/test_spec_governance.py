@@ -970,7 +970,7 @@ Assistant: first
             self.assertTrue((root / result["canonical_spec"]["path"]).is_file())
             self.assertFalse(result["product_execution_authorized"])
 
-    def test_confirmed_spec_reopens_same_identity_and_no_delta_retains_authorization(
+    def test_confirmed_spec_reopens_same_identity_and_no_delta_revokes_authorization(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -996,7 +996,7 @@ Assistant: first
 
             self.assertEqual("SPEC-0001", reopened["canonical_spec"]["spec_id"])
             self.assertEqual("PASS", reconfirmed["verdict"])
-            self.assertTrue(reconfirmed["authorization_retained"])
+            self.assertFalse(reconfirmed["authorization_retained"])
             self.assertFalse(reconfirmed["actual_contract_delta"])
             self.assertIn("status: confirmed", path.read_text(encoding="utf-8"))
 

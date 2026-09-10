@@ -3,6 +3,16 @@ name: tdd
 description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
 ---
 
+## Shared discussion and execution boundary
+
+Apply the [managed delivery contract](../implement/references/managed-delivery.md)
+to all projects and subsequent turns. Keep SPEC reconciliation active while product
+execution is paused. Requirement changes and option adoption are not execution
+authorization. Observe routing results before dependent tools; never compose a gate
+and an unconditional write. Use managed receipts and the managed patch entrypoint
+for supported product edits; do not fall back to direct tools on rejection.
+
+
 # Test-Driven Development
 
 TDD is the red → green loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle — consult them before and during the loop, not after.

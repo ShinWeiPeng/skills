@@ -40,12 +40,28 @@ class DecisionQuestionContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, contract)
 
+    def test_mode_specific_surface_and_revision_boundary(self) -> None:
+        contract = read(CONTRACT)
+        for phrase in (
+            "Default/execution mode",
+            "numbered text",
+            "already in Plan mode",
+            "no response deadline",
+        ):
+            self.assertIn(phrase, contract)
+        self.assertNotIn(
+            "Use the structured choice tool when it is available.", contract
+        )
+        governance = read(SKILLS_ROOT / "spec-governance" / "SKILL.md")
+        self.assertIn("Every SPEC revision", governance)
+        self.assertNotIn("retains the prior execution authorization", governance)
+
     def test_interview_entrypoints_reinforce_the_shared_contract(self) -> None:
         for skill in ("grilling", "grill-me", "grill-with-docs"):
             text = read(SKILLS_ROOT / skill / "SKILL.md")
             self.assertIn("`/ask-matt`", text, msg=skill)
 
-    def test_default_mode_uses_numbered_fallback_instead_of_stopping(self) -> None:
+    def test_default_mode_preserves_numbered_decisions(self) -> None:
         for skill in (
             "clarify-improvement-proposals",
             "govern-modular-event-architecture",

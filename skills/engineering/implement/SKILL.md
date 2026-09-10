@@ -4,6 +4,16 @@ disable-model-invocation: true
 description: "Implement a piece of work based on a spec or set of tickets."
 ---
 
+## Shared discussion and execution boundary
+
+Apply the [managed delivery contract](../implement/references/managed-delivery.md)
+to all projects and subsequent turns. Keep SPEC reconciliation active while product
+execution is paused. Requirement changes and option adoption are not execution
+authorization. Observe routing results before dependent tools; never compose a gate
+and an unconditional write. Use managed receipts and the managed patch entrypoint
+for supported product edits; do not fall back to direct tools on rejection.
+
+
 Implement the work described by the user in the spec or tickets.
 
 ## Governed entry gate

@@ -3,6 +3,16 @@ name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.
 ---
 
+## Shared discussion and execution boundary
+
+Apply `references/managed-delivery.md` from the resolved `implement` skill
+to all projects and subsequent turns. Keep SPEC reconciliation active while product
+execution is paused. Requirement changes and option adoption are not execution
+authorization. Observe routing results before dependent tools; never compose a gate
+and an unconditional write. Use managed receipts and the managed patch entrypoint
+for supported product edits; do not fall back to direct tools on rejection.
+
+
 Interview me relentlessly about every aspect of this until we reach a shared understanding. Walk down each branch of the decision tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
 
 Before asking, follow the shared Decision Question Contract supplied by `/ask-matt`.
@@ -32,3 +42,15 @@ If blocked, ask exactly one conclusion-changing question. When decision-complete
 invoke `spec-governance.materialize` immediately without treating that write as
 product execution authorization. Then show the confirmed spec and intended
 non-spec repository diff and wait for the user's exact `開始執行` authorization.
+
+## Preserve active discussion through the final reply
+
+Apply the shared Decision Question Contract's discussion completion loop. Mixed
+answer/requirement/question messages retain every component. Reconcile decisions,
+reload SPEC context, then present the next saved question in this turn. A factual
+side answer reconnects the same unanswered question. Run spec-governance
+`finish-turn` and inspect its result before finalizing; a statement that discussion
+will continue later is insufficient. A product pause does not pause discussion.
+Only a presented pending question, an evidenced blocker with required input, an
+explicit user discussion pause, or a presented decision-complete proposal permits
+waiting. The check grants no product execution authority.

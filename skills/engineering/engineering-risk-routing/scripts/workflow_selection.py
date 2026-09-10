@@ -202,6 +202,10 @@ def select_workflow(
             "reason": reason,
             "resume_target": resume_target,
             "turn_context": turn_context,
+            "product_code_allowed": False,
+            "authority": "routing-only",
+            "next_action": selected_skill,
+            "spec_discussion_allowed": True,
         }
 
     def capability_checked(

@@ -275,7 +275,8 @@ modules:
     emitted_events:
     - delivery.tracker-publication-pending
     owned_state: []
-    side_effects: []
+    side_effects:
+    - description: Admit and atomically apply one hash-checked file replacement through the managed delivery CLI, leaving arbitrary host tools outside enforcement.
     errors: []
     invariants:
     - Product mutation and commits require task and repository authorization;
@@ -300,6 +301,15 @@ modules:
   - path: skills/engineering/implement/scripts/spec_delivery.py
     symbol: main
     kind: function
+  - path: skills/engineering/implement/scripts/managed_delivery.py
+    symbol: execute_request
+    kind: function
+  - path: skills/engineering/implement/scripts/managed_delivery.py
+    symbol: audit_trace
+    kind: function
+  - path: skills/engineering/implement/scripts/managed_delivery.py
+    symbol: main
+    kind: function
   public_symbols:
   - path: skills/engineering/implement/SKILL.md
     symbol: implement
@@ -314,6 +324,15 @@ modules:
     symbol: verify_delivery_admission
     kind: function
   - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: main
+    kind: function
+  - path: skills/engineering/implement/scripts/managed_delivery.py
+    symbol: execute_request
+    kind: function
+  - path: skills/engineering/implement/scripts/managed_delivery.py
+    symbol: audit_trace
+    kind: function
+  - path: skills/engineering/implement/scripts/managed_delivery.py
     symbol: main
     kind: function
 - id: spec_governance_domain
@@ -345,6 +364,7 @@ modules:
     - spec-governance.blocked
     owned_state: []
     side_effects:
+    - description: Persist project and task scoped execution receipts; suspend product authority independently of SPEC discussion.
     - description: Atomically persist one local project-root WORKING-SPEC Markdown
         snapshot with structured, visibly redacted Discussion Context and append its
         normalized journal without transcript or hidden-reasoning prose.
@@ -384,10 +404,25 @@ modules:
     symbol: assess_turn_context
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: assess_discussion_completion
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: finish_discussion_turn
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: record_question
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: pending_decision
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: execution_binding
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: read_execution_state
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: write_execution_state
     kind: function
   public_symbols:
   - path: skills/engineering/spec-governance/SKILL.md
@@ -400,10 +435,25 @@ modules:
     symbol: assess_turn_context
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: assess_discussion_completion
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: finish_discussion_turn
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: record_question
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: pending_decision
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: execution_binding
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: read_execution_state
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: write_execution_state
     kind: function
 - id: formatter_governance_domain
   level: L2

@@ -157,7 +157,15 @@ def assess_turn_context(
         if canonical_path.is_file()
         else None
     )
-    return {
+    canonical_metadata = (
+        _metadata(canonical_path.read_text(encoding="utf-8"))[0]
+        if canonical_path.is_file()
+        else {}
+    )
+    context = {
+        "canonical_revision": canonical_metadata.get("revision"),
+        "canonical_status": canonical_metadata.get("status"),
+        "project_root": str(project_root.resolve()),
         "state": "pending" if question or consistency["open_decisions"] else "ready",
         "working_spec": working,
         "pending_question": question,
@@ -177,6 +185,162 @@ def assess_turn_context(
         "conflicts": consistency["conflicts"],
         "canonical_matches": canonical_matches,
     }
+    context["continuation"] = assess_discussion_completion(
+        context, {"working_spec": working, "project_root": context["project_root"]}
+    )
+    return context
+
+
+def assess_discussion_completion(
+    context: dict[str, Any], observation: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Check observed presentation against one recovered discussion, never authorize writes."""
+    result = {
+        "verdict": "BLOCKED",
+        "can_end_turn": False,
+        "next_action": "recover-context",
+        "product_code_allowed": False,
+        "enforcement_scope": "observed-discussion-only",
+    }
+    if not isinstance(context, dict) or not isinstance(observation, dict):
+        return result
+    if observation.get("unreconciled_decision"):
+        return result | {"next_action": "reconcile"}
+    # A recorded context failure may itself be the blocker requiring user input.
+    blocker = observation.get("blocker")
+    if (
+        context.get("state") in ("invalid", "absent")
+        and observation.get("context_error") == context
+        and isinstance(blocker, dict)
+        and all(
+            isinstance(blocker.get(key), str) and blocker[key].strip()
+            for key in ("detail", "required_input", "evidence_ref", "presentation_ref")
+        )
+    ):
+        return result | {
+            "verdict": "PASS",
+            "can_end_turn": True,
+            "next_action": "await-blocker-input",
+        }
+    if (
+        not isinstance(context.get("project_root"), str)
+        or observation.get("project_root") != context["project_root"]
+    ):
+        return result
+    working = context.get("working_spec")
+    if not isinstance(working, dict) or observation.get("working_spec") != working:
+        return result
+    if any(
+        not isinstance(working.get(key), str) or not working[key].strip()
+        for key in ("working_id", "task_ref", "snapshot_hash", "status")
+    ):
+        return result
+    if type(working.get("revision")) is not int or working["revision"] < 1:
+        return result
+    if not isinstance(context.get("open_decisions"), list) or not isinstance(
+        context.get("conflicts"), list
+    ):
+        return result
+
+    def has_text(record: Any, keys: tuple[str, ...]) -> bool:
+        return isinstance(record, dict) and all(
+            isinstance(record.get(key), str) and record[key].strip() for key in keys
+        )
+
+    pause = observation.get("pause")
+    pause_text = pause.get("user_text", "") if isinstance(pause, dict) else ""
+    explicit_pause = (
+        isinstance(pause_text, str)
+        and bool(
+            re.search(
+                r"暫停討論|停止討論|先不討論|暫停全部|停止全部|暫停所有|停止所有|(?:pause|stop|end)\s+(?:the\s+)?(?:discussion|all\s+work)",
+                pause_text,
+                re.IGNORECASE,
+            )
+        )
+        and not re.search(
+            r"不要|別|not|don't|continue\s+discussion|繼續討論",
+            pause_text,
+            re.IGNORECASE,
+        )
+    )
+    if (
+        explicit_pause
+        and has_text(pause, ("scope", "user_text", "source_ref"))
+        and pause["scope"]
+        in {
+            "discussion",
+            "all",
+        }
+    ):
+        return result | {
+            "verdict": "PASS",
+            "can_end_turn": True,
+            "next_action": "paused-by-user",
+        }
+    blocker = observation.get("blocker")
+    if has_text(
+        blocker, ("detail", "required_input", "evidence_ref", "presentation_ref")
+    ):
+        return result | {
+            "verdict": "PASS",
+            "can_end_turn": True,
+            "next_action": "await-blocker-input",
+        }
+    if context.get("state") not in ("pending", "ready") or context.get("conflicts"):
+        return result
+    question = context.get("pending_question")
+    if question is not None:
+        if not isinstance(question, dict) or not has_text(question, ("id", "question")):
+            return result
+        if type(question.get("version")) is not int or question["version"] < 1:
+            return result
+        options = question.get("options")
+        if (
+            not isinstance(options, list)
+            or not 2 <= len(options) <= 3
+            or any(not isinstance(x, str) or not x.strip() for x in options)
+        ):
+            return result
+        if observation.get("question_presented") == question and has_text(
+            observation, ("presentation_ref",)
+        ):
+            return result | {
+                "verdict": "PASS",
+                "can_end_turn": True,
+                "next_action": "await-answer",
+            }
+        return result | {"next_action": "present-pending-question"}
+    if context.get("open_decisions"):
+        return result | {"next_action": "ask-next-decision"}
+    if (
+        working.get("status") != "confirmed"
+        or context.get("canonical_status") != "confirmed"
+        or str(context.get("canonical_revision")) != str(working.get("revision"))
+        or context.get("canonical_matches") is not True
+    ):
+        return result | {"next_action": "materialize"}
+    if observation.get("proposal_presented") is True and has_text(
+        observation, ("presentation_ref",)
+    ):
+        return result | {
+            "verdict": "PASS",
+            "can_end_turn": True,
+            "next_action": "await-execution-authorization",
+        }
+    return result | {"next_action": "present-confirmed-proposal"}
+
+
+def finish_discussion_turn(
+    project_root: Path, *, reference: str, task_ref: str, observation: dict[str, Any]
+) -> dict[str, Any]:
+    """Reload project/task context before accepting a discussion turn's stopping point."""
+    if not all(
+        isinstance(value, str) and value.strip() for value in (reference, task_ref)
+    ):
+        return assess_discussion_completion({}, {})
+    context = assess_turn_context(project_root, reference=reference, task_ref=task_ref)
+    return assess_discussion_completion(context, observation)
 
 
 def record_question(
@@ -1738,9 +1902,7 @@ def materialize_working_bundle(
         "canonical_spec": reference,
         "working_spec": _working_reference(project_root, snapshot_path, journal_path),
         "actual_contract_delta": actual_delta,
-        "authorization_retained": bool(
-            existing and baseline_hash is not None and not actual_delta
-        ),
+        "authorization_retained": False,
         "product_execution_authorized": False,
     }
 
@@ -2290,6 +2452,12 @@ def main() -> int:
     question_parser.add_argument("--expected-revision", type=int, required=True)
     question_parser.add_argument("--expected-hash", required=True)
 
+    finish_parser = subparsers.add_parser("finish-turn")
+    finish_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    finish_parser.add_argument("--reference", required=True)
+    finish_parser.add_argument("--task-ref", required=True)
+    finish_parser.add_argument("--observation", type=Path, required=True)
+
     turn_parser = subparsers.add_parser("turn-context")
     turn_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     turn_parser.add_argument("--reference")
@@ -2317,6 +2485,18 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+    if args.command == "finish-turn":
+        try:
+            result = finish_discussion_turn(
+                args.project_root,
+                reference=args.reference,
+                task_ref=args.task_ref,
+                observation=json.loads(args.observation.read_text(encoding="utf-8")),
+            )
+        except (OSError, ValueError, TypeError) as error:
+            result = {"verdict": "BLOCKED", "can_end_turn": False, "reason": str(error)}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["verdict"] == "PASS" else 2
     if args.command == "validate":
         project_root = (
             args.spec.parent.parent

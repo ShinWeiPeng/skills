@@ -42,19 +42,21 @@ not answers or execution authorization. Persist the exact question and its two o
 three options using `spec_contract.py question` before displaying them. Recover
 the same question ID/version after interruption; do not silently replace options.
 
-Use an available asynchronous question surface without an expiry when supported.
-If the host closes that surface, keep complete Markdown options in the reply and
-the working spec, then yield for the user's explicit answer. Do not busy-poll,
-keep a tool blocked indefinitely, or treat elapsed time as permission to proceed.
-Independent read-only work may continue; dependent modifications remain blocked.
-Cancel a required question only when the user explicitly withdraws or replaces it,
-recording that answer through reconciliation. Do not claim to control host UI
-timers unless that capability has actually been verified.
+In Default/execution mode, present the same two or three options as numbered text
+(1, 2, 3 as applicable) and wait for the user's numeric or free-form answer. This
+is the intended surface even when a structured choice tool is available. Do not
+switch modes merely to ask a question. Respect higher-priority host instructions
+if they restrict textual questions; preserve the existing mode and pending state.
 
-Use the structured choice tool when it is available. When it is unavailable,
-present the same two or three options as numbered text and wait for the user's
-answer. Missing structured UI alone never blocks the workflow and never requires a
-switch to Plan mode.
+If already in Plan mode, stay in that mode and use its structured choice tool when
+available. If the host closes the surface, preserve the complete options and yield
+for an explicit answer. Do not switch to execution mode because of a timeout.
+
+Do not busy-poll, keep a tool blocked indefinitely, or treat elapsed time as
+permission to proceed. Independent read-only work may continue; dependent
+modifications remain blocked. Cancel a required question only when the user
+explicitly withdraws or replaces it, recording that answer through reconciliation.
+Do not claim to control host UI timers or collaboration modes.
 
 Tool-provided free-form UI such as `Other` does not count as one of the authored
 options. Always accept a free-form, combined, or premise-correcting answer. Preserve
@@ -73,3 +75,37 @@ This boundary is self-contained in the installed plugin; governed workflows neve
 require or modify a user-global `AGENTS.md`.
 The contract also does not add a chat confirmation before a native system permission
 prompt or dialog; the native Allow/Deny interaction retains its own contract.
+
+## Complete the discussion turn
+
+An active specification discussion persists across factual side questions. Read the
+whole message for every applicable component: an answer, a requirement correction,
+a factual question, or an explicit pause. Do not classify a mixed message solely
+as a factual request. Answer the factual part, reconcile the explicit answer and
+scope changes, then reload turn-context before choosing the next action.
+
+If open decisions remain, resolve discoverable facts read-only, persist exactly one
+next question, and present it in the same turn. Do not end with only “next we need
+to decide ...” or “we can discuss later.” For a pure factual question while a choice
+is unanswered, answer it and visibly reconnect the same saved question/version;
+do not invent an answer, silently change its options or create a duplicate question.
+
+Before finalizing an active discussion, run spec-governance `finish-turn` using the
+current working reference and task. Observe the result before sending the final
+reply; prepare and present the exact content described by the observation. The
+check validates caller-observed evidence, not host display or human authentication.
+Only these stopping points are valid:
+
+- A current persisted question has been presented (or visibly reconnected), so wait
+  for its answer without a deadline.
+- A concrete blocker and required user input have been explained with an evidence
+  reference; generic “blocked” or “waiting” labels do not suffice.
+- The user explicitly paused discussion/all work; preserve the pending state.
+- All decisions are settled and the matching confirmed SPEC/proposal is presented;
+  await exact execution authorization, without manufacturing another question.
+
+Product execution suspension does not suspend discussion. Every SPEC revision
+still invalidates product authority. No finish-turn result authorizes product work.
+A rejected completion means continue with its next_action, not ask the user to say
+“continue.” If the user explicitly cancels, honor that request rather than forcing
+the interview to continue.

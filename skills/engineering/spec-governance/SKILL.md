@@ -3,6 +3,16 @@ name: spec-governance
 description: Persist, reconcile, materialize, reopen, resolve, and verify the canonical repository specification for every modifying engineering change set. Model-invoked by ask-matt and delivery workflows.
 ---
 
+## Shared discussion and execution boundary
+
+Apply the [managed delivery contract](../implement/references/managed-delivery.md)
+to all projects and subsequent turns. Keep SPEC reconciliation active while product
+execution is paused. Requirement changes and option adoption are not execution
+authorization. Observe routing results before dependent tools; never compose a gate
+and an unconditional write. Use managed receipts and the managed patch entrypoint
+for supported product edits; do not fall back to direct tools on rejection.
+
+
 # Spec governance
 
 Own one canonical change-set contract from the first governed decision through
@@ -106,11 +116,19 @@ actual PASS evidence for every AC and a passing code-review Spec axis with no mi
 incorrect, or scope-creep behavior.
 
 A confirmed unimplemented spec reopens in place before a possible contract-changing
-question. On reconfirmation, compare a normalized contract hash that excludes
-lifecycle metadata and revision history. No actual contract delta restores
-`confirmed` and retains the prior execution authorization; any actual delta
-invalidates it and requires a new exact `開始執行`. An implemented spec never reopens;
-create a related `refines` or `supersedes` change set instead.
+question. Every SPEC revision invalidates earlier execution authorization,
+including editorial changes, evidence-only updates and reconfirmation with no
+actual contract delta. The normalized contract hash may describe semantic changes
+but never retains or restores permission. After persisting and verifying the
+revision, wait for a fresh exact `開始執行` covering that revision before any further
+product operation. When the same user message both specifies a change and explicitly
+authorizes its execution, reconcile that exact change before admitting execution;
+never carry that instruction forward to a later change. SPEC persistence and
+read-only verification may continue without product authority. Recording final
+implementation evidence also invalidates the receipt; finish product checks first
+and do not run subsequent product operations after that final SPEC update.
+An implemented spec never reopens; create a related `refines` or `supersedes` change
+set instead.
 
 ## Resolution and delivery
 
@@ -128,3 +146,43 @@ At commit preparation, a tracked or staged `spec-governance/WORKING-SPEC-*` path
 delete it, keep it local, or archive only the normalized journal to
 `specs/history/`. Do not auto-delete, auto-archive, stage, commit, or alter ignore
 policy.
+
+## Discussion completion assessment
+
+After each mixed answer/question, reconcile all explicit decisions and reload
+`turn-context`. Its `continuation.next_action` describes the remaining discussion
+step and never grants execution authority. Follow the shared Decision Question
+Contract from ask-matt for the complete same-turn loop.
+
+Before ending an active discussion, run:
+
+```text
+python scripts/spec_contract.py finish-turn --project-root <root> --reference <working-id> --task-ref <task> --observation <json-file>
+```
+
+The observation supplies `working_spec` exactly as returned by the latest
+turn-context. For a question, include `question_presented` equal to the complete
+saved `pending_question` and a nonempty `presentation_ref` linking the rendered
+reply or prepared reply artifact. For a complete proposal, include
+`proposal_presented: true` and its `presentation_ref`. A `pause` must include
+`scope: discussion` (or `all`), the original `user_text` and `source_ref`.
+A `blocker` requires `detail`, `required_input`, `evidence_ref` and
+`presentation_ref`. Set `unreconciled_decision: true` if an answer/change remains
+unsaved; never omit an observed change to obtain a passing result.
+
+Inspect `can_end_turn` and `next_action` before finalizing. A reference must identify
+actual observed/prepared content, not a fabricated token. The model must render the
+same checked question/proposal; the host does not intercept final replies. External
+trace review checks that source references and normalized observations agree.
+No new state store is created; SPEC and its existing journal remain authoritative.
+
+Completion observations also include `project_root` exactly as recovered in
+turn-context. Context changes invalidate presentation and observed admission;
+question count persists until the next turn. Raw source references and pause
+interpretation must be checked against the original messages.
+
+When context recovery itself returns `invalid` or `absent`, include that exact
+result as `context_error` plus the concrete blocker and required input. This
+permits reporting an evidenced recovery problem without pretending a SPEC was
+resolved. Unrecognized pause wording remains blocked for clarification; never
+convert a product-only stop into a discussion pause.

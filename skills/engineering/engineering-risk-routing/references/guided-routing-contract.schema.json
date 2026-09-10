@@ -122,6 +122,10 @@
         "resume_target"
       ],
       "properties": {
+        "product_code_allowed": {"const": false},
+        "authority": {"const": "routing-only"},
+        "next_action": {"type": ["string", "null"]},
+        "spec_discussion_allowed": {"const": true},
         "turn_context": {"type": ["object", "null"]},
         "selected_skill": {"type": ["string", "null"]},
         "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},

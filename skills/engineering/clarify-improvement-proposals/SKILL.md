@@ -3,6 +3,16 @@ name: clarify-improvement-proposals
 description: "Clarify every unresolved ambiguity before producing an improvement proposal, then present rendered Markdown with explicit impacts, tradeoffs, and evidence-backed validation. Invoke implicitly for 改善方案、改進方案、優化方案、重構方案、架構改善、設計改善、改善建議、優化建議、方案比較、方案評估、技術選型、提出建議、怎麼改比較好, and equivalent English requests to propose, compare, review, optimize, refactor, or plan improvements. Do not invoke for a direct copyedit, translation, or wording-only change that does not ask for a proposal or design decision. Invoke explicitly with $clarify-improvement-proposals."
 ---
 
+## Shared discussion and execution boundary
+
+Apply the [managed delivery contract](../implement/references/managed-delivery.md)
+to all projects and subsequent turns. Keep SPEC reconciliation active while product
+execution is paused. Requirement changes and option adoption are not execution
+authorization. Observe routing results before dependent tools; never compose a gate
+and an unconditional write. Use managed receipts and the managed patch entrypoint
+for supported product edits; do not fall back to direct tools on rejection.
+
+
 # Clarify Improvement Proposals
 
 Separate discovery from recommendation. Resolve every ambiguity before treating an improvement proposal as final.
@@ -13,7 +23,7 @@ Separate discovery from recommendation. Resolve every ambiguity before treating 
 2. Resolve discoverable facts from evidence instead of asking the user.
 3. Maintain an exhaustive ambiguity ledger covering goals, success criteria, scope, users, product features, behavior, constraints, compatibility, architecture, algorithm screening, candidate methods, data assumptions, quantitative quality thresholds, delivery, and validation.
 4. Ask about every unresolved decision. Re-evaluate the ledger after each answer because answers can introduce new ambiguities.
-5. Follow the shared Decision Question Contract supplied by `/ask-matt`. Use the structured choice tool when available and equivalent numbered text otherwise.
+5. Follow the shared Decision Question Contract supplied by `/ask-matt`. Use numbered text in Default/execution mode; use its available choice surface only when already in Plan mode.
 6. Ask one decision at a time, then stop and wait for the user. Do not produce a final proposal with unresolved decisions.
 
 For a repository-modifying proposal, this skill owns discovery, the ambiguity
@@ -63,10 +73,11 @@ prototype or benchmark remains unresolved.
 
 ## Enforce presentation and mode checkpoints
 
-Before clarification, check whether the surface provides a structured choice tool.
-Use it when available. Otherwise continue with the same two or three options as
-numbered text; missing structured UI alone never blocks clarification or requires a
-mode switch.
+Before clarification, preserve the current mode. In Default/execution mode, use
+numbered text options and wait for a numeric or free-form answer. If already in
+Plan mode, use its available structured choice tool. Follow the shared contract
+for host constraints and pending-question recovery; never switch modes merely to
+show options.
 
 After all decisions are resolved:
 
@@ -230,3 +241,15 @@ Also require:
 - `BLOCKED` rather than product `FAIL` when the trigger, complete window, sample sufficiency, trace loss, log loss, or measurement validity is unproven.
 
 Do not claim physical validation occurred in Plan mode. Route execution through `$validate-on-device` when available.
+
+## Preserve active discussion through the final reply
+
+Apply the shared Decision Question Contract's discussion completion loop. Mixed
+answer/requirement/question messages retain every component. Reconcile decisions,
+reload SPEC context, then present the next saved question in this turn. A factual
+side answer reconnects the same unanswered question. Run spec-governance
+`finish-turn` and inspect its result before finalizing; a statement that discussion
+will continue later is insufficient. A product pause does not pause discussion.
+Only a presented pending question, an evidenced blocker with required input, an
+explicit user discussion pause, or a presented decision-complete proposal permits
+waiting. The check grants no product execution authority.

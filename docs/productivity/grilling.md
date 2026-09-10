@@ -29,3 +29,25 @@ Keeping the technique in one place means you can also reach for it directly when
 ## Where it fits
 
 `grilling` is the interview **primitive** under the main build chain: [grill-with-docs](https://aihero.dev/skills-grill-with-docs) runs it to sharpen context before [to-spec](https://aihero.dev/skills-to-spec) writes the spec. When you're unsure which entry point fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+
+## Discussion remains active while execution is paused
+
+Across new and existing projects, accepting a requirement updates the current SPEC
+before implementation. A pause stops product work while later decisions continue
+to be recorded. Routing success never grants write permission. Managed delivery
+binds explicit execution evidence to the current project, task and specification,
+and checks it inside each supported file replacement. Direct host tools remain
+outside that boundary; real assistant traces are required in addition to unit tests.
+
+See the [managed delivery contract](https://github.com/ShinWeiPeng/skills/blob/main/skills/engineering/implement/references/managed-delivery.md)
+for request examples, supported operations and evidence limits.
+
+## Keep discussion moving
+
+An answer can also contain a scope correction and a technical question. The
+workflow handles all three, saves decisions to SPEC, and presents the next
+unresolved question in the same turn. Pure factual follow-ups return to the saved
+unanswered choice. Waiting requires a presented question, a concrete blocker,
+your request to pause discussion, or a complete proposal awaiting authorization.
+The completion check uses existing SPEC state and observed presentation evidence;
+it does not control the app's final-response behavior or grant execution permission.

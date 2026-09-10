@@ -23,3 +23,15 @@ Its leading idea is **ownership before code**: settle boundaries, type and state
 ## Where it fits
 
 This is the formal architecture gate used by [clarify-improvement-proposals](https://aihero.dev/skills-clarify-improvement-proposals), [explain-code-flow](https://aihero.dev/skills-explain-code-flow), and [ask-matt](https://aihero.dev/skills-ask-matt).
+
+## Decisions in the current mode
+
+Execution-mode decisions use numbered text options, accepting a number or a
+free-form answer without a deadline. A conversation already in Plan mode keeps
+its available choice surface. Neither a timeout nor selecting an option grants
+execution permission. Higher-priority host interaction rules still apply.
+
+Every SPEC revision, including editorial changes and reconfirmation with no
+semantic change, requires a fresh `開始執行` covering that revision. Discussion
+continues to update SPEC while product work waits. Final evidence updates also
+end the previous permission; subsequent product work needs fresh authorization.

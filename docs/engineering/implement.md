@@ -33,3 +33,37 @@ grill-with-docs → to-spec → to-tickets → implement → code-review
 ```
 
 Reach for it after the work has been specced and sequenced, not before. Its key neighbours are [to-tickets](https://aihero.dev/skills-to-tickets), which produces the tickets — each declaring its blocking edges — that it works through, and [tdd](https://aihero.dev/skills-tdd), which it drives internally to write the tests at each seam before running its own [code-review](https://aihero.dev/skills-code-review) pass and committing. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+
+## Discussion remains active while execution is paused
+
+Across new and existing projects, accepting a requirement updates the current SPEC
+before implementation. A pause stops product work while later decisions continue
+to be recorded. Routing success never grants write permission. Managed delivery
+binds explicit execution evidence to the current project, task and specification,
+and checks it inside each supported file replacement. Direct host tools remain
+outside that boundary; real assistant traces are required in addition to unit tests.
+
+See the [managed delivery contract](https://github.com/ShinWeiPeng/skills/blob/main/skills/engineering/implement/references/managed-delivery.md)
+for request examples, supported operations and evidence limits.
+
+## Decisions in the current mode
+
+Execution-mode decisions use numbered text options, accepting a number or a
+free-form answer without a deadline. A conversation already in Plan mode keeps
+its available choice surface. Neither a timeout nor selecting an option grants
+execution permission. Higher-priority host interaction rules still apply.
+
+Every SPEC revision, including editorial changes and reconfirmation with no
+semantic change, requires a fresh `開始執行` covering that revision. Discussion
+continues to update SPEC while product work waits. Final evidence updates also
+end the previous permission; subsequent product work needs fresh authorization.
+
+## Keep discussion moving
+
+An answer can also contain a scope correction and a technical question. The
+workflow handles all three, saves decisions to SPEC, and presents the next
+unresolved question in the same turn. Pure factual follow-ups return to the saved
+unanswered choice. Waiting requires a presented question, a concrete blocker,
+your request to pause discussion, or a complete proposal awaiting authorization.
+The completion check uses existing SPEC state and observed presentation evidence;
+it does not control the app's final-response behavior or grant execution permission.

@@ -3,6 +3,16 @@ name: ask-matt
 description: Automatically route every software-engineering request, including implementation, modification, debugging, review, code explanation, tests, architecture, and deployment. Model-invoked; users never need to name this skill.
 ---
 
+## Shared discussion and execution boundary
+
+Apply the [managed delivery contract](../implement/references/managed-delivery.md)
+to all projects and subsequent turns. Keep SPEC reconciliation active while product
+execution is paused. Requirement changes and option adoption are not execution
+authorization. Observe routing results before dependent tools; never compose a gate
+and an unconditional write. Use managed receipts and the managed patch entrypoint
+for supported product edits; do not fall back to direct tools on rejection.
+
+
 # Automatic Engineering Router
 
 Use this skill automatically whenever the user's intent is software engineering.
@@ -151,9 +161,9 @@ regardless of size or an explicitly requested skill such as `tdd`.
   repeating grilling when there is no new decision or conflict.
 - If execution exposes any possible contract-changing discretionary decision, invoke
   `spec-governance.reopen` before clarification, suspend the existing execution
-  authorization, and return to grilling one question at a time. Reconfirming with no
-  actual contract delta retains the authorization; an actual delta requires a new
-  exact `開始執行`. Compiler errors and test failures that can be investigated are
+  authorization, and return to grilling one question at a time. Every SPEC revision,
+  including reconfirmation with no actual contract delta, requires a fresh exact
+  `開始執行` covering that revision. Compiler errors and test failures that can be investigated are
   facts, not user decisions.
 - After spec verification, the delivery parent invokes `/formatter-governance`
   before handing modifying work to TDD or implementation. Preserve its original
@@ -194,3 +204,15 @@ then `to-tickets`; it never jumps directly to implementation for a large effort.
 - A normal `PASS` route gets one concise summary line.
 - Expand project, intent, risk, and capability evidence for `DEGRADED`, `BLOCKED`,
   or any `indeterminate` assessment.
+
+## Preserve active discussion through the final reply
+
+Apply the shared Decision Question Contract's discussion completion loop. Mixed
+answer/requirement/question messages retain every component. Reconcile decisions,
+reload SPEC context, then present the next saved question in this turn. A factual
+side answer reconnects the same unanswered question. Run spec-governance
+`finish-turn` and inspect its result before finalizing; a statement that discussion
+will continue later is insufficient. A product pause does not pause discussion.
+Only a presented pending question, an evidenced blocker with required input, an
+explicit user discussion pause, or a presented decision-complete proposal permits
+waiting. The check grants no product execution authority.
