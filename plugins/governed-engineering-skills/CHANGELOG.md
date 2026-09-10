@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.13.0
+
+### Added
+
+- Add mode-aware question preflight, open question persistence and versioned presentation recovery.
+
+### Fixed
+
+- Reject Default menu calls and incomplete final question replies in governed workflow evidence.
+
 ## 0.12.0
 
 ### Added
