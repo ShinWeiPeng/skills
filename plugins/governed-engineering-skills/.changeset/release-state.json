@@ -1,11 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.11.0",
-  "previous_version": "0.10.1",
+  "current_version": "0.12.0",
+  "previous_version": "0.11.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:b1e52a402a6e4e7a7c77bb58c64c5873e0e9deb7983594bf4ba86ef5c1cb4355",
+  "production_fingerprint": "sha256:784264a052d89c58e369f183135a3ad1c55faa6558a3251ddaa9ed10f163e1c5",
   "applied_changesets": [
-    "spec-turn-continuity",
-    "numeric-working-identity-redaction"
+    "governed-delivery-enforcement"
   ]
 }
