@@ -719,6 +719,33 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertNotIn("abc.def.ghi", snapshot)
             self.assertNotIn("+886 912 345 678", snapshot)
 
+    def test_numeric_working_identity_is_not_redacted_as_a_phone(self) -> None:
+        working_id = "WORKING-SPEC-123456789012-payment-retry"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = SPEC_CONTRACT.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(spec_id="SPEC-0000", status="working"),
+                working_id=working_id,
+            )
+            self.assertEqual("PASS", result["verdict"], result)
+            snapshot = (root / result["working_spec"]["snapshot_path"]).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(working_id, snapshot)
+
+    def test_phone_redaction_preserves_identifier_boundaries(self) -> None:
+        for phone in ("0912345678", "0912-345-678", "+886 912 345 678"):
+            with self.subTest(phone=phone):
+                self.assertEqual(
+                    "call [REDACTED: personal data];",
+                    SPEC_CONTRACT._redact_sensitive_content(f"call {phone};"),
+                )
+        for token in ("WORKING-SPEC-123456789012-payment-retry", "id-123456789"):
+            with self.subTest(token=token):
+                self.assertEqual(token, SPEC_CONTRACT._redact_sensitive_content(token))
+
     def test_discussion_context_rejects_unknown_impact_and_transcript(self) -> None:
         source = (
             confirmed_spec(spec_id="SPEC-0000", status="working")

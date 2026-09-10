@@ -1,8 +1,16 @@
 {
   "bump": "minor",
-  "changesets": ["spec-turn-continuity"],
+  "changesets": [
+    "spec-turn-continuity",
+    "numeric-working-identity-redaction"
+  ],
   "summary": {
-    "Added": ["Versioned pending-question persistence and governed delivery admission CLI."],
-    "Fixed": ["Short answers and unanswered choices retain specification context without timeout-based continuation or unnecessary mode changes."]
+    "Added": [
+      "Versioned pending-question persistence and governed delivery admission CLI."
+    ],
+    "Fixed": [
+      "Short answers and unanswered choices retain specification context without timeout-based continuation or unnecessary mode changes.",
+      "Numeric working specification identifiers are no longer mistaken for telephone numbers during redaction."
+    ]
   }
 }

@@ -684,7 +684,7 @@ def _redact_sensitive_content(text: str) -> str:
         text,
     )
     text = re.sub(
-        r"(?<!\w)\+?(?:\d[\s().-]?){8,19}\d(?!\w)",
+        r"(?<![\w-])\+?(?:\d[\s().-]?){8,19}\d(?![\w-])",
         REDACTION_MARKERS["personal"],
         text,
     )
