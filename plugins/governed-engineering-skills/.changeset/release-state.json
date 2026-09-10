@@ -1,10 +1,11 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.10.1",
-  "previous_version": "0.10.0",
-  "bump": "patch",
-  "production_fingerprint": "sha256:246841c29693506a9e080045f916146a40563febff2ddc8483f89dc3477ef0b6",
+  "current_version": "0.11.0",
+  "previous_version": "0.10.1",
+  "bump": "minor",
+  "production_fingerprint": "sha256:b1e52a402a6e4e7a7c77bb58c64c5873e0e9deb7983594bf4ba86ef5c1cb4355",
   "applied_changesets": [
-    "deterministic-plugin-release"
+    "spec-turn-continuity",
+    "numeric-working-identity-redaction"
   ]
 }

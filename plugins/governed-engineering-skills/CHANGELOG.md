@@ -1,5 +1,16 @@
 # Governed Engineering Skills
 
+## 0.11.0
+
+### Added
+
+- Versioned pending-question persistence and governed delivery admission CLI.
+
+### Fixed
+
+- Short answers and unanswered choices retain specification context without timeout-based continuation or unnecessary mode changes.
+- Numeric working specification identifiers are no longer mistaken for telephone numbers during redaction.
+
 ## 0.10.1
 
 ### Fixed
