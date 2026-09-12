@@ -75,9 +75,8 @@ def _target(root: Path, relative: str) -> Path:
     if path.is_absolute() or any(part in {".", ".."} for part in relative.split("/")):
         raise ValueError("target must stay within project")
     if any(
-        part.casefold() in {".git", ".codex", ".agents", "spec-governance", "specs"}
-        for part in path.parts
-    ):
+        part.casefold() in {".git", ".codex", ".agents"} for part in path.parts
+    ) or path.parts[0].casefold() in {"spec-governance", "specs"}:
         raise ValueError(
             "managed product patches cannot alter governance control paths"
         )
@@ -209,8 +208,9 @@ def execute_request(root: Path, request: dict) -> dict:
                 "evidence_trust": "caller-attested-not-host-authenticated",
             }
         if operation == "status":
-            _admit(root, request, state)
+            binding = _admit(root, request, state)
             return {
+                "binding": binding,
                 "verdict": "PASS",
                 "phase": "executing",
                 "product_code_allowed": True,
@@ -226,8 +226,154 @@ def execute_request(root: Path, request: dict) -> dict:
             lock.unlink(missing_ok=True)
 
 
-def audit_trace(events: list[dict]) -> dict:
+def _audit_source_trace(packet: dict) -> dict:
+    """Cross-check normalized observations with supplied raw desktop item records.
+
+    Unknown command effects are incomplete evidence, never an inferred read.
+    Source capture remains caller-attested rather than host-authenticated.
+    """
+    gaps = []
+    violations = []
+    sources = packet.get("sources")
+    events = packet.get("events")
+    root = packet.get("project_root")
+    if (
+        packet.get("schema_version") != 2
+        or not isinstance(sources, list)
+        or not sources
+        or not isinstance(events, list)
+        or not isinstance(root, str)
+        or not root.strip()
+    ):
+        return {
+            "verdict": "BLOCKED",
+            "reason": "missing raw trace evidence",
+            "enforcement_scope": "observed-trace-only",
+        }
+    root = root.replace("\\", "/").rstrip("/") + "/"
+    by_id = {}
+    for item in sources:
+        if (
+            not isinstance(item, dict)
+            or not isinstance(item.get("id"), str)
+            or not item["id"]
+            or item["id"] in by_id
+        ):
+            gaps.append("missing or duplicate raw source identity")
+            continue
+        by_id[item["id"]] = item
+        if item.get("type") == "fileChange":
+            changes = item.get("changes")
+            if not isinstance(changes, list) or not changes:
+                gaps.append("file change has no target evidence")
+                continue
+            for change in changes:
+                path = change.get("path") if isinstance(change, dict) else None
+                if not isinstance(path, str) or not path.replace("\\", "/").startswith(
+                    root
+                ):
+                    gaps.append("file change outside observed project")
+                    continue
+                relative = path.replace("\\", "/")[len(root) :]
+                parts = relative.split("/")
+                if any(
+                    not part
+                    or part in {".", ".."}
+                    or part != part.rstrip(" .")
+                    or ":" in part
+                    for part in parts
+                ):
+                    gaps.append(
+                        "noncanonical raw target cannot establish governance-only writes"
+                    )
+                    continue
+                if parts[0] not in {"specs", "spec-governance"}:
+                    violations.append(
+                        {
+                            "source_ref": item["id"],
+                            "reason": "raw direct product write bypasses managed entrypoint",
+                            "path": path,
+                        }
+                    )
+        elif item.get("type") == "commandExecution":
+            # This bounded adapter does not parse arbitrary PowerShell/Python effects.
+            gaps.append(
+                "command effects require independently verified execution evidence: "
+                + item["id"]
+            )
+        elif item.get("type") not in {"userMessage", "agentMessage", "reasoning"}:
+            gaps.append("unsupported raw source type: " + str(item.get("type")))
+    refs = set()
+    positions = {ref: index for index, ref in enumerate(by_id)}
+    last_position = -1
+    for event in events:
+        if not isinstance(event, dict):
+            gaps.append("invalid normalized event")
+            continue
+        ref = event.get("source_ref")
+        source = by_id.get(ref) if isinstance(ref, str) else None
+        if source is None:
+            gaps.append("normalized event has no raw source")
+            continue
+        refs.add(ref)
+        if positions[ref] < last_position:
+            violations.append(
+                {
+                    "source_ref": ref,
+                    "reason": "normalized event order differs from raw source order",
+                }
+            )
+        last_position = positions[ref]
+        if (
+            event.get("kind")
+            in {"admission", "managed_write", "spec_saved", "context", "turn_start"}
+            and source.get("type") != "commandExecution"
+        ):
+            gaps.append("tool state cannot be attested by a non-tool source")
+        if event.get("kind") == "direct_write" and source.get("type") not in {
+            "fileChange",
+            "commandExecution",
+        }:
+            gaps.append("write observation requires a tool source")
+        if event.get("kind") == "reply" and (
+            source.get("type") != "agentMessage"
+            or event.get("text") != source.get("text")
+        ):
+            violations.append(
+                {"source_ref": ref, "reason": "reply differs from raw emitted message"}
+            )
+        if source.get("type") == "userMessage" and event.get("kind") not in {
+            "requirement",
+            "decision",
+            "pause",
+            "discussion_pause",
+        }:
+            gaps.append(
+                "raw user decisions require explicit semantic classification; they cannot attest tools or be discarded as reads"
+            )
+    if set(by_id) - refs:
+        gaps.append("unmapped raw sources")
+    normalized = (
+        audit_trace(events) if events else {"verdict": "BLOCKED", "violations": []}
+    )
+    violations.extend(normalized.get("violations", []))
+    return {
+        "verdict": "FAIL"
+        if violations
+        else "BLOCKED"
+        if gaps or normalized["verdict"] != "PASS"
+        else "PASS",
+        "violations": violations,
+        "missing_evidence": gaps,
+        "enforcement_scope": "observed-trace-only",
+        "evidence_trust": "caller-supplied-raw-records",
+    }
+
+
+def audit_trace(events: list[dict] | dict) -> dict:
     """Audit normalized observed tool events; missing evidence never proves compliance."""
+    if isinstance(events, dict):
+        return _audit_source_trace(events)
     authorized = False
     pending_spec = False
     turn = None
@@ -281,6 +427,14 @@ def audit_trace(events: list[dict]) -> dict:
                 )
             continue
         if kind == "reply":
+            if turn is not None and isinstance(observed.get("spec_presentation"), dict):
+                observed["spec_presentation"] = {
+                    **observed["spec_presentation"],
+                    "reply_text": event.get("text"),
+                    "stage": "emitted",
+                    "source_ref": event.get("source_ref"),
+                }
+                continue
             if turn is None or not isinstance(observed.get("presentation"), dict):
                 violations.append(
                     {"index": index, "reason": "reply missing question evidence"}
@@ -365,7 +519,12 @@ def audit_trace(events: list[dict]) -> dict:
             continue
         if kind == "proposal_presented":
             observed.update(
-                proposal_presented=True, presentation_ref=event.get("presentation_ref")
+                proposal_presented=True,
+                presentation_ref=event.get("presentation_ref"),
+                spec_presentation={**event["spec_presentation"], "stage": "prepared"}
+                if isinstance(event.get("spec_presentation"), dict)
+                else None,
+                execution=event.get("execution") if authorized else None,
             )
             continue
         if kind == "turn_end":

@@ -4,6 +4,18 @@ Add the personal Git Marketplace independently in ChatGPT Work web and Codex Des
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/ask-matt)
 
+## SPEC visibility and execution
+
+In every project, the agent establishes and presents the current SPEC before
+program changes. Each completed SPEC or reconfirmed revision appears in the reply
+with its ID, title, clickable canonical link, scope summary or revision delta, and
+authorization status. Opening a panel or saving a file is not a substitute.
+The agent waits for your explicit `開始執行`; choosing an option or adding a
+requirement does not authorize implementation. A later scope change returns to
+SPEC discussion and fresh authorization. SPEC writing may continue while product
+changes are paused. This shared plugin workflow does not require project reminders
+and does not claim to intercept arbitrary host tools.
+
 ## What it does
 
 `ask-matt` is the automatic router over the engineering skills in this repo. It assesses the repository state and risk, starts the canonical spec when work will modify the project, then sends the request into the required workflow.

@@ -557,11 +557,154 @@ class DiscussionCompletionTests(unittest.TestCase):
             spec.assess_discussion_completion(self.context(), stale)["can_end_turn"]
         )
 
+    def spec_reply(self):
+        self.reload()
+        ctx = self.context()
+        path = (
+            self.root / "specs" / f"{self.ref['spec_id']}-{self.ref['change_set']}.md"
+        )
+        text = path.read_text(encoding="utf-8")
+        title = next(line[2:] for line in text.splitlines() if line.startswith("# "))
+        summary = "Preserve accepted requirements and require explicit execution."
+        return {
+            "spec_id": self.ref["spec_id"],
+            "revision": self.ref["revision"],
+            "snapshot_hash": ctx["working_spec"]["snapshot_hash"],
+            "summary": summary,
+            "status": "awaiting-authorization",
+            "source_ref": "fixture-visible-reply",
+            "stage": "emitted",
+            "reply_text": f"[{self.ref['spec_id']}: {title}](<{path.as_posix()}>)\n\n{summary}\n\nSPEC 已完成，等待「開始執行」。",
+        }
+
+    def test_completed_spec_requires_visible_current_link_summary_and_status(self):
+        self.materialize()
+        good = self.spec_reply()
+        self.assertFalse(
+            self.finish(proposal_presented=True, presentation_ref="panel-only")[
+                "can_end_turn"
+            ]
+        )
+        for changes in (
+            {"reply_text": "SPEC 已完成"},
+            {"reply_text": good["reply_text"].replace("](", "\\](")},
+            {"reply_text": "<section hidden>" + good["reply_text"] + "</section>"},
+            {"reply_text": good["reply_text"].replace("[", "\\[")},
+            {"reply_text": "<!--" + good["reply_text"] + "-->"},
+            {
+                "reply_text": "\n".join(
+                    "    " + line for line in good["reply_text"].splitlines()
+                )
+            },
+            {"reply_text": "<div hidden>" + good["reply_text"] + "</div>"},
+            {"reply_text": good["reply_text"].replace("[", "").replace("]", "")},
+            {"reply_text": good["reply_text"].replace(good["summary"], "")},
+            {
+                "reply_text": good["reply_text"].replace(
+                    "SPEC 已完成，等待「開始執行」。", ""
+                )
+            },
+            {"revision": 999},
+            {"snapshot_hash": "old"},
+            {"stage": "prepared"},
+            {"source_ref": ""},
+            {"status": "executing"},
+        ):
+            with self.subTest(changes=changes):
+                self.assertFalse(
+                    self.finish(
+                        proposal_presented=True,
+                        presentation_ref="reply",
+                        spec_presentation=good | changes,
+                    )["can_end_turn"]
+                )
+        self.assertTrue(
+            self.finish(
+                proposal_presented=True,
+                presentation_ref="reply",
+                spec_presentation=good,
+            )["can_end_turn"]
+        )
+
+    def test_spec_link_with_space_requires_angle_destination(self):
+        self.materialize()
+        evidence = self.spec_reply()
+        context = self.context()
+        original = context["spec_presentation"]["path"]
+        spaced = original.replace("/specs/", "/space in path/specs/")
+        context["spec_presentation"]["path"] = spaced
+        evidence["reply_text"] = evidence["reply_text"].replace(original, spaced)
+        observation = self.observed(
+            proposal_presented=True,
+            presentation_ref="reply",
+            spec_presentation=evidence,
+        )
+        self.assertTrue(
+            spec.assess_discussion_completion(context, observation)["can_end_turn"]
+        )
+        evidence["reply_text"] = (
+            evidence["reply_text"].replace("(<", "(").replace(">)", ")")
+        )
+        self.assertFalse(
+            spec.assess_discussion_completion(context, observation)["can_end_turn"]
+        )
+
+    def test_visible_spec_can_report_current_authorization_without_reasking(self):
+        from managed_delivery import execute_request
+
+        self.materialize()
+        evidence = self.spec_reply()
+        base = {
+            "task_ref": "task-A",
+            "working_reference": self.wid,
+            "spec": f"specs/{self.ref['spec_id']}-{self.ref['change_set']}.md",
+        }
+        result = execute_request(
+            self.root,
+            base
+            | {
+                "operation": "authorize",
+                "instruction": "開始執行",
+                "source_event_id": "synthetic-fixture-start",
+                "expected_hash": hashlib.sha256(
+                    (self.root / base["spec"]).read_bytes()
+                ).hexdigest(),
+            },
+        )
+        self.assertEqual("PASS", result["verdict"])
+        status = execute_request(self.root, base | {"operation": "status"})
+        evidence["status"] = "executing"
+        evidence["reply_text"] = evidence["reply_text"].replace(
+            "等待「開始執行」", "已取得本次「開始執行」授權"
+        )
+        assessment = self.finish(
+            proposal_presented=True,
+            presentation_ref="reply",
+            spec_presentation=evidence,
+            execution=status,
+        )
+        self.assertTrue(assessment["can_end_turn"])
+        self.assertEqual("continue-authorized-execution", assessment["next_action"])
+        self.assertFalse(assessment["product_code_allowed"])
+        status["binding"]["task_ref"] = "another-task"
+        self.assertFalse(
+            self.finish(
+                proposal_presented=True,
+                presentation_ref="reply",
+                spec_presentation=evidence,
+                execution=status,
+            )["can_end_turn"]
+        )
+
     def test_completed_decisions_require_materialized_presented_proposal(self):
         self.assertEqual("materialize", self.finish()["next_action"])
         self.materialize()
         self.assertFalse(self.finish()["can_end_turn"])
-        r = self.finish(proposal_presented=True, presentation_ref="message-2")
+        r = self.finish(
+            proposal_presented=True,
+            presentation_ref="message-2",
+            spec_presentation=self.spec_reply(),
+        )
         self.assertEqual("await-execution-authorization", r["next_action"])
         self.assertTrue(r["can_end_turn"])
         self.assertFalse(r["product_code_allowed"])

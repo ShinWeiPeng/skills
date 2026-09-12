@@ -415,6 +415,22 @@ def assess_turn_context(
         else {}
     )
     context = {
+        "spec_presentation": {
+            "spec_id": working["spec_id"],
+            "title": next(
+                (
+                    line[2:].strip()
+                    for line in text.splitlines()
+                    if line.startswith("# ")
+                ),
+                "",
+            ),
+            "path": canonical_path.resolve().as_posix(),
+            "revision": working["revision"],
+            "snapshot_hash": working["snapshot_hash"],
+        }
+        if canonical_path.is_file()
+        else None,
         "canonical_revision": canonical_metadata.get("revision"),
         "canonical_status": canonical_metadata.get("status"),
         "project_root": str(project_root.resolve()),
@@ -442,6 +458,86 @@ def assess_turn_context(
         context, {"working_spec": working, "project_root": context["project_root"]}
     )
     return context
+
+
+def _spec_reply_matches(context: dict, observation: dict) -> bool:
+    """Validate an emitted reply, not a panel-open or a caller's presented flag."""
+    expected = context.get("spec_presentation")
+    evidence = observation.get("spec_presentation")
+    if not isinstance(expected, dict) or not isinstance(evidence, dict):
+        return False
+    if (
+        evidence.get("stage") != "emitted"
+        or not isinstance(evidence.get("source_ref"), str)
+        or not evidence["source_ref"].strip()
+    ):
+        return False
+    if any(
+        evidence.get(key) != expected.get(key)
+        for key in ("spec_id", "revision", "snapshot_hash")
+    ):
+        return False
+    reply = evidence.get("reply_text")
+    summary = evidence.get("summary")
+    if (
+        not isinstance(reply, str)
+        or not isinstance(summary, str)
+        or not summary.strip()
+    ):
+        return False
+    # Code examples cannot establish an actually rendered clickable specification.
+    visible = re.sub(r"(?ms)^\s*(```|~~~).*?^\s*\1[^\n]*$", "", reply)
+    visible = re.sub(r"(?s)<!--.*?-->", "", visible)
+    visible = re.sub(r"(?m)^(?: {4}|\t).*?$", "", visible)
+    visible = re.sub(
+        r"(?is)<(div|pre|details|script|style)\b[^>]*>.*?</\1\s*>", "", visible
+    )
+    visible = re.sub(r"`[^`\n]*`", "", visible)
+    if re.search(r"</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*|/?)>", visible):
+        return False
+    links = [
+        (label, angle or bare)
+        for label, angle, bare in re.findall(
+            r"(?<![!\\])\[([^]\n]+?)(?<!\\)\]\((?:<([^<>\n]+)>|([^\s<>()]+))\)", visible
+        )
+    ]
+    if not any(
+        expected.get("spec_id", "") in label
+        and expected.get("title", "") in label
+        and target == expected.get("path")
+        for label, target in links
+    ):
+        return False
+    if summary.strip() not in visible:
+        return False
+    execution = observation.get("execution")
+    if (
+        isinstance(execution, dict)
+        and execution.get("verdict") == "PASS"
+        and execution.get("product_code_allowed") is True
+    ):
+        binding = execution.get("binding")
+        working = context["working_spec"]
+        if not isinstance(binding, dict) or any(
+            binding.get(k) != v
+            for k, v in {
+                "project_root": context["project_root"],
+                "task_ref": working["task_ref"],
+                "working_id": working["working_id"],
+                "snapshot_hash": working["snapshot_hash"],
+            }.items()
+        ):
+            return False
+        return (
+            evidence.get("status") == "executing"
+            and "SPEC 已完成，已取得本次「開始執行」授權" in visible
+            and "等待「開始執行」" not in visible
+        )
+    return (
+        evidence.get("status") == "awaiting-authorization"
+        and "SPEC 已完成，等待「開始執行」" in visible
+        and "已取得本次「開始執行」授權" not in visible
+    )
 
 
 def assess_discussion_completion(
@@ -591,15 +687,23 @@ def assess_discussion_completion(
         or context.get("canonical_matches") is not True
     ):
         return result | {"next_action": "materialize"}
-    if observation.get("proposal_presented") is True and has_text(
-        observation, ("presentation_ref",)
+    if (
+        observation.get("proposal_presented") is True
+        and has_text(observation, ("presentation_ref",))
+        and _spec_reply_matches(context, observation)
     ):
         return result | {
             "verdict": "PASS",
             "can_end_turn": True,
-            "next_action": "await-execution-authorization",
+            "next_action": "continue-authorized-execution"
+            if observation["spec_presentation"]["status"] == "executing"
+            else "await-execution-authorization",
+            "delivery_verified": True,
         }
-    return result | {"next_action": "present-confirmed-proposal"}
+    return result | {
+        "next_action": "present-confirmed-proposal",
+        "reason": "emit current SPEC ID, title, clickable link, summary and authorization status in the reply",
+    }
 
 
 def finish_discussion_turn(

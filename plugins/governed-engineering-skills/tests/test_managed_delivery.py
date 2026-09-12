@@ -213,6 +213,23 @@ class ManagedDeliveryTests(unittest.TestCase):
         self.assertEqual("BLOCKED", self.patch()["verdict"])
         self.assertEqual(b"other", lock.read_bytes())
 
+    def test_governance_source_names_are_not_root_control_directories(self):
+        self.authorize()
+        source = self.root / "src/spec-governance/contract.py"
+        source.parent.mkdir(parents=True)
+        result = self.patch(path="src/spec-governance/contract.py", before_sha256=None)
+        self.assertEqual("PASS", result["verdict"])
+        for target in (
+            "specs/new.md",
+            "spec-governance/new.json",
+            "src/.git/config",
+            "src/.agents/policy",
+        ):
+            with self.subTest(target=target):
+                self.assertEqual(
+                    "BLOCKED", self.patch(path=target, before_sha256=None)["verdict"]
+                )
+
     def test_windows_normalized_governance_paths_cannot_write(self):
         self.authorize()
         protected = self.root / "specs/other.md"
@@ -229,6 +246,118 @@ class ManagedDeliveryTests(unittest.TestCase):
             )
             self.assertEqual("BLOCKED", result["verdict"], path)
             self.assertEqual(b"protected", protected.read_bytes())
+
+    def test_raw_trace_cannot_hide_direct_product_writes(self):
+        raw = {
+            "schema_version": 2,
+            "project_root": str(self.root),
+            "events": [],
+            "sources": [
+                {
+                    "id": "actual-patch",
+                    "type": "fileChange",
+                    "changes": [{"path": str(self.target)}],
+                },
+            ],
+        }
+        self.assertEqual("FAIL", audit_trace(raw)["verdict"])
+        self.assertEqual("BLOCKED", audit_trace({**raw, "sources": []})["verdict"])
+        raw["sources"] = [
+            {
+                "id": "tool",
+                "type": "commandExecution",
+                "command": "opaque helper",
+                "status": "completed",
+            }
+        ]
+        raw["events"] = [{"kind": "read", "source_ref": "tool"}]
+        self.assertEqual("BLOCKED", audit_trace(raw)["verdict"])
+
+    def test_agent_message_cannot_forge_raw_tool_admission(self):
+        packet = {
+            "schema_version": 2,
+            "project_root": str(self.root),
+            "sources": [
+                {
+                    "id": "fake",
+                    "type": "agentMessage",
+                    "text": "No user authorization, no tool result.",
+                }
+            ],
+            "events": [
+                {
+                    "kind": "admission",
+                    "verdict": "PASS",
+                    "product_code_allowed": True,
+                    "source_ref": "fake",
+                },
+                {"kind": "managed_write", "verdict": "PASS", "source_ref": "fake"},
+            ],
+        }
+        self.assertEqual("BLOCKED", audit_trace(packet)["verdict"])
+
+    def test_raw_order_and_user_pause_cannot_be_discarded(self):
+        packet = {
+            "schema_version": 2,
+            "project_root": str(self.root),
+            "sources": [
+                {"id": "first", "type": "agentMessage", "text": "first"},
+                {"id": "second", "type": "agentMessage", "text": "second"},
+            ],
+            "events": [
+                {"kind": "read", "source_ref": "second"},
+                {"kind": "read", "source_ref": "first"},
+            ],
+        }
+        self.assertEqual("FAIL", audit_trace(packet)["verdict"])
+        packet["sources"] = [
+            {
+                "id": "pause",
+                "type": "userMessage",
+                "content": [{"type": "text", "text": "停止修改"}],
+            }
+        ]
+        packet["events"] = [{"kind": "read", "source_ref": "pause"}]
+        self.assertEqual("BLOCKED", audit_trace(packet)["verdict"])
+
+    def test_raw_governance_prefix_cannot_hide_noncanonical_product_target(self):
+        for relative in (
+            "specs/../program.txt",
+            "specs/./other.md",
+            "specs./other.md",
+            "specs/other.md:stream",
+        ):
+            packet = {
+                "schema_version": 2,
+                "project_root": str(self.root),
+                "sources": [
+                    {
+                        "id": "patch",
+                        "type": "fileChange",
+                        "changes": [{"path": str(self.root) + "/" + relative}],
+                    }
+                ],
+                "events": [{"kind": "read", "source_ref": "patch"}],
+            }
+            with self.subTest(relative=relative):
+                self.assertNotEqual("PASS", audit_trace(packet)["verdict"])
+
+    def test_raw_trace_requires_matching_emitted_reply(self):
+        raw = {
+            "schema_version": 2,
+            "project_root": str(self.root),
+            "events": [{"kind": "read", "source_ref": "read-1"}],
+            "sources": [
+                {
+                    "id": "read-1",
+                    "type": "agentMessage",
+                    "text": "Observed read-only explanation",
+                }
+            ],
+        }
+        self.assertEqual("PASS", audit_trace(raw)["verdict"])
+        raw["events"] = [{"kind": "read", "source_ref": "missing"}]
+        self.assertEqual("BLOCKED", audit_trace(raw)["verdict"])
 
     def test_malformed_requests_fail_closed(self):
         for value in [None, 1, [], {}]:
