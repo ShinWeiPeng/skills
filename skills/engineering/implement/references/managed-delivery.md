@@ -102,6 +102,39 @@ write entrypoint. For build, test, Git, deployment and device operations, inspec
 current managed `status` in a separate invocation and also enforce their existing
 operation-specific authorization. This writer does not execute arbitrary commands.
 
+## Completed SPEC reply evidence
+
+After every materialization or reconfirmation, obtain `turn-context` and use its
+`spec_presentation` identity (ID, title, absolute path, revision and snapshot hash).
+The observed `spec_presentation` adds `summary`, `status` (`awaiting-authorization`
+or `executing`), `stage: emitted`, actual reply `source_ref` and `reply_text`.
+The reply contains a rendered Markdown link whose label includes ID and title,
+the nonempty summary/delta, and the exact appropriate status sentence from ask-matt.
+Do not put the evidence inside code blocks, HTML or comments. Completion verifies
+this content rather than accepting a presented flag. Executing status additionally
+requires current successful managed status evidence and its matching binding.
+It never grants permission itself.
+
+Normalized `proposal_presented` events carry `spec_presentation`; a separate
+`reply` supplies the actually emitted text and source reference. A prepared event
+cannot claim delivery. Reloading context invalidates earlier presentation.
+
+`--audit-trace` also accepts a version 2 object with `schema_version: 2`,
+`project_root`, normalized `events` (each with `source_ref`), and raw desktop
+`sources` (each with the original item `id` and `type`). Preserve the original
+userMessage, agentMessage, fileChange and commandExecution items. The auditor
+cross-checks source coverage and emitted replies, and independently detects raw
+direct product file changes even when normalization omits them. Opaque command
+effects and incomplete raw evidence are BLOCKED; observed violations are FAIL.
+The bounded adapter does not prove arbitrary shell commands safe. Legacy lists
+remain normalized-only evidence, never proof of raw trace coverage. Source records
+are caller-supplied, not authenticated host events. Retain hashes and provenance.
+
+Managed product protection covers root `specs/` and `spec-governance/`, plus
+`.git`, `.codex` and `.agents` at every depth. Ordinary nested source directories
+with governance-related names are not this project's control store. Existing
+canonical-target, traversal, symlink, junction and shared-file checks remain.
+
 ## Evidence and honest limits
 
 `--audit-trace <json>` checks a normalized, observed event list: `requirement`,

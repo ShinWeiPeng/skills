@@ -348,7 +348,7 @@ modules:
   description:
     purpose: Persist and reconcile engineering discussion into one canonical change-set
       specification, materialize it when decision-complete, and verify traceability
-      before implementation.
+      before implementation. Verify the emitted completed-SPEC link, summary and authorization status.
     diagram_summaries:
       zh-TW: 規格保存、調和、具體化與追溯驗證
     input_ports:
@@ -387,6 +387,7 @@ modules:
     - Versioned pending questions survive timeout and mode changes without a deadline.
     - Only an explicit matching answer with a new DISC record clears a pending question.
     - Specification lifecycle writes never authorize product, Git, or external mutations.
+    - Every completed specification is presented in the emitted reply with its current ID, title, canonical link, summary and authorization state.
     - Confirmed specifications have unique stable IDs, resolved relations, no open decisions,
         and at least one acceptance criterion per requirement.
     - Confirmed unimplemented specifications reopen in place before a possible contract
