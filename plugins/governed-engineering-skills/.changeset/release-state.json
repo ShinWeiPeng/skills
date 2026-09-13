@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.13.0",
-  "previous_version": "0.12.0",
+  "current_version": "0.14.0",
+  "previous_version": "0.13.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:5b88e8cf0433be55a56c6858309463c21d4aac25bbf83da7063559c027d977ba",
+  "production_fingerprint": "sha256:9d4ffa5a7b45443803286faaabd7ca88e2401dbd9831ba04eac2fca2f63695b3",
   "applied_changesets": [
-    "mode-aware-question-presentation"
+    "universal-spec-execution-boundary"
   ]
 }

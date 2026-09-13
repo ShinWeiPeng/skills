@@ -1,5 +1,16 @@
 # Governed Engineering Skills
 
+## 0.14.0
+
+### Changed
+
+- Require visible current SPEC presentation and explicit scope-bound execution across projects.
+
+### Fixed
+
+- Reject hidden or missing SPEC reply evidence and audit unreported direct product writes.
+- Allow ordinary nested governance source folders while preserving project control paths.
+
 ## 0.13.0
 
 ### Added
