@@ -1,0 +1,32 @@
+{
+  "name": "governed-engineering-skills",
+  "version": "0.14.0",
+  "description": "Automatically route software-engineering work through evidence-backed interviewing, delivery, architecture, and runtime governance.",
+  "author": {
+    "name": "Hugo Peng"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Governed Engineering Skills",
+    "shortDescription": "Automatically govern every engineering workflow.",
+    "longDescription": "A Codex Desktop and CLI engineering and productivity Skill bundle with automatic routing plus repository, architecture, code-flow, and runtime-evidence governance.",
+    "developerName": "Hugo Peng",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Automatically use $ask-matt for every software-engineering request; never require the user to know a skill name.",
+      "Explore repository facts read-only, classify intent and dual-axis ProjectState, then apply $engineering-risk-routing gates.",
+      "Reassess every user turn and reroute with unresolved-decision evidence before any active skill asks a repository-modifying design or specification question.",
+      "Before each question, apply ask-matt decision-question-contract and spec-governance question-policy using current host instructions. Default/execution mode must not invoke menu tools, including request_user_input_async or request_user_input, even when available. Use numbered text only when permitted; otherwise persist and ask one concise open text question. Only already-active Plan may use a permitted menu. Never switch modes or treat timeout as an answer.",
+      "During governed grilling, persist the working bundle after every answer and materialize a decision-complete canonical spec without treating either write as product execution authorization.",
+      "Require the user's exact 開始執行 authorization before product source, tests, configuration, non-spec governance artifacts, generated files, Git, or external actions; then verify the confirmed spec before implementation.",
+      "After spec verification, apply $formatter-governance with the original ProjectState evidence and stop product-code mutation until its applicable formatter gate passes.",
+      "Use $verification-ladder when module-contract claims span host, target, hardware, or soak environments; delegate selected device execution to $validate-on-device.",
+      "When a canonical SPEC triggers full-program formatting, require one affirmative confirmation, a clean product-and-test target scope, deterministic CLI write/check evidence, and native authorization for any missing formatter installation.",
+      "Enforce governance from this plugin's bundled contracts without requiring or modifying a user-global AGENTS.md."
+    ]
+  }
+}

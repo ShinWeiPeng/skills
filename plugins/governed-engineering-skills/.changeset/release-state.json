@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0",
+  "current_version": "0.14.0",
+  "previous_version": "0.13.0",
+  "bump": "minor",
+  "production_fingerprint": "sha256:99f7d3dc1211c7cdc014f4c0660375bdcd8f2699e4adb45e35eefc68ffe81fe3",
+  "applied_changesets": [
+    "universal-spec-execution-boundary"
+  ]
+}
