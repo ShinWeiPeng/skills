@@ -23,11 +23,14 @@ flowchart TD
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>以穩定語意版本治理唯一外掛發佈單元"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>透過單一命令列介面執行架構治理與原生分析"]
     n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang 工具鏈"]
+    n_project_validation_adapter["project_validation_adapter (L3+)<br/>呼叫專案驗證工具並回傳可追溯結果"]
+    n_project_validation_composition["project_validation_composition (L0)<br/>在入口注入專案驗證工具"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
     n_guided_workflow_router -.->|depends| n_repository_evidence_adapter
+    n_guided_workflow_router -.->|depends| n_project_validation_adapter
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
@@ -51,6 +54,9 @@ flowchart TD
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
     n_libclang_toolchain_adapter -.->|depends| n_governance_workflow_domain
+    n_project_validation_adapter -.->|depends| n_spec_governance_domain
+    n_project_validation_composition -.->|depends| n_delivery_workflow_domain
+    n_project_validation_composition -.->|depends| n_project_validation_adapter
 ```
 
 ## Modules
@@ -76,6 +82,8 @@ flowchart TD
 | `plugin_release_governance_technical` | L3+ | technical | `-` | implemented | Validate and release the repository's only release unit through continuous stable-only SemVer. |
 | `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. |
 | `libclang_toolchain_adapter` | L3+ | adapter | `-` | implemented | Provision and verify the official lock-pinned Espressif libclang distribution for target-capable C/C++ governance. |
+| `project_validation_adapter` | L3+ | adapter | `-` | implemented | Invoke the selected verification-ladder JSON CLI with bounded execution and return project validation facts without device actions. |
+| `project_validation_composition` | L0 | composition | `-` | implemented | Inject the project validation adapter into existing specification and delivery public CLIs. |
 
 ### `guided_workflow_router`
 
@@ -143,14 +151,14 @@ flowchart TD
 - **Parent:** `delivery_workflow_domain`
 - **Implementation Status:** `implemented`
 - **Input Ports:** `spec-governance.start`, `spec-governance.reconcile`, `spec-governance.materialize`, `spec-governance.reopen`, `spec-governance.prepare-commit`, `spec-governance.verify`
-- **Output Ports:** `spec-governance.result`
+- **Output Ports:** `spec-governance.result`, `project-validation.assess`
 - **Emitted Events:** `spec-governance.blocked`
 - **Owned State:** None
 - **Side Effects:** Persist project and task scoped execution receipts; suspend product authority independently of SPEC discussion. (`-`); Atomically persist one local project-root WORKING-SPEC Markdown snapshot with structured, visibly redacted Discussion Context and append its normalized journal without transcript or hidden-reasoning prose. (`-`); Materialize one decision-complete canonical specification under specs/. (`-`)
 - **Errors:** `specification_unresolved`: Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → `spec-governance.blocked` → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.; `stale_working_spec`: The caller's expected revision or snapshot hash does not match the persisted working specification. → `spec-governance.blocked` → Preserve the persisted snapshot, reload it, and reconcile the answer again without allocating replacement IDs.
 - **Invariants:** Every answered decision is persisted before the next decision question.; Versioned pending questions survive timeout and mode changes without a deadline.; Only an explicit matching answer with a new DISC record clears a pending question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Every completed specification is presented in the emitted reply with its current ID, title, canonical link, summary and authorization state.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.
 - **Entrypoints:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (cli)<br>[`assess_turn_context`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`assess_discussion_completion`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`finish_discussion_turn`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`record_question`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`question_surface_policy`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`update_question`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`pending_decision`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`execution_binding`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`read_execution_state`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`write_execution_state`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)
-- **Public Symbols:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`assess_turn_context`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`assess_discussion_completion`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`finish_discussion_turn`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`record_question`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`question_surface_policy`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`update_question`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`pending_decision`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`execution_binding`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`read_execution_state`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`write_execution_state`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)
+- **Public Symbols:** [`spec-governance`](../../skills/engineering/spec-governance/SKILL.md) (skill)<br>[`main`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`assess_turn_context`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`assess_discussion_completion`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`finish_discussion_turn`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`record_question`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`question_surface_policy`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`update_question`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`pending_decision`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)<br>[`execution_binding`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`read_execution_state`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`write_execution_state`](../../skills/engineering/spec-governance/scripts/execution_state.py) (function)<br>[`assess_spec_evidence_update`](../../skills/engineering/spec-governance/scripts/spec_contract.py) (function)
 
 ### `formatter_governance_domain`
 
@@ -194,8 +202,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
-- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
-- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
+- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`main`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (cli)
+- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`assess_project`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (function)
 
 ### `codex_plugin_adapter`
 
@@ -362,6 +370,36 @@ flowchart TD
 - **Entrypoints:** [`EspressifLibclangToolchainAdapter`](../../skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py) (class)
 - **Public Symbols:** [`EspressifLibclangToolchainAdapter`](../../skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py) (class)
 
+### `project_validation_adapter`
+
+- **Purpose:** Invoke the selected verification-ladder JSON CLI with bounded execution and return project validation facts without device actions.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** None
+- **Errors:** None
+- **Invariants:** Never operate devices or convert incomplete evidence into PASS.
+- **Entrypoints:** [`assess_project_validation`](../../skills/engineering/implement/scripts/project_validation_adapter.py) (function)
+- **Public Symbols:** [`assess_project_validation`](../../skills/engineering/implement/scripts/project_validation_adapter.py) (function)
+
+### `project_validation_composition`
+
+- **Purpose:** Inject the project validation adapter into existing specification and delivery public CLIs.
+- **Parent:** `-`
+- **Implementation Status:** `implemented`
+- **Input Ports:** None
+- **Output Ports:** None
+- **Emitted Events:** None
+- **Owned State:** None
+- **Side Effects:** None
+- **Errors:** None
+- **Invariants:** Functional consumers receive the demand-owned validation callable; they never construct the technical adapter.
+- **Entrypoints:** [`main`](../../skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
+- **Public Symbols:** [`main`](../../skills/engineering/implement/scripts/project_validation_workflow.py) (function)
+
 ## Port Contracts
 
 | ID | Owner | Direction | Kind | Timing | Description | Symbols |
@@ -393,6 +431,7 @@ flowchart TD
 | `spec-governance.result` | `spec_governance_domain` | output | event | sync | Publish one specification lifecycle result to the delivery parent.: Consistency or traceability verdict with canonical specification identity. | `spec-governance` |
 | `delivery-workflow.result` | `delivery_workflow_domain` | output | event | sync | Publish delivery failures that preserve a valid canonical specification.: Canonical specification identity and the pending external delivery action. | `implement` |
 | `libclang_toolchain.resolve` | `governance_workflow_domain` | output | query | sync | Resolve, bind, and verify one lock-pinned target-capable libclang provider.: Toolchain lock and operation mode produce immutable provider evidence or fail-closed CAST diagnostics. | `LibclangToolchainPort` |
+| `project-validation.assess` | `spec_governance_domain` | output | query | sync | Assess project planning or completion before recording acceptance.: Project root, canonical SPEC and phase produce a validation verdict with source hashes and diagnostics. | `assess_spec_evidence_update` |
 
 ## Event Contracts
 

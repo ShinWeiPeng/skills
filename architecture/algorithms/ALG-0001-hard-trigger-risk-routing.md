@@ -76,3 +76,7 @@ Substring terms can overmatch ordinary language. Review false positives during f
 - Approver: pending human review
 - Approval date: pending
 - Approval reference: pending
+
+## SPEC-0027 project context and completion extension
+
+Proposed extension authorized for implementation by the user in the SPEC-0027 task: combine prompt-derived gates with fresh project-policy and AC-plan obligations by deterministic union. Preserve canonical layer order and existing evidence authority. Bind saved plans and results to SPEC, policy, profile and skill inputs; reject missing, stale, unknown or lower-authority evidence at completion and before AC PASS writes. Candidate alternatives were reminder-only instructions and blanket HIL; both fail the scoped enforcement contract. Exact host fixture verdicts, short-command routing and lifecycle bypass tests provide validation; no timing-performance claim is made. Existing algorithm acceptance metadata is not expanded to claim independent approval of this extension.

@@ -1,0 +1,678 @@
+{
+  "schema_version": 1,
+  "plan_sha256": "c453bf63fca82182235b8f412d9a5446607d663883eecffad63d3a6de6d5adae",
+  "results": [
+    {
+      "ac": "AC-001",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-001",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-002",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-002",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-003",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-003",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-004",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-004",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-005",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-005",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-006",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-006",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-007",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-007",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-008",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    },
+    {
+      "ac": "AC-008",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "PASS",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "validation/spec0027/ladder.log",
+          "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965"
+        },
+        {
+          "path": "validation/spec0027/plugin-tests.log",
+          "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437"
+        },
+        {
+          "path": "validation/spec0027/distribution.log",
+          "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa"
+        },
+        {
+          "path": "validation/spec0027/integration.log",
+          "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42"
+        },
+        {
+          "path": "validation/spec0027/release-gate.log",
+          "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c"
+        },
+        {
+          "path": "validation/spec0027/development.log",
+          "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b"
+        },
+        {
+          "path": "validation/spec0027/assemble.log",
+          "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d"
+        },
+        {
+          "path": "validation/spec0027-report.md",
+          "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0"
+        }
+      ]
+    }
+  ]
+}

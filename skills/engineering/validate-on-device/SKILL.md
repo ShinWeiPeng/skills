@@ -74,3 +74,7 @@ Write under `.codex/evidence/on-device/<run-id>/` and include the raw evidence h
 ## Respect architecture governance
 
 This Skill's runner is governed by its own standard/schema 1.1 manifest. For a target project governed by `$govern-modular-event-architecture`, profile 1.0 references Flow, Module, Port, or Event; profile 1.1 may additionally reference Workload, Execution Profile/Unit/Channel, Data Access Profile, or Microarchitecture Profile and must bind the manifest SHA-256. Keep test parsers and test wiring out of release composition roots.
+
+## Project validation obligations
+
+Project-bound acceptance consumes the existing runner result plus hashed source artifacts, scenario identity, execution profile and build identity through verification-ladder project validation. Preserve enablement prerequisites and separate acceptance from smoke/release. No routing or planning result authorizes flash/reset/serial operations. Missing capability or permission remains BLOCKED, never an exemption.

@@ -74,3 +74,7 @@ the canonical spec revision to `implemented` and append the evidence. Standalone
 code review remains read-only and never performs this lifecycle mutation.
 
 Commit only when the user or repository instructions explicitly authorize a commit. Otherwise report the completed diff and validation evidence without committing.
+
+## Project validation obligations
+
+Managed admission now verifies project planning and enablement. Prepare `validation/acceptance-SPEC-####.json` and save its bound plan through verification-ladder before product work in a governed project. Final HIL evidence is not required to perform authorized implementation that produces it. Before reporting overall acceptance, call managed `complete` with phase `acceptance`; release requires a separate `release` assessment. Preserve partial host PASS while missing necessary evidence keeps overall acceptance BLOCKED.

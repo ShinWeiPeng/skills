@@ -16,6 +16,71 @@ from pathlib import Path
 from typing import Any, Callable
 
 
+def assess_project_validation(
+    project_root,
+    spec=None,
+    *,
+    phase="planning",
+    candidate_text=None,
+    validation_assessor=None,
+):
+    """Demand-side validation seam; composition supplies the external adapter."""
+    if validation_assessor is not None:
+        return validation_assessor(
+            project_root, spec, phase=phase, candidate_text=candidate_text
+        )
+    root = Path(project_root)
+    try:
+        markers = [
+            root / "architecture/adoption.yaml",
+            root / "architecture/manifest.yaml",
+            root / "validation/verification-ladder.yaml",
+            root / "validation/on-device.yaml",
+        ]
+        governed = any(p.exists() or p.is_symlink() for p in markers) or any(
+            (root / "validation").glob("acceptance-*.json")
+        )
+    except OSError:
+        governed = True
+    if governed:
+        return {
+            "verdict": "BLOCKED",
+            "required_gates": ["verification-ladder"],
+            "errors": [
+                "Project validation assessor is required. Use project_validation_workflow.py spec|managed|admission -- <existing CLI arguments>."
+            ],
+            "device_actions_authorized": False,
+        }
+    return {
+        "verdict": "PASS",
+        "required_gates": [],
+        "errors": [],
+        "reason": "Legacy host project declares no validation governance.",
+    }
+
+
+def assess_spec_evidence_update(
+    project_root: Path, text: str, validation_assessor=None
+) -> dict:
+    """Treat prose PASS as a request for assessment, never as proof of acceptance."""
+    metadata, _ = _metadata(text)
+    acceptance = _table(_sections(text).get("acceptance criteria", ""))
+    requested = metadata.get("status") == "implemented" or any(
+        re.search(r"\bPASS\b", _field(row, "Evidence"), re.IGNORECASE)
+        for row in acceptance
+    )
+    if not requested:
+        return {"verdict": "PASS", "reason": "no acceptance claim recorded"}
+    relative = f"specs/{metadata.get('spec_id')}-{metadata.get('change_set')}.md"
+    return assess_project_validation(
+        project_root,
+        relative,
+        phase="acceptance",
+        candidate_text=text,
+        validation_assessor=validation_assessor,
+    )
+
+
 SPEC_ID_RE = re.compile(r"^SPEC-(\d{4})$")
 ITEM_ID_RE = re.compile(r"^(REQ|DEC|AC)-(\d{3})$")
 DISCUSSION_ID_RE = re.compile(r"^DISC-(\d{3})$")
@@ -274,6 +339,7 @@ def update_question(
     *,
     expected_revision: int,
     expected_hash: str,
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Record presentation feedback or explicitly version alternatives; never answer them."""
     resolved = resolve_working_bundle(project_root, reference=working_id)
@@ -295,6 +361,7 @@ def update_question(
         expected_revision=expected_revision,
         expected_hash=expected_hash,
         question_update=request,
+        validation_assessor=validation_assessor,
     )
 
 
@@ -728,6 +795,7 @@ def record_question(
     expected_revision: int,
     expected_hash: str,
     question_kind: str = "choice",
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Persist options before presentation, without a deadline or mode dependency."""
     if question_kind not in ("choice", "open-text"):
@@ -768,6 +836,7 @@ def record_question(
         {},
         expected_revision=expected_revision,
         expected_hash=expected_hash,
+        validation_assessor=validation_assessor,
     )
 
 
@@ -1899,6 +1968,7 @@ def reconcile_working_bundle(
     question_version: int | None = None,
     answer: str | None = None,
     question_update: dict[str, Any] | None = None,
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Persist a complete next snapshot with optimistic revision/hash checks."""
     if not (
@@ -2026,6 +2096,15 @@ def reconcile_working_bundle(
                 "reason": "confirmed decisions must be superseded, not rewritten",
                 "errors": replacement_errors,
             }
+    evidence = assess_spec_evidence_update(
+        project_root, rendered, validation_assessor=validation_assessor
+    )
+    if evidence["verdict"] != "PASS":
+        return {
+            "verdict": evidence["verdict"],
+            "reason": "acceptance evidence is insufficient",
+            "validation": evidence,
+        }
     consistency = _snapshot_consistency(current, rendered)
     delta = consistency["delta"]
     relationships = consistency["relationships"]
@@ -2146,6 +2225,7 @@ def materialize_spec(
     text: str,
     *,
     authorized: bool | None = None,
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Write one decision-complete canonical spec without product authorization."""
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
@@ -2189,6 +2269,15 @@ def materialize_spec(
     specs_dir.mkdir(parents=True, exist_ok=True)
     relative = Path("specs") / f"{spec_id}-{slug}.md"
     destination = project_root / relative
+    evidence = assess_spec_evidence_update(
+        project_root, rendered, validation_assessor=validation_assessor
+    )
+    if evidence["verdict"] != "PASS":
+        return {
+            "verdict": evidence["verdict"],
+            "reason": "acceptance evidence is insufficient",
+            "validation": evidence,
+        }
     _atomic_write(destination, rendered)
     reference = assessment["canonical_spec"]
     reference["path"] = relative.as_posix()
@@ -2205,6 +2294,7 @@ def materialize_working_bundle(
     *,
     expected_revision: int,
     expected_hash: str,
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Confirm a decision-complete bundle, creating or updating its canonical spec."""
     if not (
@@ -2279,6 +2369,15 @@ def materialize_working_bundle(
     actual_delta = baseline_hash is not None and baseline_hash != _contract_hash(
         rendered
     )
+    evidence = assess_spec_evidence_update(
+        project_root, rendered, validation_assessor=validation_assessor
+    )
+    if evidence["verdict"] != "PASS":
+        return {
+            "verdict": evidence["verdict"],
+            "reason": "acceptance evidence is insufficient",
+            "validation": evidence,
+        }
     _atomic_write(destination, rendered)
     working_rendered = _replace_metadata(
         rendered,
@@ -2698,6 +2797,7 @@ def mark_spec_implemented(
     *,
     spec_review_passed: bool,
     authorized: bool,
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Record implementation evidence after the enclosing governed orchestration."""
     if not authorized:
@@ -2795,6 +2895,13 @@ def mark_spec_implemented(
         rendered,
         count=1,
     )
+    if "spec review: pass" not in rendered.casefold():
+        rendered = re.sub(
+            r"(?im)^(## Routing/Gates[^\n]*\n)",
+            r"\1Spec review: PASS\n",
+            rendered,
+            count=1,
+        )
     final = validate_spec_text(rendered, known_spec_ids=known_spec_ids)
     if final["verdict"] != "PASS":
         return {
@@ -2802,12 +2909,21 @@ def mark_spec_implemented(
             "reason": "implemented lifecycle validation failed",
             "errors": final["errors"],
         }
+    evidence = assess_spec_evidence_update(
+        project_root, rendered, validation_assessor=validation_assessor
+    )
+    if evidence["verdict"] != "PASS":
+        return {
+            "verdict": evidence["verdict"],
+            "reason": "acceptance evidence is insufficient",
+            "validation": evidence,
+        }
     spec_path.write_text(rendered, encoding="utf-8", newline="\n")
     final["canonical_spec"]["path"] = (Path("specs") / spec_path.name).as_posix()
     return final
 
 
-def main() -> int:
+def main(validation_assessor=None) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
@@ -2929,6 +3045,7 @@ def main() -> int:
                     json.loads(args.request.read_text(encoding="utf-8")),
                     expected_revision=args.expected_revision,
                     expected_hash=args.expected_hash,
+                    validation_assessor=validation_assessor,
                 )
         except (OSError, ValueError, TypeError) as error:
             result = {"verdict": "BLOCKED", "reason": str(error)}
@@ -3003,6 +3120,7 @@ def main() -> int:
             question_id=args.question_id,
             question_version=args.question_version,
             answer=args.answer,
+            validation_assessor=validation_assessor,
         )
     elif args.command == "question":
         result = record_question(
@@ -3014,6 +3132,7 @@ def main() -> int:
             expected_revision=args.expected_revision,
             expected_hash=args.expected_hash,
             question_kind=args.kind,
+            validation_assessor=validation_assessor,
         )
     elif args.command == "turn-context":
         result = assess_turn_context(
@@ -3027,6 +3146,7 @@ def main() -> int:
             args.working_id,
             expected_revision=args.expected_revision,
             expected_hash=args.expected_hash,
+            validation_assessor=validation_assessor,
         )
     elif args.command == "reopen":
         result = reopen_spec(

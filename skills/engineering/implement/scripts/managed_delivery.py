@@ -19,7 +19,7 @@ from execution_state import (
     write_execution_state,
 )
 from spec_contract import assess_discussion_completion, question_surface_policy
-from spec_delivery import verify_delivery_admission
+from spec_delivery import verify_delivery_admission, assess_project_validation
 
 
 def _blocked(reason: str) -> dict:
@@ -32,7 +32,7 @@ def _blocked(reason: str) -> dict:
     }
 
 
-def _admit(root: Path, request: dict, state: dict) -> dict:
+def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> dict:
     receipt = state.get("receipt")
     if state["phase"] != "executing" or not isinstance(receipt, dict):
         raise ValueError("execution is not authorized or is suspended")
@@ -50,6 +50,7 @@ def _admit(root: Path, request: dict, state: dict) -> dict:
         authorization=receipt["instruction"],
         working_reference=request["working_reference"],
         task_ref=request["task_ref"],
+        validation_assessor=validation_assessor,
     )
     if not result["product_code_allowed"]:
         raise ValueError(result.get("reason", "admission denied"))
@@ -99,8 +100,8 @@ def _current_hash(path: Path) -> str | None:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
 
 
-def _apply(root: Path, request: dict, state: dict) -> dict:
-    _admit(root, request, state)
+def _apply(root: Path, request: dict, state: dict, validation_assessor=None) -> dict:
+    _admit(root, request, state, validation_assessor=validation_assessor)
     patch = request["patch"]
     if not isinstance(patch, dict) or set(patch) != {
         "path",
@@ -124,7 +125,12 @@ def _apply(root: Path, request: dict, state: dict) -> dict:
             stream.write(content)
         if target.exists():
             os.chmod(temporary, target.stat().st_mode)
-        _admit(root, request, read_execution_state(root, request["task_ref"]))
+        _admit(
+            root,
+            request,
+            read_execution_state(root, request["task_ref"]),
+            validation_assessor=validation_assessor,
+        )
         if _target(root, patch["path"]) != target or _current_hash(target) != before:
             raise ValueError("target changed during admission")
         os.replace(temporary, target)
@@ -142,7 +148,7 @@ def _apply(root: Path, request: dict, state: dict) -> dict:
     }
 
 
-def execute_request(root: Path, request: dict) -> dict:
+def execute_request(root: Path, request: dict, validation_assessor=None) -> dict:
     """Authorize, suspend, query or apply one reviewed replacement; deny on missing evidence."""
     root = root.resolve()
     lock = root / "spec-governance" / ".managed-delivery.lock"
@@ -189,6 +195,7 @@ def execute_request(root: Path, request: dict) -> dict:
                 authorization=request["instruction"],
                 working_reference=request["working_reference"],
                 task_ref=task,
+                validation_assessor=validation_assessor,
             )
             if not admission["product_code_allowed"]:
                 raise ValueError(admission.get("reason", "admission denied"))
@@ -208,7 +215,9 @@ def execute_request(root: Path, request: dict) -> dict:
                 "evidence_trust": "caller-attested-not-host-authenticated",
             }
         if operation == "status":
-            binding = _admit(root, request, state)
+            binding = _admit(
+                root, request, state, validation_assessor=validation_assessor
+            )
             return {
                 "binding": binding,
                 "verdict": "PASS",
@@ -216,8 +225,23 @@ def execute_request(root: Path, request: dict) -> dict:
                 "product_code_allowed": True,
                 "spec_discussion_allowed": True,
             }
+        if operation == "complete":
+            _admit(root, request, state, validation_assessor=validation_assessor)
+            result = assess_project_validation(
+                root,
+                request["spec"],
+                phase=request.get("phase", "acceptance"),
+                validation_assessor=validation_assessor,
+            )
+            if request.get("phase", "acceptance") not in {"acceptance", "release"}:
+                return _blocked("completion requires acceptance or release evidence")
+            return result | {
+                "product_code_allowed": False,
+                "spec_discussion_allowed": True,
+                "enforcement_scope": "managed-entrypoint-only",
+            }
         if operation == "apply":
-            return _apply(root, request, state)
+            return _apply(root, request, state, validation_assessor=validation_assessor)
         raise ValueError("unknown managed operation")
     except (ValueError, OSError, KeyError, TypeError) as exc:
         return _blocked(str(exc))
@@ -644,7 +668,7 @@ def audit_trace(events: list[dict] | dict) -> dict:
     }
 
 
-def main() -> int:
+def main(validation_assessor=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--request", type=Path)
@@ -659,7 +683,9 @@ def main() -> int:
             )
         else:
             result = execute_request(
-                args.project_root, json.loads(args.request.read_text(encoding="utf-8"))
+                args.project_root,
+                json.loads(args.request.read_text(encoding="utf-8")),
+                validation_assessor=validation_assessor,
             )
     except (OSError, ValueError, TypeError) as exc:
         result = _blocked(str(exc))

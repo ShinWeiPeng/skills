@@ -18,6 +18,7 @@ if str(SPEC_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPEC_SCRIPTS_ROOT))
 
 from spec_contract import resolve_spec_context, assess_turn_context, validate_spec_text
+from spec_contract import assess_project_validation
 
 
 def assess_delivery_spec_context(
@@ -54,6 +55,7 @@ def verify_delivery_admission(
     authorization: str,
     working_reference: str | None = None,
     task_ref: str | None = None,
+    validation_assessor=None,
 ) -> dict[str, Any]:
     """Check current canonical content, pending work and the final human instruction."""
     blocked = {"verdict": "BLOCKED", "product_code_allowed": False}
@@ -97,7 +99,16 @@ def verify_delivery_admission(
         return blocked | {
             "reason": "working and canonical specification identity/status mismatch"
         }
+    validation = assess_project_validation(
+        root, relative, phase="enablement", validation_assessor=validation_assessor
+    )
+    if validation["verdict"] != "PASS":
+        return blocked | {
+            "reason": "project validation planning/enablement incomplete",
+            "validation": validation,
+        }
     return {
+        "validation": validation,
         "verdict": "PASS",
         "product_code_allowed": True,
         "spec_path": relative,
@@ -106,7 +117,14 @@ def verify_delivery_admission(
     }
 
 
-def main() -> int:
+def run_spec_cli(validation_assessor=None):
+    """Coordinate the child specification CLI with a composition-provided port."""
+    from spec_contract import main as spec_main
+
+    return spec_main(validation_assessor=validation_assessor)
+
+
+def main(validation_assessor=None) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
@@ -124,6 +142,7 @@ def main() -> int:
         authorization=args.authorization,
         working_reference=args.working_reference,
         task_ref=args.task_ref,
+        validation_assessor=validation_assessor,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["verdict"] == "PASS" else 2

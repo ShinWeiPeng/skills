@@ -166,3 +166,7 @@ steps, metrics and thresholds, evidence artifact, verdict, stop condition, and n
 permitted layer. Mark an unselected layer `not applicable` only with the matrix's
 project-specific rationale. Overall completion is `BLOCKED` while any selected layer
 or required architecture/scheduling analysis lacks PASS evidence.
+
+## Project validation obligations
+
+Use `scripts/project_validation.py` for project-bound planning, enablement, acceptance and release assessment. Read [the project validation contract](references/project-validation.md). The AC mapping must cover every current AC. `runtime_validation: required` requires a scoped applicability assessment, not blanket HIL. Save a valid plan before governed implementation; only the selected layers need evidence. Physical/timing claims keep HIL authority. Recompute bindings on reload and reject stale plans or evidence.

@@ -38,3 +38,5 @@ The ladder decides why PIL, HIL, or System/Soak is required. It delegates those
 bounded runs, permissions, capture, native traces, and verdict artifacts to
 `validate-on-device`. Host Module Contract, SIL, and Fake/Replay Adapter suites stay
 with the project's native test runner.
+
+Project verification requirements now follow the current specification across reloads and short continuation commands. The workflow distinguishes implementation progress from acceptance: missing hardware evidence cannot be replaced by host tests or a successful build. The shared validation plan records the applicable layers and their evidence sources.

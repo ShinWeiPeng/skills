@@ -54,3 +54,7 @@ Use `--turn-kind read-only` only for factual follow-ups; it does not clear pendi
 questions. `decision-answer` must return to reconciliation before delivery.
 `change-request` supplies semantic modification evidence when keyword hints are
 insufficient. Invalid or mismatched persisted context fails closed.
+
+## Project validation obligations
+
+The guided router combines keyword rules with fresh project validation requirements. Standalone `classify_risk.py` is a prompt-only classification and cannot establish project validation readiness. Project policy and current SPEC mappings may add gates; short prompts cannot remove them. Report `project_validation` diagnostics and sources. Missing required mappings or capabilities block dependent work without preventing read-only investigation.

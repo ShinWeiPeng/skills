@@ -197,3 +197,19 @@ Missing/false normalization cannot establish compliance: preserve raw host, tool
 and reply source references for independent review. This plugin does not disable
 arbitrary host tool calls or authenticate visibility. Unit fixtures are not actual
 model observations. Report each evidence category and any missing coverage honestly.
+
+## Composed project validation entrypoint
+
+For a governed project, run existing commands through the composition wrapper so
+the demand-owned validation callable is injected:
+
+```powershell
+python skills/implement/scripts/project_validation_workflow.py spec -- <spec_contract arguments>
+python skills/implement/scripts/project_validation_workflow.py managed -- --project-root <root> --request <request.json>
+python skills/implement/scripts/project_validation_workflow.py admission -- <spec_delivery arguments>
+```
+
+Use skills/engineering/implement in a source checkout. This is an internal CLI,
+not a new skill. Library callers pass validation_assessor explicitly. Without it,
+direct governed library/CLI calls fail closed with a remediation message; legacy
+host projects with no governance markers retain their previous behavior.

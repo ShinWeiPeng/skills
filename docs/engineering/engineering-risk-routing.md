@@ -23,3 +23,5 @@ The router accepts task and working references and reloads pending decisions bef
 ## Where it fits
 
 This is routing infrastructure behind [ask-matt](https://aihero.dev/skills-ask-matt), not a standalone planning method.
+
+Project verification requirements now follow the current specification across reloads and short continuation commands. The workflow distinguishes implementation progress from acceptance: missing hardware evidence cannot be replaced by host tests or a successful build. The shared validation plan records the applicable layers and their evidence sources.

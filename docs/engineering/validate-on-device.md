@@ -25,3 +25,5 @@ During an active scenario, every operation includes a concise higher-level purpo
 ## Where it fits
 
 This is the runtime-evidence gate after ordinary tests and architecture checks. [ask-matt](https://aihero.dev/skills-ask-matt) invokes it only when the task needs native or physical evidence.
+
+Project verification requirements now follow the current specification across reloads and short continuation commands. The workflow distinguishes implementation progress from acceptance: missing hardware evidence cannot be replaced by host tests or a successful build. The shared validation plan records the applicable layers and their evidence sources.

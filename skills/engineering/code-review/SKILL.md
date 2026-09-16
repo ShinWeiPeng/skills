@@ -102,3 +102,7 @@ A change can pass one axis and fail the other:
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
 
 Reporting them separately stops one axis from masking the other.
+
+## Project validation obligations
+
+The Spec axis must verify the project validation plan and shared acceptance assessment. Check reload/continuation preserves project requirements, required AC/layer/scenario coverage and current hashes. Host, build, AST and smoke results cannot discharge HIL claims. Report missing or stale evidence as BLOCKED alongside valid partial host results. Review approval does not substitute for executable completion assessment.

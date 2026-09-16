@@ -13,6 +13,8 @@
   - Entrypoints: [`main`](../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../scripts/install-local.ps1) (script)
 - `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI.
   - Entrypoints: [`main`](../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+- `project_validation_composition` — Inject the project validation adapter into existing specification and delivery public CLIs.
+  - Entrypoints: [`main`](../skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
 
 ## Main Function Tree
 
@@ -29,6 +31,7 @@ flowchart TD
     n_plugin_assembly_composition["plugin_assembly_composition (L0)<br/>組裝單一外掛並產生個人 Git 市集發佈樹"]
     n_python_runtime_selection_domain["python_runtime_selection_domain (L1)<br/>選取並驗證相容的 Python 執行環境"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>透過單一命令列介面執行架構治理與原生分析"]
+    n_project_validation_composition["project_validation_composition (L0)<br/>在入口注入專案驗證工具"]
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
@@ -118,6 +121,13 @@ flowchart TD
 - **Related Flows:** None
 - **Protection Rationale:** Gate execution never downloads or replaces a native provider cache.
 
+### `project_validation_composition`
+
+- **Purpose:** Inject the project validation adapter into existing specification and delivery public CLIs.
+- **Children:** None
+- **Related Flows:** None
+- **Protection Rationale:** Functional consumers receive the demand-owned validation callable; they never construct the technical adapter.
+
 
 ## Parent Views
 
@@ -129,13 +139,14 @@ flowchart TD
 - [`plugin_assembly_composition`](generated/plugin_assembly_composition.md) — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - [`python_runtime_selection_domain`](generated/python_runtime_selection_domain.md) — Own the deterministic admission policy that accepts an explicit compatible runtime, otherwise prefers a compatible PATH observation and requests Windows Launcher fallback only after that observation is rejected.
 - [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- [`project_validation_composition`](generated/project_validation_composition.md) — Inject the project validation adapter into existing specification and delivery public CLIs.
 
 ## End-to-End Flows
 
 - [`verification-ladder-planning`](generated/governance_workflow_domain.md#verification-ladder-planning) — Validate project-owned verification bindings, combine universal hard triggers with project rules, and produce the lowest sufficient additive ladder without accepting evidence from a lower-authority environment.
 - [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation) — Select one compatible Python interpreter, recover safe access to only the exact ignored Windows artifact when necessary, assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
-- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass.
+- [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass. Reject unsupported AC PASS evidence updates through project-validation.assess.
 
 ## Complete Technical Reference
 
@@ -162,11 +173,14 @@ flowchart TD
     n_plugin_release_governance_technical["plugin_release_governance_technical (L3+)<br/>以穩定語意版本治理唯一外掛發佈單元"]
     n_architecture_governance_cli["architecture_governance_cli (L0)<br/>透過單一命令列介面執行架構治理與原生分析"]
     n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang 工具鏈"]
+    n_project_validation_adapter["project_validation_adapter (L3+)<br/>呼叫專案驗證工具並回傳可追溯結果"]
+    n_project_validation_composition["project_validation_composition (L0)<br/>在入口注入專案驗證工具"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
     n_guided_workflow_router -.->|depends| n_governance_workflow_domain
     n_guided_workflow_router -.->|depends| n_repository_evidence_adapter
+    n_guided_workflow_router -.->|depends| n_project_validation_adapter
     n_guided_workflow_router -->|owns| n_risk_routing_domain
     n_guided_workflow_router -->|owns| n_workflow_routing_domain
     n_guided_workflow_router -->|owns| n_delivery_workflow_domain
@@ -190,6 +204,9 @@ flowchart TD
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
     n_libclang_toolchain_adapter -.->|depends| n_governance_workflow_domain
+    n_project_validation_adapter -.->|depends| n_spec_governance_domain
+    n_project_validation_composition -.->|depends| n_delivery_workflow_domain
+    n_project_validation_composition -.->|depends| n_project_validation_adapter
 ```
 
 ## Type Catalog

@@ -88,11 +88,12 @@ modules:
   - delivery_workflow_domain
   - governance_workflow_domain
   - repository_evidence_adapter
+  - project_validation_adapter
   implements_ports: []
   public_headers: []
   description:
-    purpose: Automatically route every software-engineering intent by coordinating
-      workflow selection, repository state, risk, delivery, and governance domains.
+    purpose: Automatically route every software-engineering intent by coordinating workflow
+      selection, repository state, risk, delivery, and governance domains.
     diagram_summaries:
       zh-TW: 軟體工程請求的自動治理路由與流程協調
     input_ports:
@@ -104,20 +105,20 @@ modules:
     errors: []
     invariants:
     - Users never need to know or invoke ask-matt for software-engineering work.
-    - Every design or specification decision offers two or three meaningful options,
-      preferring structured choices and falling back to equivalent numbered text.
+    - Every design or specification decision offers two or three meaningful options, preferring
+      structured choices and falling back to equivalent numbered text.
     - Every repository-modifying change set completes grilling before mutation.
     - Discoverable facts are explored before any unresolved decision is asked.
-    - Every user turn is reassessed, and an active skill reroutes through this
-      module with unresolved-decision evidence before asking a repository-modifying
-      design or specification question.
-    - Unresolved-decision evidence is true exactly while a non-discoverable user
-      choice that shapes the change set remains open; it survives short answers
-      through reconciliation and clears only when no open decisions remain.
+    - Every user turn is reassessed, and an active skill reroutes through this module with
+      unresolved-decision evidence before asking a repository-modifying design or specification
+      question.
+    - Unresolved-decision evidence is true exactly while a non-discoverable user choice that
+      shapes the change set remains open; it survives short answers through reconciliation
+      and clears only when no open decisions remain.
     - A newly discovered discretionary decision stops execution and returns to grilling.
-    - A confirmed specification resumes only when the caller supplies explicit
-      resume evidence or the fresh task is exactly `開始執行` with an optional
-      canonical Spec path; discovery alone proves only durable context.
+    - A confirmed specification resumes only when the caller supplies explicit resume evidence
+      or the fresh task is exactly `開始執行` with an optional canonical Spec path; discovery
+      alone proves only durable context.
     - Never route standalone learning-note or HackMD work.
   entrypoints:
   - path: skills/engineering/ask-matt/SKILL.md
@@ -265,8 +266,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Move an engineering idea or defect through planning, implementation,
-      and review without bypassing required gates.
+    purpose: Move an engineering idea or defect through planning, implementation, and review
+      without bypassing required gates.
     diagram_summaries:
       zh-TW: 從規劃、實作到審查的受治理交付流程
     input_ports: []
@@ -276,15 +277,17 @@ modules:
     - delivery.tracker-publication-pending
     owned_state: []
     side_effects:
-    - description: Admit and atomically apply one hash-checked file replacement through the managed delivery CLI, leaving arbitrary host tools outside enforcement.
+    - description: Admit and atomically apply one hash-checked file replacement through the
+        managed delivery CLI, leaving arbitrary host tools outside enforcement.
     errors: []
     invariants:
-    - Product mutation and commits require task and repository authorization;
-      specification lifecycle writes do not grant that authority.
+    - Product mutation and commits require task and repository authorization; specification
+      lifecycle writes do not grant that authority.
     - Every repository-modifying change set has one canonical specification before implementation.
-    - Governed delivery reloads the current canonical hash, working identity and explicit human execution instruction.
-    - A confirmed specification is verified rather than re-interviewed only with
-      explicit resume evidence and no new decision or conflict.
+    - Governed delivery reloads the current canonical hash, working identity and explicit
+      human execution instruction.
+    - A confirmed specification is verified rather than re-interviewed only with explicit
+      resume evidence and no new decision or conflict.
   entrypoints:
   - path: skills/engineering/implement/SKILL.md
     symbol: implement
@@ -346,9 +349,9 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Persist and reconcile engineering discussion into one canonical change-set
-      specification, materialize it when decision-complete, and verify traceability
-      before implementation. Verify the emitted completed-SPEC link, summary and authorization status.
+    purpose: Persist and reconcile engineering discussion into one canonical change-set specification,
+      materialize it when decision-complete, and verify traceability before implementation.
+      Verify the emitted completed-SPEC link, summary and authorization status.
     diagram_summaries:
       zh-TW: 規格保存、調和、具體化與追溯驗證
     input_ports:
@@ -360,40 +363,43 @@ modules:
     - spec-governance.verify
     output_ports:
     - spec-governance.result
+    - project-validation.assess
     emitted_events:
     - spec-governance.blocked
     owned_state: []
     side_effects:
-    - description: Persist project and task scoped execution receipts; suspend product authority independently of SPEC discussion.
-    - description: Atomically persist one local project-root WORKING-SPEC Markdown
-        snapshot with structured, visibly redacted Discussion Context and append its
-        normalized journal without transcript or hidden-reasoning prose.
+    - description: Persist project and task scoped execution receipts; suspend product authority
+        independently of SPEC discussion.
+    - description: Atomically persist one local project-root WORKING-SPEC Markdown snapshot
+        with structured, visibly redacted Discussion Context and append its normalized journal
+        without transcript or hidden-reasoning prose.
     - description: Materialize one decision-complete canonical specification under specs/.
     errors:
     - id: specification_unresolved
       condition: Conflicts, open decisions, invalid references, or missing requirement-to-acceptance
         traceability remain.
       event: spec-governance.blocked
-      handling: Preserve the last confirmed specification and return to grilling with
-        exactly one conclusion-changing question.
+      handling: Preserve the last confirmed specification and return to grilling with exactly
+        one conclusion-changing question.
     - id: stale_working_spec
-      condition: The caller's expected revision or snapshot hash does not match the
-        persisted working specification.
+      condition: The caller's expected revision or snapshot hash does not match the persisted
+        working specification.
       event: spec-governance.blocked
-      handling: Preserve the persisted snapshot, reload it, and reconcile the answer
-        again without allocating replacement IDs.
+      handling: Preserve the persisted snapshot, reload it, and reconcile the answer again
+        without allocating replacement IDs.
     invariants:
     - Every answered decision is persisted before the next decision question.
     - Versioned pending questions survive timeout and mode changes without a deadline.
     - Only an explicit matching answer with a new DISC record clears a pending question.
     - Specification lifecycle writes never authorize product, Git, or external mutations.
-    - Every completed specification is presented in the emitted reply with its current ID, title, canonical link, summary and authorization state.
+    - Every completed specification is presented in the emitted reply with its current ID,
+      title, canonical link, summary and authorization state.
     - Confirmed specifications have unique stable IDs, resolved relations, no open decisions,
-        and at least one acceptance criterion per requirement.
-    - Confirmed unimplemented specifications reopen in place before a possible contract
-        change; implemented specifications never reopen.
-    - Implemented specifications record PASS evidence for every acceptance criterion
-        and a passing Spec review.
+      and at least one acceptance criterion per requirement.
+    - Confirmed unimplemented specifications reopen in place before a possible contract change;
+      implemented specifications never reopen.
+    - Implemented specifications record PASS evidence for every acceptance criterion and a
+      passing Spec review.
   entrypoints:
   - path: skills/engineering/spec-governance/SKILL.md
     symbol: spec-governance
@@ -467,6 +473,9 @@ modules:
     kind: function
   - path: skills/engineering/spec-governance/scripts/execution_state.py
     symbol: write_execution_state
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: assess_spec_evidence_update
     kind: function
 - id: formatter_governance_domain
   level: L2
@@ -603,9 +612,9 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Select the lowest sufficient additive verification layers for affected
-      module contracts and evidence claims, validate project bindings, and reject
-      cross-layer evidence substitution.
+    purpose: Select the lowest sufficient additive verification layers for affected module
+      contracts and evidence claims, validate project bindings, and reject cross-layer evidence
+      substitution.
     diagram_summaries:
       zh-TW: 選擇模組契約所需驗證層並阻擋跨層證據替代
     input_ports:
@@ -616,12 +625,12 @@ modules:
     side_effects: []
     errors: []
     invariants:
-    - Host evidence remains valid for host-observable semantics but never satisfies
-      target timing, scheduler, physical-hardware, or long-duration stability claims.
-    - Device-dependent PIL, HIL, and System/Soak execution is delegated to
-      validate-on-device after Validation Enablement.
-    - Missing or stale architecture, scenario, profile, trigger, or evidence bindings
-      return BLOCKED instead of silently omitting a layer.
+    - Host evidence remains valid for host-observable semantics but never satisfies target
+      timing, scheduler, physical-hardware, or long-duration stability claims.
+    - Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device
+      after Validation Enablement.
+    - Missing or stale architecture, scenario, profile, trigger, or evidence bindings return
+      BLOCKED instead of silently omitting a layer.
   entrypoints:
   - path: skills/engineering/verification-ladder/SKILL.md
     symbol: verification-ladder
@@ -629,12 +638,18 @@ modules:
   - path: skills/engineering/verification-ladder/scripts/verification_ladder.py
     symbol: main
     kind: function
+  - path: skills/engineering/verification-ladder/scripts/project_validation.py
+    symbol: main
+    kind: cli
   public_symbols:
   - path: skills/engineering/verification-ladder/SKILL.md
     symbol: verification-ladder
     kind: skill
   - path: skills/engineering/verification-ladder/scripts/verification_ladder.py
     symbol: main
+    kind: function
+  - path: skills/engineering/verification-ladder/scripts/project_validation.py
+    symbol: assess_project
     kind: function
 - id: codex_plugin_adapter
   level: L3+
@@ -1192,6 +1207,73 @@ modules:
   - path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
     symbol: EspressifLibclangToolchainAdapter
     kind: class
+- id: project_validation_adapter
+  level: L3+
+  role: adapter
+  implementation_status: implemented
+  paths:
+  - skills/engineering/implement/scripts/project_validation_adapter.py
+  parent: null
+  depends_on:
+  - spec_governance_domain
+  implements_ports:
+  - project-validation.assess
+  public_headers: []
+  description:
+    purpose: Invoke the selected verification-ladder JSON CLI with bounded execution and return
+      project validation facts without device actions.
+    diagram_summaries:
+      zh-TW: 呼叫專案驗證工具並回傳可追溯結果
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Never operate devices or convert incomplete evidence into PASS.
+  entrypoints:
+  - path: skills/engineering/implement/scripts/project_validation_adapter.py
+    symbol: assess_project_validation
+    kind: function
+  public_symbols:
+  - path: skills/engineering/implement/scripts/project_validation_adapter.py
+    symbol: assess_project_validation
+    kind: function
+- id: project_validation_composition
+  level: L0
+  role: composition
+  implementation_status: implemented
+  paths:
+  - skills/engineering/implement/scripts/project_validation_workflow.py
+  parent: null
+  depends_on:
+  - delivery_workflow_domain
+  - project_validation_adapter
+  implements_ports: []
+  public_headers: []
+  description:
+    purpose: Inject the project validation adapter into existing specification and delivery
+      public CLIs.
+    diagram_summaries:
+      zh-TW: 在入口注入專案驗證工具
+    input_ports: []
+    output_ports: []
+    emitted_events: []
+    owned_state: []
+    side_effects: []
+    errors: []
+    invariants:
+    - Functional consumers receive the demand-owned validation callable; they never construct
+      the technical adapter.
+  entrypoints:
+  - path: skills/engineering/implement/scripts/project_validation_workflow.py
+    symbol: main
+    kind: cli
+  public_symbols:
+  - path: skills/engineering/implement/scripts/project_validation_workflow.py
+    symbol: main
+    kind: function
 composition_roots:
 - id: guided-workflow-release
   module: guided_workflow_router
@@ -1640,6 +1722,23 @@ ports:
       condition: Lock, platform, cache, or receipt is invalid.
   symbols:
   - LibclangToolchainPort
+- id: project-validation.assess
+  owner: spec_governance_domain
+  direction: output
+  kind: query
+  contract: skills/engineering/verification-ladder/references/project-validation.schema.json
+  implemented_by:
+  - project_validation_adapter
+  description:
+    purpose: Assess project planning or completion before recording acceptance.
+    data: Project root, canonical SPEC and phase produce a validation verdict with source
+      hashes and diagnostics.
+    timing: sync
+    immediate_rejections:
+    - code: unavailable
+      condition: Missing capability, invalid context, stale bindings or inadequate evidence.
+  symbols:
+  - assess_spec_evidence_update
 events:
 - id: formatter-governance.blocked
   owner: formatter_governance_domain
@@ -2667,29 +2766,30 @@ boundary_mappings:
 flows:
 - id: verification-ladder-planning
   owner: governance_workflow_domain
-  description: Validate project-owned verification bindings, combine universal hard
-    triggers with project rules, and produce the lowest sufficient additive ladder
-    without accepting evidence from a lower-authority environment.
+  description: Validate project-owned verification bindings, combine universal hard triggers
+    with project rules, and produce the lowest sufficient additive ladder without accepting
+    evidence from a lower-authority environment.
   trigger:
     kind: command
     ref: verification-ladder.plan
-    description: A modifying change identifies affected module contracts, execution
-      changes, or evidence claims that require a verification plan.
+    description: A modifying change identifies affected module contracts, execution changes,
+      or evidence claims that require a verification plan.
   steps:
   - id: verification-ladder-planning.evaluate
     order: 1
     module: verification_ladder_domain
-    action: Resolve architecture and on-device references, validate the project
-      matrix, apply universal evidence-authority hard triggers, add project-selected
-      layers, and return PASS or BLOCKED with explicit rationale.
+    action: Resolve architecture and on-device references, validate the project matrix, apply
+      universal evidence-authority hard triggers, add project-selected layers, and return
+      PASS or BLOCKED with explicit rationale. Bind all ACs to policy and SPEC hashes and
+      assess enablement, runtime acceptance and release separately.
     receives:
     - verification-ladder.plan
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: Every requested trigger is mapped to explicit criteria and the returned
-      ordered layers are sufficient for each evidence claim.
+    result: Every requested trigger is mapped to explicit criteria and the returned ordered
+      layers are sufficient for each evidence claim.
     events: []
   errors: []
 - id: local-plugin-installation
@@ -2792,23 +2892,23 @@ flows:
       registered for that retry.
 - id: governed-engineering-route
   owner: guided_workflow_router
-  description: Automatically classify every software-engineering request and
-    turn-boundary decision handoff, inspect project state, preserve risk gates, and
-    select an immediate safe skill.
+  description: Automatically classify every software-engineering request and turn-boundary
+    decision handoff, inspect project state, preserve risk gates, and select an immediate
+    safe skill.
   trigger:
     kind: command
     ref: guided-routing.route
-    description: The user states a software-engineering intent, answers a new turn,
-      or an active skill is about to ask a repository-modifying design or
-      specification question; no ask-matt invocation is required.
+    description: The user states a software-engineering intent, answers a new turn, or an
+      active skill is about to ask a repository-modifying design or specification question;
+      no ask-matt invocation is required.
   steps:
   - id: governed-engineering-route.assess
     order: 1
     module: workflow_routing_domain
-    action: Classify ordered hard intent including exact fresh-task confirmed-Spec
-      resume, preserve caller-supplied unresolved-decision evidence from before the
-      first design question through answer reconciliation, and assess implementation
-      and durable context from repository evidence.
+    action: Classify ordered hard intent including exact fresh-task confirmed-Spec resume,
+      preserve caller-supplied unresolved-decision evidence from before the first design question
+      through answer reconciliation, and assess implementation and durable context from repository
+      evidence.
     receives:
     - workflow-routing.assess-project
     - repository-evidence.collect
@@ -2818,7 +2918,9 @@ flows:
   - id: governed-engineering-route.classify-risk
     order: 2
     module: risk_routing_domain
-    action: Match ordered risk hard triggers and preserve the required governance gates.
+    action: Match ordered risk hard triggers and preserve the required governance gates. Add
+      project-policy and AC-plan obligations from fresh validation facts, preserving them
+      on reload and short commands.
     receives:
     - risk-routing.classify
     emits: []
@@ -2827,27 +2929,27 @@ flows:
   - id: governed-engineering-route.select
     order: 3
     module: workflow_routing_domain
-    action: Apply explicit-skill, intent, project-state, confirmed-spec resume
-      evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder
-      precedence to produce the authoritative GuidedRouteDecision.
+    action: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision
+      handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative
+      GuidedRouteDecision.
     receives:
     - workflow-routing.select
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: A PASS or DEGRADED decision selects an immediate safe handoff; pending
-      design or specification decisions select grilling before the previous skill
-      asks them and name spec-governance as the immediate reconciliation target,
-      while invalid evidence or missing non-substitutable capability returns BLOCKED.
+    result: A PASS or DEGRADED decision selects an immediate safe handoff; pending design
+      or specification decisions select grilling before the previous skill asks them and name
+      spec-governance as the immediate reconciliation target, while invalid evidence or missing
+      non-substitutable capability returns BLOCKED.
     events: []
   errors: []
 - id: governed-change-set-lifecycle
   owner: delivery_workflow_domain
-  description: Persist and reconcile one modifying change set into a canonical
-    specification, materialize it when decision-complete, wait for product execution
-    authorization, verify traceability, implement it, and close it only after Spec
-    review and commit disposition pass.
+  description: Persist and reconcile one modifying change set into a canonical specification,
+    materialize it when decision-complete, wait for product execution authorization, verify
+    traceability, implement it, and close it only after Spec review and commit disposition
+    pass. Reject unsupported AC PASS evidence updates through project-validation.assess.
   trigger:
     kind: command
     ref: spec-governance.reconcile
@@ -2856,36 +2958,35 @@ flows:
   - id: governed-change-set-lifecycle.start
     order: 1
     module: spec_governance_domain
-    action: Create, transactionally migrate, or resolve one project-root flat
-      WORKING-SPEC pair before the first decision question; migration validates a
-      complete temporary pair and restores the legacy source on failure.
+    action: Create, transactionally migrate, or resolve one project-root flat WORKING-SPEC
+      pair before the first decision question; migration validates a complete temporary pair
+      and restores the legacy source on failure.
     receives:
     - spec-governance.start
     emits: []
     state_changes: []
     side_effects:
-    - Write one local authoritative WORKING-SPEC Markdown snapshot with structured
-      Discussion Context and one normalized journal epoch.
+    - Write one local authoritative WORKING-SPEC Markdown snapshot with structured Discussion
+      Context and one normalized journal epoch.
   - id: governed-change-set-lifecycle.reconcile
     order: 2
     module: spec_governance_domain
-    action: Classify the confirmed statement, update stable relationships, and report
-      and persist the working specification delta, conflicts, and open decisions
-      before another decision question.
+    action: Classify the confirmed statement, update stable relationships, and report and
+      persist the working specification delta, conflicts, and open decisions before another
+      decision question.
     receives:
     - spec-governance.reconcile
     emits: []
     state_changes: []
     side_effects:
-    - Atomically replace the working snapshot and append one normalized journal event
-      containing affected REQ DEC AC and DISC identities without transcript prose.
+    - Atomically replace the working snapshot and append one normalized journal event containing
+      affected REQ DEC AC and DISC identities without transcript prose.
   - id: governed-change-set-lifecycle.review-flow-cost
     order: 3
     module: governance_workflow_domain
-    action: Review every material as-is and target Flow through functional
-      admission, execution and real-time feasibility, maintainability and
-      extensibility change scenarios, and model assurance; keep unresolved
-      load-bearing evidence BLOCKED.
+    action: Review every material as-is and target Flow through functional admission, execution
+      and real-time feasibility, maintainability and extensibility change scenarios, and model
+      assurance; keep unresolved load-bearing evidence BLOCKED.
     receives: []
     emits: []
     state_changes: []
@@ -2893,8 +2994,8 @@ flows:
   - id: governed-change-set-lifecycle.materialize
     order: 4
     module: spec_governance_domain
-    action: Materialize the decision-complete canonical specification under specs/
-      without granting product execution authorization.
+    action: Materialize the decision-complete canonical specification under specs/ without
+      granting product execution authorization.
     receives:
     - spec-governance.materialize
     emits: []
@@ -2904,9 +3005,8 @@ flows:
   - id: governed-change-set-lifecycle.authorize
     order: 5
     module: delivery_workflow_domain
-    action: Present the confirmed specification and wait for exact product execution
-      authorization; reopen it before clarification when a possible contract change
-      appears.
+    action: Present the confirmed specification and wait for exact product execution authorization;
+      reopen it before clarification when a possible contract change appears.
     receives:
     - spec-governance.reopen
     emits: []
@@ -2925,8 +3025,8 @@ flows:
   - id: governed-change-set-lifecycle.verify
     order: 7
     module: spec_governance_domain
-    action: Verify requirement-to-acceptance-to-validation traceability and return
-      to grilling only when the request introduces a new decision or conflict.
+    action: Verify requirement-to-acceptance-to-validation traceability and return to grilling
+      only when the request introduces a new decision or conflict.
     receives:
     - spec-governance.verify
     emits: []
@@ -2935,25 +3035,24 @@ flows:
   - id: governed-change-set-lifecycle.formatter-gate
     order: 8
     module: formatter_governance_domain
-    action: Select the repository formatter policy or governed fallback, confirm and
-      protect any full-program write, reject ambiguous, colliding, or dirty targets,
-      and require an available CLI formatter plus a passing non-mutating check before
-      product-code mutation.
+    action: Select the repository formatter policy or governed fallback, confirm and protect
+      any full-program write, reject ambiguous, colliding, or dirty targets, and require an
+      available CLI formatter plus a passing non-mutating check before product-code mutation.
     receives:
     - formatter-governance.evaluate
     emits:
     - formatter-governance.blocked
     state_changes: []
     side_effects:
-    - Create only collision-free minimal scaffold and formatter configuration when
-      the confirmed change set targets a greenfield project.
-    - Format clean product source and tests only after affirmative confirmation and
-      follow the write with the selected formatter CLI's non-mutating check.
+    - Create only collision-free minimal scaffold and formatter configuration when the confirmed
+      change set targets a greenfield project.
+    - Format clean product source and tests only after affirmative confirmation and follow
+      the write with the selected formatter CLI's non-mutating check.
   - id: governed-change-set-lifecycle.implement-review
     order: 9
     module: delivery_workflow_domain
-    action: Implement through the agreed test seams, run two-axis review, and mark
-      the canonical specification implemented only after the Spec axis passes.
+    action: Implement through the agreed test seams, run two-axis review, and mark the canonical
+      specification implemented only after the Spec axis passes.
     receives: []
     emits: []
     state_changes: []
@@ -2962,26 +3061,26 @@ flows:
   - id: governed-change-set-lifecycle.prepare-commit
     order: 10
     module: spec_governance_domain
-    action: Reject staged local working state and require delete, keep-local, or
-      archive disposition before the delivery workflow commits.
+    action: Reject staged local working state and require delete, keep-local, or archive disposition
+      before the delivery workflow commits.
     receives:
     - spec-governance.prepare-commit
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: The implemented behavior is traceable to one canonical specification
-      whose requirements and acceptance criteria have verified PASS evidence.
+    result: The implemented behavior is traceable to one canonical specification whose requirements
+      and acceptance criteria have verified PASS evidence.
     events: []
   errors:
   - condition: Reconciliation finds an unresolved conflict or conclusion-changing decision.
     event: spec-governance.blocked
     handling: Remain in grilling and ask exactly one conclusion-changing question.
-  - condition: A material Flow has unresolved platform units, cost paths, budgets,
-      model error, reserve, interference, or scenario coverage.
+  - condition: A material Flow has unresolved platform units, cost paths, budgets, model error,
+      reserve, interference, or scenario coverage.
     event: spec-governance.blocked
-    handling: Preserve directional analysis but keep the performance or real-time
-      claim BLOCKED until the required evidence is calibrated.
+    handling: Preserve directional analysis but keep the performance or real-time claim BLOCKED
+      until the required evidence is calibrated.
   - condition: Canonical materialization succeeds but tracker publication fails.
     event: delivery.tracker-publication-pending
     handling: Preserve the canonical specification and report BLOCKED with a retry target.

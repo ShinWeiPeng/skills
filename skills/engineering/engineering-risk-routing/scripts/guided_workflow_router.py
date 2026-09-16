@@ -18,8 +18,12 @@ if str(DELIVERY_SCRIPTS_ROOT) not in sys.path:
 from classify_risk import classify
 from project_state import assess_project_state
 from repository_evidence import GitFilesystemRepositoryEvidenceAdapter
-from spec_delivery import assess_delivery_spec_context, assess_delivery_turn_context
+from spec_delivery import (
+    assess_delivery_spec_context,
+    assess_delivery_turn_context,
+)
 from workflow_selection import classify_intent, select_workflow
+from project_validation_adapter import assess_project_validation
 
 
 def discover_available_skills(skills_root: Path = SKILLS_ROOT) -> set[str]:
@@ -108,7 +112,14 @@ def route(
         passed_gates=passed_gates,
         available_skills=capabilities,
     )
-    return select_workflow(
+    validation = assess_project_validation(
+        project_root, spec_context.get("selected_path")
+    )
+    risk["required_gates"] = list(
+        dict.fromkeys(risk["required_gates"] + validation["required_gates"])
+    )
+    missing = set(validation["required_gates"]) - capabilities
+    result = select_workflow(
         intent,
         project,
         risk,
@@ -122,6 +133,21 @@ def route(
         turn_context=turn_context,
         turn_kind=turn_kind,
     )
+    result["project_validation"] = validation
+    if validation["verdict"] != "PASS" or missing:
+        result.update(
+            status="BLOCKED",
+            reason="; ".join(
+                validation.get("errors", [])
+                + [f"missing capability: {v}" for v in sorted(missing)]
+            ),
+            product_code_allowed=False,
+        )
+        if result.get("selected_skill") != "spec-governance":
+            result.update(
+                selected_skill="verification-ladder", next_action="verification-ladder"
+            )
+    return result
 
 
 def main() -> int:

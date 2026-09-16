@@ -46,8 +46,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
-- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
-- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
+- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`main`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (cli)
+- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`assess_project`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (function)
 
 ## Port Contracts
 
@@ -105,7 +105,7 @@ Validate project-owned verification bindings, combine universal hard triggers wi
 sequenceDiagram
     participant n_governance_workflow_domain as governance_workflow_domain<br/>決策完整性、架構、流程成本與執行證據治理
     participant n_verification_ladder_domain as verification_ladder_domain<br/>選擇模組契約所需驗證層並阻擋跨層證據替代
-    n_governance_workflow_domain->>+n_verification_ladder_domain: Resolve architecture and on-device references, validate the project matrix, apply universal evidence-authority hard triggers, add project-selected layers, and return PASS or BLOCKED with explicit rationale.
+    n_governance_workflow_domain->>+n_verification_ladder_domain: Resolve architecture and on-device references, validate the project matrix, apply universal evidence-authority hard triggers, add project-selected layers, and return PASS or BLOCKED with explicit rationale. Bind all ACs to policy and SPEC hashes and assess enablement, runtime acceptance and release separately.
     n_verification_ladder_domain-->>-n_governance_workflow_domain: verification-ladder.plan result
 ```
 
@@ -113,7 +113,7 @@ sequenceDiagram
 
 | # | Module | Action | Receives | Emits | State changes | Side effects |
 |---|---|---|---|---|---|---|
-| 1 | `verification_ladder_domain` | Resolve architecture and on-device references, validate the project matrix, apply universal evidence-authority hard triggers, add project-selected layers, and return PASS or BLOCKED with explicit rationale. | `verification-ladder.plan` | None | None | None |
+| 1 | `verification_ladder_domain` | Resolve architecture and on-device references, validate the project matrix, apply universal evidence-authority hard triggers, add project-selected layers, and return PASS or BLOCKED with explicit rationale. Bind all ACs to policy and SPEC hashes and assess enablement, runtime acceptance and release separately. | `verification-ladder.plan` | None | None | None |
 
 - **Success:** Every requested trigger is mapped to explicit criteria and the returned ordered layers are sufficient for each evidence claim.
 

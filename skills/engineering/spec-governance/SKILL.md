@@ -255,3 +255,7 @@ For an allowed Plan menu, presentation.text records its exact saved question and
 options. The final reply may repeat just that question; do not repeat numbered
 choices when the host prohibits them. Menu payload evidence and actual reply
 remain separate, and neither proves that the user saw the menu.
+
+## Project validation obligations
+
+Before recording any AC PASS, including evidence-only updates to a confirmed SPEC, invoke the shared project evidence assessment. Reconciliation, both materialization paths and implemented transitions reject unsupported PASS claims. Free-text PASS is a request to validate, never evidence itself. Preserve historical results but bind acceptance to current SPEC/policy/build/profile. Clear obsolete PASS assertions before revising a contract; replan and collect appropriate evidence for its new requirements.

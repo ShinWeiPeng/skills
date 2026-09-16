@@ -184,7 +184,7 @@ sequenceDiagram
     participant n_risk_routing_domain as risk_routing_domain<br/>工程風險分級、必要閘門與失敗關閉決策
     n_guided_workflow_router->>+n_workflow_routing_domain: Classify ordered hard intent including exact fresh-task confirmed-Spec resume, preserve caller-supplied unresolved-decision evidence from before the first design question through answer reconciliation, and assess implementation and durable context from repository evidence.
     n_workflow_routing_domain-->>-n_guided_workflow_router: workflow-routing.assess-project result
-    n_guided_workflow_router->>+n_risk_routing_domain: Match ordered risk hard triggers and preserve the required governance gates.
+    n_guided_workflow_router->>+n_risk_routing_domain: Match ordered risk hard triggers and preserve the required governance gates. Add project-policy and AC-plan obligations from fresh validation facts, preserving them on reload and short commands.
     n_risk_routing_domain-->>-n_guided_workflow_router: risk-routing.classify result
     n_guided_workflow_router->>+n_workflow_routing_domain: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision.
     n_workflow_routing_domain-->>-n_guided_workflow_router: workflow-routing.select result
@@ -195,7 +195,7 @@ sequenceDiagram
 | # | Module | Action | Receives | Emits | State changes | Side effects |
 |---|---|---|---|---|---|---|
 | 1 | `workflow_routing_domain` | Classify ordered hard intent including exact fresh-task confirmed-Spec resume, preserve caller-supplied unresolved-decision evidence from before the first design question through answer reconciliation, and assess implementation and durable context from repository evidence. | `workflow-routing.assess-project`, `repository-evidence.collect` | None | None | None |
-| 2 | `risk_routing_domain` | Match ordered risk hard triggers and preserve the required governance gates. | `risk-routing.classify` | None | None | None |
+| 2 | `risk_routing_domain` | Match ordered risk hard triggers and preserve the required governance gates. Add project-policy and AC-plan obligations from fresh validation facts, preserving them on reload and short commands. | `risk-routing.classify` | None | None | None |
 | 3 | `workflow_routing_domain` | Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative GuidedRouteDecision. | `workflow-routing.select` | None | None | None |
 
 - **Success:** A PASS or DEGRADED decision selects an immediate safe handoff; pending design or specification decisions select grilling before the previous skill asks them and name spec-governance as the immediate reconciliation target, while invalid evidence or missing non-substitutable capability returns BLOCKED.

@@ -73,3 +73,5 @@ Question feedback and alternative revisions remain in the existing SPEC journal.
 A failed popup is not automatically resent; changed options receive a new version
 before display. Prepared reply checks and actual emitted reply audits are separate;
 accepted tool requests and presentation files do not prove visible delivery.
+
+Project verification requirements now follow the current specification across reloads and short continuation commands. The workflow distinguishes implementation progress from acceptance: missing hardware evidence cannot be replaced by host tests or a successful build. The shared validation plan records the applicable layers and their evidence sources.

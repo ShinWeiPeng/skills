@@ -243,3 +243,7 @@ will continue later is insufficient. A product pause does not pause discussion.
 Only a presented pending question, an evidenced blocker with required input, an
 explicit user discussion pause, or a presented decision-complete proposal permits
 waiting. The check grants no product execution authority.
+
+## Project validation obligations
+
+At entry, resume, and explicit skill reload, run the guided router with current task/SPEC references. Inspect `project_validation`: it rereads project policy, manifest, matrix and device profile with hashes. Preserve its additive `required_gates` on short prompts. A reload is not complete merely because SKILL.md was read. Missing mappings remain BLOCKED for dependent acceptance; continue read-only discovery and spec repair. Unchanged reload does not create a new execution-authorization requirement.

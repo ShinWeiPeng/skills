@@ -126,6 +126,7 @@
         "authority": {"const": "routing-only"},
         "next_action": {"type": ["string", "null"]},
         "spec_discussion_allowed": {"const": true},
+        "project_validation": {"type": "object", "required": ["verdict", "required_gates", "errors"], "properties": {"verdict": {"enum": ["PASS", "FAIL", "BLOCKED"]}, "required_gates": {"type": "array", "items": {"type": "string"}}, "errors": {"type": "array", "items": {"type": "string"}}, "device_actions_authorized": {"const": false}}, "description": "Fresh project policy, plan and evidence diagnostics; never a device-operation permission."},
         "turn_context": {"type": ["object", "null"]},
         "selected_skill": {"type": ["string", "null"]},
         "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},
