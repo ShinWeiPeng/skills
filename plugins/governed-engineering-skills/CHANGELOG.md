@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.15.0
+
+### Added
+
+- Project-bound validation plans and evidence checks across governed routing, delivery, and specification acceptance.
+
+### Fixed
+
+- Preserve project hardware verification obligations on short continuation and skill reload requests; reject missing, stale, or insufficient acceptance evidence.
+
 ## 0.14.0
 
 ### Changed

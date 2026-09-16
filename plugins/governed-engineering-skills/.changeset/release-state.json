@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.14.0",
-  "previous_version": "0.13.0",
+  "current_version": "0.15.0",
+  "previous_version": "0.14.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:9d4ffa5a7b45443803286faaabd7ca88e2401dbd9831ba04eac2fca2f63695b3",
+  "production_fingerprint": "sha256:d2d9ebe61a8e1b1543c48b77a2faab0658a3de89c79b6512fa1b73bd074c04a4",
   "applied_changesets": [
-    "universal-spec-execution-boundary"
+    "project-runtime-validation-enforcement"
   ]
 }
