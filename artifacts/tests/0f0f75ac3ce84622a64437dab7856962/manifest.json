@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "run_id": "0f0f75ac3ce84622a64437dab7856962",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:30:07.537412+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "windows-autocrlf-checkout-release-gate",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:/Users/hugo_peng/skill/spec0028-autocrlf-check/tools/architecture/architecture_cli.py",
+      "gate",
+      "--phase",
+      "release",
+      "--manifest",
+      "C:/Users/hugo_peng/skill/spec0028-autocrlf-check/architecture/manifest.yaml",
+      "--adoption",
+      "C:/Users/hugo_peng/skill/spec0028-autocrlf-check/architecture/adoption.yaml",
+      "--baseline",
+      "C:/Users/hugo_peng/skill/spec0028-autocrlf-check/architecture/baseline.yaml"
+    ],
+    "source": {
+      "revision": "ff0a7d67216f3311d4e35b693120f77f42e8c246",
+      "dirty_sha256": "36567f531e41ecdedf59c893b6b9960681229e1ce66ca8edb5a3fa0e7dec879a"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T08:30:17.533114+00:00",
+  "files": {
+    ".run.json": "28232b815deff855a48c0dedf815791c09ea47f0e631827a5eb8b270109e1bed",
+    "reports/command.log": "e4ef8307868898d7d57d0bc7827a7bf54bc556534956478cf282278fc59fd18f",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

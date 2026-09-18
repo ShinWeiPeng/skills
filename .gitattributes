@@ -1,1 +1,4 @@
+# Preserve source and immutable evidence bytes used by SHA-256 bindings.
+* -text
+
 plugins/governed-engineering-skills/** text=auto eol=lf
