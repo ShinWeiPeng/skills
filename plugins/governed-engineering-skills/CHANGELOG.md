@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.16.0
+
+### Breaking Changes
+
+- Require layout schema 1 and explicit immutable run references; migrate legacy test and evidence locations.
+
+### Added
+
+- Whole-project test ownership/dependency checks and exclusive run allocation with integrity validation.
+
 ## 0.15.0
 
 ### Added
