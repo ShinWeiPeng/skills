@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.15.0",
-  "previous_version": "0.14.0",
+  "current_version": "0.16.0",
+  "previous_version": "0.15.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:d2d9ebe61a8e1b1543c48b77a2faab0658a3de89c79b6512fa1b73bd074c04a4",
+  "production_fingerprint": "sha256:1863df5cab0d814ac4dfccf0e7b1184bd3d530fc4427a776bf10ad4204acc40d",
   "applied_changesets": [
-    "project-runtime-validation-enforcement"
+    "test-validation-architecture"
   ]
 }
