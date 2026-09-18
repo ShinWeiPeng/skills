@@ -33,7 +33,7 @@ See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking g
 
 ## Seams — where tests go
 
-A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests live at seams, never against internals.
+A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests prefer public seams. A module's own tests may use its controlled test-only hooks; never arbitrarily mutate private state or ship test controls in release wiring.
 
 **Test only at pre-agreed seams.** Before writing any test, write down the seams under test and confirm them with the user. No test is written at an unconfirmed seam. You can't test everything — agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case.
 
@@ -50,3 +50,13 @@ Ask: "What's the public interface, and which seams should we test?"
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
 - **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.
+
+Own setup/reset/cleanup per case; shared fixtures are readonly by default. Use private support/ locally and tests/support/<capability>/ for shared assets. Verify state isolation with reorder/repeat/concurrency tests where applicable.

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "spec_id": "SPEC-0028",
+  "acceptance": {
+    "AC-001": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-002": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-003": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-004": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-005": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-006": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-007": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    }
+  }
+}

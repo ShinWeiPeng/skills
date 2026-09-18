@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "91b720623da64c4c90f5a660e64fa537",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:43:02.359171+00:00",
+  "metadata": {
+    "target": {
+      "module": "governance_workflow_domain"
+    },
+    "scenario": "proposal-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain/proposals",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T07:43:02.684454+00:00",
+  "files": {
+    ".run.json": "6dff7525e8339a70093ab6be8d9dc55b4f3b00beabbfb01ba106479d33a2b707",
+    "reports/command.log": "22b0ef2ab097ef2286708990d785e7878d86db4f24f15033b1175ac666c282df",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

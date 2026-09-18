@@ -12,7 +12,7 @@
   - `skills/engineering/improve-codebase-architecture/SKILL.md`
   - `skills/engineering/clarify-improvement-proposals/SKILL.md`
 - Test and benchmark paths:
-  - `plugins/governed-engineering-skills/tests/test_flow_cost_governance.py`
+  - `tests/flows/plugin-integration/plugin/test_flow_cost_governance.py`
 - Supersedes: none
 
 ## Problem and observable success

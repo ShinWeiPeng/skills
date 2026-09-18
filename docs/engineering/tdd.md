@@ -51,3 +51,12 @@ outside that boundary; real assistant traces are required in addition to unit te
 
 See the [managed delivery contract](https://github.com/ShinWeiPeng/skills/blob/main/skills/engineering/implement/references/managed-delivery.md)
 for request examples, supported operations and evidence limits.
+
+## Test and evidence boundaries
+
+Tests now have explicit Module or Flow ownership under `tests/`. Authored validation
+plans stay under `validation/`; each execution keeps its own immutable run under
+`artifacts/`. This keeps specifications readable and prevents later runs from
+replacing the evidence they cite. Whole-project checks include existing files and
+report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
+boundaries; project-specific retention and Git ignore choices remain separate.

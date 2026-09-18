@@ -1,0 +1,9 @@
+Get-Acl : The 'Get-Acl' command was found in the module 'Microsoft.PowerShell.Security', but the module could not be lo
+aded. For more information, run 'Import-Module Microsoft.PowerShell.Security'.
+At C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\plugin\test_windows_artifact_
+access.ps1:47 char:26
++     $outsideAclBefore = (Get-Acl -LiteralPath $outside).Sddl
++                          ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Get-Acl:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CouldNotAutoloadMatchingModule
+ 

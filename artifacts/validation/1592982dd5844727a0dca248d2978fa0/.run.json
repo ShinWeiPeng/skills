@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "1592982dd5844727a0dca248d2978fa0",
+  "kind": "validation",
+  "started_at": "2026-09-18T07:03:21.104204+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0028-test-validation-architecture.md"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "2ea8433e69ae3f33a5d0b709535e7232e85fb662f040984cb3d38b8061eaa5a8"
+    },
+    "inputs": {
+      "plan": "526ab53f6dbb3078db67043580491647d19d6cffbad4077399294dae0766dea8"
+    },
+    "spec": "SPEC-0028",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007"
+    ]
+  }
+}

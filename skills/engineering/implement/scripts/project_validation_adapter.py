@@ -50,6 +50,45 @@ def assess_project_validation(
             or (result["verdict"] == "PASS") != (run.returncode == 0)
         ):
             raise ValueError("invalid validation CLI result")
+        architecture = Path(project_root) / "architecture/manifest.yaml"
+        if architecture.is_file():
+            layout_cli = (
+                Path(__file__).resolve().parents[2]
+                / "govern-modular-event-architecture/scripts/architecture_cli.py"
+            )
+            layout_run = subprocess.run(
+                [
+                    sys.executable,
+                    str(layout_cli),
+                    "layout",
+                    "--manifest",
+                    str(architecture),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=30,
+                env=os.environ | {"PYTHONIOENCODING": "utf-8"},
+            )
+            if len(layout_run.stdout) > 4194304:
+                raise ValueError("layout response exceeds bounded contract")
+            layout = json.loads(layout_run.stdout)
+            if (
+                layout.get("verdict") not in {"PASS", "FAIL", "BLOCKED"}
+                or layout_run.returncode
+                != {"PASS": 0, "FAIL": 1, "BLOCKED": 2}[layout["verdict"]]
+            ):
+                raise ValueError("invalid layout CLI result")
+            result["layout"] = layout
+            result["required_gates"] = sorted(
+                set(result.get("required_gates", [])) | {"test-validation-layout"}
+            )
+            # Planning/enablement authorizes remediation, never overall acceptance.
+            if phase in {"acceptance", "release"} and layout["verdict"] != "PASS":
+                result["verdict"] = layout["verdict"]
+                result.setdefault("errors", []).append(
+                    "whole-project test/validation layout is not PASS"
+                )
         return result
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
         return {

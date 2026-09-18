@@ -59,7 +59,7 @@ REQUIRED_INSTALLER_PATHS = (
     "distribution/installer-providers.json",
     "scripts/install-local.ps1",
     "plugins/governed-engineering-skills/scripts/install-local.ps1",
-    "plugins/governed-engineering-skills/tests/test_install_local.ps1",
+    "tests/flows/plugin-integration/plugin/test_install_local.ps1",
 )
 
 

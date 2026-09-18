@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from run_storage import allocate_run, finalize_run, validate_run, source_snapshot
 from verification_ladder import (
     LAYER_ORDER,
     TAXONOMY,
@@ -29,6 +30,7 @@ DOCUMENTS = (
     "architecture/manifest.yaml",
     "validation/verification-ladder.yaml",
     "validation/on-device.yaml",
+    "validation/layout.yaml",
 )
 MAX_BYTES = 1048576
 
@@ -115,6 +117,7 @@ def skill_identity():
     files = [
         scripts / "project_validation.py",
         scripts / "verification_ladder.py",
+        scripts / "run_storage.py",
         scripts.parent / "SKILL.md",
         skills / "engineering-risk-routing/references/routing-rules.json",
     ]
@@ -122,6 +125,7 @@ def skill_identity():
         skills / relative
         for relative in (
             "engineering-risk-routing/scripts/guided_workflow_router.py",
+            "govern-modular-event-architecture/scripts/validation_layout.py",
             "spec-governance/scripts/spec_contract.py",
             "implement/scripts/spec_delivery.py",
             "implement/scripts/managed_delivery.py",
@@ -347,7 +351,18 @@ def _assess(root, spec, phase, candidate_text, result):
     result["verdict"] = "PASS"
     if phase == "planning":
         return
-    stored_path = f"spec-governance/validation-{spec_id}.json"
+    references = read_document(
+        root, f"validation/run-references-{spec_id}.json", {}, required=True
+    )
+    plan_reference = references.get("plan_manifest")
+    if not isinstance(plan_reference, str):
+        raise ValueError("explicit plan_manifest reference required")
+    plan_run = validate_run(root, plan_reference)
+    if plan_run["outcome"] != "PASS" or plan_run["metadata"].get("spec") != spec_id:
+        raise ValueError("plan run identity/outcome mismatch")
+    stored_path = str(Path(plan_reference).parent / "plan.snapshot.json").replace(
+        "\\", "/"
+    )
     stored = read_document(root, stored_path, {}, required=True)
     if stored != current_plan:
         raise ValueError(
@@ -388,9 +403,83 @@ def _assess(root, spec, phase, candidate_text, result):
         item["enablement_scenarios"] for item in plans.values()
     ):
         return
-    bundle = read_document(
-        root, f"validation/evidence-{spec_id}.json", {}, required=True
-    )
+    evidence_references = references.get("evidence_manifests")
+    if (
+        not isinstance(evidence_references, list)
+        or not evidence_references
+        or len(set(evidence_references)) != len(evidence_references)
+    ):
+        raise ValueError("explicit unique evidence_manifests required")
+    bundles = []
+    for reference in evidence_references:
+        evidence_run = validate_run(root, reference)
+        if evidence_run["metadata"].get("spec") != spec_id:
+            raise ValueError("evidence SPEC identity mismatch")
+        evidence_path = str(Path(reference).parent / "evidence.json").replace("\\", "/")
+        candidate = read_document(root, evidence_path, {}, required=True)
+        if (
+            candidate.get("plan_sha256") != result["plan_sha256"]
+            or candidate.get("schema_version") != 1
+        ):
+            raise ValueError("evidence run references a different plan")
+        if not isinstance(candidate.get("results"), list):
+            raise ValueError("invalid run evidence results")
+        metadata = evidence_run["metadata"]
+        if metadata["inputs"].get("plan") != result["plan_sha256"]:
+            raise ValueError("run metadata plan digest mismatch")
+        expected_inputs = {
+            p: record["sha256"]
+            for p, record in records.items()
+            if record["state"] == "present"
+        }
+        if any(
+            metadata["inputs"].get(p) != value for p, value in expected_inputs.items()
+        ):
+            raise ValueError("run metadata configuration digest mismatch")
+        covered = {
+            row.get("ac") for row in candidate["results"] if isinstance(row, dict)
+        }
+        scenarios = {
+            row.get("scenario")
+            for row in candidate["results"]
+            if isinstance(row, dict) and row.get("scenario") is not None
+        }
+        if set(metadata.get("acceptance", [])) != covered:
+            raise ValueError("run metadata acceptance coverage mismatch")
+        if (
+            set(metadata.get("scenarios", [metadata["scenario"]])) != scenarios
+            and scenarios
+        ):
+            raise ValueError("run metadata scenario coverage mismatch")
+        if phase in {"acceptance", "release"} and metadata["source"] != source_snapshot(
+            root
+        ):
+            raise ValueError("evidence source snapshot is stale")
+        row_outcomes = {
+            row.get("verdict") for row in candidate["results"] if isinstance(row, dict)
+        }
+        expected_outcome = (
+            "FAIL"
+            if "FAIL" in row_outcomes
+            else "BLOCKED"
+            if "BLOCKED" in row_outcomes
+            else "PASS"
+        )
+        if evidence_run["outcome"] != expected_outcome:
+            raise ValueError("terminal outcome is inconsistent with evidence rows")
+        prefix = Path(reference).parent.as_posix() + "/"
+        for row in candidate["results"]:
+            for artifact in row.get("artifacts", []):
+                if not artifact.get("path", "").startswith(prefix):
+                    raise ValueError(
+                        "evidence artifact must belong to its finalized run"
+                    )
+        bundles.append(candidate)
+    bundle = {
+        "schema_version": 1,
+        "plan_sha256": result["plan_sha256"],
+        "results": [row for candidate in bundles for row in candidate["results"]],
+    }
     if (
         type(bundle.get("schema_version")) is not int
         or bundle.get("schema_version") != 1
@@ -586,19 +675,64 @@ def main():
                 verdict="BLOCKED", errors=["only a valid planning result can be saved"]
             )
         else:
-            path = project_path(
-                args.project_root.resolve(),
-                f"spec-governance/validation-{result['plan']['binding']['spec_id']}.json",
-            )
-            if not path.parent.is_dir():
-                result.update(
-                    verdict="BLOCKED", errors=["spec-governance directory must exist"]
+            root = args.project_root.resolve()
+            spec_id = result["plan"]["binding"]["spec_id"]
+            try:
+                layout = read_document(
+                    root, "validation/layout.yaml", {}, required=True
                 )
-            else:
-                path.write_text(
+                bindings = [
+                    b
+                    for b in layout.get("output_bindings", [])
+                    if b.get("writer") == "project_validation"
+                    and b.get("root") == "artifacts/validation"
+                ]
+                if len(bindings) != 1:
+                    raise ValueError(
+                        "declare exactly one project_validation output target"
+                    )
+                metadata = {
+                    "target": bindings[0].get("target"),
+                    "scenario": "validation-planning",
+                    "tool": {"name": "project_validation", "version": "1"},
+                    "command": [
+                        "project_validation.py",
+                        "--write-plan",
+                        "--spec",
+                        args.spec,
+                    ],
+                    "source": source_snapshot(root),
+                    "inputs": {"plan": result["plan_sha256"]},
+                    "spec": spec_id,
+                    "acceptance": sorted(result["plan"]["acceptance"]),
+                }
+                run = allocate_run(root, "validation", metadata=metadata)
+                (run / "plan.snapshot.json").write_text(
                     json.dumps(result["plan"], ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8",
                 )
+                finalize_run(root, run, "PASS")
+                reference = (run / "manifest.json").relative_to(root).as_posix()
+                selection = project_path(
+                    root, f"validation/run-references-{spec_id}.json"
+                )
+                # This is an authored selection, not a mutable evidence identity.
+                # Explicit --write-plan selects the newly returned fixed run.
+                selection.write_text(
+                    json.dumps(
+                        {
+                            "schema_version": 1,
+                            "plan_manifest": reference,
+                            "evidence_manifests": [],
+                        },
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                result["plan_manifest"] = reference
+            except (OSError, ValueError) as exc:
+                result.update(verdict="BLOCKED", errors=[str(exc)])
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["verdict"] == "PASS" else 2
 

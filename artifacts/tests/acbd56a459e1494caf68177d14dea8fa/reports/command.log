@@ -1,0 +1,32 @@
+======================================================================
+ERROR: test_source_fingerprint_changes_for_tracked_production_bytes (test_version_governance.RepositoryPolicyTests.test_source_fingerprint_changes_for_tracked_production_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\skills\tests\flows\plugin-integration\plugin\test_version_governance.py", line 202, in test_source_fingerprint_changes_for_tracked_production_bytes
+    baseline = MODULE.production_fingerprint(PLUGIN_ROOT)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\skill\skills\plugins\governed-engineering-skills\scripts\version_governance.py", line 233, in production_fingerprint
+    inventory = assembly_source_inventory(REPOSITORY_ROOT)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\skill\skills\plugins\governed-engineering-skills\scripts\version_governance.py", line 193, in assembly_source_inventory
+    raise ValueError(f"tracked Plugin source is missing: {repository_path.as_posix()}")
+ValueError: tracked Plugin source is missing: plugins/governed-engineering-skills/tests/architecture/test_architecture.py
+
+======================================================================
+ERROR: test_source_fingerprint_ignores_workspace_only_artifacts (test_version_governance.RepositoryPolicyTests.test_source_fingerprint_ignores_workspace_only_artifacts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\skills\tests\flows\plugin-integration\plugin\test_version_governance.py", line 191, in test_source_fingerprint_ignores_workspace_only_artifacts
+    baseline = MODULE.production_fingerprint(PLUGIN_ROOT)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\skill\skills\plugins\governed-engineering-skills\scripts\version_governance.py", line 233, in production_fingerprint
+    inventory = assembly_source_inventory(REPOSITORY_ROOT)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\skill\skills\plugins\governed-engineering-skills\scripts\version_governance.py", line 193, in assembly_source_inventory
+    raise ValueError(f"tracked Plugin source is missing: {repository_path.as_posix()}")
+ValueError: tracked Plugin source is missing: plugins/governed-engineering-skills/tests/architecture/test_architecture.py
+
+----------------------------------------------------------------------
+Ran 271 tests in 22.253s
+
+FAILED (errors=2)

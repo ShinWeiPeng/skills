@@ -1,0 +1,546 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "sha256": "c0a9ab2dd9fa40278725d78d59747522040cdc99abb92cec93ef437138ece66c",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_decision_question_contract.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_decision_question_contract.py"
+    },
+    {
+      "sha256": "38b8959bc96cd9f52906c60603c27cfb53dab4b5f83ccd113bacfecfba573936",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_flow_cost_governance.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_flow_cost_governance.py"
+    },
+    {
+      "sha256": "c166b57480b7f734115ccd23622e4bc4e2b80a9e04fd45a1921fedd022308664",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_formatter_governance.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_formatter_governance.py"
+    },
+    {
+      "sha256": "e26e2aff04b9ca22d5120a0954f54f1eb182ca6489d11bf1999d61120b7fee49",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_guided_routing.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_guided_routing.py"
+    },
+    {
+      "sha256": "24a475f4ff64d9441487b51979aff268553211920ec9d9acd039d39350d643b5",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_install_local.ps1",
+      "destination": "tests/flows/plugin-integration/plugin/test_install_local.ps1"
+    },
+    {
+      "sha256": "f3a7ec54194416a2f12af87dfc632035563187eb24e7ba739762bb57886aa013",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_managed_delivery.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_managed_delivery.py"
+    },
+    {
+      "sha256": "3962b2fcb8d57c6f27808efb9cbabfcf1eff8ea36d7360be09ad6c1ac62aaf56",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_routing.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_routing.py"
+    },
+    {
+      "sha256": "54e54c0f1be335786e06c9ad673afe600e85e1da66be31c448a24d532c2e01cb",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_spec_governance.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_spec_governance.py"
+    },
+    {
+      "sha256": "4bc2e2731d0fe11d7744a68b81bffc785e94b6537a8f4eb672a3325f553d6cb7",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_turn_continuity.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_turn_continuity.py"
+    },
+    {
+      "sha256": "188bb35bc41b159f0ba360d0ae7125c8c5099b36d8a6c475dae4d90fa0689827",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_version_governance.py",
+      "destination": "tests/flows/plugin-integration/plugin/test_version_governance.py"
+    },
+    {
+      "sha256": "357bd46f8acf6ab4daf7a01ea12458d5870bdf08c9528d6af44595e1c721ae1c",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/test_windows_artifact_access.ps1",
+      "destination": "tests/flows/plugin-integration/plugin/test_windows_artifact_access.ps1"
+    },
+    {
+      "sha256": "eedb87f00f400f2db45e0cb2accf69c15cb2013aa67fbbdd514a754f4bc603e1",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/architecture/test_architecture.py",
+      "destination": "tests/flows/plugin-integration/plugin/architecture/test_architecture.py"
+    },
+    {
+      "sha256": "767d5360e47dc2b2a2ba1451ad708b92311fd6837e2a82edbf96b21ea8f3c5d3",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/architecture/__pycache__/test_architecture.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/architecture/__pycache__/test_architecture.cpython-311.pyc"
+    },
+    {
+      "sha256": "8e353a22db49ed44484c569d79874ea03ca41b32f89243953beea10ef8ca6790",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/architecture/__pycache__/test_architecture.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/architecture/__pycache__/test_architecture.cpython-312.pyc"
+    },
+    {
+      "sha256": "715a6d41936f2ace466530fd9124771a80dae5ed5486b062fa8e177ca9e3e815",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-artifact-access.ps1",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-artifact-access.ps1"
+    },
+    {
+      "sha256": "6faf1068e1a42416c2f268755c85469a059ab73417fa33a08c37237f55445343",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-codex-access-denied.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-codex-access-denied.cmd"
+    },
+    {
+      "sha256": "0d007f7df815796c22bb60160700a59f27606414657bf3fd07317537c65ec9b5",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-codex.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-codex.cmd"
+    },
+    {
+      "sha256": "9616531b29537ec6049b62105b2b2166b938a61e6d91cb0f02e1367d857d1063",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-marketplace-codex.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-marketplace-codex.cmd"
+    },
+    {
+      "sha256": "aade7ec50020d2002132b83374fc58f2b9f64a55f5993d7c06fc6c1036d0adad",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python-compatible-runtime.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python-compatible-runtime.cmd"
+    },
+    {
+      "sha256": "2be52ec01782cbc4880fcb50e2ef12924d01b845862c2e273d90650f1c0f2367",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python-failure.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python-failure.cmd"
+    },
+    {
+      "sha256": "48202ac7427982e488b962abdf0a3dbcab8a1a8e586b3ccb76eb825c4fd99c7b",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python-incompatible.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python-incompatible.cmd"
+    },
+    {
+      "sha256": "d042cdc62c87cd50d6d03a28e259a32ab940550cc62342c0cb34a259d1aad722",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python-launcher.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python-launcher.cmd"
+    },
+    {
+      "sha256": "9230d5679c064659d17b9b617fe2e520219ccd6ad7db7f6bee7ad26aef2b9640",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python-malformed.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python-malformed.cmd"
+    },
+    {
+      "sha256": "61862876e420659676d165270e197a1799199194c174e1359493bbbe02b6ecdd",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python-probe-failure.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python-probe-failure.cmd"
+    },
+    {
+      "sha256": "1477e69d0be32dce51dd2d24623b6f392d9943476460d398229d7252cc438f6f",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-python2.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-python2.cmd"
+    },
+    {
+      "sha256": "7499b295daf05038afc7476da34f1e436c6f8c785d911f1943100801aae2c77e",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/fixtures/fake-uri-launcher.cmd",
+      "destination": "tests/flows/plugin-integration/plugin/fixtures/fake-uri-launcher.cmd"
+    },
+    {
+      "sha256": "2540ac006f2ebf1a349e8151668a54744967b93e98777d4d4b7493bd88b22772",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_decision_question_contract.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_decision_question_contract.cpython-311.pyc"
+    },
+    {
+      "sha256": "8ea46319b8f04f9debe89e94e237ed09ec930ba7ee1f0355875a05fae90b145d",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_decision_question_contract.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_decision_question_contract.cpython-312.pyc"
+    },
+    {
+      "sha256": "ba5e3c0bdfad388becb6ab582cf2bda236c94fb72ad290fa5f70920d0fafa2e4",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_flow_cost_governance.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_flow_cost_governance.cpython-311.pyc"
+    },
+    {
+      "sha256": "ae18cf36a5d48df92afc63592e878b67336ebdd3e63dbc00f35cb0d9213316e2",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_flow_cost_governance.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_flow_cost_governance.cpython-312.pyc"
+    },
+    {
+      "sha256": "0a6a4833ed987d285ae76e7a5cb74f4719c24e0d4570957e098d894c76459417",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_formatter_governance.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_formatter_governance.cpython-311.pyc"
+    },
+    {
+      "sha256": "38bb32ff640d7a774fe86cc065e00fc77764b8d523770f1c91261ca50d882aac",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_formatter_governance.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_formatter_governance.cpython-312.pyc"
+    },
+    {
+      "sha256": "ab4d7da77a48801b7adf55b56d88f94cf349d3ac18f9b12c15a87d8706da598d",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_guided_routing.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_guided_routing.cpython-311.pyc"
+    },
+    {
+      "sha256": "adb43bb3e351961e6a97ab2d2098a589ebbfab16206a0ae628c61cc49126e7b4",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_guided_routing.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_guided_routing.cpython-312.pyc"
+    },
+    {
+      "sha256": "bc8d53f0ba5a04a4ae9b0ce53a2b3694d82e1f318c75bc48c5417f788f8ea18e",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_managed_delivery.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_managed_delivery.cpython-312.pyc"
+    },
+    {
+      "sha256": "734c60767b054131a35e860aa6b012c520ee613955c7f7620818904617b2398e",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_routing.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_routing.cpython-311.pyc"
+    },
+    {
+      "sha256": "cdd27f8c8c6cc04d699430195a7c14e8168b049a9ff3b434472f2ee560d45f93",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_routing.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_routing.cpython-312.pyc"
+    },
+    {
+      "sha256": "5961d77e9df9225921cde743a2508de836688d05795aa251dc6aadcf317f64e2",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_spec_governance.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_spec_governance.cpython-311.pyc"
+    },
+    {
+      "sha256": "f1fef4b70866b02d6fdaca7e0144d597e9c33a31c576f6c59fbc82fc3ce17042",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_spec_governance.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_spec_governance.cpython-312.pyc"
+    },
+    {
+      "sha256": "3cff11950382619dedba72e8a498407cde11f1f7b259c5b6e5890dd24f53658e",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_turn_continuity.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_turn_continuity.cpython-312.pyc"
+    },
+    {
+      "sha256": "85c592facc81043643b7473e92725c9d95b1926365c963ba3dfaf1f248b9561f",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_version_governance.cpython-311.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_version_governance.cpython-311.pyc"
+    },
+    {
+      "sha256": "364828593ecada15d0dcefe146324bcd7516530c67cd27a3a10adc8df0162031",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "plugins/governed-engineering-skills/tests/__pycache__/test_version_governance.cpython-312.pyc",
+      "destination": "tests/flows/plugin-integration/plugin/__pycache__/test_version_governance.cpython-312.pyc"
+    },
+    {
+      "sha256": "9d9f4992141d60a837f20cfc9bcce8776f2091502555089c5c9b013c138081cd",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "tests/test_shared_skill_distribution.py",
+      "destination": "tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py"
+    },
+    {
+      "sha256": "d49f30add281b1f93f20127a01fa29512dafdf15ff599c6ef55b66e2303f01cd",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "tests/test_cross_platform_marketplace_installer.py",
+      "destination": "tests/flows/plugin-integration/distribution/test_cross_platform_marketplace_installer.py"
+    },
+    {
+      "sha256": "82b78db1837cecbc952ea48d273cb76de303e5fec2a969f5c79bfbd32a098fb0",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/fanout_reference.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/fanout_reference.py"
+    },
+    {
+      "sha256": "a90e6dcbf2e107902a35f49a46a8556ff8acf3307ba1589d149eb81ae2564500",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/test_architecture.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/test_architecture.py"
+    },
+    {
+      "sha256": "3d80a033849d8b67965ef165278aa5a4bd4a11a230cdbe344f4c1b00f1a2bf68",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/test_governance_cli.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/test_governance_cli.py"
+    },
+    {
+      "sha256": "5945ae089e85f793eba545566246afe79099f9e9479ca6248bb44d91bb5d2c5c",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/test_libclang_toolchain_provider.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/test_libclang_toolchain_provider.py"
+    },
+    {
+      "sha256": "e2142fdb877614f4e4e3ecc9a661f6ec72a09185a1aea6850b6379ad8d5b5e86",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/test_realtime_analysis.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/test_realtime_analysis.py"
+    },
+    {
+      "sha256": "0a7e9fff48a501c3feb58375aeef8592668c35f31252589ca28c2164946a285c",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/test_skill_contract.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/test_skill_contract.py"
+    },
+    {
+      "sha256": "8ae31eb3b0ce39bc4132e4333383f8ad313407c4897b89ffad62828c484d4a7f",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/architecture/test_architecture.py",
+      "destination": "tests/modules/governance_workflow_domain/architecture/architecture/test_architecture.py"
+    },
+    {
+      "sha256": "0237eb2e9460b4eba9935914e4a161a10707e2752fdf2752f4b729b1afe20074",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/fanout_reference.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/fanout_reference.cpython-311.pyc"
+    },
+    {
+      "sha256": "616968d055e6a7952856f8477b1846bbcf5ed7ae04967b3751d46bb14d39d5e2",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_architecture.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_architecture.cpython-311.pyc"
+    },
+    {
+      "sha256": "36f133885c2a47cb3807f5bbe22b44bba997d9838d3e7d6882e66df541e0f973",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_architecture.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_architecture.cpython-312.pyc"
+    },
+    {
+      "sha256": "f0b6b1cc47109bdc0a1ebc5b34e73bc5bb7ba429298bebb547ef7c43ca6e8633",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_governance_cli.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_governance_cli.cpython-311.pyc"
+    },
+    {
+      "sha256": "355ef37e04b45b5d09e1b090288a0b778ffac33d3b93af1b7720e425d7f30433",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_governance_cli.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_governance_cli.cpython-312.pyc"
+    },
+    {
+      "sha256": "9a6cd9c8508da7f5b874b3284653ec71879bfc612ab0d53752417dc2d39594e6",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_libclang_toolchain_provider.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_libclang_toolchain_provider.cpython-311.pyc"
+    },
+    {
+      "sha256": "8e3452bc54e0f077ad063b1f24bcce419ce234e103e9f60527f6fd7d12f9184a",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_libclang_toolchain_provider.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_libclang_toolchain_provider.cpython-312.pyc"
+    },
+    {
+      "sha256": "9fe5414c7a3b8fa2666274358c11602b22b22e887a4901e2390e33019e4263cf",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_realtime_analysis.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_realtime_analysis.cpython-311.pyc"
+    },
+    {
+      "sha256": "219656ff0505315977acb4d20413702a73555ec863f85c1a3168559b15d1d811",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_realtime_analysis.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_realtime_analysis.cpython-312.pyc"
+    },
+    {
+      "sha256": "5bd1573e0eb484686870710c35ca0c66976392582780ed3c7ef2438c1dfebd1d",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_skill_contract.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_skill_contract.cpython-311.pyc"
+    },
+    {
+      "sha256": "41e4e1469ecb61972394c5820a87a1d8eac3c6dfbe3efab0a1a7d60192798070",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/govern-modular-event-architecture/tests/__pycache__/test_skill_contract.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/architecture/__pycache__/test_skill_contract.cpython-312.pyc"
+    },
+    {
+      "sha256": "45e9ad0db05a56a9092dd3bfc352429f5ac74c527addf7c1a8f246b92e581edd",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/test_guided_session.py",
+      "destination": "tests/modules/governance_workflow_domain/device/test_guided_session.py"
+    },
+    {
+      "sha256": "5df0bffc30f345ffaae3fcc1c5a31de9a09d561a274f5f2389088e4dc8ead10e",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/test_validate_on_device.py",
+      "destination": "tests/modules/governance_workflow_domain/device/test_validate_on_device.py"
+    },
+    {
+      "sha256": "8fff74b1f9617e1d04a06a872cf9ece168a57ae3805f3beab1e4014be23963c3",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/architecture/test_architecture.py",
+      "destination": "tests/modules/governance_workflow_domain/device/architecture/test_architecture.py"
+    },
+    {
+      "sha256": "a73cb8495e53c5a4d4e21a93d92dfd0a000f9197943d80d44bb824791d0b6074",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/__pycache__/test_guided_session.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/device/__pycache__/test_guided_session.cpython-311.pyc"
+    },
+    {
+      "sha256": "603c7c956f9d986a1b5f6f5af5fc99e0cf770ce83b0f743db06412c7d609a95e",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/__pycache__/test_guided_session.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/device/__pycache__/test_guided_session.cpython-312.pyc"
+    },
+    {
+      "sha256": "1fbbe617fe8e20295c8e2f6ed16df38ba5e995674ed1e691206df693ea0d1656",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/__pycache__/test_validate_on_device.cpython-311.pyc",
+      "destination": "tests/modules/governance_workflow_domain/device/__pycache__/test_validate_on_device.cpython-311.pyc"
+    },
+    {
+      "sha256": "bf5bbe9bbf279d9470551a627cfa7e53874b64e2b3baaf41fba5ccb088f355f5",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/validate-on-device/tests/__pycache__/test_validate_on_device.cpython-312.pyc",
+      "destination": "tests/modules/governance_workflow_domain/device/__pycache__/test_validate_on_device.cpython-312.pyc"
+    },
+    {
+      "sha256": "c642febfdab01dbd57d3c60ba7ba82d7825a16df910bac896718f29c04080141",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/clarify-improvement-proposals/tests/test_validation_workflow.py",
+      "destination": "tests/modules/governance_workflow_domain/proposals/test_validation_workflow.py"
+    },
+    {
+      "sha256": "7a1dfc864dbb9544effd8406a36badf6ab3de5cd6ddd8634a442fcb654b7ff31",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/explain-code-flow/tests/test_skill_contract.py",
+      "destination": "tests/modules/governance_workflow_domain/explanation/test_skill_contract.py"
+    },
+    {
+      "sha256": "5ffa59cdbf553a886e096a6a84a564785c09be2b753ac164ff88e3c62e41a052",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/diagnosing-bugs/tests/test_skill_contract.py",
+      "destination": "tests/modules/delivery_workflow_domain/diagnosis/test_skill_contract.py"
+    },
+    {
+      "sha256": "50020da4bcf5623fa741c49112d551aecbe70ab46c8f56e364086662f4a92a80",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/verification-ladder/tests/test_project_validation.py",
+      "destination": "tests/modules/verification_ladder_domain/ladder/test_project_validation.py"
+    },
+    {
+      "sha256": "16f8566366241dcad2643bfc55eb7aa44d371549a5379b51ce269bffe06dda18",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/verification-ladder/tests/test_verification_ladder.py",
+      "destination": "tests/modules/verification_ladder_domain/ladder/test_verification_ladder.py"
+    },
+    {
+      "sha256": "ce5c13ba0cc36da05f1405471296d9a6879158d7c7429b8b63bcaa4b51c1a824",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/verification-ladder/tests/__pycache__/test_project_validation.cpython-312.pyc",
+      "destination": "tests/modules/verification_ladder_domain/ladder/__pycache__/test_project_validation.cpython-312.pyc"
+    },
+    {
+      "sha256": "4d8d262b50e1edb4036e21d210e41a47c56a68064bbcf1166fc15bf91e63ab78",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/verification-ladder/tests/__pycache__/test_verification_ladder.cpython-311.pyc",
+      "destination": "tests/modules/verification_ladder_domain/ladder/__pycache__/test_verification_ladder.cpython-311.pyc"
+    },
+    {
+      "sha256": "cecd4fa7d0504a061429ace73d5dbe34c17d27c444380baeba2c040b468afad5",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "skills/engineering/verification-ladder/tests/__pycache__/test_verification_ladder.cpython-312.pyc",
+      "destination": "tests/modules/verification_ladder_domain/ladder/__pycache__/test_verification_ladder.cpython-312.pyc"
+    },
+    {
+      "sha256": "87141c911afa7a09cb943a1235c22852568956f4ecf0affba50d52877732a053",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/evidence-SPEC-0027.json",
+      "destination": "artifacts/legacy/spec0028-migration/validation/evidence-SPEC-0027.json"
+    },
+    {
+      "sha256": "76f3fc83576931539396f4dd6afbc6b412d3a460248c47e8d0ebc3c94bcac6d0",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027-report.md",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027-report.md"
+    },
+    {
+      "sha256": "d874f29fa248d10fcc9b8a3281035df91a4e15a9ba9f08d2e3cd938399a54124",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/accepted-plan.json",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/accepted-plan.json"
+    },
+    {
+      "sha256": "abd5393018a03bfc48290c4e959d50a2ac675fd2270f05e2794971dfab1a2d7d",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/assemble.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/assemble.log"
+    },
+    {
+      "sha256": "ac51436b7822cbf0dc04cf6a13ee9f63f8a3d25e283d1ccc31d0dcb44bd083f6",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/completion.json",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/completion.json"
+    },
+    {
+      "sha256": "29d6923e37454545b8cdcf79f6df36590729bb7e797985644c90198329db640b",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/development.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/development.log"
+    },
+    {
+      "sha256": "31224b4058e73bd7f50873352db890b0d202906c5db692a80ff7e6f4607917fa",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/distribution.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/distribution.log"
+    },
+    {
+      "sha256": "034dabcd0835553c2203b0139bdc2e549f77af70bfecba6bdc39ae9e33d00f42",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/integration.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/integration.log"
+    },
+    {
+      "sha256": "36d33ff867a69839d8a7c09dd222286abea2f9532a71ce4ae3b94aeb4773d965",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/ladder.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/ladder.log"
+    },
+    {
+      "sha256": "d0388193c1100676cea5232dc94c93b10148334b0d63c31a3400d3310b432437",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/plugin-tests.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/plugin-tests.log"
+    },
+    {
+      "sha256": "1c540293090c09723443492500a815d7dfda8e1cceac43d6c522a84c2dab220c",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "validation/spec0027/release-gate.log",
+      "destination": "artifacts/legacy/spec0028-migration/validation/spec0027/release-gate.log"
+    },
+    {
+      "sha256": "d48b56930a158d6c7d31abf013c8c5874d8c5f5f29658f919a5377060ff832d4",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "spec-governance/validation-SPEC-0027.json",
+      "destination": "artifacts/legacy/spec0028-migration/spec-governance/validation-SPEC-0027.json"
+    },
+    {
+      "sha256": "e4fe3cca686cfeeddda52ad059d08f223edcb8c7b07e9aa625ba577b771559ef",
+      "provenance": "Existing repository asset; historical run metadata not inferred",
+      "original_path": "spec-governance/validation-SPEC-0028.json",
+      "destination": "artifacts/legacy/spec0028-migration/spec-governance/validation-SPEC-0028.json"
+    }
+  ],
+  "kind": "historical-migration-not-run-evidence"
+}

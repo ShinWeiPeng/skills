@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "plan_sha256": "481d91d8bcd5b8a9b2ff81d5469cc73ac6cd99b7164367ba3a7456335cc6e7b4",
+  "results": [
+    {
+      "ac": "AC-001",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-001",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-002",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-002",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-003",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-003",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-004",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-004",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-005",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-005",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-006",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-006",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-007",
+      "layer": "module-contract",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    },
+    {
+      "ac": "AC-007",
+      "layer": "sil",
+      "scenario": null,
+      "purpose": "acceptance",
+      "verdict": "BLOCKED",
+      "complete": true,
+      "artifacts": [
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.md",
+          "sha256": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+        },
+        {
+          "path": "artifacts/validation/612938ea6a054607b1da18c261eaeac1/summary.json",
+          "sha256": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4"
+        }
+      ],
+      "reason": "Overall required platform/distribution validation is incomplete; see summary."
+    }
+  ]
+}

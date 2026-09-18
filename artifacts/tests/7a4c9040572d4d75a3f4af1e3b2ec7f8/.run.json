@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "run_id": "7a4c9040572d4d75a3f4af1e3b2ec7f8",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:12:30.804912+00:00",
+  "metadata": {
+    "target": {
+      "module": "governance_workflow_domain"
+    },
+    "scenario": "layout-negative-cases",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "tests/modules/governance_workflow_domain/test_validation_layout.py"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "e03f7f0c12891356fff8ecb9814ce6efdb685ac475b808d20652fb4e550191cb"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

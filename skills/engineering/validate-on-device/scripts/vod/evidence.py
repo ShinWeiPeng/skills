@@ -1088,7 +1088,7 @@ def evaluate(
     return parsed, results, overall(results)
 
 
-def write_bundle(
+def _write_bundle(
     output_dir: Path,
     profile: dict[str, Any],
     scenario_id: str,
@@ -1102,6 +1102,42 @@ def write_bundle(
     guided_artifacts: dict[str, Any] | None = None,
     prerequisite_results: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    # Direct library calls must use the same allocated run boundary as the CLI.
+    import sys
+
+    sys.path.insert(
+        0, str(Path(__file__).resolve().parents[3] / "verification-ladder/scripts")
+    )
+    from run_storage import safe_path, _identity
+
+    project_root = profile.get("_project_root")
+    if not project_root:
+        raise ValueError("project root and exclusive run allocation required")
+    root = Path(project_root).resolve()
+    # Normalize Windows short-name aliases only after checking each original segment.
+    for part in (output_dir, *output_dir.parents):
+        if part.is_symlink() or (
+            part.exists() and getattr(part.lstat(), "st_file_attributes", 0) & 1024
+        ):
+            raise ValueError("redirected output path")
+    output_dir = safe_path(root, output_dir.resolve())
+    parts = output_dir.relative_to(root).parts
+    if len(parts) != 3 or parts[:2] != ("artifacts", "validation"):
+        raise ValueError("evidence output must be artifacts/validation/<run-id>")
+    if (output_dir / "manifest.json").exists():
+        raise ValueError("finalized run is immutable")
+    _, identity = _identity(root, output_dir)
+    if (
+        identity["metadata"]["scenario"] != scenario_id
+        or identity["metadata"]["inputs"].get("effective_profile")
+        != profile_sha256(profile)
+        or (expected_run_id is not None and expected_run_id != identity["run_id"])
+    ):
+        raise ValueError("allocated scenario/profile/expected identity mismatch")
+    if (output_dir / "result.json").exists():
+        raise FileExistsError("bundle destination already written")
+    with (output_dir / ".bundle.lock").open("x", encoding="utf-8") as stream:
+        stream.write("single bundle writer; never reuse\n")
     output_dir.mkdir(parents=True, exist_ok=True)
     if upload_actor == "user" and not expected_run_id:
         result = {
@@ -1360,3 +1396,19 @@ def write_bundle(
         json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     return result
+
+
+def write_bundle(output_dir, profile, *args, **kwargs):
+    """Write one bundle under the shared run operation lock."""
+    import sys
+
+    sys.path.insert(
+        0, str(Path(__file__).resolve().parents[3] / "verification-ladder/scripts")
+    )
+    from run_storage import operation
+
+    root = profile.get("_project_root")
+    if not root:
+        raise ValueError("project root and exclusive allocation required")
+    with operation(root, output_dir.resolve()):
+        return _write_bundle(output_dir, profile, *args, **kwargs)

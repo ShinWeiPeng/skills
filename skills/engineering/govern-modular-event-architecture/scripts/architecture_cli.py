@@ -25,6 +25,7 @@ from governance_adoption import (
     validate_adoption,
     write_adoption_documents,
 )
+from validation_layout import assess_layout
 from python_analyzer import analyze_python
 from libclang_toolchain_adapter import EspressifLibclangToolchainAdapter
 from libclang_toolchain_contract import ToolchainProviderError
@@ -94,6 +95,9 @@ def run_gate(
             )
             diagnostics.extend(_as_dict(item) for item in c_diagnostics)
             analyzers["c-cpp"] = {"mode": mode, **c_evidence}
+        layout = assess_layout(project_root, manifest, analyzer_evidence=analyzers)
+        diagnostics.extend(layout["diagnostics"])
+        analyzers["test-validation-layout"] = layout
         baseline = _load_optional(baseline_path)
         previous = _load_optional(previous_baseline_path)
         diagnostics.extend(
@@ -183,11 +187,34 @@ def _gate_command(args: argparse.Namespace) -> int:
             f"(phase={args.phase}, exit={code})"
         )
     if args.evidence:
-        args.evidence.parent.mkdir(parents=True, exist_ok=True)
-        args.evidence.write_text(
-            json.dumps(evidence, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
+        storage_path = (
+            Path(__file__).resolve().parents[2] / "verification-ladder/scripts"
         )
+        if storage_path.is_dir():
+            sys.path.insert(0, str(storage_path))
+        from run_storage import safe_path, read_json
+
+        root = args.manifest.resolve().parent.parent
+        try:
+            output = safe_path(root, args.evidence.absolute())
+            relative = output.relative_to(root).parts
+            if len(relative) < 4 or relative[:2] not in (
+                ("artifacts", "tests"),
+                ("artifacts", "validation"),
+            ):
+                raise ValueError("--evidence requires an allocated artifacts run")
+            run = root.joinpath(*relative[:3])
+            if (run / "manifest.json").exists() or not (run / ".run.json").is_file():
+                raise ValueError("evidence writer requires an incomplete allocated run")
+            identity = read_json(run / ".run.json")
+            if identity.get("run_id") != relative[2]:
+                raise ValueError("run identity mismatch")
+            output.parent.mkdir(parents=True, exist_ok=True)
+            with output.open("x", encoding="utf-8") as stream:
+                stream.write(json.dumps(evidence, indent=2, ensure_ascii=False) + "\n")
+        except (OSError, ValueError) as exc:
+            print("BLOCKED evidence output: " + str(exc), file=sys.stderr)
+            return 2
     return code
 
 
@@ -265,9 +292,40 @@ def _toolchain_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _layout_command(args: argparse.Namespace) -> int:
+    try:
+        manifest = load_yaml(args.manifest)
+        result = assess_layout(args.manifest.resolve().parent.parent, manifest)
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        result = {"verdict": "BLOCKED", "diagnostics": [], "reason": str(exc)}
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["verdict"] == "PASS" else 1 if result["verdict"] == "FAIL" else 2
+
+
+def _sync_command(args: argparse.Namespace) -> int:
+    from bootstrap_project import synchronize_tools
+
+    try:
+        print(json.dumps({"changed": synchronize_tools(args.project_root)}))
+        return 0
+    except (OSError, ValueError) as exc:
+        print(json.dumps({"verdict": "BLOCKED", "reason": str(exc)}))
+        return 2
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    synchronize = commands.add_parser(
+        "sync-tools", help="refresh generator-owned architecture tooling"
+    )
+    synchronize.add_argument("--project-root", required=True, type=Path)
+    synchronize.set_defaults(handler=_sync_command)
+    layout = commands.add_parser(
+        "layout", help="assess whole-project tests and evidence layout"
+    )
+    layout.add_argument("--manifest", required=True, type=Path)
+    layout.set_defaults(handler=_layout_command)
     gate = commands.add_parser("gate", help="run one governed phase gate")
     gate.add_argument("--phase", choices=PHASES, required=True)
     gate.add_argument(

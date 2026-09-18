@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "014df07c808a49e68525291569a22e63",
+  "kind": "validation",
+  "started_at": "2026-09-18T08:02:48.578147+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "git-checkout-distribution-followup",
+    "tool": {
+      "name": "verification-summary",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {
+      "test_manifest": "a1cd7c82f46b4ca3eac0d80338852aa9d178be2c641ba52ede197837957e9f85"
+    },
+    "spec": "SPEC-0028"
+  }
+}

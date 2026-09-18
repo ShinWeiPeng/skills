@@ -247,3 +247,11 @@ waiting. The check grants no product execution authority.
 ## Project validation obligations
 
 At entry, resume, and explicit skill reload, run the guided router with current task/SPEC references. Inspect `project_validation`: it rereads project policy, manifest, matrix and device profile with hashes. Preserve its additive `required_gates` on short prompts. A reload is not complete merely because SKILL.md was read. Missing mappings remain BLOCKED for dependent acceptance; continue read-only discovery and spec repair. Unchanged reload does not create a new execution-authorization requirement.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

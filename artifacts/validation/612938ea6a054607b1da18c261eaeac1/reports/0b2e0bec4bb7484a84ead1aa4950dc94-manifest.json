@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "0b2e0bec4bb7484a84ead1aa4950dc94",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:43:02.606387+00:00",
+  "metadata": {
+    "target": {
+      "module": "governance_workflow_domain"
+    },
+    "scenario": "explanation-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain/explanation",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T07:43:02.927503+00:00",
+  "files": {
+    ".run.json": "bcbaa9ab02efaaf842b4f30c13d7d10fae2646da4ec0b1d7def5288a4c5d0bfe",
+    "reports/command.log": "ead4103ee600edd89f40cd6dc10c905464ce763e80090894c1793593360bbaa0",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

@@ -104,7 +104,7 @@ flowchart TD
 
 - **Purpose:** Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - **Children:** `python_runtime_selection_domain`
-- **Related Flows:** [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation)
+- **Related Flows:** [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation), [`plugin-integration`](generated/plugin_assembly_composition.md#plugin-integration)
 - **Protection Rationale:** Root engineering and productivity buckets are the only editable Skill source.; The tracked Plugin shell never contains a skills directory.; Plugin assembly and production fingerprinting consume the same deterministic source-to-artifact inventory and reject duplicate logical artifact paths.; Every artifact records one complete file inventory and SHA-256 content fingerprint.; Assembly stages the complete replacement before removing a previous validated artifact.; Assembled release-state mutation is delegated to Plugin release governance before inventory creation.; The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.; Codex Desktop and Codex CLI are the only supported installation surfaces.; Python selection completes before artifact mutation and the selected absolute interpreter performs every assembly, validation, and localization command.; Windows ACL recovery accepts only the canonical repository-owned dist/governed-engineering-skills directory and never a repository root, ancestor, sibling, outside path, symbolic link, junction, or other reparse point.; `marketplace-release` is generated and never becomes an editable Skill source.; Release readiness is reported only after a tracked-file-only rehearsal passes assembly, distribution, artifact, version, Marketplace-candidate, and tag eligibility validation.; Source metadata, artifact inventory, publication identity, tree fingerprint, Codex installation evidence, or output ownership is invalid. → Fail closed, preserve unrelated files, and report the mismatched identity or validation boundary.; An explicitly injected Python command is incompatible, or neither PATH Python nor the Windows Python Launcher resolves Python 3.11 or newer. → Stop before assembly, report every observed candidate and version, and explain how to install or explicitly select Python 3.11 or newer.; The existing ignored artifact is inaccessible and its exact canonical path, repository containment, reparse-point safety, non-elevated repair, or explicitly approved elevated repair cannot be validated. → Refuse paths outside the exact governed artifact, stop before assembly and Codex registration, preserve unrelated files, and report whether elevation was declined or the bounded ACL repair failed.
 
 ### `python_runtime_selection_domain`
@@ -147,6 +147,7 @@ flowchart TD
 - [`local-plugin-installation`](generated/plugin_assembly_composition.md#local-plugin-installation) — Select one compatible Python interpreter, recover safe access to only the exact ignored Windows artifact when necessary, assemble and validate the root-owned Plugin, apply a local-only cache identity, then register and install it before opening the Codex Desktop detail page.
 - [`governed-engineering-route`](generated/guided_workflow_router.md#governed-engineering-route) — Automatically classify every software-engineering request and turn-boundary decision handoff, inspect project state, preserve risk gates, and select an immediate safe skill.
 - [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle) — Persist and reconcile one modifying change set into a canonical specification, materialize it when decision-complete, wait for product execution authorization, verify traceability, implement it, and close it only after Spec review and commit disposition pass. Reject unsupported AC PASS evidence updates through project-validation.assess.
+- [`plugin-integration`](generated/plugin_assembly_composition.md#plugin-integration) — Validate the assembled plugin and its routed contracts using repository-owned host integration suites.
 
 ## Complete Technical Reference
 
@@ -251,6 +252,7 @@ flowchart TD
 
 ## State Ownership
 
+- `run-operation-context` / `verification_ladder_domain` / `owner-mutable` / `private`
 
 ## Cross-module Mapping
 

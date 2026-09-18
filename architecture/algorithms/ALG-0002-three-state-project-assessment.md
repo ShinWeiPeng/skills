@@ -10,7 +10,7 @@
 - Source paths:
   - `skills/engineering/engineering-risk-routing/scripts/project_state.py`
   - `skills/engineering/engineering-risk-routing/scripts/repository_evidence.py`
-- Test and benchmark paths: `plugins/governed-engineering-skills/tests/test_guided_routing.py`
+- Test and benchmark paths: `tests/flows/plugin-integration/plugin/test_guided_routing.py`
 - Supersedes: none
 
 ## Problem and observable success
@@ -51,7 +51,7 @@ codebase.
 
 ## Validation
 
-`plugins/governed-engineering-skills/tests/test_guided_routing.py` covers empty, README-only, doc-only, source-only,
+`tests/flows/plugin-integration/plugin/test_guided_routing.py` covers empty, README-only, doc-only, source-only,
 ignored artifacts, empty placeholders, and untracked source. All cases must pass.
 
 ## Human approval

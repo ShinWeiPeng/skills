@@ -169,3 +169,11 @@ The single CLI dispatches every applicable language analyzer. For Python it requ
 Report the exact command, exit code, minimal raw output, and `PASS`, `FAIL`, or `BLOCKED`. Do not declare completion while a required validation is not `PASS`.
 
 After static architecture checks pass, use `$validate-on-device` for required runtime evidence. The target project manually selects its native provider and declared fallback. Do not treat application logs as OS scheduler proof when native traces are selected, and do not treat a successful build as physical-device evidence.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

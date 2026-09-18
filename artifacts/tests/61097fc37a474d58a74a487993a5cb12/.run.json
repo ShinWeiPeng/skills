@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "run_id": "61097fc37a474d58a74a487993a5cb12",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:41:32.571184+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "plugin-integration",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "dist/governed-engineering-skills/scripts/validate_integration.py"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

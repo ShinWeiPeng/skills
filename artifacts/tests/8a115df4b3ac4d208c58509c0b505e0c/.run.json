@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "run_id": "8a115df4b3ac4d208c58509c0b505e0c",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:40:40.767636+00:00",
+  "metadata": {
+    "target": {
+      "module": "governance_workflow_domain"
+    },
+    "scenario": "device-tools",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain/device",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

@@ -198,7 +198,7 @@ flowchart TD
 - **Input Ports:** `verification-ladder.plan`
 - **Output Ports:** None
 - **Emitted Events:** None
-- **Owned State:** None
+- **Owned State:** `active run operation` — Context-local nesting identity; only the storage adapter sets and resets it while holding the filesystem operation lock.
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
@@ -491,6 +491,7 @@ flowchart TD
 
 | ID | Owner | Declaration | Type | Visibility | Mutability | Read authority | Write authority |
 |---|---|---|---|---|---|---|---|
+| `run-operation-context` | `verification_ladder_domain` | `_active_operation` (thread-local, `skills/engineering/verification-ladder/scripts/run_storage.py`) | `ContextVar` | private | owner-mutable | `verification_ladder_domain` | `verification_ladder_domain` |
 
 ## Cross-module Mapping
 

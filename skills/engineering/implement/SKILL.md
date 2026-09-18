@@ -78,3 +78,11 @@ Commit only when the user or repository instructions explicitly authorize a comm
 ## Project validation obligations
 
 Managed admission now verifies project planning and enablement. Prepare `validation/acceptance-SPEC-####.json` and save its bound plan through verification-ladder before product work in a governed project. Final HIL evidence is not required to perform authorized implementation that produces it. Before reporting overall acceptance, call managed `complete` with phase `acceptance`; release requires a separate `release` assessment. Preserve partial host PASS while missing necessary evidence keeps overall acceptance BLOCKED.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

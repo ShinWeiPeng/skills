@@ -69,7 +69,7 @@ Read [references/user-facing-reporting.md](references/user-facing-reporting.md) 
 
 ## Preserve the evidence bundle
 
-Write under `.codex/evidence/on-device/<run-id>/` and include the raw evidence hash, profile snapshot, capability result, parser result, criterion results, actual argv/exit codes when available, evidence provider/fallback reason, actor, permission decisions, and final verdict. Never store literal secrets.
+Write under `artifacts/validation/<run-id>/` and include the raw evidence hash, profile snapshot, capability result, parser result, criterion results, actual argv/exit codes when available, evidence provider/fallback reason, actor, permission decisions, and final verdict. Never store literal secrets.
 
 ## Respect architecture governance
 
@@ -78,3 +78,18 @@ This Skill's runner is governed by its own standard/schema 1.1 manifest. For a t
 ## Project validation obligations
 
 Project-bound acceptance consumes the existing runner result plus hashed source artifacts, scenario identity, execution profile and build identity through verification-ladder project validation. Preserve enablement prerequisites and separate acceptance from smoke/release. No routing or planning result authorizes flash/reset/serial operations. Missing capability or permission remains BLOCKED, never an exemption.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.
+
+`--output` identifies the allocated run directory. Declare each scenario's writer,
+target Module/Flow and artifacts/validation root in validation/layout.yaml.
+Prepare, finalize-guided-session and evaluate retain the same guided run directory;
+do not make a second output identity for the same session. A completed manifest
+rejects any further writes. Use a fresh run for a new execution. Interrupted runs
+retain their evidence and require explicit recovery, never automatic lock removal.

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "run_id": "db1be9aa324442129ecab7a6ae529a54",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:44:19.499371+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "test_windows_artifact_access",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      "powershell.exe",
+      "-NoLogo",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "C:\\Users\\hugo_peng\\skill\\spec0028-validation-bf94c1dc31\\tests\\flows\\plugin-integration\\plugin\\test_windows_artifact_access.ps1"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

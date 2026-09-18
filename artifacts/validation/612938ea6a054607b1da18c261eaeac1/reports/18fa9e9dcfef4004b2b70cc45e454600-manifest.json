@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "run_id": "18fa9e9dcfef4004b2b70cc45e454600",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:41:32.382441+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "distribution-validation",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "scripts/validate_distribution.py",
+      "--repo-root",
+      "C:\\Users\\hugo_peng\\skill\\spec0028-validation-bf94c1dc31"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T07:41:42.361668+00:00",
+  "files": {
+    ".run.json": "ac02877c1806c836bea2e0c8c2da8947a15f79e7a0f33b535eed48671b932d30",
+    "reports/command.log": "cbab459290473c807fa52bb2be8603e858beecd14eef26a9f89bf8ee2623feee",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

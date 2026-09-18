@@ -106,3 +106,11 @@ Reporting them separately stops one axis from masking the other.
 ## Project validation obligations
 
 The Spec axis must verify the project validation plan and shared acceptance assessment. Check reload/continuation preserves project requirements, required AC/layer/scenario coverage and current hashes. Host, build, AST and smoke results cannot discharge HIL claims. Report missing or stale evidence as BLOCKED alongside valid partial host results. Review approval does not substitute for executable completion assessment.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

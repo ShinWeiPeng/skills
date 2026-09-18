@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "run_id": "120007170b024f0c8321613a2b282298",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:42:36.872254+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "clean-plugin-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "C:\\Users\\hugo_peng\\skill\\spec0028-validation-bf94c1dc31\\tests\\flows\\plugin-integration\\plugin",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

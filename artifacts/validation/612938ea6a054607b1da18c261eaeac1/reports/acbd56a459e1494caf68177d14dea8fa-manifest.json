@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "acbd56a459e1494caf68177d14dea8fa",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:40:41.310455+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "plugin-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "FAIL",
+  "ended_at": "2026-09-18T07:41:04.079969+00:00",
+  "files": {
+    ".run.json": "8ee7404ed7a36ee80e780aac31169cc55fe78283c30ae3ccd1082afc9e8a66c1",
+    "reports/command.log": "962da06b9fb02bdb167bec357e73f16c3180958ccac5c2c79a0a6fd83181fee2",
+    "reports/result.json": "2a2b688ac81dca51fc78e2867f9bd080c7a282b3e64824698ca16e3eff591043"
+  }
+}

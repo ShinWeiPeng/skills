@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "run_id": "cc845efd40394870becbdef1541597bc",
+  "kind": "tests",
+  "started_at": "2026-09-18T06:59:51.889023+00:00",
+  "metadata": {
+    "target": {
+      "module": "governance_workflow_domain"
+    },
+    "scenario": "architecture-regression",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain/architecture",
+      "-p",
+      "test_*.py"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "1057f7c4fe3a2dace5f6247f783f34aa96f74b13e06c91511ae48a0e8179b3f1"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T06:59:59.191993+00:00",
+  "files": {
+    ".run.json": "98e4d9fa6161185e518b26b6a4d27b03b2aebd7b36463a1a99abaa75c8ed1eef",
+    "reports/command.log": "292476646eb7784fcd4f6a637090bcf228f6d162ee10f737606a4dc42b5aeb28",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "kind": "historical-migration-not-run-evidence",
+  "schema_version": 1,
+  "files": [
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-artifact-access.ps1",
+      "sha256": "715a6d41936f2ace466530fd9124771a80dae5ed5486b062fa8e177ca9e3e815",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-artifact-access.ps1"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-codex-access-denied.cmd",
+      "sha256": "6faf1068e1a42416c2f268755c85469a059ab73417fa33a08c37237f55445343",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-codex-access-denied.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-codex.cmd",
+      "sha256": "0d007f7df815796c22bb60160700a59f27606414657bf3fd07317537c65ec9b5",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-codex.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-marketplace-codex.cmd",
+      "sha256": "9616531b29537ec6049b62105b2b2166b938a61e6d91cb0f02e1367d857d1063",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-marketplace-codex.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python-compatible-runtime.cmd",
+      "sha256": "aade7ec50020d2002132b83374fc58f2b9f64a55f5993d7c06fc6c1036d0adad",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python-compatible-runtime.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python-failure.cmd",
+      "sha256": "2be52ec01782cbc4880fcb50e2ef12924d01b845862c2e273d90650f1c0f2367",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python-failure.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python-incompatible.cmd",
+      "sha256": "48202ac7427982e488b962abdf0a3dbcab8a1a8e586b3ccb76eb825c4fd99c7b",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python-incompatible.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python-launcher.cmd",
+      "sha256": "d042cdc62c87cd50d6d03a28e259a32ab940550cc62342c0cb34a259d1aad722",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python-launcher.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python-malformed.cmd",
+      "sha256": "9230d5679c064659d17b9b617fe2e520219ccd6ad7db7f6bee7ad26aef2b9640",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python-malformed.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python-probe-failure.cmd",
+      "sha256": "61862876e420659676d165270e197a1799199194c174e1359493bbbe02b6ecdd",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python-probe-failure.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-python2.cmd",
+      "sha256": "1477e69d0be32dce51dd2d24623b6f392d9943476460d398229d7252cc438f6f",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-python2.cmd"
+    },
+    {
+      "original_path": "tests/flows/plugin-integration/plugin/fixtures/fake-uri-launcher.cmd",
+      "sha256": "7499b295daf05038afc7476da34f1e436c6f8c785d911f1943100801aae2c77e",
+      "destination": "tests/flows/plugin-integration/support/installer/fake-uri-launcher.cmd"
+    },
+    {
+      "original_path": "tests/modules/governance_workflow_domain/architecture/fanout_reference.py",
+      "sha256": "82b78db1837cecbc952ea48d273cb76de303e5fec2a969f5c79bfbd32a098fb0",
+      "destination": "tests/modules/governance_workflow_domain/support/fanout_reference.py"
+    },
+    {
+      "original_path": "plugins/governed-engineering-skills/validation/0.4.0-beta.1.md",
+      "sha256": "3ebc81519ff998548f22da9a4eb195f494cc631c8b983e7e7998a040b620cf9f",
+      "destination": "artifacts/legacy/spec0028-migration/plugin-validation/0.4.0-beta.1.md"
+    },
+    {
+      "original_path": "plugins/governed-engineering-skills/validation/0.5.0-beta.1.md",
+      "sha256": "a4e1e03e5c1082bce9a8d7605664c2f7de7e0f27d971434ab21fe4c633f1ff0d",
+      "destination": "artifacts/legacy/spec0028-migration/plugin-validation/0.5.0-beta.1.md"
+    }
+  ]
+}

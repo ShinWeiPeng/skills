@@ -18,8 +18,12 @@ except ImportError:  # pragma: no cover - exercised by deployment environments
     raise SystemExit(2)
 
 
-STANDARD_VERSION = "1.1.0"
-SCHEMA_VERSION = "1.1.0"
+STANDARD_VERSION = "2.2.0"
+SCHEMA_VERSION = "2.2.0"
+SUPPORTED_STANDARD_VERSIONS = {"2.1.0", STANDARD_VERSION}
+SUPPORTED_SCHEMA_VERSIONS = {"2.1.0", SCHEMA_VERSION}
+DESCRIPTION_STANDARD_VERSION = "1.1.0"
+DESCRIPTION_SCHEMA_VERSION = "1.1.0"
 LEGACY_STANDARD_VERSION = "1.0.0"
 LEGACY_SCHEMA_VERSION = "1.0.0"
 CORE_ENVELOPE = {
@@ -52,6 +56,13 @@ class Diagnostic:
 
 class ManifestError(Exception):
     pass
+
+
+def analyze_realtime_profile(*args: Any, **kwargs: Any) -> Any:
+    """Expose the manifest-validation-owned scheduling analysis seam."""
+    from realtime_analysis import analyze_realtime_profile as analyze
+
+    return analyze(*args, **kwargs)
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -741,17 +752,13 @@ def validate_manifest(
     *,
     check_docs: bool = False,
 ) -> list[Diagnostic]:
-    """Dispatch to the validator pinned by the manifest schema version."""
+    """Validate an exact supported public schema/standard version pair."""
     schema_version = data.get("schema_version")
     standard_version = data.get("standard_version")
-    if schema_version == LEGACY_SCHEMA_VERSION:
-        return _validate_manifest_v1_0(
-            data, manifest_path, baseline_path, previous_baseline_path
-        )
-    if schema_version == SCHEMA_VERSION:
-        from schema_v1_1 import validate_manifest_v1_1
+    if schema_version in SUPPORTED_SCHEMA_VERSIONS:
+        from schema_v2 import validate_manifest_v2
 
-        return validate_manifest_v1_1(
+        return validate_manifest_v2(
             data,
             manifest_path,
             baseline_path,
@@ -763,15 +770,21 @@ def validate_manifest(
         diagnostics,
         "VER002",
         "schema_version",
-        f"unsupported schema version {schema_version!r}; supported: {LEGACY_SCHEMA_VERSION!r}, {SCHEMA_VERSION!r}",
+        (
+            f"unsupported schema version {schema_version!r}; supported: "
+            f"{sorted(SUPPORTED_SCHEMA_VERSIONS)!r}"
+        ),
         configuration=True,
     )
-    if standard_version not in {LEGACY_STANDARD_VERSION, STANDARD_VERSION}:
+    if standard_version not in SUPPORTED_STANDARD_VERSIONS:
         _diag(
             diagnostics,
             "VER003",
             "standard_version",
-            f"unsupported standard version {standard_version!r}",
+            (
+                f"unsupported standard version {standard_version!r}; supported: "
+                f"{sorted(SUPPORTED_STANDARD_VERSIONS)!r}"
+            ),
             configuration=True,
         )
     return diagnostics
@@ -838,4 +851,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    print(
+        "ERROR: direct legacy CLI removed; use architecture_cli.py gate instead.",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)

@@ -20,6 +20,7 @@ source_sets:
   - scripts/validate_distribution.py
   - distribution/**
   - validation/verification-ladder.yaml
+  - validation/layout.yaml
   - plugins/governed-engineering-skills/**
   - plugins/governed-engineering-skills/.codex-plugin
   - plugins/governed-engineering-skills/.codex-plugin/**
@@ -28,7 +29,7 @@ source_sets:
   - skills/**/tools/**
   - skills/**/architecture/generated/**
   - skills/**/__pycache__/**
-  - plugins/governed-engineering-skills/tests/**
+  - tests/flows/plugin-integration/plugin/**
   purpose: Govern the authoritative promoted Skills, tracked Plugin shell,
     deterministic assembly, local Codex installation, compatibility inventory,
     and optional Git Marketplace publication.
@@ -48,12 +49,9 @@ source_sets:
   include:
   - tests/**
   - tools/**
-  - skills/**/tests/**
-  - plugins/governed-engineering-skills/tests/**
   exclude: []
-  purpose: Keep validation fixtures and development tooling outside formal product
-    sources.
-  provenance: Integration and vendored skill test tooling.
+  purpose: Test source and support follow dedicated ownership and dependency rules.
+  provenance: Repository-owned Module and Flow tests and development tooling.
 - id: repository-derived-docs
   classification: derived-documentation
   include:
@@ -69,6 +67,12 @@ source_sets:
   - dist/**
   - .cache/**
   - .codex-arch-deps/**
+  - node_modules/**
+  - .ruff_cache/**
+  - .tmp/**
+  - .test-tmp/**
+  - plugins/governed-engineering-skills/build/**
+  - plugins/governed-engineering-skills/.tmp/**
   - '**/__pycache__/**'
   exclude: []
   purpose: Exclude generated runtime and validation caches.
@@ -621,7 +625,10 @@ modules:
     - verification-ladder.plan
     output_ports: []
     emitted_events: []
-    owned_state: []
+    owned_state:
+    - name: active run operation
+      ref: run-operation-context
+      description: Context-local nesting identity; only the storage adapter sets and resets it while holding the filesystem operation lock.
     side_effects: []
     errors: []
     invariants:
@@ -2714,7 +2721,20 @@ types:
   references: [transport-port]
   fields: []
 type_exclusions: []
-state_objects: []
+state_objects:
+- id: run-operation-context
+  owner: verification_ladder_domain
+  language: python
+  declaration:
+    path: skills/engineering/verification-ladder/scripts/run_storage.py
+    symbol: _active_operation
+    storage: thread-local
+  type: ContextVar
+  visibility: private
+  lifetime: One synchronous run operation; reset in finally after successful or failed collection.
+  mutability: owner-mutable
+  read_authority: [verification_ladder_domain]
+  write_authority: [verification_ladder_domain]
 boundary_mappings:
 - id: routing-assessments-to-guided-handoff
   interaction: Combine workflow-owned intent and project state with risk-owned gate
@@ -3087,6 +3107,33 @@ flows:
   - condition: Local working state is staged or its retention disposition is missing.
     event: spec-governance.blocked
     handling: Preserve the bundle, block commit, and ask exactly one disposition question.
+- id: plugin-integration
+  owner: plugin_assembly_composition
+  description: Validate the assembled plugin and its routed contracts using repository-owned
+    host integration suites.
+  trigger:
+    kind: command
+    ref: plugin-release.synchronize-artifact
+    description: Maintainer requests source-to-artifact integration verification.
+  steps:
+  - id: plugin-integration.verify
+    order: 1
+    module: plugin_assembly_composition
+    action: Assemble canonical skill sources, then run integration suites and inventory validation
+      against the candidate.
+    receives:
+    - plugin-release.synchronize-artifact
+    emits: []
+    state_changes: []
+    side_effects:
+    - Create independent host-test evidence under artifacts/tests/.
+  success:
+    result: All selected host suites and source-to-artifact checks pass with fixed run evidence.
+    events: []
+  errors:
+  - condition: A contract, dependency capability or artifact binding is incomplete.
+    event: plugin-distribution.blocked
+    handling: Keep independent evidence and report FAIL or BLOCKED; do not publish.
 adr_exceptions: []
 c_analyzer:
   ast:
@@ -3156,6 +3203,16 @@ workloads:
     kind: command
   data:
     volume: one modifying engineering change set
+  budgets: []
+- id: plugin-integration-workload
+  flow: plugin-integration
+  steps:
+  - plugin-integration.verify
+  timing_class: best-effort
+  activation:
+    kind: command
+  data:
+    volume: one assembled plugin candidate
   budgets: []
 execution_profiles: []
 execution_units: []

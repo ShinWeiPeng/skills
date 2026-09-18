@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "run_id": "4719b1eb70d643c38eeeb2b066ff4197",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:12:32.505264+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "run-storage-faults",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "tests/modules/verification_ladder_domain/test_run_storage.py"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "e03f7f0c12891356fff8ecb9814ce6efdb685ac475b808d20652fb4e550191cb"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

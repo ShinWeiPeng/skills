@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "4d526184173a4194a779a19cca2b5461",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:42:37.081152+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "clean-distribution-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "C:\\Users\\hugo_peng\\skill\\spec0028-validation-bf94c1dc31\\tests\\flows\\plugin-integration\\distribution",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "FAIL",
+  "ended_at": "2026-09-18T07:43:50.093015+00:00",
+  "files": {
+    ".run.json": "be0f45b95a7294d60a6a1d1aa54daa407925eae22a37825d1f9ea7fdb2fc2771",
+    "reports/command.log": "9afac0826b2212606288fcfff7181f325f20b5eec1663ef84af269f725f2a94f",
+    "reports/result.json": "2a2b688ac81dca51fc78e2867f9bd080c7a282b3e64824698ca16e3eff591043"
+  }
+}

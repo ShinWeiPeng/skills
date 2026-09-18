@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "5a86d63629c2469981ed6f2880f844f5",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:43:02.912069+00:00",
+  "metadata": {
+    "target": {
+      "module": "delivery_workflow_domain"
+    },
+    "scenario": "diagnosis-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/delivery_workflow_domain/diagnosis",
+      "-q"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T07:43:03.222543+00:00",
+  "files": {
+    ".run.json": "10784ca69e458aa82c9379286dbbef130bdf4d71653cbd6b93c21680fe5daaab",
+    "reports/command.log": "d8db373e71bfe114edac42894eaffaaf9ee304720a91afcd7d9465805d095ced",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

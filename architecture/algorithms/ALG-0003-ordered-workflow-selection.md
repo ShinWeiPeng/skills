@@ -12,7 +12,7 @@
   - `skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json`
   - `skills/engineering/engineering-risk-routing/scripts/workflow_selection.py`
   - `skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py`
-- Test and benchmark paths: `plugins/governed-engineering-skills/tests/test_guided_routing.py`
+- Test and benchmark paths: `tests/flows/plugin-integration/plugin/test_guided_routing.py`
 - Supersedes: none
 
 ## Problem and observable success
@@ -180,7 +180,7 @@ a required risk gate.
 
 ## Validation cases and evidence
 
-`plugins/governed-engineering-skills/tests/test_guided_routing.py` covers empty,
+`tests/flows/plugin-integration/plugin/test_guided_routing.py` covers empty,
 docs-only, confirmed-without-resume,
 confirmed-with-resume, exact fresh-task one/many/zero/path resolution, quoted and
 negated authorization phrases, every invalid resume state, implementation-present,

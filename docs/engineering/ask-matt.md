@@ -81,3 +81,12 @@ before display. Prepared reply checks and actual emitted reply audits are separa
 accepted tool requests and presentation files do not prove visible delivery.
 
 Project verification requirements now follow the current specification across reloads and short continuation commands. The workflow distinguishes implementation progress from acceptance: missing hardware evidence cannot be replaced by host tests or a successful build. The shared validation plan records the applicable layers and their evidence sources.
+
+## Test and evidence boundaries
+
+Tests now have explicit Module or Flow ownership under `tests/`. Authored validation
+plans stay under `validation/`; each execution keeps its own immutable run under
+`artifacts/`. This keeps specifications readable and prevents later runs from
+replacing the evidence they cite. Whole-project checks include existing files and
+report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
+boundaries; project-specific retention and Git ignore choices remain separate.

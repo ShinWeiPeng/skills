@@ -1,0 +1,10 @@
+Codex neutral working directory expected 'C:\Users\HUGO_P~1\AppData\Local\Temp', got 'C:\Users\hugo_peng\AppData\Local\
+Temp'.
+At C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\plugin\test_install_local.ps1
+:40 char:34
++ ... ne $Actual) { throw "$Context expected '$Expected', got '$Actual'." }
++                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Codex neutral w...ta\Local\Temp'.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Codex neutral working directory expected 'C:\Users\HUGO_P~1\AppData\Local\Temp', got 'C: 
+   \Users\hugo_peng\AppData\Local\Temp'.
+ 

@@ -259,3 +259,11 @@ remain separate, and neither proves that the user saw the menu.
 ## Project validation obligations
 
 Before recording any AC PASS, including evidence-only updates to a confirmed SPEC, invoke the shared project evidence assessment. Reconciliation, both materialization paths and implemented transitions reject unsupported PASS claims. Free-text PASS is a request to validate, never evidence itself. Preserve historical results but bind acceptance to current SPEC/policy/build/profile. Clear obsolete PASS assertions before revising a contract; replan and collect appropriate evidence for its new requirements.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

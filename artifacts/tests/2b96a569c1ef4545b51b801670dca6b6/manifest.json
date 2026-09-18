@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "2b96a569c1ef4545b51b801670dca6b6",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:58:33.643236+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "git-checkout-distribution",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "C:\\Users\\hugo_peng\\skill\\spec0028-validation-3b2afcf00e\\tests\\flows\\plugin-integration\\distribution",
+      "-p",
+      "test_shared_skill_distribution.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "FAIL",
+  "ended_at": "2026-09-18T07:59:50.544433+00:00",
+  "files": {
+    ".run.json": "f152de90026d0b70fa888ce3e79afc61a200037f0cefcc933affc8d6acaf639d",
+    "reports/command.log": "fe11c72150a655840d577cd86ded4570f9378769b49cdaf9069aa57ae4f6ebc8",
+    "reports/result.json": "2a2b688ac81dca51fc78e2867f9bd080c7a282b3e64824698ca16e3eff591043"
+  }
+}

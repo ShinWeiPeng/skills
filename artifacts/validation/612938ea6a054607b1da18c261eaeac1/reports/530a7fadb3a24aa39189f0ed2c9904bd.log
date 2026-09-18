@@ -1,0 +1,15 @@
+SHOULD SYM004 guided_workflow_router: one or more symbols have no installed language analyzer
+SHOULD SYM004 delivery_workflow_domain: one or more symbols have no installed language analyzer
+SHOULD SYM004 spec_governance_domain: one or more symbols have no installed language analyzer
+SHOULD SYM004 formatter_governance_domain: one or more symbols have no installed language analyzer
+SHOULD SYM004 governance_workflow_domain: one or more symbols have no installed language analyzer
+SHOULD SYM004 verification_ladder_domain: one or more symbols have no installed language analyzer
+SHOULD SYM004 codex_plugin_adapter: one or more symbols have no installed language analyzer
+SHOULD SYM004 plugin_assembly_composition: one or more symbols have no installed language analyzer
+SHOULD SYM004 python_runtime_selection_domain: one or more symbols have no installed language analyzer
+SHOULD SYM004 python_runtime_discovery_adapter: one or more symbols have no installed language analyzer
+SHOULD SYM004 windows_artifact_access_adapter: one or more symbols have no installed language analyzer
+SHOULD SYM004 local_install_adapter: one or more symbols have no installed language analyzer
+SHOULD FLW015 plugin-integration.blocked: event is not referenced by a flow
+SHOULD FLW015 plugin-release.blocked: event is not referenced by a flow
+PASS: VERIFIED (phase=release, exit=0)

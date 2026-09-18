@@ -1,0 +1,184 @@
+{
+  "status": "BLOCKED",
+  "spec": "SPEC-0028",
+  "revision": 20,
+  "implementation": "Code, skill documentation, repository migration and CI wiring completed; overall acceptance remains open.",
+  "python_tests_passed": 530,
+  "host": "Windows / Python 3.12.14",
+  "passed": [
+    "Whole-project layout",
+    "Architecture development and release gates",
+    "Generated architecture views",
+    "Single-source assembly (287 files)",
+    "Distribution validator",
+    "Assembled integration validation",
+    "Windows installer and artifact-access contracts",
+    "39-file formatter check",
+    "90 migration destinations, 13 unchanged legacy files, 15 support relocations"
+  ],
+  "blockers": [
+    "Linux host runtime is unavailable; Linux execution has not been demonstrated.",
+    "The complete 38-test distribution suite remains failed (2 failures, 8 errors): the index-free snapshot has no Git checkout for Git-index/rehearsal cases; temporary Git initialization failed on this host; Linux shell entrypoints cannot execute as Win32 programs. No source-repository staging, commit or publication was performed to work around this."
+  ],
+  "review": "Standards and Spec reviewers confirmed closure of the concrete admission, immutable-write, race, stale-source, metadata-binding and subtree-pruning findings. This is not a full SPEC acceptance PASS.",
+  "limitations": [
+    "No device/hardware evidence claimed.",
+    "Runtime case isolation and unsupported-language release isolation are not proved by layout inspection. Required unsupported capabilities remain BLOCKED.",
+    "No whole-tool-trace compliance PASS is asserted; migrations/generator operations used their authorized native entrypoints."
+  ],
+  "scope_preserved": [
+    "Gitignore/attributes unchanged",
+    "env_sensing was not modified",
+    "No automatic retention deletion",
+    "Historical evidence was not rebound as a new run"
+  ],
+  "runs": [
+    {
+      "reference": "artifacts/tests/bd9e0c82cafa4056baa6c0a0c2ca590e/manifest.json",
+      "sha256": "fa797959ac9481795ed72eb7cb4b01d25438b4d5577f57abede51a097c8c7471",
+      "scenario": "architecture",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/8a115df4b3ac4d208c58509c0b505e0c/manifest.json",
+      "sha256": "91500d08200972fa7f577132b23d1c11d7082de7c4745827120977ca6a5469a1",
+      "scenario": "device-tools",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/afa866290d274bcd9542312ecda4c538/manifest.json",
+      "sha256": "ca8c5d4e4dcedf0199494a92f595e17a334ccaaff55176e31aad780039fa8d43",
+      "scenario": "verification-ladder",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/c8a11000128c429a87295b1346401fd9/manifest.json",
+      "sha256": "a1f7fb82d798edb309d18c8f78e2bcfe41a80a47d7c66ca26a8f3cd87553e026",
+      "scenario": "layout-contracts",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/61d8a101301e4498b4411fc3d3d6f052/manifest.json",
+      "sha256": "7828195aabbf6d4de4d41bc6391e119df0801a1a7924b67c7ead693eaf5af7b2",
+      "scenario": "run-storage-contracts",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/120007170b024f0c8321613a2b282298/manifest.json",
+      "sha256": "c28662e3c3c88fcaab9844f0b3156320acada4fed279eee606e3083dad50a0b8",
+      "scenario": "clean-plugin-contracts",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/91b720623da64c4c90f5a660e64fa537/manifest.json",
+      "sha256": "e58670ab7d0db6ff72968cab72f2a496b9a7bed0cdc3872c13f2db6d156b74ac",
+      "scenario": "proposal-contracts",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/0b2e0bec4bb7484a84ead1aa4950dc94/manifest.json",
+      "sha256": "d3d4576a300d1f062f77986ca2bab4a13fa426e29ffcf7ab8092b3c4422c6a2b",
+      "scenario": "explanation-contracts",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/5a86d63629c2469981ed6f2880f844f5/manifest.json",
+      "sha256": "79c36e363d22063743675910b704943ed9127a2270754453e96a077f6245c594",
+      "scenario": "diagnosis-contracts",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/18fa9e9dcfef4004b2b70cc45e454600/manifest.json",
+      "sha256": "8957a5f30de71beda20645ce16a12b721ad23a654f6bc24bdb3d7095d4e6eeb6",
+      "scenario": "distribution-validation",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/edf1de80c89142a389d0cffad88534a6/manifest.json",
+      "sha256": "4129289acd38bbef253df7c588702317af20f3b14032c43f62b261ac36ed0e22",
+      "scenario": "plugin-integration",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/e33f9d59fe4c480bb15cd6f3d3b6f65f/manifest.json",
+      "sha256": "d02e9b180da7cc84210db64cf260b0581f1be7038e61757c2b3a0565157c7473",
+      "scenario": "architecture-development",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/530a7fadb3a24aa39189f0ed2c9904bd/manifest.json",
+      "sha256": "bdcafe6408af332de939f6516c0c4444e28fdccffb65b9826fcbc0962566b264",
+      "scenario": "architecture-release",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/0810e0edb4334b57b1bede86163693e0/manifest.json",
+      "sha256": "30a759a668ffbf6a54e5bb29332001ea4903b52e4c0f88eb57a1707f1669f241",
+      "scenario": "formatting-migration-policy",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/1e3f0137c0f047cda52b5813767efd3d/manifest.json",
+      "sha256": "84cea36302cdd61e9144ea6e5a57a19a5fe36d84c873dcade24b74175f283605",
+      "scenario": "test_windows_artifact_access-host-env",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/e0727f5be7df4be99ba3e0885eec05a3/manifest.json",
+      "sha256": "188bc6fd37431783705b100cefc0ef4cc93e94ff7b3646243784539876e31450",
+      "scenario": "test_install_local-host-env",
+      "outcome": "PASS",
+      "selected": true
+    },
+    {
+      "reference": "artifacts/tests/61097fc37a474d58a74a487993a5cb12/manifest.json",
+      "sha256": "1f13fc1116297de889376dcc30e52ecf5e92b46c546bd2b637a96fb710e831a0",
+      "scenario": "plugin-integration",
+      "outcome": "FAIL",
+      "selected": false
+    },
+    {
+      "reference": "artifacts/tests/acbd56a459e1494caf68177d14dea8fa/manifest.json",
+      "sha256": "7fa4c3a72a60abce120158fc1e97bca24a8319bedd1a1c58ec904fce49507df2",
+      "scenario": "plugin-contracts",
+      "outcome": "FAIL",
+      "selected": false
+    },
+    {
+      "reference": "artifacts/tests/4d526184173a4194a779a19cca2b5461/manifest.json",
+      "sha256": "461e7579231dacf1240db0bf57b2c96e6870694a13f4568b03b4adb1b3b20589",
+      "scenario": "clean-distribution-contracts",
+      "outcome": "FAIL",
+      "selected": false
+    },
+    {
+      "reference": "artifacts/tests/936dd6b0db3e47ab93e46978d34e95cb/manifest.json",
+      "sha256": "36b4bb36d706f10d2b596a8d39b816aab9abb9f5f14859c403bdcc797c975e8b",
+      "scenario": "test_install_local",
+      "outcome": "FAIL",
+      "selected": false
+    },
+    {
+      "reference": "artifacts/tests/db1be9aa324442129ecab7a6ae529a54/manifest.json",
+      "sha256": "caa014b76b67efffb1100bd10e0f00a31786f5134f760f03fadb55c6a8a3c78c",
+      "scenario": "test_windows_artifact_access",
+      "outcome": "FAIL",
+      "selected": false
+    }
+  ]
+}

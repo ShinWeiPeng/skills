@@ -169,7 +169,7 @@ def _guided_evaluation_context(
     )
 
 
-def main(argv: list[str] | None = None) -> int:
+def _parse_args(argv):
     parser = argparse.ArgumentParser(
         description="Validate bounded on-device and native-platform evidence."
     )
@@ -231,7 +231,10 @@ def main(argv: list[str] | None = None) -> int:
             )
             if name == "run":
                 command.add_argument("--approve-risk", action="append", default=[])
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
+
+
+def _execute(args) -> int:
     profile, errors = _paths(args)
     if errors:
         _emit({"status": "BLOCKED", "errors": errors})
@@ -268,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
             _external_contract_refs(profile),
         )
         result["profile_sha256"] = profile_sha256(profile)
-        write_json(args.output, result)
+        write_json(args.output / "gate-summary.json", result)
         _emit(result)
         return 0 if verdict.name == "PASS" else (1 if verdict.name == "FAIL" else 2)
     if args.command == "prepare-guided-session":
@@ -278,9 +281,7 @@ def main(argv: list[str] | None = None) -> int:
         if scenario is None:
             _emit({"status": "BLOCKED", "reason": "unknown scenario"})
             return 2
-        session = build_session(
-            profile, scenario, secrets.token_hex(8), args.capture_mode
-        )
+        session = build_session(profile, scenario, args.output.name, args.capture_mode)
         response = build_response_template(
             session,
             "offline-user" if args.capture_mode == "offline-user" else "gpt-guided",
@@ -614,6 +615,131 @@ def main(argv: list[str] | None = None) -> int:
     return (
         0 if result["verdict"] == "PASS" else (1 if result["verdict"] == "FAIL" else 2)
     )
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Admit output before any action; preserve running guided-session identity."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    args = _parse_args(argv)
+    if not hasattr(args, "output"):
+        return _execute(args)
+    args.scenario = getattr(args, "scenario", "gate-summary")
+    args.session = getattr(args, "session", None)
+    args.guided_session = getattr(args, "guided_session", None)
+    storage = Path(__file__).resolve().parents[2] / "verification-ladder/scripts"
+    sys.path.insert(0, str(storage))
+    from run_storage import (
+        allocate_run,
+        finalize_run,
+        safe_path,
+        read_json,
+        source_snapshot,
+        sha256,
+        _identity,
+        operation,
+    )
+
+    root = args.profile.resolve().parent.parent
+    if args.session:
+        try:
+            args.scenario = read_json(args.session).get(
+                "scenario_id", read_json(args.session).get("scenario", args.scenario)
+            )
+        except (OSError, ValueError):
+            pass
+    lock = None
+    try:
+        output = safe_path(
+            root,
+            args.output.absolute().relative_to(args.profile.absolute().parent.parent),
+        )
+        relative = output.relative_to(root).parts
+        if len(relative) != 3 or relative[:2] != ("artifacts", "validation"):
+            raise ValueError("--output must be artifacts/validation/<run-id>")
+        profile_hash = sha256(args.profile)
+        policy = load_yaml(root / "validation/layout.yaml")
+        bindings = [
+            b
+            for b in policy.get("output_bindings", [])
+            if b.get("writer") == "validate-on-device"
+            and b.get("scenario") == args.scenario
+        ]
+        if len(bindings) != 1 or bindings[0].get("root") != "artifacts/validation":
+            raise ValueError(
+                "declare one validate-on-device scenario output binding in layout.yaml"
+            )
+        target = bindings[0].get("target")
+        if output.exists():
+            if (
+                args.command
+                not in {"finalize-guided-session", "evaluate", "run", "capture"}
+                or (output / "manifest.json").exists()
+                or (output / ".finalizing").exists()
+            ):
+                raise ValueError("existing/finalized run cannot be overwritten")
+            _, existing = _identity(root, output)
+            if (
+                existing.get("run_id") != output.name
+                or existing.get("metadata", {}).get("inputs", {}).get("profile")
+                != profile_hash
+                or existing.get("metadata", {}).get("target") != target
+                or existing["metadata"]["scenario"] != args.scenario
+            ):
+                raise ValueError("running session identity/profile/target mismatch")
+            session_path = args.session or args.guided_session
+            if (
+                session_path is None
+                and getattr(args, "expected_run_id", None) != output.name
+            ):
+                raise ValueError(
+                    "continuing a run requires its explicit session or expected run ID"
+                )
+            if session_path is not None:
+                session = read_json(
+                    safe_path(
+                        root,
+                        session_path.absolute().relative_to(
+                            args.profile.absolute().parent.parent
+                        ),
+                    )
+                )
+                if session.get("run_id") != output.name:
+                    raise ValueError("guided identity differs from output run")
+        else:
+            if args.command == "finalize-guided-session":
+                raise ValueError("finalization requires an existing session run")
+            effective_profile, errors = _paths(args)
+            if errors:
+                raise ValueError("; ".join(errors))
+            output = allocate_run(
+                root,
+                "validation",
+                output.name,
+                {
+                    "target": target,
+                    "scenario": args.scenario,
+                    "tool": {"name": "validate-on-device", "version": "1"},
+                    "command": argv,
+                    "source": source_snapshot(root),
+                    "inputs": {
+                        "profile": profile_hash,
+                        "effective_profile": profile_sha256(effective_profile),
+                    },
+                },
+            )
+        with operation(root, output):
+            code = _execute(args)
+            if args.command in {"evaluate", "run", "summarize-gates"}:
+                finalize_run(
+                    root,
+                    output,
+                    "PASS" if code == 0 else "FAIL" if code == 1 else "BLOCKED",
+                )
+        return code
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        _emit({"status": "BLOCKED", "reason": str(exc)})
+        return 2
+    # Interrupted operations deliberately retain a lock and incomplete run.
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+{
+  "verdict": "PASS",
+  "scope": "Git checkout distribution suite",
+  "tests": 34,
+  "test_manifest": "artifacts/tests/3117c20c47114dacafabfe97ab5199c3/manifest.json",
+  "fixture": "C:\\Users\\hugo_peng\\skill\\spec0028-validation-3b2afcf00e",
+  "fixture_commit": "3ba6ee6402afe5b9c41af4611c45d28ee36722ea",
+  "fixture_clean": true,
+  "source_repository_index_before_sha256": "5981817660bdee3c6a03ac0aa2c127fc3bde183aea780294237471a87cbf9c12",
+  "source_repository_index_after_sha256": "5981817660bdee3c6a03ac0aa2c127fc3bde183aea780294237471a87cbf9c12",
+  "user_scope": "Linux installer verification is not required per this user turn; no Linux execution PASS is asserted.",
+  "resolution": "Use a temporary directory outside any Git repository. The previous rehearsal inherited the enclosing source repository Git context.",
+  "spec_status": "No full SPEC implemented transition is claimed by this scoped follow-up."
+}

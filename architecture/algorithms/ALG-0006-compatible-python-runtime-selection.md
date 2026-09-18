@@ -11,7 +11,7 @@
   - `scripts/python-runtime-selection-policy.ps1`
   - `scripts/python-runtime-selection.ps1`
 - Test and benchmark paths:
-  - `plugins/governed-engineering-skills/tests/test_install_local.ps1`
+  - `tests/flows/plugin-integration/plugin/test_install_local.ps1`
 - Supersedes: none
 
 ## Problem and observable success
@@ -121,7 +121,7 @@ decision for this best-effort user-launched flow.
   failure recovery, and exact installed-tree behavior remains intact.
 
 The executable contract is
-`powershell -NoProfile -ExecutionPolicy Bypass -File plugins/governed-engineering-skills/tests/test_install_local.ps1`.
+`powershell -NoProfile -ExecutionPolicy Bypass -File tests/flows/plugin-integration/plugin/test_install_local.ps1`.
 
 ## Risks and monitoring
 

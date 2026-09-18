@@ -10,7 +10,7 @@
 - Source paths:
   - `skills/engineering/engineering-risk-routing/references/routing-rules.json`
   - `skills/engineering/engineering-risk-routing/scripts/classify_risk.py`
-- Test and benchmark paths: `plugins/governed-engineering-skills/tests/test_routing.py`
+- Test and benchmark paths: `tests/flows/plugin-integration/plugin/test_routing.py`
 - Supersedes: none
 
 ## Problem and observable success

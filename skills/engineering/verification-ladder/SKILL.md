@@ -170,3 +170,11 @@ or required architecture/scheduling analysis lacks PASS evidence.
 ## Project validation obligations
 
 Use `scripts/project_validation.py` for project-bound planning, enablement, acceptance and release assessment. Read [the project validation contract](references/project-validation.md). The AC mapping must cover every current AC. `runtime_validation: required` requires a scoped applicability assessment, not blanket HIL. Save a valid plan before governed implementation; only the selected layers need evidence. Physical/timing claims keep HIL authority. Recompute bindings on reload and reject stale plans or evidence.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

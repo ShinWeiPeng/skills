@@ -37,16 +37,20 @@ def _render(path: Path, replacements: dict[str, str]) -> str:
 
 
 def _governance_files(
-    project_root: Path, *, include_c_toolchain: bool
+    project_root: Path, *, include_c_toolchain: bool, test_owner: str
 ) -> dict[Path, str | Path]:
     files: dict[Path, str | Path] = {
+        project_root / "tools/architecture/validation_layout.py": SKILL_ROOT
+        / "scripts/validation_layout.py",
+        project_root / "tools/architecture/run_storage.py": SKILL_ROOT.parent
+        / "verification-ladder/scripts/run_storage.py",
         project_root / "AGENTS.md": ASSETS / "AGENTS.md.tmpl",
         project_root
         / "architecture"
         / "decisions"
         / "ADR-0001-modular-event-architecture.md": ASSETS
         / "ADR-0001-modular-event-architecture.md.tmpl",
-        project_root / "tests" / "architecture" / "test_architecture.py": ASSETS
+        project_root / "tests" / "modules" / test_owner / "test_architecture.py": ASSETS
         / "test_architecture.py.tmpl",
         project_root / "tools" / "architecture" / "architecture_cli.py": SKILL_ROOT
         / "scripts"
@@ -181,6 +185,11 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
 
     files = _governance_files(
         project_root,
+        test_owner=next(
+            item["module"]
+            for item in spec["composition_roots"]
+            if item["kind"] == "release"
+        ),
         include_c_toolchain=(
             spec.get("c_analyzer", {}).get("ast", {}).get("status") == "required"
         ),
@@ -246,6 +255,29 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
         )
     )
     return written
+
+
+def synchronize_tools(project_root: Path) -> list[str]:
+    """Refresh only the generator-owned architecture tool mirror."""
+    root = project_root.resolve()
+    files = _governance_files(root, include_c_toolchain=True, test_owner="unused")
+    changed = []
+    for destination, source in files.items():
+        if destination.parent != root / "tools/architecture":
+            continue
+        for part in (destination, *destination.parents):
+            if part == root:
+                break
+            if part.is_symlink() or (
+                part.exists() and getattr(part.lstat(), "st_file_attributes", 0) & 1024
+            ):
+                raise ValueError("redirected tool mirror")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        data = Path(source).read_bytes()
+        if not destination.exists() or destination.read_bytes() != data:
+            destination.write_bytes(data)
+            changed.append(destination.relative_to(root).as_posix())
+    return changed
 
 
 def main(argv: list[str] | None = None) -> int:

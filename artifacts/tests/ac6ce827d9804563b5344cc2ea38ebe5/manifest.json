@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "run_id": "ac6ce827d9804563b5344cc2ea38ebe5",
+  "kind": "tests",
+  "started_at": "2026-09-18T07:00:15.542608+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "ladder-regression",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain/ladder",
+      "-p",
+      "test_*.py"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "1057f7c4fe3a2dace5f6247f783f34aa96f74b13e06c91511ae48a0e8179b3f1"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T07:00:32.114137+00:00",
+  "files": {
+    ".run.json": "cd20f243370f52fd01dbbefc4c78da984c2d6be9621569a731d60e9eb9a05094",
+    "reports/command.log": "89041d220d919c49a442ed0648248ad34f6270b3d6b0c702cc28d7d931be721c",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

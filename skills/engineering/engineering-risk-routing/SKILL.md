@@ -58,3 +58,11 @@ insufficient. Invalid or mismatched persisted context fails closed.
 ## Project validation obligations
 
 The guided router combines keyword rules with fresh project validation requirements. Standalone `classify_risk.py` is a prompt-only classification and cannot establish project validation readiness. Project policy and current SPEC mappings may add gates; short prompts cannot remove them. Report `project_validation` diagnostics and sources. Missing required mappings or capabilities block dependent work without preventing read-only investigation.
+
+## Test and validation storage governance
+
+Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
+in tests/ by Module/Flow ownership, authored validation definitions in validation/,
+and generated evidence in unique immutable artifacts/ runs. specs/ only references
+fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
+missing required capability blocks completion. Do not change project Git policy.

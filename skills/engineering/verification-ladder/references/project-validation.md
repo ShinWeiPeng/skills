@@ -28,14 +28,14 @@ python skills/verification-ladder/scripts/project_validation.py --project-root <
 ```
 
 In the source checkout the skill lives under skills/engineering/verification-ladder.
-The generated plan is spec-governance/validation-SPEC-####.json. It binds exact SPEC
+The generated plan is artifacts/validation/<run-id>/plan.snapshot.json. It binds exact SPEC
 bytes/revision, relevant source documents and selected skill code/version. Recompute
 after changes, retain historical evidence, and do not silently rebind old results.
 Unchanged recomputation is deterministic and does not mutate execution authorization.
 
 ## Evidence bundle
 
-Store validation/evidence-SPEC-####.json with schema_version=1, plan_sha256 and a
+Store artifacts/validation/<run-id>/evidence.json with schema_version=1, plan_sha256 and a
 results array. Each row names ac, layer, scenario (null for host), purpose
 (enablement, acceptance or release), verdict, complete, and artifacts. Each artifact
 has a project-relative path and SHA-256. Device rows additionally bind
@@ -86,3 +86,17 @@ verdict and checks: test_only_wiring_absent, release_build, regression, architec
 analyzer, size and safety. Each check is PASS/FAIL/BLOCKED; recompute the report verdict
 with FAIL > BLOCKED > PASS. Preserve the supporting release-check artifacts alongside
 the report. Release does not relabel the native runtime result.
+
+## Fixed run selection
+
+`--write-plan` exclusively allocates a run, publishes its terminal manifest and
+returns its fixed path. `validation/run-references-SPEC-####.json` is an authored
+selection with schema_version=1, plan_manifest and evidence_manifests. Plan renewal
+explicitly clears previous evidence selection; it does not mutate any old run.
+Every consumer validates the selected manifests, identity, exact file set and
+hashes. Evidence rows must belong to that run and terminal outcome must agree with
+the rows. No newest-file lookup or historical evidence rebind is permitted.
+
+The composed router/delivery adapter also reports the whole-project layout gate.
+Planning and enablement may authorize remediation of existing layout debt; they
+do not claim overall compliance. Acceptance and release require layout PASS.

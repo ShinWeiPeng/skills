@@ -1,0 +1,130 @@
+error: unable to write symref for HEAD: No such file or directory
+error: unable to write symref for HEAD: No such file or directory
+======================================================================
+ERROR: test_linux_gui_launcher_keeps_success_and_failure_results_visible (test_cross_platform_marketplace_installer.CrossPlatformMarketplaceInstallerTests.test_linux_gui_launcher_keeps_success_and_failure_results_visible) (exit_code=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_cross_platform_marketplace_installer.py", line 69, in test_linux_gui_launcher_keeps_success_and_failure_results_visible
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [WinError 193] %1 不是有效的 Win32 應用程式。
+
+======================================================================
+ERROR: test_linux_gui_launcher_keeps_success_and_failure_results_visible (test_cross_platform_marketplace_installer.CrossPlatformMarketplaceInstallerTests.test_linux_gui_launcher_keeps_success_and_failure_results_visible) (exit_code=23)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_cross_platform_marketplace_installer.py", line 69, in test_linux_gui_launcher_keeps_success_and_failure_results_visible
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [WinError 193] %1 不是有效的 Win32 應用程式。
+
+======================================================================
+ERROR: test_linux_installer_upgrades_old_codex_and_installs_marketplace (test_cross_platform_marketplace_installer.CrossPlatformMarketplaceInstallerTests.test_linux_installer_upgrades_old_codex_and_installs_marketplace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_cross_platform_marketplace_installer.py", line 187, in test_linux_installer_upgrades_old_codex_and_installs_marketplace
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [WinError 193] %1 不是有效的 Win32 應用程式。
+
+======================================================================
+ERROR: test_assembled_plugin_routes_without_repository_agents_file (test_shared_skill_distribution.SharedSkillDistributionTests.test_assembled_plugin_routes_without_repository_agents_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 770, in test_assembled_plugin_routes_without_repository_agents_file
+    subprocess.run(
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'init']' returned non-zero exit status 1.
+
+======================================================================
+ERROR: test_clean_checkout_release_rehearsal_passes (test_shared_skill_distribution.SharedSkillDistributionTests.test_clean_checkout_release_rehearsal_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 224, in test_clean_checkout_release_rehearsal_passes
+    expected_version = indexed_json(f"{shell}/.codex-plugin/plugin.json")["version"]
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 215, in indexed_json
+    completed = subprocess.run(
+                ^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'show', ':plugins/governed-engineering-skills/.codex-plugin/plugin.json']' returned non-zero exit status 128.
+
+======================================================================
+ERROR: test_git_status_is_unchanged_by_default_assembly (test_shared_skill_distribution.SharedSkillDistributionTests.test_git_status_is_unchanged_by_default_assembly)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 659, in test_git_status_is_unchanged_by_default_assembly
+    before = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'status', '--porcelain', '--untracked-files=all']' returned non-zero exit status 128.
+
+======================================================================
+ERROR: test_marketplace_publication_is_git_tree_deterministic (test_shared_skill_distribution.SharedSkillDistributionTests.test_marketplace_publication_is_git_tree_deterministic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 459, in test_marketplace_publication_is_git_tree_deterministic
+    subprocess.run(
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'init', '--quiet']' returned non-zero exit status 1.
+
+======================================================================
+ERROR: test_versioned_artifact_passes_its_own_integration_validation (test_shared_skill_distribution.SharedSkillDistributionTests.test_versioned_artifact_passes_its_own_integration_validation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 276, in test_versioned_artifact_passes_its_own_integration_validation
+    subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
+  File "C:\Users\hugo_peng\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'init', '--quiet']' returned non-zero exit status 1.
+
+======================================================================
+FAIL: test_dist_is_ignored (test_shared_skill_distribution.SharedSkillDistributionTests.test_dist_is_ignored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 539, in test_dist_is_ignored
+    self.assertEqual(0, ignored.returncode, ignored.stdout + ignored.stderr)
+AssertionError: 0 != 128 : fatal: not a git repository (or any of the parent directories): .git
+
+
+======================================================================
+FAIL: test_marketplace_publication_can_populate_an_empty_orphan_worktree (test_shared_skill_distribution.SharedSkillDistributionTests.test_marketplace_publication_can_populate_an_empty_orphan_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\spec0028-validation-bf94c1dc31\tests\flows\plugin-integration\distribution\test_shared_skill_distribution.py", line 585, in test_marketplace_publication_can_populate_an_empty_orphan_worktree
+    self.assertEqual(
+AssertionError: 0 != 1 : error: unable to write symref for HEAD: No such file or directory
+
+
+----------------------------------------------------------------------
+Ran 38 tests in 72.621s
+
+FAILED (failures=2, errors=8)

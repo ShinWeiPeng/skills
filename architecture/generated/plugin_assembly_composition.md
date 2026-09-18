@@ -127,3 +127,28 @@ sequenceDiagram
 #### Execution efficiency
 
 - Workload `local-plugin-installation-workload`: `best-effort`; steps `local-plugin-installation.recover-artifact-access`, `local-plugin-installation.assemble`, `local-plugin-installation.register`; profiles None.
+
+### `plugin-integration`
+
+Validate the assembled plugin and its routed contracts using repository-owned host integration suites.
+
+#### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant n_plugin_assembly_composition as plugin_assembly_composition<br/>組裝單一外掛並產生個人 Git 市集發佈樹
+    n_plugin_assembly_composition->>n_plugin_assembly_composition: Assemble canonical skill sources, then run integration suites and inventory validation against the candidate.
+```
+
+#### Ordered Steps
+
+| # | Module | Action | Receives | Emits | State changes | Side effects |
+|---|---|---|---|---|---|---|
+| 1 | `plugin_assembly_composition` | Assemble canonical skill sources, then run integration suites and inventory validation against the candidate. | `plugin-release.synchronize-artifact` | None | None | Create independent host-test evidence under artifacts/tests/. |
+
+- **Success:** All selected host suites and source-to-artifact checks pass with fixed run evidence.
+- **Errors:** A contract, dependency capability or artifact binding is incomplete. → `plugin-distribution.blocked` → Keep independent evidence and report FAIL or BLOCKED; do not publish.
+
+#### Execution efficiency
+
+- Workload `plugin-integration-workload`: `best-effort`; steps `plugin-integration.verify`; profiles None.

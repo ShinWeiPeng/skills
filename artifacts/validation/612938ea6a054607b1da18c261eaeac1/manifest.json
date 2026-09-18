@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "run_id": "612938ea6a054607b1da18c261eaeac1",
+  "kind": "validation",
+  "started_at": "2026-09-18T07:50:35.967429+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "implementation-validation-summary",
+    "scenarios": [],
+    "tool": {
+      "name": "SPEC-0028-evidence-aggregation",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "spec-governance/spec0028_summary.py"
+    ],
+    "source": {
+      "revision": "22116f4374e8109c6ba8b72d6adafdea6428b86a",
+      "dirty_sha256": "8a29e2d8f6ea0c36737845c7c81d0d1bf16fb1acb19803709c076768ba01cea6"
+    },
+    "inputs": {
+      "plan": "481d91d8bcd5b8a9b2ff81d5469cc73ac6cd99b7164367ba3a7456335cc6e7b4",
+      "architecture/adoption.yaml": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88",
+      "architecture/manifest.yaml": "ce2c1033bfbe50d317873abdef4a823c7f75ccbf598e72f038cb096395235e16",
+      "validation/verification-ladder.yaml": "cd95b80a921b4d00469c064a0946257c6672f2c8ae78a844add9c6de2310a1c2",
+      "validation/layout.yaml": "62ebca9c604f1dad4d0194057b4b8093a15f394606f9d1a135d669628eb0f240",
+      "validation/acceptance-SPEC-0028.json": "bf20e5b215fe1e70e81b3fd9e2b77e5751f55da729196da410df3f1bbcb3537c"
+    },
+    "spec": "SPEC-0028",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007"
+    ]
+  },
+  "status": "completed",
+  "outcome": "BLOCKED",
+  "ended_at": "2026-09-18T07:50:36.107843+00:00",
+  "files": {
+    ".run.json": "b6603bdc512148b0bbccb1978493c4e4e265b9cca102e4d6dbb8c60a0f71d15e",
+    "evidence.json": "0bfd0fbcf49a5f8200d5b0594bef79b90d60f76962cfa109410775b25f4963fe",
+    "reports/0810e0edb4334b57b1bede86163693e0-manifest.json": "30a759a668ffbf6a54e5bb29332001ea4903b52e4c0f88eb57a1707f1669f241",
+    "reports/0810e0edb4334b57b1bede86163693e0.log": "295e2e090b946cb6f5696bc955a1dc939c65fef8122537936bc29f8bd94ae51f",
+    "reports/0b2e0bec4bb7484a84ead1aa4950dc94-manifest.json": "d3d4576a300d1f062f77986ca2bab4a13fa426e29ffcf7ab8092b3c4422c6a2b",
+    "reports/0b2e0bec4bb7484a84ead1aa4950dc94.log": "ead4103ee600edd89f40cd6dc10c905464ce763e80090894c1793593360bbaa0",
+    "reports/120007170b024f0c8321613a2b282298-manifest.json": "c28662e3c3c88fcaab9844f0b3156320acada4fed279eee606e3083dad50a0b8",
+    "reports/120007170b024f0c8321613a2b282298.log": "eae9215463a6b280f8d5a723570f463cc60ddf51ebb6e12941f490e86a97d9d8",
+    "reports/18fa9e9dcfef4004b2b70cc45e454600-manifest.json": "8957a5f30de71beda20645ce16a12b721ad23a654f6bc24bdb3d7095d4e6eeb6",
+    "reports/18fa9e9dcfef4004b2b70cc45e454600.log": "cbab459290473c807fa52bb2be8603e858beecd14eef26a9f89bf8ee2623feee",
+    "reports/1e3f0137c0f047cda52b5813767efd3d-manifest.json": "84cea36302cdd61e9144ea6e5a57a19a5fe36d84c873dcade24b74175f283605",
+    "reports/1e3f0137c0f047cda52b5813767efd3d.log": "d19e76eba204dd68fb24af1aef75e53e8ace190bde0add0fa780128473c1e75e",
+    "reports/4d526184173a4194a779a19cca2b5461-manifest.json": "461e7579231dacf1240db0bf57b2c96e6870694a13f4568b03b4adb1b3b20589",
+    "reports/4d526184173a4194a779a19cca2b5461.log": "9afac0826b2212606288fcfff7181f325f20b5eec1663ef84af269f725f2a94f",
+    "reports/530a7fadb3a24aa39189f0ed2c9904bd-manifest.json": "bdcafe6408af332de939f6516c0c4444e28fdccffb65b9826fcbc0962566b264",
+    "reports/530a7fadb3a24aa39189f0ed2c9904bd.log": "e4ef8307868898d7d57d0bc7827a7bf54bc556534956478cf282278fc59fd18f",
+    "reports/5a86d63629c2469981ed6f2880f844f5-manifest.json": "79c36e363d22063743675910b704943ed9127a2270754453e96a077f6245c594",
+    "reports/5a86d63629c2469981ed6f2880f844f5.log": "d8db373e71bfe114edac42894eaffaaf9ee304720a91afcd7d9465805d095ced",
+    "reports/61097fc37a474d58a74a487993a5cb12-manifest.json": "1f13fc1116297de889376dcc30e52ecf5e92b46c546bd2b637a96fb710e831a0",
+    "reports/61097fc37a474d58a74a487993a5cb12.log": "4e7dca04094e79cb31e27c87e47f3891a7313c526c9627336805b4b35b5634d4",
+    "reports/61d8a101301e4498b4411fc3d3d6f052-manifest.json": "7828195aabbf6d4de4d41bc6391e119df0801a1a7924b67c7ead693eaf5af7b2",
+    "reports/61d8a101301e4498b4411fc3d3d6f052.log": "205c2c196f5d0c122ad81a2e10855c74d103cdd361191effc179a53d9fd55546",
+    "reports/8a115df4b3ac4d208c58509c0b505e0c-manifest.json": "91500d08200972fa7f577132b23d1c11d7082de7c4745827120977ca6a5469a1",
+    "reports/8a115df4b3ac4d208c58509c0b505e0c.log": "3637f8b0020fa1bd58954abd012a56d217f9faff7401e7b27393d56d626d8f67",
+    "reports/91b720623da64c4c90f5a660e64fa537-manifest.json": "e58670ab7d0db6ff72968cab72f2a496b9a7bed0cdc3872c13f2db6d156b74ac",
+    "reports/91b720623da64c4c90f5a660e64fa537.log": "22b0ef2ab097ef2286708990d785e7878d86db4f24f15033b1175ac666c282df",
+    "reports/936dd6b0db3e47ab93e46978d34e95cb-manifest.json": "36b4bb36d706f10d2b596a8d39b816aab9abb9f5f14859c403bdcc797c975e8b",
+    "reports/936dd6b0db3e47ab93e46978d34e95cb.log": "074541ea6b10d7ee3dddb7b6ea2de017621980eb3588f3d2b34776a757579118",
+    "reports/acbd56a459e1494caf68177d14dea8fa-manifest.json": "7fa4c3a72a60abce120158fc1e97bca24a8319bedd1a1c58ec904fce49507df2",
+    "reports/acbd56a459e1494caf68177d14dea8fa.log": "962da06b9fb02bdb167bec357e73f16c3180958ccac5c2c79a0a6fd83181fee2",
+    "reports/afa866290d274bcd9542312ecda4c538-manifest.json": "ca8c5d4e4dcedf0199494a92f595e17a334ccaaff55176e31aad780039fa8d43",
+    "reports/afa866290d274bcd9542312ecda4c538.log": "9a7cc1be4ddae326881d33515318be0888fb8e98c310221c60acc481f93a8965",
+    "reports/bd9e0c82cafa4056baa6c0a0c2ca590e-manifest.json": "fa797959ac9481795ed72eb7cb4b01d25438b4d5577f57abede51a097c8c7471",
+    "reports/bd9e0c82cafa4056baa6c0a0c2ca590e.log": "dd52ad93f2783a8a17632fa6b852dbdf04f8f8a6d7557a7a7d2f36e26988f318",
+    "reports/c8a11000128c429a87295b1346401fd9-manifest.json": "a1f7fb82d798edb309d18c8f78e2bcfe41a80a47d7c66ca26a8f3cd87553e026",
+    "reports/c8a11000128c429a87295b1346401fd9.log": "639e8417f8b6da145de8ff2a5663c7c2f85bf6b72aee2d853d13413a97ee0afe",
+    "reports/db1be9aa324442129ecab7a6ae529a54-manifest.json": "caa014b76b67efffb1100bd10e0f00a31786f5134f760f03fadb55c6a8a3c78c",
+    "reports/db1be9aa324442129ecab7a6ae529a54.log": "0b46d046f9a96fc549daaa77a1a43025cd23f4fdecafda7d43ba104b9b15c87a",
+    "reports/e0727f5be7df4be99ba3e0885eec05a3-manifest.json": "188bc6fd37431783705b100cefc0ef4cc93e94ff7b3646243784539876e31450",
+    "reports/e0727f5be7df4be99ba3e0885eec05a3.log": "71d5f13d223ea3837d30bcf84ba7cc0507eb63d21b2481a9a26b94806a861bb3",
+    "reports/e33f9d59fe4c480bb15cd6f3d3b6f65f-manifest.json": "d02e9b180da7cc84210db64cf260b0581f1be7038e61757c2b3a0565157c7473",
+    "reports/e33f9d59fe4c480bb15cd6f3d3b6f65f.log": "3dec7f1768bd49d689a6458faef3cc6843b4560879348f38ec19d2518ed10012",
+    "reports/edf1de80c89142a389d0cffad88534a6-manifest.json": "4129289acd38bbef253df7c588702317af20f3b14032c43f62b261ac36ed0e22",
+    "reports/edf1de80c89142a389d0cffad88534a6.log": "fce18e0e8455af0d8c0ecd1eac6f431aa0451b24a4f0340c4b46c686bb4d74b4",
+    "summary.json": "c87b2a922b47774053740a9172342fc928490bf02f17fd88dca7195643e54ed4",
+    "summary.md": "7962d1dbfda751eed13170332fb302a002cf129a1b29b26bc5e192b42d2dc4e3"
+  }
+}
