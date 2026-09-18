@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "67655ca3db274f60aa21dbe14f381761",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:16:29.266447+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "ci-distribution-regression",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/distribution",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "de1106a2423bfd1ffa95699dc6d1915d7fccd436",
+      "dirty_sha256": "36567f531e41ecdedf59c893b6b9960681229e1ce66ca8edb5a3fa0e7dec879a"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "FAIL",
+  "ended_at": "2026-09-18T08:17:42.844768+00:00",
+  "files": {
+    ".run.json": "07c8f9ae91591b29fa912f7e8ced7122bd9f1af54553f97cc81934b44126a836",
+    "reports/command.log": "7a21c608b87adde151438f1b711f42b2a7a68edc3d5657a22b28f8ba3b3777da",
+    "reports/result.json": "2a2b688ac81dca51fc78e2867f9bd080c7a282b3e64824698ca16e3eff591043"
+  }
+}

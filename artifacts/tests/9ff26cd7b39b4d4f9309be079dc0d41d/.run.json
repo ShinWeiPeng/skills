@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "run_id": "9ff26cd7b39b4d4f9309be079dc0d41d",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:14:41.279789+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "ci-root-gate-regression-red",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/distribution",
+      "-p",
+      "test_shared_skill_distribution.py",
+      "-k",
+      "formal_architecture_is_repository_scoped",
+      "-q"
+    ],
+    "source": {
+      "revision": "de1106a2423bfd1ffa95699dc6d1915d7fccd436",
+      "dirty_sha256": "ecad8dee2336fca5a482befd510c15208e7ac46f959bf9389bed63ff69675485"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

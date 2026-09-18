@@ -95,15 +95,7 @@ jobs:
           powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass
           -File tests/flows/plugin-integration/plugin/test_windows_artifact_access.ps1
 
-      - name: Run skill release gate
-        run: >-
-          python skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
-          gate --phase release
-          --manifest skills/engineering/govern-modular-event-architecture/architecture/manifest.yaml
-          --adoption skills/engineering/govern-modular-event-architecture/architecture/adoption.yaml
-          --baseline skills/engineering/govern-modular-event-architecture/architecture/baseline.yaml
-
-      - name: Run plugin release gate
+      - name: Run repository release gate
         run: >-
           python tools/architecture/architecture_cli.py
           gate --phase release

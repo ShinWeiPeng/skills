@@ -1,7 +1,5 @@
 {
   "schema_version": 1,
-  "plan_manifest": "artifacts/validation/d51896fc657d49398c8a2ba1aaff40ad/manifest.json",
-  "evidence_manifests": [
-    "artifacts/validation/612938ea6a054607b1da18c261eaeac1/manifest.json"
-  ]
+  "plan_manifest": "artifacts/validation/8a1fb961defe43de931d3864a9c1b1e2/manifest.json",
+  "evidence_manifests": []
 }

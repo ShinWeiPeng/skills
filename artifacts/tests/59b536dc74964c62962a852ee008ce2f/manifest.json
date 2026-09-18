@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "59b536dc74964c62962a852ee008ce2f",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:21:01.833930+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "ci-clean-checkout-distribution",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "C:\\Users\\hugo_peng\\skill\\spec0028-validation-33918ce41c\\tests\\flows\\plugin-integration\\distribution",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "de1106a2423bfd1ffa95699dc6d1915d7fccd436",
+      "dirty_sha256": "36567f531e41ecdedf59c893b6b9960681229e1ce66ca8edb5a3fa0e7dec879a"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T08:22:16.825286+00:00",
+  "files": {
+    ".run.json": "b154a1ce3fc88b7cfc43a4368e3fa0a312d60a640a07dbe42a39c25f1ea0dec0",
+    "reports/command.log": "34897c15ea4c1e60349600149d3bf289fb7c7a654f2492ea3c9c4942306291e2",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

@@ -46,6 +46,7 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
                 0, validation.returncode, validation.stdout + validation.stderr
             )
 
+    @unittest.skipUnless(os.name == "posix", "requires a POSIX shell host")
     def test_linux_gui_launcher_keeps_success_and_failure_results_visible(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             temp = Path(temporary_directory)
@@ -135,6 +136,7 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
             "install-marketplace.sh", linux_launcher.read_text(encoding="utf-8")
         )
 
+    @unittest.skipUnless(os.name == "posix", "requires a POSIX shell host")
     def test_linux_installer_upgrades_old_codex_and_installs_marketplace(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             temp = Path(temporary_directory)

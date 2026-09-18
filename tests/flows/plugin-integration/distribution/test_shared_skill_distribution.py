@@ -96,6 +96,11 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertFalse((PLUGIN_SHELL / "architecture").exists())
         text = manifest.read_text(encoding="utf-8")
         self.assertIn("local_install_adapter", text)
+        workflow = (REPO_ROOT / ".github/workflows/release.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("--manifest architecture/manifest.yaml", workflow)
+        self.assertNotIn("--manifest skills/", workflow)
 
     def test_algorithm_records_reference_existing_source_and_test_paths(self) -> None:
         for record in sorted(

@@ -641,7 +641,7 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py:
-    sha256: 82e1d8adb720fb67932f570f7b3622df7a3e47acb950ca105110e8fc268e5c7d
+    sha256: 5e50a0f0a50732d112317c1b86a5f721cf715234537ac5be8f138c8d9e5d027d
     targets:
     - scripts/assemble_plugin.py
     - scripts/validate_distribution.py

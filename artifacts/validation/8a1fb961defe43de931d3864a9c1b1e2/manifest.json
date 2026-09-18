@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "run_id": "8a1fb961defe43de931d3864a9c1b1e2",
+  "kind": "validation",
+  "started_at": "2026-09-18T08:16:54.064846+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0028-test-validation-architecture.md"
+    ],
+    "source": {
+      "revision": "de1106a2423bfd1ffa95699dc6d1915d7fccd436",
+      "dirty_sha256": "36567f531e41ecdedf59c893b6b9960681229e1ce66ca8edb5a3fa0e7dec879a"
+    },
+    "inputs": {
+      "plan": "639d1a3b625f80c6b75beb388ed605403cccdb62cae0c1be9a5a483002ef1cbe"
+    },
+    "spec": "SPEC-0028",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T08:16:54.201707+00:00",
+  "files": {
+    ".run.json": "62cd5a883f4d8150fad6a227f21da862a19ce3e63a69b763fddb63877d7f430c",
+    "plan.snapshot.json": "eb155a183e6d313f4a1b6d5b8c4edc5e55182789d19c26a6a2d5d61b76917411"
+  }
+}
