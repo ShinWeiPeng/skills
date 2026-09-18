@@ -1,0 +1,14 @@
+test_repository_policy_classifies_changesets_after_release_archival (test_validation_layout.LayoutTests.test_repository_policy_classifies_changesets_after_release_archival) ... FAIL
+
+======================================================================
+FAIL: test_repository_policy_classifies_changesets_after_release_archival (test_validation_layout.LayoutTests.test_repository_policy_classifies_changesets_after_release_archival)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hugo_peng\skill\skills\tests\modules\governance_workflow_domain\test_validation_layout.py", line 62, in test_repository_policy_classifies_changesets_after_release_archival
+    self.assertEqual(len(unclassified), 1, unclassified)
+AssertionError: 4 != 1 : [{'rule_id': 'LAY001', 'severity': 'MUST', 'location': 'plugins/governed-engineering-skills/.changeset/applied/0.15.0/project-runtime-validation-enforcement.md', 'expected': 'exactly one declared role', 'message': 'unknown or ambiguous classification; expected exactly one declared role', 'configuration': True, 'disposition': 'active'}, {'rule_id': 'LAY001', 'severity': 'MUST', 'location': 'plugins/governed-engineering-skills/.changeset/applied/99.0.0/future-release.md', 'expected': 'exactly one declared role', 'message': 'unknown or ambiguous classification; expected exactly one declared role', 'configuration': True, 'disposition': 'active'}, {'rule_id': 'LAY001', 'severity': 'MUST', 'location': 'plugins/governed-engineering-skills/.changeset/applied/99.0.0/unexpected.py', 'expected': 'exactly one declared role', 'message': 'unknown or ambiguous classification; expected exactly one declared role', 'configuration': True, 'disposition': 'active'}, {'rule_id': 'LAY001', 'severity': 'MUST', 'location': 'plugins/governed-engineering-skills/.changeset/new-release.md', 'expected': 'exactly one declared role', 'message': 'unknown or ambiguous classification; expected exactly one declared role', 'configuration': True, 'disposition': 'active'}]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.118s
+
+FAILED (failures=1)

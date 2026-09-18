@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "run_id": "a26f07eabe2e4d4a9d0bfd8642246894",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:41:58.346319+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "release-changeset-layout-regression-red",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain",
+      "-p",
+      "test_validation_layout.py",
+      "-k",
+      "repository_policy",
+      "-v"
+    ],
+    "source": {
+      "revision": "20f4a9ea87c1714597c3615c40ec7bbfb2b2c592",
+      "dirty_sha256": "1addeac51899ce9f28d043c1fb4ab6dd945e288f53dafb9288f86c4fd5e5f63f"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "FAIL",
+  "ended_at": "2026-09-18T08:41:58.713373+00:00",
+  "files": {
+    ".run.json": "9bf86a892e328a245c4a487305d1b8b2707a3baaddbcbacc1bf1eaa787800e2e",
+    "reports/command.log": "429ce3aa1e88dbe9523a54b5fe6fba7d3f7dc21c92877c9b064d2c73206f50aa",
+    "reports/result.json": "2a2b688ac81dca51fc78e2867f9bd080c7a282b3e64824698ca16e3eff591043"
+  }
+}

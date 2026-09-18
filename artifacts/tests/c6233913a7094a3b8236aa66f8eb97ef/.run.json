@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "run_id": "c6233913a7094a3b8236aa66f8eb97ef",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:43:52.789433+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "release-changeset-main-gate",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "tools/architecture/architecture_cli.py",
+      "gate",
+      "--phase",
+      "release",
+      "--manifest",
+      "architecture/manifest.yaml",
+      "--adoption",
+      "architecture/adoption.yaml",
+      "--baseline",
+      "architecture/baseline.yaml"
+    ],
+    "source": {
+      "revision": "20f4a9ea87c1714597c3615c40ec7bbfb2b2c592",
+      "dirty_sha256": "055fb70f819171861a127fd75b632bb9c84a5f2d3442ec82aaa4b5cb5564b0c7"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  }
+}

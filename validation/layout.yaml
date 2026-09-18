@@ -94,43 +94,6 @@ entries:
   - docs/productivity/handoff.md
   - docs/productivity/teach.md
   - docs/productivity/writing-great-skills.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.10.0/formatter-governance.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.10.0/verification-ladder.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.10.1/deterministic-plugin-release.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.11.0/numeric-working-identity-redaction.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.11.0/spec-turn-continuity.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.12.0/governed-delivery-enforcement.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.13.0/mode-aware-question-presentation.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.14.0/universal-spec-execution-boundary.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.2.0/explain-code-flow-contract.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.2.0/semver-governance.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.3.0/explicit-prerelease-group.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.3.0/prerelease-history-bumps.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.3.0/release-workflow-lifecycle.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.3.0/safe-libclang-archive-links.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.3.0/xtensa-libclang-provider.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.4.0/automatic-engineering-router.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0-beta.6/canonical-spec-governance.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0-beta.6/default-decision-choice-contract.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0-beta.6/docs-only-routing-precedence.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0-beta.6/evidence-calibrated-flow-cost-governance.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0-beta.6/function-first-architecture-description.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0-beta.6/plugin-only-release-flow.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0/continuous-stable-plugin-versioning.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.0/shared-debug-computation-model.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.5.1/turn-boundary-grilling-handoff.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.6.0/persistent-grilling-spec-lifecycle.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.7.0/flat-working-spec-storage.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.7.1/codex-desktop-cli-detection.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.7.2/marketplace-empty-orphan-worktree.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.7.2/shared-skill-distribution.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.7.3/installer-python-discovery.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.7.4/installer-python-runtime-preflight.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.8.0/cross-platform-marketplace-installer.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.8.1/windows-powershell-native-stderr.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.8.2/development-marketplace-identity.md
-  - plugins/governed-engineering-skills/.changeset/applied/0.9.0/explain-runtime-action-purpose.md
-  - plugins/governed-engineering-skills/.changeset/project-runtime-validation-enforcement.md
   - plugins/governed-engineering-skills/AGENTS.md
   - plugins/governed-engineering-skills/CHANGELOG.md
   - plugins/governed-engineering-skills/docs/versioning.md
@@ -606,7 +569,7 @@ entries:
   role: generated
   provenance: sync-tools canonical architecture generator output
 - include:
-  - plugins/governed-engineering-skills/.changeset/test-validation-architecture.md
+  - plugins/governed-engineering-skills/.changeset/*.md
   - plugins/governed-engineering-skills/.changeset/release-intent.json
   role: metadata
 - include:

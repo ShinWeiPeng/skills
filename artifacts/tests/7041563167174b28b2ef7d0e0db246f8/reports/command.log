@@ -1,0 +1,21 @@
+test_alternate_import_root_still_checks_private_support (test_validation_layout.LayoutTests.test_alternate_import_root_still_checks_private_support) ... ok
+test_dynamic_alias_cannot_hide_private_dependency (test_validation_layout.LayoutTests.test_dynamic_alias_cannot_hide_private_dependency) ... ok
+test_explicit_curated_fixture_is_input (test_validation_layout.LayoutTests.test_explicit_curated_fixture_is_input) ... ok
+test_flat_artifact_cannot_pass (test_validation_layout.LayoutTests.test_flat_artifact_cannot_pass) ... ok
+test_ignored_old_evidence_is_not_hidden (test_validation_layout.LayoutTests.test_ignored_old_evidence_is_not_hidden) ... ok
+test_private_helper_cross_use_fails (test_validation_layout.LayoutTests.test_private_helper_cross_use_fails) ... ok
+test_production_test_dependency_fails (test_validation_layout.LayoutTests.test_production_test_dependency_fails) ... ok
+test_repository_policy_classifies_changesets_after_release_archival (test_validation_layout.LayoutTests.test_repository_policy_classifies_changesets_after_release_archival) ... ok
+test_shared_support_cannot_import_cases (test_validation_layout.LayoutTests.test_shared_support_cannot_import_cases) ... ok
+test_terminal_test_run_is_not_a_legacy_test_root (test_validation_layout.LayoutTests.test_terminal_test_run_is_not_a_legacy_test_root) ... ok
+test_tooling_role_cannot_hide_old_tests (test_validation_layout.LayoutTests.test_tooling_role_cannot_hide_old_tests) ... ok
+test_unknown_and_ambiguous_roles_block (test_validation_layout.LayoutTests.test_unknown_and_ambiguous_roles_block) ... ok
+test_unknown_owner_and_analyzer_block (test_validation_layout.LayoutTests.test_unknown_owner_and_analyzer_block) ... ok
+test_unresolved_dependency_is_not_silently_external (test_validation_layout.LayoutTests.test_unresolved_dependency_is_not_silently_external) ... ok
+test_valid_owned_test (test_validation_layout.LayoutTests.test_valid_owned_test) ... ok
+test_vendor_exclusion_cannot_hide_owned_dependency (test_validation_layout.LayoutTests.test_vendor_exclusion_cannot_hide_owned_dependency) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.456s
+
+OK

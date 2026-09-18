@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "run_id": "b063480c84484ce88cb210abd7cccb95",
+  "kind": "tests",
+  "started_at": "2026-09-18T08:43:25.397089+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "release-pr44-layout-fixed",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:/Users/hugo_peng/skill/spec0028-release-pr44/tools/architecture/architecture_cli.py",
+      "gate",
+      "--phase",
+      "release",
+      "--manifest",
+      "C:/Users/hugo_peng/skill/spec0028-release-pr44/architecture/manifest.yaml",
+      "--adoption",
+      "C:/Users/hugo_peng/skill/spec0028-release-pr44/architecture/adoption.yaml",
+      "--baseline",
+      "C:/Users/hugo_peng/skill/spec0028-release-pr44/architecture/baseline.yaml"
+    ],
+    "source": {
+      "revision": "20f4a9ea87c1714597c3615c40ec7bbfb2b2c592",
+      "dirty_sha256": "055fb70f819171861a127fd75b632bb9c84a5f2d3442ec82aaa4b5cb5564b0c7"
+    },
+    "inputs": {},
+    "spec": "SPEC-0028"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T08:43:33.808143+00:00",
+  "files": {
+    ".run.json": "fb991153c9d72add584cb4fc5c36a8554d2587ffb01cda03cd25b8bc092e0e5a",
+    "reports/command.log": "e4ef8307868898d7d57d0bc7827a7bf54bc556534956478cf282278fc59fd18f",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

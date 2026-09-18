@@ -45,6 +45,23 @@ class LayoutTests(unittest.TestCase):
         self.write("validation/layout.yaml", yaml.safe_dump(self.policy))
         return assess_layout(self.root, self.manifest)
 
+    def test_repository_policy_classifies_changesets_after_release_archival(self):
+        self.policy["entries"] = yaml.safe_load(
+            (ROOT / "validation/layout.yaml").read_text(encoding="utf-8")
+        )["entries"]
+        changesets = "plugins/governed-engineering-skills/.changeset"
+        for path in (
+            f"{changesets}/new-release.md",
+            f"{changesets}/applied/0.15.0/project-runtime-validation-enforcement.md",
+            f"{changesets}/applied/99.0.0/future-release.md",
+        ):
+            self.write(path, "---\nbump: minor\n---\nRelease notes.\n")
+        self.write(f"{changesets}/applied/99.0.0/unexpected.py", "VALUE = 1\n")
+        diagnostics = self.assess()["diagnostics"]
+        unclassified = [d for d in diagnostics if d["rule_id"] == "LAY001"]
+        self.assertEqual(len(unclassified), 1, unclassified)
+        self.assertIn("unexpected.py", str(unclassified[0]))
+
     def test_vendor_exclusion_cannot_hide_owned_dependency(self):
         self.policy["entries"].extend(
             [

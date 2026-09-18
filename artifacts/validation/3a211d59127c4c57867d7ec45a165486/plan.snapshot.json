@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0028-test-validation-architecture.md",
+    "spec_id": "SPEC-0028",
+    "revision": 20,
+    "spec_sha256": "02950e691213e5ad63def4da3132dcc9ad2ead4b8ec20f5395ed20a951650144",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "ce2c1033bfbe50d317873abdef4a823c7f75ccbf598e72f038cb096395235e16"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "cd95b80a921b4d00469c064a0946257c6672f2c8ae78a844add9c6de2310a1c2"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "bb8e9b89685bad5292325ba63f0f81a046507f8bdbd4580842956f31611fff61"
+      },
+      "validation/acceptance-SPEC-0028.json": {
+        "state": "present",
+        "sha256": "bf20e5b215fe1e70e81b3fd9e2b77e5751f55da729196da410df3f1bbcb3537c"
+      }
+    },
+    "skill": {
+      "version": "0.15.0",
+      "sha256": "18320c71b8215b35d4ab5b5100801d85a9bdf200124589e73ce1d8d35a869e59"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001, REQ-005, REQ-006, REQ-009, REQ-011",
+        "模組/流程分類正確；跨範圍私有 helper、共用層反向依賴案例、產品依賴測試及測試控制進入 release 均不可通過；案例不依賴先前案例的狀態。",
+        "正反依賴樣本、重排/重跑/並行狀態測試及適用 analyzer/release 組成檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002, REQ-004, REQ-007, REQ-012",
+        "設定及結果分区；連續/並行執行使用獨立 run-id；已完成結果拒絕覆寫；中斷資料不能成為验收證據。",
+        "獨占建立、故障注入、重跑、固定引用與 hash 反例測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-003, REQ-006, REQ-008, REQ-013",
+        "未修改的 specs/evidence、設定區報告、舊測試根及非法引用也被攔截；診斷包括路徑、規則及預期位置。",
+        "含 tracked/untracked/ignored 治理檔案的正反 fixture 與結束碼檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-010, REQ-014",
+        "本技能庫及舊專案測試樣本統一目錄，runner/文件/來源清單/組裝引用無失效路徑。",
+        "完整 layout gate、路徑檢查、乾淨副本核心測試及 plugin distribution 驗證。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-012, REQ-013",
+        "未知分類/owner、缺 analyzer、未解動態依賴、越界路徑或 hash 不符均不得整體 PASS。",
+        "逐項反例驗證 FAIL/BLOCKED，合法完整案例必須通過。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-002, REQ-007, REQ-014",
+        "不修改 Git 政策、不自動清理、不將舊證據冒充新執行；遷移内容與原始路徑可追溯。",
+        "差異審查、遷移前後 hash 與對照、拒絕歷史證據重新綁定測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    },
+    "AC-007": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-007",
+        "REQ-013, REQ-014",
+        "router、architecture gate、verification-ladder、validate-on-device 與 delivery 對新目錄及證據採一致規則；缺能力不降級通過。",
+        "Host 整合回歸、架構 gate/render、技能組裝及發行內容檢查，不聲稱裝置通過。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill-only governance behavior is exercised by production Python host tests; no target performance or physical claim."
+    }
+  }
+}
