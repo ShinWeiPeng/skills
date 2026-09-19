@@ -90,3 +90,50 @@ plans stay under `validation/`; each execution keeps its own immutable run under
 replacing the evidence they cite. Whole-project checks include existing files and
 report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
 boundaries; project-specific retention and Git ignore choices remain separate.
+
+## Discussion is saved from entry
+
+Engineering work automatically starts or resumes a task-specific working record,
+including diagnosis and code explanation. Grilling manages that discussion while
+specialist skills provide facts. Questions are reserved for decisions the user
+must make. A saved explanation does not need a formal SPEC; an adopted change with
+complete scope and acceptance does. Suggested changes remain candidates until
+accepted and do not expand authorization.
+
+The candidate plugin includes prompt, resume, pre-tool and Stop hooks. Review and
+trust their exact definitions before activation. Missing discussion can trigger
+one automatic continuation for an actual input state. Unchanged failures do not
+loop, and restarting does not erase retry history. Failed saving reports the missing
+scope and ends the reply normally; discussion and recovery can continue. After a
+repair, saving and rechecking can succeed in the same task. Product changes still
+require a current SPEC and execution authorization. Reply wording differences do
+not count as missing requirements. Script tests alone do not prove desktop hooks were loaded
+or fired. The covered tool paths are Bash, exec_command and file edits; other tools, hosted
+search, streamed text and interruptions have explicit coverage limits.
+
+## Bounded diagnosis and recovery
+
+Separate discovered skill names, callable CLI capabilities and actual check
+verdicts. `test-validation-layout` resolves to the validated `architecture_cli.py
+layout` result; a callable FAIL or BLOCKED remains a failed or blocked check.
+An explicit caller capability limit is never expanded by discovery.
+
+A blocker records category, original evidence, affected branch, repair suggestion,
+authorization requirement, reproducible recheck, success condition and resume target.
+Investigate discoverable facts and prepare the concrete repair first. Reuse current
+authorization for deterministic repairs within the confirmed contract; ask only
+for missing decisions, authority or external conditions. Never change acceptance
+thresholds or replace required runtime evidence with host results.
+
+Managed `recover` stores branch state beside the existing execution receipt. It
+checks the same task/SPEC binding, reserves each attempt before effects, and allows
+at most three attempts and 120 seconds per input cycle. Identical failed inputs
+require evidenced temporary failure to retry; changed actual inputs or repair
+start a new bounded cycle while preserving history. Unsupported rechecks remain
+investigation, never success. Existing discussion repair allowances are untouched.
+
+## Visible specification updates
+
+Each saved working or confirmed SPEC update includes a clickable canonical link,
+revision, status, change summary and execution authorization state in the reply.
+Failed saves remain explicit so you can tell what was actually persisted.

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "536b8233fc6e432cbaaed0aba51aa918",
+  "kind": "tests",
+  "started_at": "2026-09-18T15:39:57.879214+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "spec0030-planning-regression",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain/ladder",
+      "-q"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "bea42802b7cc6baffe6896b3299ed3ae62b7607769b960db77eade3c2f66d5e7"
+    },
+    "inputs": {},
+    "spec": "SPEC-0030"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T15:40:18.879692+00:00",
+  "files": {
+    ".run.json": "7d7ac49ee005fdd1320449a214bbea4687d8507fa3a291f522dff18b7ab810db",
+    "reports/command.log": "5e9aa0095efa51b5fc96a196e7095205baa1fa930aaee5fb44cd2dbb0c796371",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

@@ -7,9 +7,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
 from pathlib import Path
-
+from unittest import mock
 
 REPO_ROOT = next(
     p for p in Path(__file__).resolve().parents if (p / "CLAUDE.md").is_file()
@@ -40,6 +39,46 @@ def load_validator():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def make_source_repository(destination: Path) -> Path:
+    """Snapshot current sources, not the developer index or ignored build trees."""
+    tracked = subprocess.run(
+        ["git", "ls-files", "--cached", "-z"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+    )
+    added = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z",
+            "--",
+            "plugins/governed-engineering-skills",
+            "skills/engineering",
+            "skills/productivity",
+        ],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+    )
+    paths = set(tracked.stdout.split(b"\0")) | set(added.stdout.split(b"\0"))
+    for raw in sorted(paths - {b""}):
+        relative = Path(raw.decode("utf-8"))
+        source = REPO_ROOT / relative
+        if not source.is_file():
+            continue  # A worktree deletion is part of this candidate snapshot.
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    subprocess.run(["git", "init", "--quiet"], cwd=destination, check=True)
+    subprocess.run(
+        ["git", "add", "-A"], cwd=destination, check=True, capture_output=True
+    )
+    return destination
 
 
 class SharedSkillDistributionTests(unittest.TestCase):
@@ -212,36 +251,44 @@ class SharedSkillDistributionTests(unittest.TestCase):
                 first["content_fingerprint"], second["content_fingerprint"]
             )
 
+    def test_rehearsal_inventory_does_not_inherit_parent_git(self) -> None:
+        module = load_assembler()._version_governance(REPO_ROOT)
+        temporary_root = REPO_ROOT / ".test-tmp"
+        temporary_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temporary_root) as output_dir:
+            repository = Path(output_dir)
+            relative = "plugins/governed-engineering-skills/scripts/fixture.py"
+            source = repository / relative
+            source.parent.mkdir(parents=True)
+            source.write_text("# isolated source\n", encoding="utf-8")
+            inventory = repository / module.REHEARSAL_SOURCE_INVENTORY
+            inventory.write_text(json.dumps([relative]), encoding="utf-8")
+            self.assertEqual(
+                [("scripts/fixture.py", source)],
+                module.assembly_source_inventory(repository),
+            )
+            inventory.write_text("{}", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "inventory is invalid"):
+                module.assembly_source_inventory(repository)
+
     def test_clean_checkout_release_rehearsal_passes(self) -> None:
         module = load_assembler()
 
-        # Rehearsal consumes the Git index, including any pending release intent.
-        def indexed_json(relative: str) -> dict:
-            completed = subprocess.run(
-                ["git", "show", f":{relative}"],
-                cwd=REPO_ROOT,
-                capture_output=True,
-                check=True,
-            )
-            return json.loads(completed.stdout)
-
-        shell = "plugins/governed-engineering-skills"
-        expected_version = indexed_json(f"{shell}/.codex-plugin/plugin.json")["version"]
-        intent_path = f"{shell}/.changeset/release-intent.json"
-        tracked = subprocess.run(
-            ["git", "ls-files", "--error-unmatch", intent_path],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            check=False,
-        )
-        if tracked.returncode == 0:
-            intent = indexed_json(intent_path)
-            expected_version = module._version_governance(REPO_ROOT).next_version(
-                expected_version, bump=intent["bump"]
-            )
-        result = module.rehearse_release(REPO_ROOT)
-        self.assertEqual("governed-engineering-skills", result["plugin_name"])
-        self.assertEqual(expected_version, result["version"])
+        with tempfile.TemporaryDirectory() as output_dir:
+            repository = make_source_repository(Path(output_dir) / "repository")
+            shell = repository / "plugins/governed-engineering-skills"
+            expected_version = json.loads(
+                (shell / ".codex-plugin/plugin.json").read_text(encoding="utf-8")
+            )["version"]
+            intent_path = shell / ".changeset/release-intent.json"
+            if intent_path.is_file():
+                intent = json.loads(intent_path.read_text(encoding="utf-8"))
+                expected_version = module._version_governance(repository).next_version(
+                    expected_version, bump=intent["bump"]
+                )
+            result = module.rehearse_release(repository)
+            self.assertEqual("governed-engineering-skills", result["plugin_name"])
+            self.assertEqual(expected_version, result["version"])
 
     def test_empty_partial_artifact_is_recovered_safely(self) -> None:
         module = load_assembler()
@@ -257,13 +304,15 @@ class SharedSkillDistributionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as output_dir:
             artifact = Path(output_dir) / "plugin"
             original = module.assemble(REPO_ROOT, artifact)
-            with mock.patch.object(
-                module,
-                "_copy_inventory",
-                side_effect=module.DistributionError("simulated partial copy"),
+            with (
+                mock.patch.object(
+                    module,
+                    "_copy_inventory",
+                    side_effect=module.DistributionError("simulated partial copy"),
+                ),
+                self.assertRaises(module.DistributionError),
             ):
-                with self.assertRaises(module.DistributionError):
-                    module.assemble(REPO_ROOT, artifact)
+                module.assemble(REPO_ROOT, artifact)
             self.assertEqual(original, module.validate_artifact(REPO_ROOT, artifact))
 
     def test_versioned_artifact_passes_its_own_integration_validation(self) -> None:
@@ -272,14 +321,7 @@ class SharedSkillDistributionTests(unittest.TestCase):
             temporary_root = Path(output_dir)
             repository = temporary_root / "repository"
             shell = repository / "plugins" / "governed-engineering-skills"
-            shutil.copytree(PLUGIN_SHELL, shell)
-            for promoted_root in PROMOTED_ROOTS:
-                shutil.copytree(
-                    promoted_root,
-                    repository / promoted_root.relative_to(REPO_ROOT),
-                )
-            subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
-            subprocess.run(["git", "add", "-A"], cwd=repository, check=True)
+            make_source_repository(repository)
 
             applied = subprocess.run(
                 [
@@ -775,7 +817,8 @@ class SharedSkillDistributionTests(unittest.TestCase):
             subprocess.run(
                 ["git", "init"], cwd=project, check=True, capture_output=True, text=True
             )
-            module.assemble(REPO_ROOT, artifact)
+            repository = make_source_repository(root / "repository")
+            module.assemble(repository, artifact)
             self.assertTrue((artifact / "skills" / "ask-matt" / "SKILL.md").is_file())
             completed = subprocess.run(
                 [
@@ -789,6 +832,12 @@ class SharedSkillDistributionTests(unittest.TestCase):
                     ),
                     "--prompt",
                     "add a payment retry feature",
+                    "--task-ref",
+                    "fixture-distribution-task",
+                    "--turn-ref",
+                    "fixture-distribution-turn",
+                    "--source-ref",
+                    "fixture-distribution-user",
                     "--project-root",
                     str(project),
                     "--branch",

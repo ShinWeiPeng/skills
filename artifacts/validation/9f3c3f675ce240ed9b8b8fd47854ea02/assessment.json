@@ -1,0 +1,467 @@
+{
+  "verdict": "BLOCKED",
+  "required_gates": [
+    "test-validation-layout",
+    "verification-ladder"
+  ],
+  "required_layers": [
+    "module-contract",
+    "sil",
+    "adapter-contract"
+  ],
+  "errors": [
+    "blocked evidence: ('AC-001', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-001', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-001', 'adapter-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-002', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-002', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-002', 'adapter-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-004', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-004', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-006', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-006', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-009', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-009', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-009', 'adapter-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-010', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-010', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-010', 'adapter-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-011', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-011', 'sil', None, 'acceptance')",
+    "blocked evidence: ('AC-011', 'adapter-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-012', 'module-contract', None, 'acceptance')",
+    "blocked evidence: ('AC-012', 'sil', None, 'acceptance')",
+    "AC-001: missing acceptance module-contract/None",
+    "AC-001: missing acceptance sil/None",
+    "AC-001: missing acceptance adapter-contract/None",
+    "claim 'adapter-conformance' requires PASS evidence from 'adapter-contract'",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-002: missing acceptance module-contract/None",
+    "AC-002: missing acceptance sil/None",
+    "AC-002: missing acceptance adapter-contract/None",
+    "claim 'adapter-conformance' requires PASS evidence from 'adapter-contract'",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-004: missing acceptance module-contract/None",
+    "AC-004: missing acceptance sil/None",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-006: missing acceptance module-contract/None",
+    "AC-006: missing acceptance sil/None",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-009: missing acceptance module-contract/None",
+    "AC-009: missing acceptance sil/None",
+    "AC-009: missing acceptance adapter-contract/None",
+    "claim 'adapter-conformance' requires PASS evidence from 'adapter-contract'",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-010: missing acceptance module-contract/None",
+    "AC-010: missing acceptance sil/None",
+    "AC-010: missing acceptance adapter-contract/None",
+    "claim 'adapter-conformance' requires PASS evidence from 'adapter-contract'",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-011: missing acceptance module-contract/None",
+    "AC-011: missing acceptance sil/None",
+    "AC-011: missing acceptance adapter-contract/None",
+    "claim 'adapter-conformance' requires PASS evidence from 'adapter-contract'",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'",
+    "AC-012: missing acceptance module-contract/None",
+    "AC-012: missing acceptance sil/None",
+    "claim 'host-semantics' requires PASS evidence from 'module-contract'"
+  ],
+  "documents": {
+    "architecture/adoption.yaml": {
+      "state": "present",
+      "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+    },
+    "architecture/manifest.yaml": {
+      "state": "present",
+      "sha256": "0eafb535003242b99f70ae9b9359677e320a640402b2acc8b1cc606f1471eb00"
+    },
+    "validation/verification-ladder.yaml": {
+      "state": "present",
+      "sha256": "feeed97793727af01273a7300a03df1062ada8dfa67b1ff5300dd6941df0666f"
+    },
+    "validation/on-device.yaml": {
+      "state": "missing",
+      "sha256": null
+    },
+    "validation/layout.yaml": {
+      "state": "present",
+      "sha256": "1a783c54adaeb0d4d55af492537b2ce7086969816b6a11e5f60f2157904205eb"
+    },
+    "validation/acceptance-SPEC-0029.json": {
+      "state": "present",
+      "sha256": "3302d42a506a2e3eac9f4e6acf3972b118725aaa362dfd703758ed6958bda555"
+    }
+  },
+  "phase": "acceptance",
+  "device_actions_authorized": false,
+  "applicability": "not-applicable",
+  "skill": {
+    "version": "0.16.0",
+    "sha256": "915552dda8751df100719d36ef0398ef700ce069b04f4b4ea58388d4df5b8697"
+  },
+  "plan": {
+    "schema_version": 1,
+    "binding": {
+      "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+      "spec": "specs/SPEC-0029-proposal-discussion-entry.md",
+      "spec_id": "SPEC-0029",
+      "revision": 17,
+      "spec_sha256": "016357ad5304ff94e9071a8fcc102ed4643e8d0cd202d6516a085c7f7134109a",
+      "documents": {
+        "architecture/adoption.yaml": {
+          "state": "present",
+          "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+        },
+        "architecture/manifest.yaml": {
+          "state": "present",
+          "sha256": "0eafb535003242b99f70ae9b9359677e320a640402b2acc8b1cc606f1471eb00"
+        },
+        "validation/verification-ladder.yaml": {
+          "state": "present",
+          "sha256": "feeed97793727af01273a7300a03df1062ada8dfa67b1ff5300dd6941df0666f"
+        },
+        "validation/on-device.yaml": {
+          "state": "missing",
+          "sha256": null
+        },
+        "validation/layout.yaml": {
+          "state": "present",
+          "sha256": "1a783c54adaeb0d4d55af492537b2ce7086969816b6a11e5f60f2157904205eb"
+        },
+        "validation/acceptance-SPEC-0029.json": {
+          "state": "present",
+          "sha256": "3302d42a506a2e3eac9f4e6acf3972b118725aaa362dfd703758ed6958bda555"
+        }
+      },
+      "skill": {
+        "version": "0.16.0",
+        "sha256": "915552dda8751df100719d36ef0398ef700ce069b04f4b4ea58388d4df5b8697"
+      },
+      "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "acceptance": {
+      "AC-001": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-001",
+          "REQ-001",
+          "\u5de5\u7a0b\u8a3a\u65b7\u3001\u8aaa\u660e\u3001\u65b9\u6848\u8207\u8b8a\u66f4\u4efb\u52d9\u5747\u5f9e\u5165\u53e3\u4fdd\u5b58\uff1b\u53ea\u8b80\u554f\u7b54\u4e0d\u865b\u69cb\u6c7a\u7b56\uff1b\u975e\u5de5\u7a0b\u4efb\u52d9\u4e0d\u8aa4\u89f8\u767c\u3002",
+          "\u8def\u7531\u8207\u591a\u8f2a\u771f\u5be6\u4efb\u52d9\u9a57\u8b49\uff0c\u5206\u5225\u6838\u5c0d\u5165\u53e3\u6709\u7121\u547c\u53eb\u3001\u7d00\u9304\u8207\u7b54\u8986\u5148\u5f8c\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Engineering and non-engineering routing, plus real multi-turn entry order."
+      },
+      "AC-002": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-002",
+          "REQ-002",
+          "\u9996\u4efd\u65b9\u6848\u6216\u554f\u984c\u524d\u5df2\u6709\u672c\u4efb\u52d9 working pair\uff0c\u4e14\u4fdd\u5b58\u539f\u59cb\u76ee\u6a19\u3002",
+          "\u91cd\u64ad\u539f\u59cb\u5c0d\u8a71\u4e26\u6aa2\u67e5 trace \u4e8b\u4ef6\u9806\u5e8f\u53ca\u5be6\u969b\u6a94\u6848\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Original measurement-proposal replay; compare first working snapshot and actual reply timestamps."
+      },
+      "AC-003": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-003",
+          "REQ-003",
+          "\u77ed\u7b54\u3001\u6df7\u5408\u56de\u7b54\u3001\u53ea\u8b80\u63d2\u554f\u3001\u96f6\u554f\u984c\u5b8c\u6210\u5747\u4fdd\u7559\u6216\u66f4\u65b0\u6b63\u78ba bundle\u3002",
+          "\u591a\u56de\u5408\u6574\u5408\u6e2c\u8a66\u53ca DISC/\u7248\u672c\u65b7\u8a00\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Short answers, mixed turns, read-only interjections and no-question completion."
+      },
+      "AC-004": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-004",
+          "REQ-004",
+          "\u50c5 selected_skill\u3001\u81ea\u5831\u5b8c\u6210\u3001\u932f\u4efb\u52d9\u6216\u904e\u671f hash \u4e0d\u80fd\u901a\u904e\uff1b\u6709\u6548\u4fdd\u5b58\u53ef\u7e7c\u7e8c\u3002",
+          "managed handoff/finish-turn \u6b63\u53cd\u4f8b\u8207\u7368\u7acb trace \u5be9\u67e5\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Wrong task, stale revision/hash and self-reported flags fail managed handoff and finish-turn."
+      },
+      "AC-005": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-005",
+          "REQ-005",
+          "\u7bc4\u570d\u8b8a\u66f4\u3001\u820a\u5de5\u4f5c\u6a94\u6062\u5fa9\u3001confirmed/implemented \u908a\u754c\u53ef\u9a57\u8b49\u4e14\u4e0d\u507d\u9020\u820a\u8b49\u64da\u3002",
+          "lifecycle \u56de\u6b78\u6848\u4f8b\u8207\u6b63\u5f0f SPEC \u6aa2\u67e5\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Confirmed reopen, implemented successor and legacy recovery without invented historical entry evidence."
+      },
+      "AC-006": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-006",
+          "REQ-006",
+          "\u6280\u80fd\u3001\u6587\u4ef6\u3001\u5951\u7d04\u548c\u767c\u5e03\u7522\u7269\u898f\u5247\u4e00\u81f4\uff0c\u5b8c\u6574\u539f\u59cb\u5931\u6557\u6848\u4f8b\u7121\u4f7f\u7528\u8005\u8ffd\u554f\u4e5f\u80fd\u4fdd\u5b58\u3002",
+          "\u6587\u4ef6\u6aa2\u67e5\u3001\u5b8c\u6574\u6e2c\u8a66\u3001\u67b6\u69cb gate\u3001assemble \u8207 distribution validation\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Skill/doc contracts, full regression, architecture and assembled distribution."
+      },
+      "AC-007": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-007",
+          "REQ-007",
+          "\u7d14\u89e3\u91cb\u4e0d\u7522\u751f\u6b63\u5f0f SPEC\uff1b\u5177\u9ad4\u8b8a\u66f4\u5728\u540c\u4e00\u7d00\u9304\u767c\u5c55\uff0c\u7bc4\u570d\u8207\u9a57\u6536\u672a\u660e\u6642\u4e0d\u78ba\u8a8d\u6b63\u5f0f SPEC\u3002",
+          "\u591a\u8f2a\u6e2c\u8a66\uff0c\u6838\u5c0d\u5de5\u4f5c\u7248\u672c\u8207 materialize \u9806\u5e8f\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Read-only working records remain unmaterialized until a complete adopted change contract exists."
+      },
+      "AC-008": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-008",
+          "REQ-008",
+          "\u4e3b\u52d5\u5efa\u8b70\u88ab\u4fdd\u5b58\u4e26\u91d0\u6e05\uff1b\u5426\u6c7a\u6216\u5ef6\u5f8c\u4fdd\u7559\u7d00\u9304\uff0c\u539f\u4efb\u52d9\u4ecd\u53ef\u5b8c\u6210\uff1b\u672a\u63a1\u7d0d\u5019\u9078\u4e0d\u9032\u5165\u6b63\u5f0f\u9700\u6c42\u8207\u6388\u6b0a\u7bc4\u570d\u3002",
+          "\u591a\u8f2a\u5019\u9078\u72c0\u614b\u53ca\u6b63\u5f0f\u5316/\u5b8c\u6210\u5224\u5b9a\u6b63\u53cd\u4f8b\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Candidate provenance and accepted/rejected/deferred states; unadopted candidates do not block completion."
+      },
+      "AC-009": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-009",
+          "REQ-009",
+          "\u523b\u610f\u8b93\u6a21\u578b\u4e0d\u547c\u53eb router/finish-turn\uff0c\u5df2\u555f\u7528 hooks \u4ecd\u6709\u4e3b\u52d5\u89f8\u767c\u8b49\u64da\uff1b\u932f\u4efb\u52d9\u8207\u904e\u671f\u7248\u672c\u4e0d\u901a\u904e\uff1b\u6b63\u5e38\u53ea\u8b80\u89e3\u91cb\u53ef\u4fdd\u5b58\u800c\u4e0d\u7522\u751f\u6b63\u5f0f SPEC\u3002",
+          "\u9694\u96e2\u5019\u9078\u63d2\u4ef6\u8207\u771f\u5be6\u684c\u9762\u591a\u8f2a\u7d00\u9304\uff0c\u6838\u5c0d hook \u4e8b\u4ef6\u3001task/turn \u8207\u6a94\u6848\u7248\u672c\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Real trusted desktop hooks trigger even when the model omits voluntary router/finish-turn calls."
+      },
+      "AC-010": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-010",
+          "REQ-010",
+          "\u6210\u529f\u6f0f\u5b58\u88dc\u6551\u53ea\u6709\u4e00\u6b21\uff1b\u6301\u7e8c\u5931\u6557\u6642\u7121\u7b2c\u4e8c\u6b21\u81ea\u52d5\u63a5\u7e8c\uff0c\u4f9d\u8cf4\u64cd\u4f5c\u505c\u6b62\uff1b\u91cd\u555f\u8207\u63a5\u7e8c\u4e0d\u91cd\u8a2d\u984d\u5ea6\uff1b\u4e0d\u5275\u9020\u4f7f\u7528\u8005\u6c7a\u7b56\u3002",
+          "\u5408\u6210\u4e8b\u4ef6/\u6574\u5408\u6e2c\u8a66\u52a0\u771f\u5be6\u6f0f\u5b58\u53ca\u6301\u7e8c\u5931\u6557\u6848\u4f8b\uff0c\u6838\u5c0d\u6b21\u6578\u8207\u539f\u59cb\u5c0d\u8a71\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Persisted original-turn repair allowance survives continuations/restart; real failure and recovery traces required."
+      },
+      "AC-011": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-011",
+          "REQ-011",
+          "\u672a\u4fe1\u4efb\u3001\u505c\u7528\u3001\u4e0d\u652f\u63f4\u3001hook \u57f7\u884c\u932f\u8aa4\u53ca\u5de5\u5177\u672a\u8986\u84cb\u5747\u6709\u660e\u78ba\u7f3a\u53e3\uff0c\u4e0d\u80fd\u56de\u5831\u6574\u9ad4\u6210\u529f\uff1b\u5b89\u88dd\u5019\u9078\u4e0d\u7565\u904e\u4fe1\u4efb\u3002",
+          "\u80fd\u529b/\u8f09\u5165/\u89f8\u767c\u77e9\u9663\u53ca\u684c\u9762\u771f\u5be6\u8b49\u64da\uff0c\u5b8c\u6574\u56de\u6b78\u3001\u67b6\u69cb\u4e0e\u767c\u5e03\u6aa2\u67e5\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Separate supported/trusted/loaded/fired evidence; missing, disabled, timeout and unsupported paths cannot pass."
+      },
+      "AC-012": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-012",
+          "REQ-012",
+          "\u88dc\u5b58\u5931\u6557\u5f8c\u5373\u4f7f 0030 \u4fee\u597d\u8a2d\u5b9a\u4e26\u91cd\u9a57\u901a\u904e\uff0c\u540c\u4e00\u539f\u59cb\u56de\u5408\u4ea6\u4e0d\u767c\u8d77\u7b2c\u4e8c\u6b21\u81ea\u52d5\u88dc\u5b58\uff1b\u672a\u63a1\u7d0d\u5019\u9078\u4e0d\u57f7\u884c\u3002",
+          "\u5169\u898f\u683c\u5171\u7528\u6062\u5fa9\u6574\u5408\u6e2c\u8a66\uff0c\u6838\u5c0d\u539f\u59cb\u56de\u5408\u3001\u984d\u5ea6\u53ca\u526f\u4f5c\u7528\u3002"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "General repair/revalidation cannot reset the same original-turn one-repair budget."
+      }
+    }
+  },
+  "plan_sha256": "7b318459316ad6a907baae019698a814eabedc1b1ded313d4cf325e6f2d31692",
+  "evidence_trust": "caller-supplied-artifacts-not-authenticated-observations",
+  "layout": {
+    "verdict": "PASS",
+    "diagnostics": [],
+    "coverage": {
+      "layout": "whole-filesystem-declared-scope",
+      "runtime_isolation": "not-proven-by-layout",
+      "python": {
+        "files": 78,
+        "edges": 145,
+        "mode": "python-ast-and-source-bound-resolutions"
+      }
+    },
+    "files": 548
+  },
+  "product_code_allowed": false,
+  "spec_discussion_allowed": true,
+  "enforcement_scope": "managed-entrypoint-only"
+}

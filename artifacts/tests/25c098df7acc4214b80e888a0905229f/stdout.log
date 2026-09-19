@@ -1,0 +1,13 @@
+{
+  "verdict": "PASS",
+  "scope": "local candidate, tracked sources plus five explicit untracked sources",
+  "extra_sources": {
+    "skills/spec-governance/scripts/discussion_state.py": "skills/engineering/spec-governance/scripts/discussion_state.py",
+    "skills/spec-governance/references/discussion-entry.md": "skills/engineering/spec-governance/references/discussion-entry.md",
+    "skills/implement/scripts/discussion_hook.py": "skills/engineering/implement/scripts/discussion_hook.py",
+    "hooks/hooks.json": "plugins/governed-engineering-skills/hooks/hooks.json",
+    "hooks/run-windows.ps1": "plugins/governed-engineering-skills/hooks/run-windows.ps1"
+  },
+  "content_fingerprint": "sha256:6eee71009d80f8447f9e9ce18d6b7e6340132c950022f266f4ae264944834a04",
+  "file_count": 291
+}

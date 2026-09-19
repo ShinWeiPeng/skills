@@ -3,6 +3,36 @@ name: ask-matt
 description: Automatically route every software-engineering request, including implementation, modification, debugging, review, code explanation, tests, architecture, and deployment. Model-invoked; users never need to name this skill.
 ---
 
+## Engineering discussion entry
+
+For every engineering task, `grilling` owns discussion state from entry, including
+read-only diagnosis, explanation and proposal exploration. Start or resume the
+same task's canonical working SPEC in `specs/` before a substantive answer. Initial
+fact discovery may precede entry; ask only genuine unresolved user decisions.
+Supporting skills still diagnose, explain and compare alternatives.
+
+Use the spec-governance discussion entry contract at
+`references/discussion-entry.md` in the resolved spec-governance skill. Save sourced
+goals, constraints, facts, answers and candidate suggestions. A candidate is not an
+adopted requirement or execution grant; rejected/deferred candidates do not block
+the original task. If saving fails, disclose the gap and continue discussion or repair; only dependent product changes wait for synchronization. Pure discussion may finish with a saved working record and no
+formal SPEC. Materialize only a complete adopted change scope, expected behavior,
+decisions and acceptance criteria. Reopen confirmed changes and create successors
+for implemented contracts using the existing lifecycle.
+
+Bundled trusted hooks establish task/turn obligations, inspect covered dependent
+operations and check Stop persistence. Unknown intent is not silently exempt.
+SPEC-0032 separates synchronization from recovery permission. Permit one automatic
+repair per actual input state; replay or restart cannot reset its durable history.
+After a failed repair, report unsaved scope and finish normally. Discussion, reading,
+classification, saving and rechecking remain available; product changes still require
+a current SPEC and valid execution authorization. Historical repair failure is not
+a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
+hooks require the explicit owner CLI and remain a capability gap. Do not bypass
+hook trust or claim interception of every tool, reply or interrupt.
+
+
+
 ## Universal SPEC visibility and execution boundary
 
 Apply this workflow to every project, language, size of change and later turn.
@@ -78,8 +108,9 @@ explicit skill
 
 ## Turn-boundary rerouting
 
-On every turn, call the router with the current task's `--task-ref` and, once
-resolved, `--working-reference`. The router reloads the persisted working pair;
+On every turn, call the router with the current task's `--task-ref`, actual
+`--turn-ref` and `--source-ref`, and, once
+resolved, `--working-reference`. The router reloads the persisted canonical working SPEC;
 do not rely on a remembered `has_unresolved_decision` boolean. Never select a
 different task's spec to make a route pass. Use `--turn-kind read-only` for a
 factual follow-up, `decision-answer` for an explicit answer, and `change-request`
@@ -117,9 +148,9 @@ the options, not after the user answers. When
 hands off automatically. The route must name `spec-governance` as the immediate
 resume target.
 
-Keep factual, read-only follow-ups in their existing diagnosis, review, or
-code-understanding flow. Once `grilling` owns a change set, start or resolve its
-persistent working bundle and reconcile every answer through
+Keep factual, read-only follow-ups in their supporting diagnosis, review, or
+code-understanding flow while grilling retains discussion ownership. Once `grilling` owns a change set, start or resolve its
+persistent canonical working SPEC and reconcile every answer through
 `spec-governance.reconcile` before asking the next decision. Return to the recorded
 supporting or proposal workflow only after the interview is decision-complete and
 the confirmed canonical spec has materialized.
@@ -167,14 +198,14 @@ regardless of size or an explicitly requested skill such as `tdd`.
   grilling.
 - Ask one decision question at a time under the shared Decision Question Contract.
 - Do not ask discoverable facts.
-- Before the first governed decision, start or resolve the flat local pair
+- Before the first substantive engineering answer, start or resolve the flat local pair
   `spec-governance/WORKING-SPEC-<id>-<slug>.md` and
   `.journal.jsonl`. Persist every answered decision and its structured `DISC-###`
   context before another question.
 - Invoke `spec-governance.reconcile` after every answer and display its Spec delta,
   affected IDs, relations, conflicts, open decisions, and verdict. Missing journal
   continuity is explicit and never reopens already settled decisions by itself.
-- When decision-complete, invoke `spec-governance.materialize` immediately to create
+- When an adopted change contract is decision-complete, invoke `spec-governance.materialize` to create
   one canonical `specs/SPEC-####-<slug>.md`. This spec-only lifecycle write does not
   authorize product changes.
 - Do not modify product source, tests, configuration, `CONTEXT.md`, ADRs,
@@ -255,3 +286,32 @@ in tests/ by Module/Flow ownership, authored validation definitions in validatio
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
 fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
 missing required capability blocks completion. Do not change project Git policy.
+
+## Bounded diagnosis and recovery
+
+Separate discovered skill names, callable CLI capabilities and actual check
+verdicts. `test-validation-layout` resolves to the validated `architecture_cli.py
+layout` result; a callable FAIL or BLOCKED remains a failed or blocked check.
+An explicit caller capability limit is never expanded by discovery.
+
+A blocker records category, original evidence, affected branch, repair suggestion,
+authorization requirement, reproducible recheck, success condition and resume target.
+Investigate discoverable facts and prepare the concrete repair first. Reuse current
+authorization for deterministic repairs within the confirmed contract; ask only
+for missing decisions, authority or external conditions. Never change acceptance
+thresholds or replace required runtime evidence with host results.
+
+Managed `recover` stores branch state beside the existing execution receipt. It
+checks the same task/SPEC binding, reserves each attempt before effects, and allows
+at most three attempts and 120 seconds per input cycle. Identical failed inputs
+require evidenced temporary failure to retry; changed actual inputs or repair
+start a new bounded cycle while preserving history. Unsupported rechecks remain
+investigation, never success. Discussion repair uses SPEC-0032 input-state deduplication; historical failure never bars saving or rechecking.
+
+## SPEC update visibility
+
+Every successful SPEC save, including a working revision, must be reported in that
+turn with a clickable canonical SPEC ID/title link, actual revision and lifecycle
+status, a short change summary and the current execution authorization state.
+A failed save must be described as failed; never claim that an unpersisted change
+was saved. Link the same canonical file through reopening and confirmation.

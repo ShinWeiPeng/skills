@@ -1,9 +1,14 @@
 ---
+
 name: verification-ladder
 description: Plan and govern module-contract, SIL, Adapter Contract, PIL, HIL, and System/Soak verification when engineering claims span host, target, hardware, or long-duration environments. Use for layered verification planning and evidence-authority decisions; use TDD for the implementation loop and validate-on-device for selected device execution.
 ---
 
 # Verification Ladder
+
+Acceptance mappings may include `criterion_sha256`, the current criterion digest
+reported by spec-governance. The planner validates it against the AC row excluding
+Evidence, so a same-ID semantic change cannot reuse an outdated mapping.
 
 Select the lowest sufficient additive verification layers for the affected contracts
 and claims. Do not force the complete ladder merely because a project is embedded,

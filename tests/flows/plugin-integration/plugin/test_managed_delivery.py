@@ -71,14 +71,627 @@ class ManagedDeliveryTests(unittest.TestCase):
         )
         return execute_request(self.root, request)
 
-    def patch(self, **changes):
+    def patch(self, candidate_validator=None, **changes):
         patch = {
             "path": "program.txt",
             "before_sha256": hashlib.sha256(b"before\n").hexdigest(),
             "content": "after\n",
         }
         return execute_request(
-            self.root, self.base | {"operation": "apply", "patch": patch | changes}
+            self.root,
+            self.base | {"operation": "apply", "patch": patch | changes},
+            candidate_validator=candidate_validator,
+        )
+
+    def recovery_request(self, **updates):
+        return (
+            self.base
+            | {
+                "operation": "recover",
+                "branch": "layout",
+                "deterministic": True,
+                "diagnosis": {
+                    "category": "project-configuration",
+                    "source": "test-validation-layout",
+                    "evidence": "fixture missing layout",
+                    "affected_scope": ["layout"],
+                    "repair_suggestion": "restore declared layout",
+                    "authorization": "current receipt",
+                    "recheck_command": ["architecture_cli.py", "layout"],
+                    "success_condition": "layout verdict PASS",
+                    "resume_target": "validation",
+                },
+            }
+            | updates
+        )
+
+    def test_disjoint_stale_patch_is_integrated_but_overlap_is_rejected(self):
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        base = "one\ntwo\nthree\n"
+        self.target.write_text("ONE\ntwo\nthree\n", encoding="utf-8", newline="\n")
+        result = self.patch(
+            candidate_validator=lambda root, candidate: {
+                "verdict": "PASS",
+                "sha256": hashlib.sha256(candidate["content"].encode()).hexdigest(),
+            },
+            before_sha256=hashlib.sha256(base.encode()).hexdigest(),
+            before_content=base,
+            content="one\ntwo\nTHREE\n",
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertTrue(result["merged"])
+        self.assertEqual("ONE\ntwo\nTHREE\n", self.target.read_text())
+        rejected = self.patch(
+            before_sha256=hashlib.sha256(base.encode()).hexdigest(),
+            before_content=base,
+            content="OTHER\ntwo\nthree\n",
+        )
+        self.assertEqual("BLOCKED", rejected["verdict"])
+        self.assertEqual("ONE\ntwo\nTHREE\n", self.target.read_text())
+
+    def test_merged_program_requires_content_validation(self):
+        import ast
+
+        base = "value = 1\nanswer = 2\n"
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        self.target.write_bytes(b"value = 10\nanswer = 2\n")
+        updates = {
+            "before_sha256": hashlib.sha256(base.encode()).hexdigest(),
+            "before_content": base,
+            "content": "value = 1\nanswer = (\n",
+        }
+        missing = self.patch(**updates)
+        self.assertEqual("BLOCKED", missing["verdict"])
+        self.assertIn("reviewable_candidate", missing)
+
+        def validate(root, candidate):
+            try:
+                ast.parse(candidate["content"])
+            except SyntaxError:
+                return {"verdict": "FAIL", "sha256": candidate["sha256"]}
+            return {"verdict": "PASS", "sha256": candidate["sha256"]}
+
+        denied = self.patch(candidate_validator=validate, **updates)
+        self.assertEqual("BLOCKED", denied["verdict"])
+        self.assertEqual(b"value = 10\nanswer = 2\n", self.target.read_bytes())
+        updates["content"] = "value = 1\nanswer = 20\n"
+        stale = self.patch(
+            candidate_validator=lambda root, candidate: {
+                "verdict": "PASS",
+                "sha256": "wrong",
+            },
+            **updates,
+        )
+        self.assertEqual("BLOCKED", stale["verdict"])
+        accepted = self.patch(candidate_validator=validate, **updates)
+        self.assertEqual("PASS", accepted["verdict"], accepted)
+        self.assertEqual(b"value = 10\nanswer = 20\n", self.target.read_bytes())
+
+    def test_recovery_passes_merged_candidate_to_validator(self):
+        import ast
+        from unittest.mock import patch
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        base = "value = 1\nanswer = 2\n"
+        self.target.write_bytes(b"value = 10\nanswer = 2\n")
+        request = self.recovery_request(
+            patch={
+                "path": "program.txt",
+                "before_sha256": hashlib.sha256(base.encode()).hexdigest(),
+                "before_content": base,
+                "content": "value = 1\nanswer = 20\n",
+            }
+        )
+        candidates = []
+
+        def validate(root, candidate):
+            ast.parse(candidate["content"])
+            candidates.append(candidate)
+            return {"verdict": "PASS", "sha256": candidate["sha256"]}
+
+        with patch(
+            "managed_delivery.assess_project_validation",
+            return_value={"verdict": "PASS", "layout": {"verdict": "PASS"}},
+        ):
+            result = execute_request(self.root, request, candidate_validator=validate)
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual(1, len(candidates))
+        self.assertEqual(b"value = 10\nanswer = 20\n", self.target.read_bytes())
+
+    def test_recovery_cache_binds_phase_and_success_condition(self):
+        from unittest.mock import patch
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        request = self.recovery_request()
+        with patch(
+            "managed_delivery.assess_project_validation",
+            return_value={"verdict": "PASS", "layout": {"verdict": "PASS"}},
+        ) as checked:
+            self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+            self.assertTrue(execute_request(self.root, request)["replayed"])
+            request["diagnosis"]["phase"] = "release"
+            self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+            self.assertEqual("release", checked.call_args.kwargs["phase"])
+            request["diagnosis"]["success_condition"] = (
+                "valid CLI result and passing required check"
+            )
+            self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+            self.assertEqual(3, checked.call_count)
+
+    def test_new_authorization_recovers_stale_binding_and_keeps_history(self):
+        from unittest.mock import patch
+
+        from execution_state import read_execution_state
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        with patch(
+            "managed_delivery.assess_project_validation",
+            return_value={"verdict": "PASS", "layout": {"verdict": "PASS"}},
+        ):
+            self.assertEqual(
+                "PASS", execute_request(self.root, self.recovery_request())["verdict"]
+            )
+            reopened = spec.reopen_spec(
+                self.root,
+                Path(self.path),
+                expected_revision=self.ref["revision"],
+                reason="new reviewed revision",
+                task_ref="task-A",
+            )["working_spec"]
+            spec.materialize_working_bundle(
+                self.root,
+                reopened["working_id"],
+                expected_revision=reopened["revision"],
+                expected_hash=reopened["snapshot_hash"],
+            )
+            self.assertEqual(
+                "BLOCKED",
+                execute_request(self.root, self.recovery_request())["verdict"],
+            )
+            self.assertEqual("PASS", self.authorize(event="fresh-grant")["verdict"])
+            self.assertEqual(
+                "PASS", execute_request(self.root, self.recovery_request())["verdict"]
+            )
+        state = read_execution_state(self.root, "task-A")
+        self.assertEqual(1, len(state["recovery_history"]))
+        self.assertNotEqual(
+            state["recovery"]["layout"]["binding"],
+            state["recovery_history"][0]["cycle"]["binding"],
+        )
+
+    def test_stale_state_writer_cannot_overwrite_suspension(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        stale = read_execution_state(self.root, "task-A")
+        self.assertEqual(
+            "PASS",
+            execute_request(self.root, self.base | {"operation": "suspend"})["verdict"],
+        )
+        with self.assertRaisesRegex(ValueError, "state changed"):
+            write_execution_state(self.root, "task-A", stale)
+        self.assertEqual(
+            "suspended", read_execution_state(self.root, "task-A")["phase"]
+        )
+
+    def test_slow_validation_does_not_lock_an_unrelated_task(self):
+        import threading
+
+        other = spec.start_working_bundle(
+            self.root,
+            "independent",
+            confirmed_spec(slug="independent", status="working"),
+            task_ref="task-B",
+        )["working_spec"]
+        other = spec.materialize_working_bundle(
+            self.root,
+            other["working_id"],
+            expected_revision=other["revision"],
+            expected_hash=other["snapshot_hash"],
+        )["working_spec"]
+        base = {
+            "task_ref": "task-B",
+            "spec": other["snapshot_path"],
+            "working_reference": other["working_id"],
+        }
+        self.assertEqual(
+            "PASS",
+            execute_request(
+                self.root,
+                base
+                | {
+                    "operation": "authorize",
+                    "instruction": "開始執行",
+                    "source_event_id": "B-grant",
+                    "expected_hash": hashlib.sha256(
+                        (self.root / base["spec"]).read_bytes()
+                    ).hexdigest(),
+                },
+            )["verdict"],
+        )
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        entered, release = threading.Event(), threading.Event()
+        results = []
+
+        def assessor(*args, **kwargs):
+            entered.set()
+            if not release.wait(5):
+                raise ValueError("fixture wait expired")
+            return {"verdict": "PASS"}
+
+        worker = threading.Thread(
+            target=lambda: results.append(
+                execute_request(
+                    self.root,
+                    self.base | {"operation": "status"},
+                    validation_assessor=assessor,
+                )
+            )
+        )
+        worker.start()
+        try:
+            self.assertTrue(entered.wait(5))
+            result = execute_request(
+                self.root,
+                base
+                | {
+                    "operation": "apply",
+                    "patch": {
+                        "path": "independent.txt",
+                        "before_sha256": None,
+                        "content": "independent",
+                    },
+                },
+            )
+            self.assertEqual("PASS", result["verdict"], result)
+        finally:
+            release.set()
+            worker.join(10)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual("PASS", results[0]["verdict"])
+
+    def test_parallel_spec_allocation_is_unique(self):
+        from concurrent.futures import ThreadPoolExecutor
+
+        def create(index):
+            slug = "independent-" + str(index)
+            return spec.start_working_bundle(
+                self.root,
+                slug,
+                confirmed_spec(slug=slug, status="working"),
+                task_ref=slug,
+            )
+
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(create, range(8)))
+        self.assertTrue(all(r["verdict"] == "PASS" for r in results), results)
+        self.assertEqual(8, len({r["working_spec"]["spec_id"] for r in results}))
+
+    def test_state_lock_is_released_when_process_is_killed(self):
+        script = "import sys,time; from pathlib import Path; sys.path.insert(0,sys.argv[1]); from spec_contract import project_state_lock; root=Path(sys.argv[2]);\nwith project_state_lock(root,'crash'):\n print('locked',flush=True); time.sleep(60)"
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                script,
+                str(Path(spec.__file__).parent),
+                str(self.root),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        try:
+            self.assertEqual("locked", process.stdout.readline().strip())
+        finally:
+            process.kill()
+            process.communicate(timeout=10)
+        with spec.project_state_lock(self.root, "crash", timeout=1):
+            pass
+
+    def test_dependency_blocks_until_prerequisite_implemented(self):
+        prerequisite = self.root / "specs/SPEC-0099-prerequisite.md"
+        prerequisite.write_text(
+            confirmed_spec(spec_id="SPEC-0099", slug="prerequisite"), encoding="utf-8"
+        )
+        reopened = spec.reopen_spec(
+            self.root,
+            Path(self.path),
+            expected_revision=self.ref["revision"],
+            reason="dependency fixture",
+            task_ref="task-A",
+        )["working_spec"]
+        text = (
+            (self.root / self.path)
+            .read_text(encoding="utf-8")
+            .replace(
+                "| REQ-001 | depends_on | DEC-001 |",
+                "| REQ-001 | depends_on | SPEC-0099 |",
+            )
+        )
+        ref = spec.reconcile_working_bundle(
+            self.root,
+            reopened["working_id"],
+            text,
+            {},
+            expected_revision=reopened["revision"],
+            expected_hash=reopened["snapshot_hash"],
+        )["working_spec"]
+        spec.materialize_working_bundle(
+            self.root,
+            ref["working_id"],
+            expected_revision=ref["revision"],
+            expected_hash=ref["snapshot_hash"],
+        )
+        denied = self.authorize()
+        self.assertEqual("BLOCKED", denied["verdict"], denied)
+        self.assertIn("prerequisite", denied["reason"])
+        prerequisite.write_text(
+            confirmed_spec(
+                spec_id="SPEC-0099",
+                slug="prerequisite",
+                status="implemented",
+                evidence="PASS fixture",
+                review="PASS",
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        self.assertEqual("PASS", self.patch()["verdict"])
+        prerequisite.write_text(
+            confirmed_spec(spec_id="SPEC-0099", slug="prerequisite"), encoding="utf-8"
+        )
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_transitive_implemented_dependencies_and_cycle(self):
+        b = self.root / "specs/SPEC-0098-middle.md"
+        c = self.root / "specs/SPEC-0099-leaf.md"
+        c.write_text(
+            confirmed_spec(
+                spec_id="SPEC-0099",
+                slug="leaf",
+                status="implemented",
+                evidence="PASS fixture",
+                review="PASS",
+            ),
+            encoding="utf-8",
+        )
+        b.write_text(
+            confirmed_spec(
+                spec_id="SPEC-0098",
+                slug="middle",
+                status="implemented",
+                evidence="PASS fixture",
+                review="PASS",
+            ).replace(
+                "| REQ-001 | depends_on | DEC-001 |",
+                "| REQ-001 | depends_on | SPEC-0099 |",
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual([], spec.check_spec_dependencies(self.root, b))
+        c.write_text(
+            c.read_text(encoding="utf-8").replace(
+                "| REQ-001 | depends_on | DEC-001 |",
+                "| REQ-001 | depends_on | SPEC-0098 |",
+            ),
+            encoding="utf-8",
+        )
+        self.assertTrue(
+            any(
+                "cycle" in error for error in spec.check_spec_dependencies(self.root, b)
+            )
+        )
+
+    def test_commit_serializes_with_authorization_revocation(self):
+        import threading
+        from unittest.mock import patch
+
+        import managed_delivery
+        from execution_state import read_execution_state, write_execution_state
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        entered, completed = threading.Event(), threading.Event()
+        outcomes = []
+
+        def suspend():
+            entered.set()
+            state = read_execution_state(self.root, "task-A")
+            state.update(phase="suspended", receipt=None, receipts={})
+            write_execution_state(self.root, "task-A", state)
+            completed.set()
+
+        real_replace = managed_delivery.os.replace
+        threads = []
+
+        def replace(source, target):
+            if Path(target) == self.target:
+                thread = threading.Thread(target=suspend)
+                threads.append(thread)
+                thread.start()
+                self.assertTrue(entered.wait(2))
+                outcomes.append(completed.wait(0.1))
+            return real_replace(source, target)
+
+        with patch.object(managed_delivery.os, "replace", side_effect=replace):
+            result = self.patch()
+            for thread in threads:
+                thread.join(5)
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual([False], outcomes)
+        self.assertTrue(completed.is_set())
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_pending_entry_is_not_promoted_to_sync_pass(self):
+        from unittest.mock import patch
+
+        from test_turn_continuity import router
+
+        pending = {
+            "verdict": "BLOCKED",
+            "entry_saved": True,
+            "sync_status": "pending",
+            "discussion_allowed": True,
+        }
+        with patch.object(router, "manage_delivery_discussion", return_value=pending):
+            result = router.route(
+                "Explain this code",
+                self.root,
+                explicit_skill="explain-code-flow",
+                task_ref="task-A",
+                turn_ref="turn-test",
+                source_ref="test",
+                turn_kind="read-only",
+            )
+        self.assertEqual("BLOCKED", result["discussion_entry"]["verdict"])
+        self.assertEqual("pending", result["discussion_entry"]["sync_status"])
+        self.assertTrue(result["discussion_recovery"]["discussion_allowed"])
+        self.assertFalse(result["product_code_allowed"])
+
+    def test_finish_turn_bad_json_reports_gap_and_can_finish(self):
+        observation = self.root / "bad.json"
+        observation.write_text("{", encoding="utf-8")
+        run = subprocess.run(
+            [
+                sys.executable,
+                spec.__file__,
+                "finish-turn",
+                "--project-root",
+                str(self.root),
+                "--reference",
+                self.ref["working_id"],
+                "--task-ref",
+                "task-A",
+                "--observation",
+                str(observation),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        result = json.loads(run.stdout)
+        self.assertEqual(2, run.returncode)
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertTrue(result["can_end_turn"])
+        self.assertEqual("unverifiable", result["sync_status"])
+
+    def test_recovery_cannot_resolve_an_unrelated_condition(self):
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        request = self.recovery_request()
+        request["diagnosis"]["source"] = "unrelated-runtime-condition"
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual("investigate", result["recovery"]["status"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_recovery_reserves_and_does_not_repeat_identical_failure(self):
+        from unittest.mock import patch
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        request = self.recovery_request()
+        with patch(
+            "managed_delivery.assess_project_validation",
+            return_value={"verdict": "PASS", "layout": {"verdict": "BLOCKED"}},
+        ) as check:
+            first = execute_request(self.root, request)
+            second = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", first["verdict"])
+        self.assertEqual("BLOCKED", second["verdict"])
+        self.assertEqual(1, check.call_count)
+        self.assertEqual(1, len(second["recovery"]["attempts"]))
+        self.assertEqual(
+            "PASS",
+            execute_request(self.root, self.base | {"operation": "status"})["verdict"],
+        )
+
+    def test_new_repair_inputs_start_a_new_bounded_cycle(self):
+        from unittest.mock import patch
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        request = self.recovery_request(inputs=["program.txt"])
+        with (
+            patch("managed_delivery.time.time", return_value=100),
+            patch(
+                "managed_delivery.assess_project_validation",
+                return_value={"verdict": "PASS", "layout": {"verdict": "BLOCKED"}},
+            ),
+        ):
+            first = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", first["verdict"])
+        self.target.write_bytes(b"new evidenced input\n")
+        with (
+            patch("managed_delivery.time.time", return_value=500),
+            patch(
+                "managed_delivery.assess_project_validation",
+                return_value={"verdict": "PASS", "layout": {"verdict": "PASS"}},
+            ),
+        ):
+            result = execute_request(self.root, request)
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual(2, len(result["recovery"]["attempts"]))
+        self.assertEqual("validation", result["recovery"]["next_action"])
+
+    def test_unapproved_recovery_preserves_reviewable_patch(self):
+        request = self.recovery_request(
+            patch={
+                "path": "program.txt",
+                "before_sha256": hashlib.sha256(b"before\n").hexdigest(),
+                "content": "after\n",
+            }
+        )
+        result = execute_request(self.root, request)
+        self.assertEqual("prepared", result["recovery"]["status"])
+        self.assertEqual(request["patch"], result["reviewable_repair"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_batch_instruction_binds_both_specs_once_and_preserves_scope(self):
+        second = spec.start_working_bundle(
+            self.root,
+            "second-retry",
+            confirmed_spec(status="working"),
+            task_ref="task-A",
+        )["working_spec"]
+        second = spec.materialize_working_bundle(
+            self.root,
+            second["working_id"],
+            expected_revision=second["revision"],
+            expected_hash=second["snapshot_hash"],
+        )["working_spec"]
+        scope = [
+            {
+                "spec": ref["snapshot_path"],
+                "working_reference": ref["working_id"],
+                "expected_hash": hashlib.sha256(
+                    (self.root / ref["snapshot_path"]).read_bytes()
+                ).hexdigest(),
+            }
+            for ref in (self.ref, second)
+        ]
+        denied = self.authorize(instruction="開始執行SPEC-0001/0002")
+        self.assertEqual("BLOCKED", denied["verdict"], denied)
+        denied = self.authorize(instruction=r"開始執行SPEC-0001\0002")
+        self.assertEqual("BLOCKED", denied["verdict"], denied)
+        granted = self.authorize(instruction="開始執行SPEC-0001/0002", scope=scope)
+        self.assertEqual("PASS", granted["verdict"], granted)
+        for item in scope:
+            request = self.base | item | {"operation": "status"}
+            self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        self.assertEqual(
+            "BLOCKED",
+            self.authorize(instruction="開始執行SPEC-0001/0002", scope=scope)[
+                "verdict"
+            ],
+        )
+        self.assertEqual(
+            "PASS",
+            execute_request(self.root, self.base | {"operation": "suspend"})["verdict"],
+        )
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(self.root, self.base | scope[1] | {"operation": "status"})[
+                "verdict"
+            ],
         )
 
     def test_every_spec_revision_requires_fresh_authorization(self):
@@ -206,12 +819,37 @@ class ManagedDeliveryTests(unittest.TestCase):
         self.assertEqual("BLOCKED", self.patch()["verdict"])
         self.assertEqual(b"before\n", self.target.read_bytes())
 
-    def test_lock_contention_denies_without_removing_other_lock(self):
+    def test_abandoned_legacy_lock_does_not_block_or_get_deleted(self):
         self.authorize()
         lock = self.root / "spec-governance/.managed-delivery.lock"
         lock.write_bytes(b"other")
-        self.assertEqual("BLOCKED", self.patch()["verdict"])
+        self.assertEqual("PASS", self.patch()["verdict"])
         self.assertEqual(b"other", lock.read_bytes())
+
+    def test_live_os_lock_cannot_be_stolen(self):
+        import threading
+
+        entered, release = threading.Event(), threading.Event()
+
+        def hold():
+            with spec.project_state_lock(self.root, "busy"):
+                entered.set()
+                release.wait(5)
+
+        worker = threading.Thread(target=hold)
+        worker.start()
+        try:
+            self.assertTrue(entered.wait(2))
+            with (
+                self.assertRaises(TimeoutError),
+                spec.project_state_lock(self.root, "busy", timeout=0.05),
+            ):
+                self.fail("live lock was stolen")
+        finally:
+            release.set()
+            worker.join(5)
+        with spec.project_state_lock(self.root, "busy", timeout=0.1):
+            pass
 
     def test_governance_source_names_are_not_root_control_directories(self):
         self.authorize()
@@ -498,7 +1136,8 @@ class ManagedDeliveryTests(unittest.TestCase):
                     )
                 else:
                     self.assertEqual(
-                        ["spec-governance"], sorted(p.name for p in root.iterdir())
+                        ["spec-governance", "specs"],
+                        sorted(p.name for p in root.iterdir()),
                     )
 
     def test_current_receipt_rejected_after_actual_requirement_change(self):

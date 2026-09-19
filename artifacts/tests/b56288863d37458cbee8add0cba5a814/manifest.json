@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "run_id": "b56288863d37458cbee8add0cba5a814",
+  "kind": "tests",
+  "started_at": "2026-09-19T05:47:41.238952+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0032-layered-host-revalidation",
+    "tool": {
+      "name": "SPEC-0032-check",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "3c0bed22788b3e80216fdbbf6064e9512d18c2c79fffb082b74f1b4b99e539bb"
+    },
+    "inputs": {
+      "spec": "9e1c5584b1d26c312afaa04eba6286d34fabbb8f37c5f2193e650308ed6b98ca"
+    },
+    "spec": "SPEC-0032",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T05:48:16.848744+00:00",
+  "files": {
+    ".run.json": "028106fe3a3e6f94dbb82903f71312c5e1f0c5f66d65077a43a3c154e5152255",
+    "result.json": "5a5dab664c0f1d5b75085decb671613e70d46e903e643a348c5ab0df19fdf95c",
+    "stderr.log": "1a2d01267437b112b15e3131bdaf98a2317e2baefcb8424a7e5e24fb55d802f4",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

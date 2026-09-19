@@ -28,5 +28,6 @@
       "When a canonical SPEC triggers full-program formatting, require one affirmative confirmation, a clean product-and-test target scope, deterministic CLI write/check evidence, and native authorization for any missing formatter installation.",
       "Enforce governance from this plugin's bundled contracts without requiring or modifying a user-global AGENTS.md."
     ]
-  }
+  },
+  "hooks": "./hooks/hooks.json"
 }

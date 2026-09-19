@@ -66,3 +66,24 @@ in tests/ by Module/Flow ownership, authored validation definitions in validatio
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
 fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
 missing required capability blocks completion. Do not change project Git policy.
+
+## Bounded diagnosis and recovery
+
+Separate discovered skill names, callable CLI capabilities and actual check
+verdicts. `test-validation-layout` resolves to the validated `architecture_cli.py
+layout` result; a callable FAIL or BLOCKED remains a failed or blocked check.
+An explicit caller capability limit is never expanded by discovery.
+
+A blocker records category, original evidence, affected branch, repair suggestion,
+authorization requirement, reproducible recheck, success condition and resume target.
+Investigate discoverable facts and prepare the concrete repair first. Reuse current
+authorization for deterministic repairs within the confirmed contract; ask only
+for missing decisions, authority or external conditions. Never change acceptance
+thresholds or replace required runtime evidence with host results.
+
+Managed `recover` stores branch state beside the existing execution receipt. It
+checks the same task/SPEC binding, reserves each attempt before effects, and allows
+at most three attempts and 120 seconds per input cycle. Identical failed inputs
+require evidenced temporary failure to retry; changed actual inputs or repair
+start a new bounded cycle while preserving history. Unsupported rechecks remain
+investigation, never success. Existing discussion repair allowances are untouched.

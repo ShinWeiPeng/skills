@@ -261,8 +261,28 @@ def _assess(root, spec, phase, candidate_text, result):
             "scenario_layers",
             "build_artifact",
             "enablement_scenarios",
+            "criterion_sha256",
         }:
             raise ValueError(f"{ac}: unknown acceptance mapping fields")
+        if "criterion_sha256" in item:
+            section = re.search(
+                r"(?ms)^## Acceptance Criteria\s*\n(.*?)(?=^## |\Z)", text
+            )
+            header = next(
+                line
+                for line in section.group(1).splitlines()
+                if line.strip().startswith("|")
+            )
+            names = [
+                cell.strip().casefold() for cell in header.strip().strip("|").split("|")
+            ]
+            criterion = {
+                name: value
+                for name, value in zip(names, rows[ac], strict=True)
+                if name != "evidence"
+            }
+            if item["criterion_sha256"] != digest(criterion):
+                raise ValueError(f"{ac}: acceptance criterion signature is stale")
         requested = {k: set(_strings(item.get(k, []), f"{ac}.{k}")) for k in TAXONOMY}
         if (
             not requested["evidence_claims"]

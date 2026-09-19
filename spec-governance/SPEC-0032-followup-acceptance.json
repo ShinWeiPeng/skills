@@ -1,0 +1,552 @@
+{
+  "verdict": "BLOCKED",
+  "required_gates": [
+    "test-validation-layout",
+    "verification-ladder"
+  ],
+  "required_layers": [
+    "module-contract",
+    "sil",
+    "adapter-contract"
+  ],
+  "errors": [
+    "explicit unique evidence_manifests required"
+  ],
+  "documents": {
+    "architecture/adoption.yaml": {
+      "state": "present",
+      "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+    },
+    "architecture/manifest.yaml": {
+      "state": "present",
+      "sha256": "cd2a223b1fcaebcef2bcba48d52ae1d7b05a82245ec35803e6b9575e693a28b0"
+    },
+    "validation/verification-ladder.yaml": {
+      "state": "present",
+      "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+    },
+    "validation/on-device.yaml": {
+      "state": "missing",
+      "sha256": null
+    },
+    "validation/layout.yaml": {
+      "state": "present",
+      "sha256": "6abc3b5492421e26098e9cb4577df12e5140212af902a66953bb65c1825b42dc"
+    },
+    "validation/acceptance-SPEC-0032.json": {
+      "state": "present",
+      "sha256": "3d6518f61dec1309222b0e84f92c14143fa8edbfc745f88dfbb94a58bd39256d"
+    }
+  },
+  "phase": "acceptance",
+  "device_actions_authorized": false,
+  "applicability": "not-applicable",
+  "skill": {
+    "version": "0.16.0",
+    "sha256": "18be73bd2177bb09a70550b16b2c71e89041102f689f13a94e75ed305b66884d"
+  },
+  "plan": {
+    "schema_version": 1,
+    "binding": {
+      "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+      "spec": "specs/SPEC-0032-recoverable-spec-sync.md",
+      "spec_id": "SPEC-0032",
+      "revision": 4,
+      "spec_sha256": "63679764ace1552e82336e10e61f73e466d291a851d3ab81c483ca7897062288",
+      "documents": {
+        "architecture/adoption.yaml": {
+          "state": "present",
+          "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+        },
+        "architecture/manifest.yaml": {
+          "state": "present",
+          "sha256": "cd2a223b1fcaebcef2bcba48d52ae1d7b05a82245ec35803e6b9575e693a28b0"
+        },
+        "validation/verification-ladder.yaml": {
+          "state": "present",
+          "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+        },
+        "validation/on-device.yaml": {
+          "state": "missing",
+          "sha256": null
+        },
+        "validation/layout.yaml": {
+          "state": "present",
+          "sha256": "6abc3b5492421e26098e9cb4577df12e5140212af902a66953bb65c1825b42dc"
+        },
+        "validation/acceptance-SPEC-0032.json": {
+          "state": "present",
+          "sha256": "3d6518f61dec1309222b0e84f92c14143fa8edbfc745f88dfbb94a58bd39256d"
+        }
+      },
+      "skill": {
+        "version": "0.16.0",
+        "sha256": "18be73bd2177bb09a70550b16b2c71e89041102f689f13a94e75ed305b66884d"
+      },
+      "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "acceptance": {
+      "AC-001": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-001",
+          "REQ-001",
+          "同內容核對保持 revision；回覆措辭差異不觸發補存，新增輸入及過期綁定仍須保存。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-002": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-002",
+          "REQ-002",
+          "補存耗盡後仍能分類、保存及只讀，成功保存後恢復同步。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-003": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-003",
+          "REQ-003",
+          "重播、恢復、並行 Stop 不重複補存；相關輸入修正後可再次檢查，不形成同錯誤循環。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-004": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-004",
+          "REQ-004",
+          "Stop 失敗回傳警示而非 continue:false；解析及執行故障不造成無回應。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-005": {
+        "claims": [
+          "adapter-conformance"
+        ],
+        "contract": [
+          "AC-005",
+          "REQ-005",
+          "實際 Windows launcher/owner 命令可進行修復；任意腳本、偽装路徑、混合 shell 與無授權產品操作不放行。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-006": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-006",
+          "REQ-006",
+          "說明/修復路由可繼續；缺授權、過期授權、跨任務與未同步產品修改仍拒絕；修復不復活舊 receipt。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-007": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-007",
+          "REQ-007",
+          "schema v1 fixture 遷移保留舊欄位及去重資訊；損壞資料不覆寫為 PASS，無效保存不污染既有成功紀錄。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-008": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-008",
+          "REQ-008",
+          "相關回歸、distribution、架構及格式檢查通過；Windows adapter 流程與真正宿主觸發分別記錄證據。",
+          "discussion/router/delivery 行為測試；AC-008 加組裝及 Windows adapter/宿主證據。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+      },
+      "AC-009": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-009",
+          "REQ-009",
+          "兩個無相依 SPEC 可以並行；前置 SPEC 尚未完成時依賴操作等待，完成後重驗可繼續。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-010": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-010",
+          "REQ-010",
+          "實際持鎖程序異常退出後其他任務可恢復；任務 A 耗時驗證不阻擋無關任務 B。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-011": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-011",
+          "REQ-011",
+          "同檔案版本變更時不覆蓋新內容；重新讀取整合及驗證成功才寫入，持續衝突有限停止。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-012": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-012",
+          "REQ-012",
+          "並行建立 SPEC 取得不同編號，無同號多檔及遺失更新。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-013": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-013",
+          "REQ-013",
+          "enablement 成功後要求 release 會執行 release 驗證；相關輸入或成功條件改變使快取失效。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-014": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-014",
+          "REQ-014",
+          "舊恢復綁定失效後有效新授權可開始新週期；舊歷史仍可讀，過期授權仍被拒絕。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-015": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-015",
+          "REQ-015",
+          "entry_saved 且 sync pending 時不回報 PASS；finish-turn 損壞 JSON 仍回報故障且 can_end_turn 為 true。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      },
+      "AC-016": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-016",
+          "REQ-016",
+          "建立及修改 SPEC 的回覆均包含有效 canonical 連結、revision、狀態及摘要；失敗回覆不宣稱已保存。",
+          "針對需求的行為驗證；新增驗收映射待規劃，不以既有測試結果代替。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+      }
+    }
+  },
+  "plan_sha256": "aaf4c7c6da2d9a49ccbfb614a397bac4b2bdd90b361121c31d151af733278db6",
+  "capabilities": {
+    "verification-ladder": {
+      "callable": true,
+      "entrypoint": "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\verification-ladder\\scripts\\project_validation.py",
+      "arguments": [
+        "--project-root",
+        "C:\\Users\\hugo_peng\\skill\\skills",
+        "--phase",
+        "acceptance",
+        "--spec",
+        "specs/SPEC-0032-recoverable-spec-sync.md"
+      ],
+      "exit_code": 2,
+      "check_verdict": "BLOCKED",
+      "evidence": "validated-cli-result"
+    },
+    "test-validation-layout": {
+      "callable": true,
+      "entrypoint": "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\govern-modular-event-architecture\\scripts\\architecture_cli.py",
+      "arguments": [
+        "layout",
+        "--manifest",
+        "C:\\Users\\hugo_peng\\skill\\skills\\architecture\\manifest.yaml"
+      ],
+      "exit_code": 0,
+      "check_verdict": "PASS",
+      "evidence": "validated-cli-result"
+    }
+  },
+  "diagnoses": [
+    {
+      "category": "investigate",
+      "source": "verification-ladder",
+      "evidence": {
+        "verdict": "BLOCKED",
+        "errors": [
+          "explicit unique evidence_manifests required"
+        ]
+      },
+      "affected_scope": [
+        "validation-acceptance"
+      ],
+      "repair_suggestion": "Inspect the original planning or evidence diagnostics; preserve required validation methods.",
+      "authorization": "reuse-current-scope-or-prepare-reviewable-repair",
+      "recheck_command": [
+        "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+        "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\verification-ladder\\scripts\\project_validation.py",
+        "--project-root",
+        "C:\\Users\\hugo_peng\\skill\\skills",
+        "--phase",
+        "acceptance",
+        "--spec",
+        "specs/SPEC-0032-recoverable-spec-sync.md"
+      ],
+      "success_condition": "valid CLI result and passing required check",
+      "resume_target": "acceptance",
+      "phase": "acceptance"
+    }
+  ],
+  "layout": {
+    "verdict": "PASS",
+    "diagnostics": [],
+    "coverage": {
+      "layout": "whole-filesystem-declared-scope",
+      "runtime_isolation": "not-proven-by-layout",
+      "python": {
+        "files": 78,
+        "edges": 168,
+        "mode": "python-ast-and-source-bound-resolutions"
+      }
+    },
+    "files": 561
+  },
+  "product_code_allowed": false,
+  "spec_discussion_allowed": true,
+  "enforcement_scope": "managed-entrypoint-only"
+}

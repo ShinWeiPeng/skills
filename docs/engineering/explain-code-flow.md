@@ -19,3 +19,23 @@ Its leading idea is **zoom deliberately**: begin at the smallest useful L0/L1 vi
 ## Where it fits
 
 This is the code-understanding path beside [diagnosing-bugs](https://aihero.dev/skills-diagnosing-bugs) and architecture governance. [ask-matt](https://aihero.dev/skills-ask-matt) selects the appropriate path.
+
+## Discussion is saved from entry
+
+Engineering work automatically starts or resumes a task-specific working record,
+including diagnosis and code explanation. Grilling manages that discussion while
+specialist skills provide facts. Questions are reserved for decisions the user
+must make. A saved explanation does not need a formal SPEC; an adopted change with
+complete scope and acceptance does. Suggested changes remain candidates until
+accepted and do not expand authorization.
+
+The candidate plugin includes prompt, resume, pre-tool and Stop hooks. Review and
+trust their exact definitions before activation. Missing discussion can trigger
+one automatic continuation for an actual input state. Unchanged failures do not
+loop, and restarting does not erase retry history. Failed saving reports the missing
+scope and ends the reply normally; discussion and recovery can continue. After a
+repair, saving and rechecking can succeed in the same task. Product changes still
+require a current SPEC and execution authorization. Reply wording differences do
+not count as missing requirements. Script tests alone do not prove desktop hooks were loaded
+or fired. The covered tool paths are Bash, exec_command and file edits; other tools, hosted
+search, streamed text and interruptions have explicit coverage limits.

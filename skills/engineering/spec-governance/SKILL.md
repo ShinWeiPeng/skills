@@ -3,6 +3,36 @@ name: spec-governance
 description: Persist, reconcile, materialize, reopen, resolve, and verify the canonical repository specification for every modifying engineering change set. Model-invoked by ask-matt and delivery workflows.
 ---
 
+## Engineering discussion entry
+
+For every engineering task, `grilling` owns discussion state from entry, including
+read-only diagnosis, explanation and proposal exploration. Start or resume the
+same task's canonical working SPEC in `specs/` before a substantive answer. Initial
+fact discovery may precede entry; ask only genuine unresolved user decisions.
+Supporting skills still diagnose, explain and compare alternatives.
+
+Use the spec-governance discussion entry contract at
+`references/discussion-entry.md` in the resolved spec-governance skill. Save sourced
+goals, constraints, facts, answers and candidate suggestions. A candidate is not an
+adopted requirement or execution grant; rejected/deferred candidates do not block
+the original task. If saving fails, disclose the gap and continue discussion or repair; only dependent product changes wait for synchronization. Pure discussion may finish with a saved working record and no
+formal SPEC. Materialize only a complete adopted change scope, expected behavior,
+decisions and acceptance criteria. Reopen confirmed changes and create successors
+for implemented contracts using the existing lifecycle.
+
+Bundled trusted hooks establish task/turn obligations, inspect covered dependent
+operations and check Stop persistence. Unknown intent is not silently exempt.
+SPEC-0032 separates synchronization from recovery permission. Permit one automatic
+repair per actual input state; replay or restart cannot reset its durable history.
+After a failed repair, report unsaved scope and finish normally. Discussion, reading,
+classification, saving and rechecking remain available; product changes still require
+a current SPEC and valid execution authorization. Historical repair failure is not
+a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
+hooks require the explicit owner CLI and remain a capability gap. Do not bypass
+hook trust or claim interception of every tool, reply or interrupt.
+
+
+
 ## Universal SPEC visibility and execution boundary
 
 Apply this workflow to every project, language, size of change and later turn.
@@ -43,11 +73,12 @@ verified implementation and commit disposition.
 
 ## Public interfaces
 
-- `spec-governance.start`: resolve existing state by explicit reference,
-  task/branch evidence, then unique fallback, or create the flat local pair
-  `spec-governance/WORKING-SPEC-<id>-<slug>.md` plus same-stem
-  `.journal.jsonl`. First-read legacy `.codex/spec-governance/WSP-*/` migration is
-  transactional and fail-closed. Ambiguity is `BLOCKED`.
+- `spec-governance.start`: resolve explicit identity, task/branch evidence or unique
+  fallback; create `specs/SPEC-####-<slug>.md` immediately in `working` status.
+  Keep that ID and path through confirmation and reopening. Embed source and
+  revision events in the same file; new discussions do not create a parallel
+  WORKING-SPEC Markdown/JSONL pair. Legacy pairs migrate only after identity,
+  revision, content and history checks; conflicts preserve the originals.
 - `spec-governance.reconcile`: classify each new statement as a domain term,
   change-set contract, ADR candidate, or open decision; preserve stable IDs; reject
   stale revision/hash writers; atomically persist the Markdown snapshot and append
@@ -95,7 +126,7 @@ duplicate answers are rejected. Reopen a confirmed spec before a new question.
 
 Before the first decision, invoke `start` or `status`. After each user answer:
 
-1. Reload the authoritative WORKING-SPEC Markdown; reuse unchanged REQ, DEC, AC,
+1. Reload the authoritative canonical SPEC Markdown; reuse unchanged REQ, DEC, AC,
    and DISC IDs.
 2. Compare it with non-empty `CONTEXT.md`, accepted ADRs, and the architecture
    manifest.
@@ -103,12 +134,14 @@ Before the first decision, invoke `start` or `status`. After each user answer:
    human-readable Markdown snapshot with structured Discussion Context, then append only normalized delta, IDs,
    relations, conflicts, open decisions, verdict, revision, and hashes to JSONL.
    Preserve the visible user answer and explicitly stated rationale in DISC records.
-   Never persist a full transcript, hidden reasoning, secrets, or context prose in
-   the journal.
+   Never persist full transcripts, hidden reasoning or secrets. The discussion-entry
+   contract additionally permits bounded redacted goal/summary/candidate observations
+   with source references; they never substitute for adopted DISC/REQ/DEC/AC records.
 4. Render the Spec delta, affected IDs, explicit relations, conflicts, open
    decisions, and consistency verdict.
-5. When blocked, ask exactly one conclusion-changing question.
-6. When complete, materialize or reconfirm the canonical spec immediately. Render
+5. Investigate factual blockers; ask only a genuine unresolved user decision.
+6. When an adopted change has complete scope, behavior and acceptance, materialize
+   or reconfirm its canonical spec. Pure saved discussion can finish without one. Render
    the confirmed spec and intended non-spec diff, then wait for exact product
    execution authorization.
 
@@ -118,9 +151,7 @@ journal loss alone into reopened decisions.
 
 Route domain vocabulary to `CONTEXT.md`, change-set requirements and acceptance to
 the canonical spec, qualifying architectural decisions to a **proposed** ADR, and
-unconfirmed content only to the working spec. During grilling, only local,
-commit-blocked `spec-governance/WORKING-SPEC-*` pairs and
-`specs/SPEC-####-*.md` lifecycle writes are allowed.
+unconfirmed content only to the working spec. During grilling, canonical `specs/SPEC-####-*.md` lifecycle writes and task-private runtime state writes are allowed.
 `CONTEXT.md`, ADRs, architecture artifacts, tests, generated views, implementation,
 Git, and external actions still require exact `開始執行`. These outputs are one
 change set; do not recursively start another interview.
@@ -197,7 +228,7 @@ Inspect `can_end_turn` and `next_action` before finalizing. A reference must ide
 actual observed/prepared content, not a fabricated token. The model must render the
 same checked question/proposal; the host does not intercept final replies. External
 trace review checks that source references and normalized observations agree.
-No new state store is created; SPEC and its existing journal remain authoritative.
+No second authority is created; the SPEC and its embedded audit remain authoritative.
 
 Completion observations also include `project_root` exactly as recovered in
 turn-context. Context changes invalidate presentation and observed admission;
@@ -267,3 +298,40 @@ in tests/ by Module/Flow ownership, authored validation definitions in validatio
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
 fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
 missing required capability blocks completion. Do not change project Git policy.
+
+## Continuous discussion and recovery
+
+Keep readable Current Specification, Decision History, Pending Discussion and
+Completeness Gaps views in the same file. Save new information before the next
+question; an identical reconciliation does not increment revision. Reuse settled
+question IDs and decisions; new premises require a sourced superseding decision.
+Inspect behavior, exception handling and acceptance gaps before declaring closure.
+Recording a complete adopted REQ/AC contract confirms it automatically in place;
+pure explanation remains working and can end without inventing a change contract.
+Confirmation never grants implementation authority.
+
+Acceptance planning is separate from saving: report missing/removed/changed ACs,
+including same-ID criterion, requirement-reference and validation-method changes.
+Changed criteria remain blocked after reload until the mapping explicitly binds
+its `criterion_sha256` to the current reported criterion hash. Do not reuse evidence
+for changed contracts. Only derive an unambiguous mapping from the confirmed SPEC;
+otherwise preserve the gap and ask about the actual missing decision.
+
+Use `migrate --working-id <id> [--note <project-relative-note>]` for legacy records.
+Verified originals are retained with `.migrated` suffixes; failures restore inputs.
+Never reset execution grants or the original-turn discussion repair allowance.
+
+Before automatic confirmation, the agent reviews goal, scope, behavior, exceptions
+and acceptance against the actual adopted contract. Supply `completeness_review`
+to `record`, with those five keys, each containing bounded `source_ref` and
+`evidence` text. This is sourced review evidence, not user authorization. Empty
+contract cells cannot confirm; missing review leaves the file working and the
+agent continues the completeness review without asking for redundant approval.
+
+## SPEC update visibility
+
+Every successful SPEC save, including a working revision, must be reported in that
+turn with a clickable canonical SPEC ID/title link, actual revision and lifecycle
+status, a short change summary and the current execution authorization state.
+A failed save must be described as failed; never claim that an unpersisted change
+was saved. Link the same canonical file through reopening and confirmation.

@@ -1,0 +1,137 @@
+# Recoverable discussion synchronization (SPEC-0029 refined by SPEC-0032)
+
+`grilling` owns engineering discussion. Routing may name a supporting skill, but
+product delivery requires a saved entry with matching task, working identity and
+current revision/hash. Investigation and discussion handoffs remain available when
+synchronization fails; their results never authorize product writes. Neither a selected skill nor a caller's `done` flag is evidence.
+
+## Host and manual entry
+
+The bundled hook config uses `SessionStart`, `UserPromptSubmit`, `PreToolUse` and
+`Stop`. Install/enable is separate from reviewing and trusting the exact definition.
+Linux uses `python3`. Windows uses the explicit `GOVERNED_ENGINEERING_PYTHON`
+executable or the current project's `.codex-arch-deps/venv/Scripts/python.exe`,
+verifies Python 3.11+, and does not select an incompatible PATH Python. Codex
+supplies `PLUGIN_ROOT`. Runtime failure emits a capability gap without terminating the task; unverified product operations remain denied. Never set managed trust or use a hook-trust bypass to manufacture evidence.
+
+Prompt hooks establish an unknown obligation because the host payload has no
+engineering-intent field. The engineering router classifies it and initializes the
+working SPEC in `specs/` automatically. For a non-engineering request, explicitly classify that
+turn as `non-engineering` with a reason; no working SPEC is created. Do not inherit
+engineering classification merely because an earlier turn discussed code.
+
+Use the same project root for hook events and the router. A nested repository whose
+root differs from the host task cwd needs an explicit matching-root task setup;
+report that gap rather than saving in two unrelated stores. Hook session/turn IDs
+are source observations, not user approval. Legacy records have no retroactive
+entry evidence; resuming does not invent it.
+
+Without loaded hooks, call guided_workflow_router with actual `--task-ref`,
+`--turn-ref` and `--source-ref` before the first substantive engineering reply.
+The owner CLI also accepts a request file:
+
+```text
+python <plugin>/skills/spec-governance/scripts/discussion_state.py --project-root <project> --request spec-governance/DISCUSSION-REQUEST-turn.json
+```
+
+A repair may create/update only that `DISCUSSION-REQUEST-*.json` request surface via
+apply_patch before invoking the owner. The pre-tool recovery allowance does not
+permit an arbitrary script, shell chain, receipt replacement or product patch.
+
+```json
+{
+  "operation": "classify",
+  "task_ref": "actual-session-id",
+  "turn_id": "actual-turn-id",
+  "kind": "engineering",
+  "reason": "The current user request concerns repository behavior."
+}
+```
+
+`status` returns the current `binding`. Before the final reply, use `record` with
+that exact binding, a sourced summary and prepared `reply_text`. The journal stores
+only its reply hash as audit evidence, not a full assistant transcript. Stop checks
+source/current binding and saved audit continuity, not reply wording equality.
+The assistant still reconciles substantive requirements; hashes do not prove
+semantic completeness. With no new content, verify without changing SPEC revision.
+
+```json
+{
+  "operation": "record",
+  "task_ref": "actual-session-id",
+  "turn_id": "actual-turn-id",
+  "binding": {"working_id": "copy-from-status", "revision": 1, "snapshot_hash": "copy-from-status"},
+  "source_ref": "actual-visible-message-or-prepared-reply-reference",
+  "summary": "Sourced goals, constraints, facts, decisions and remaining work.",
+  "reply_text": "The exact final response to be emitted.",
+  "candidates": []
+}
+```
+
+Candidate rows have `id`, `status`, `source_ref`, `reason` and `impact`. Initial
+status is `candidate`; `accepted`, `rejected` or `deferred` additionally needs the
+actual `user_source_ref`. Accepted candidates also identify the lifecycle
+`reconciliation_ref`; this summary operation cannot insert a formal requirement,
+adopt a candidate or authorize execution. A complete previously adopted contract may be confirmed automatically in place. Do not invent IDs or adoption evidence.
+
+## Persistence and completion
+
+The spec owner keeps one authoritative `specs/SPEC-####-*.md` file with an embedded hash-linked audit. Existing DISC records and formal REQ/DEC/AC reconciliation remain intact.
+The embedded audit additionally accepts normalized `discussion` observations with bounded,
+redacted goal/summary/candidate fields, source references and a current binding.
+These observations are not adopted decisions. Task-private `DISCUSSION-*.json`
+indexes original turns, continuation aliases and consumed repair allowances; it
+cannot substitute for a matching journal event and actual working snapshot.
+
+A pure diagnosis/explanation can finish with a current saved discussion and no
+formal SPEC. A complete adopted change still uses normal reconcile/materialize,
+confirmed reopen and implemented successor rules. Record the current binding again
+after reconciliation; old hashes must fail. Do not ask a question just to finish.
+
+The owner persists a repair input key before requesting a continuation. The key
+uses actual working binding, prompt content and owner runtime bytes, excluding turn
+IDs and reply wording. Replaying the same input or restarting cannot gain another
+automatic attempt. A nested Stop ends normally after reporting the missing scope.
+Direct classification, saving and rechecking remain available regardless of old
+repair failure. Actual changed inputs can be rechecked; never invent a repair token.
+Schema v1 states migrate to v2 with historical flags retained and consumed input
+reserved. Corrupt state remains unverifiable and is not overwritten with success.
+A kernel file lock serializes consumption and releases on process termination.
+
+Read/recovery operations are recognized before querying potentially broken state.
+The recovery surface permits native request-file edits and a single bundled owner
+CLI invocation, including the actual Windows Python executable and leading call
+operator. It rejects shell chains, redirected requests and lookalike scripts.
+
+The existing execution receipt remains independent. Save and verify the adopted
+discussion before authorizing product operations. An entry alone is not current
+synchronization. Finish product operations and checks before appending any final
+report audit; journal changes can invalidate that receipt under the existing managed
+delivery contract. Recovery never restores a stale receipt.
+
+## Coverage and acceptance
+
+| Capability | Required evidence |
+|---|---|
+| Supported | Host version and documented event schema |
+| Trusted | Host review of current hook definition; never inferred from install |
+| Loaded | Host resolves this exact candidate's config and command |
+| Fired | Real event/task/turn trace and resulting owner files |
+
+The configured pre-tool surface covers Bash and apply_patch/Edit/Write. Bounded
+reads and owner-request recovery remain possible when saving is blocked. MCP,
+other local functions, hosted tools, ongoing process stdin, already streamed text
+and interruptions are not claimed to be fully intercepted by this config. Stop
+cannot retract a reply already shown. Timeout, startup failure or missing hooks
+must be reported as a gap even when voluntary CLI persistence works.
+
+Synthetic events and launcher-process tests establish host-side contracts only.
+Real desktop traces are required for AC-001/002/009/010/011 and overall acceptance;
+missing trust/loading/firing evidence keeps those criteria pending.
+
+Before automatic confirmation, the agent reviews goal, scope, behavior, exceptions
+and acceptance against the actual adopted contract. Supply `completeness_review`
+to `record`, with those five keys, each containing bounded `source_ref` and
+`evidence` text. This is sourced review evidence, not user authorization. Empty
+contract cells cannot confirm; missing review leaves the file working and the
+agent continues the completeness review without asking for redundant approval.

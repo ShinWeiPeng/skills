@@ -1,0 +1,196 @@
+{
+  "schema_version": "2.2.0",
+  "phase": "development",
+  "gate_result": "PASS",
+  "readiness_status": "VERIFIED",
+  "exit_code": 0,
+  "manifest": "architecture\\manifest.yaml",
+  "tool_host": {
+    "operating_system": "win32",
+    "python_version": "3.12.14"
+  },
+  "analyzers": {
+    "python": {
+      "mode": "python-ast",
+      "analyzed_files": [
+        "plugins/governed-engineering-skills/scripts/validate_integration.py",
+        "plugins/governed-engineering-skills/scripts/version_governance.py",
+        "scripts/assemble_plugin.py",
+        "scripts/validate_distribution.py",
+        "skills/engineering/engineering-risk-routing/scripts/classify_risk.py",
+        "skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py",
+        "skills/engineering/engineering-risk-routing/scripts/project_state.py",
+        "skills/engineering/engineering-risk-routing/scripts/repository_evidence.py",
+        "skills/engineering/engineering-risk-routing/scripts/workflow_selection.py",
+        "skills/engineering/formatter-governance/scripts/formatter_policy.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/bootstrap_project.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/boundary_catalog.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/c_analyzer.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/governance_adoption.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/python_analyzer.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/realtime_analysis.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/render_architecture.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/schema_description.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/schema_v2.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/source_sets.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/state_catalog.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/type_catalog.py",
+        "skills/engineering/govern-modular-event-architecture/scripts/validation_layout.py",
+        "skills/engineering/implement/scripts/discussion_hook.py",
+        "skills/engineering/implement/scripts/managed_delivery.py",
+        "skills/engineering/implement/scripts/project_validation_adapter.py",
+        "skills/engineering/implement/scripts/project_validation_workflow.py",
+        "skills/engineering/implement/scripts/spec_delivery.py",
+        "skills/engineering/spec-governance/scripts/discussion_state.py",
+        "skills/engineering/spec-governance/scripts/execution_state.py",
+        "skills/engineering/spec-governance/scripts/spec_contract.py",
+        "skills/engineering/validate-on-device/scripts/validate_on_device.py",
+        "skills/engineering/validate-on-device/scripts/vod/__init__.py",
+        "skills/engineering/validate-on-device/scripts/vod/evidence.py",
+        "skills/engineering/validate-on-device/scripts/vod/execution.py",
+        "skills/engineering/validate-on-device/scripts/vod/guided.py",
+        "skills/engineering/validate-on-device/scripts/vod/model.py",
+        "skills/engineering/validate-on-device/scripts/vod/profile.py",
+        "skills/engineering/validate-on-device/scripts/vod/providers.py",
+        "skills/engineering/verification-ladder/scripts/project_validation.py",
+        "skills/engineering/verification-ladder/scripts/run_storage.py",
+        "skills/engineering/verification-ladder/scripts/verification_ladder.py"
+      ],
+      "type_count": 21,
+      "state_count": 1
+    },
+    "test-validation-layout": {
+      "verdict": "PASS",
+      "diagnostics": [],
+      "coverage": {
+        "layout": "whole-filesystem-declared-scope",
+        "runtime_isolation": "not-proven-by-layout",
+        "python": {
+          "files": 78,
+          "edges": 168,
+          "mode": "python-ast-and-source-bound-resolutions"
+        }
+      },
+      "files": 561
+    }
+  },
+  "diagnostics": [
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "guided_workflow_router",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "delivery_workflow_domain",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "spec_governance_domain",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "formatter_governance_domain",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "governance_workflow_domain",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "verification_ladder_domain",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "codex_plugin_adapter",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "plugin_assembly_composition",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "python_runtime_selection_domain",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "python_runtime_discovery_adapter",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "windows_artifact_access_adapter",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "SYM004",
+      "severity": "SHOULD",
+      "location": "local_install_adapter",
+      "message": "one or more symbols have no installed language analyzer",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "FLW015",
+      "severity": "SHOULD",
+      "location": "plugin-integration.blocked",
+      "message": "event is not referenced by a flow",
+      "configuration": false,
+      "disposition": "active"
+    },
+    {
+      "rule_id": "FLW015",
+      "severity": "SHOULD",
+      "location": "plugin-release.blocked",
+      "message": "event is not referenced by a flow",
+      "configuration": false,
+      "disposition": "active"
+    }
+  ]
+}

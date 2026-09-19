@@ -10,10 +10,50 @@ import os
 import re
 import subprocess
 import sys
+import time
 import uuid
+from collections.abc import Callable
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
+from functools import wraps
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+
+
+def check_spec_dependencies(root: Path, path: Path, visiting=None) -> list[str]:
+    """Require every transitive prerequisite to be uniquely implemented."""
+    visiting = set() if visiting is None else set(visiting)
+    identity = path.name[:9]
+    if identity in visiting:
+        return [identity + ": dependency cycle"]
+    visiting.add(identity)
+    errors = []
+    for row in _table(
+        _sections(path.read_text(encoding="utf-8")).get("relationships", "")
+    ):
+        if _field(row, "Relation") != "depends_on":
+            continue
+        target = _field(row, "Target")
+        if re.fullmatch(r"(?:REQ|DEC|AC)-\d{3}", target):
+            continue
+        if not re.fullmatch(r"SPEC-\d{4}", target):
+            errors.append("invalid prerequisite: " + target)
+            continue
+        matches = list((root / "specs").glob(target + "-*.md"))
+        if len(matches) != 1:
+            errors.append(target + ": missing or ambiguous prerequisite")
+            continue
+        checked = validate_spec_text(
+            matches[0].read_text(encoding="utf-8"),
+            known_spec_ids=_repository_spec_ids(root),
+        )
+        if (
+            checked["verdict"] != "PASS"
+            or checked["canonical_spec"]["status"] != "implemented"
+        ):
+            errors.append(target + ": prerequisite is not implemented")
+        errors.extend(check_spec_dependencies(root, matches[0], visiting))
+    return errors
 
 
 def assess_project_validation(
@@ -577,6 +617,16 @@ def _spec_reply_matches(context: dict, observation: dict) -> bool:
         return False
     if summary.strip() not in visible:
         return False
+    revision = str(expected.get("revision"))
+    status = context.get("canonical_status") or context.get("working_spec", {}).get(
+        "status"
+    )
+    if not re.search(
+        r"(?:revision|修訂)\s*[:：]?\s*" + re.escape(revision) + r"(?!\d)",
+        visible,
+        re.IGNORECASE,
+    ) or not re.search(r"\b" + re.escape(str(status)) + r"\b", visible):
+        return False
     execution = observation.get("execution")
     if (
         isinstance(execution, dict)
@@ -777,11 +827,80 @@ def finish_discussion_turn(
     project_root: Path, *, reference: str, task_ref: str, observation: dict[str, Any]
 ) -> dict[str, Any]:
     """Reload project/task context before accepting a discussion turn's stopping point."""
+    if not isinstance(observation, dict):
+        return {
+            "verdict": "BLOCKED",
+            "can_end_turn": True,
+            "sync_status": "unverifiable",
+            "next_action": "report-save-gap-and-finish",
+            "reason": "completion observation must be an object",
+        }
     if not all(
         isinstance(value, str) and value.strip() for value in (reference, task_ref)
     ):
         return assess_discussion_completion({}, {})
     context = assess_turn_context(project_root, reference=reference, task_ref=task_ref)
+    # The host-backed discussion state is owner-local; older contexts retain their
+    # historical completion contract, never fabricated entry evidence.
+    from discussion_state import discussion_request
+
+    try:
+        state = (
+            discussion_request(
+                project_root, {"operation": "resume", "task_ref": task_ref}
+            )["state"]
+            if task_ref
+            else {"active_turn": None}
+        )
+        if state["active_turn"]:
+            saved = discussion_request(
+                project_root,
+                {
+                    "operation": "verify",
+                    "task_ref": task_ref,
+                    "turn_id": observation.get("turn_id", ""),
+                    "reply_text": observation.get("reply_text", ""),
+                },
+            )
+            if (
+                saved["verdict"] != "PASS"
+                or saved.get("original_turn") != state["active_turn"]
+                or observation.get("working_spec") != context.get("working_spec")
+            ):
+                return {
+                    "verdict": "BLOCKED",
+                    "can_end_turn": True,
+                    "discussion_sync": saved,
+                    "next_action": "report-unsaved-discussion",
+                    "product_code_allowed": False,
+                }
+            if (
+                context.get("state") == "ready"
+                and not context.get("conflicts")
+                and not any(
+                    key.startswith("REQ-")
+                    for key in _snapshot_rows(
+                        (
+                            project_root / context["working_spec"]["snapshot_path"]
+                        ).read_text(encoding="utf-8")
+                    )
+                )
+                and not context.get("open_decisions")
+            ):
+                return {
+                    "verdict": "PASS",
+                    "can_end_turn": True,
+                    "next_action": "discussion-saved",
+                    "product_code_allowed": False,
+                }
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return {
+            "verdict": "BLOCKED",
+            "can_end_turn": True,
+            "next_action": "report-unverifiable-discussion",
+            "reason": str(error),
+            "product_code_allowed": False,
+        }
     return assess_discussion_completion(context, observation)
 
 
@@ -1142,6 +1261,24 @@ def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _snapshot_hash(text: str) -> str:
+    """Hash the canonical body without recursively hashing its embedded audit."""
+    return _sha256_text(_split_spec_audit(text)[0])
+
+
+def _split_spec_audit(text: str) -> tuple[str, str]:
+    start = text.find("\n<!-- spec-audit:start -->")
+    if start < 0:
+        return text, ""
+    end = text.find("<!-- spec-audit:end -->", start)
+    if end < 0:
+        return text, ""
+    end += len("<!-- spec-audit:end -->")
+    if text[end : end + 1] == "\n":
+        end += 1
+    return text[:start] + text[end:], text[start:end]
+
+
 def _normalized_json(value: Any) -> str:
     return json.dumps(
         value,
@@ -1151,7 +1288,158 @@ def _normalized_json(value: Any) -> str:
     )
 
 
-def _atomic_write(path: Path, text: str) -> None:
+def _acceptance_planning(
+    project_root: Path, text: str, previous: str | None = None
+) -> dict:
+    metadata, _ = _metadata(text)
+    path = project_root / "validation" / f"acceptance-{metadata.get('spec_id')}.json"
+
+    def criteria(value):
+        return {
+            key: {k: v for k, v in row.items() if k.casefold() != "evidence"}
+            for key, row in _snapshot_rows(value).items()
+            if key.startswith("AC-")
+        }
+
+    current = criteria(text)
+    prior = criteria(previous) if previous is not None else current
+    if not (
+        path.exists()
+        or (project_root / "validation").is_dir()
+        or (project_root / "architecture/manifest.yaml").is_file()
+    ):
+        return {
+            "verdict": "PASS",
+            "applicability": "legacy-unconfigured",
+            "execution_ready": True,
+            "saved_specification_independent": True,
+        }
+    try:
+        document = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        if not isinstance(document, dict):
+            raise ValueError("acceptance document must be an object")
+        mapping = document.get("acceptance", {})
+        if not isinstance(mapping, dict) or any(
+            not isinstance(value, dict) for value in mapping.values()
+        ):
+            raise ValueError("acceptance must be an object")
+    except (OSError, ValueError, TypeError) as exc:
+        return {"verdict": "BLOCKED", "path": str(path), "errors": [str(exc)]}
+    missing = sorted(set(current) - set(mapping))
+    removed = sorted(set(mapping) - set(current))
+    changed = sorted(
+        key for key in current.keys() & prior.keys() if current[key] != prior[key]
+    )
+    stale = sorted(
+        key
+        for key in current.keys() & mapping.keys()
+        if mapping[key].get("criterion_sha256") is not None
+        and mapping[key]["criterion_sha256"]
+        != _sha256_text(_normalized_json(current[key]))
+    )
+    return {
+        "verdict": "BLOCKED" if missing or removed or changed or stale else "PASS",
+        "path": path.relative_to(project_root).as_posix(),
+        "missing": missing,
+        "removed": removed,
+        "changed": changed,
+        "stale": stale,
+        "criterion_hashes": {
+            key: _sha256_text(_normalized_json(value)) for key, value in current.items()
+        },
+        "execution_ready": not (missing or removed or changed or stale),
+        "saved_specification_independent": True,
+    }
+
+
+def _contract_completeness_gaps(project_root: Path, text: str) -> list[str]:
+    gaps = list(
+        validate_spec_text(text, known_spec_ids=_repository_spec_ids(project_root))[
+            "errors"
+        ]
+    )
+    sections = _sections(text)
+    for name in ("problem", "solution", "out of scope"):
+        if sections.get(name, "").strip().casefold() in {
+            "",
+            "none",
+            "none.",
+            "tbd",
+            "pending",
+        }:
+            gaps.append("Define " + name + " before confirmation.")
+    for key, row in _snapshot_rows(text).items():
+        fields = (
+            ("requirement",)
+            if key.startswith("REQ-")
+            else ("criterion", "validation method")
+            if key.startswith("AC-")
+            else ()
+        )
+        for field in fields:
+            if row.get(field, "").strip().casefold() in {
+                "",
+                "none",
+                "none.",
+                "tbd",
+                "pending",
+            }:
+                gaps.append(key + " has no meaningful " + field + ".")
+    return gaps
+
+
+def _refresh_discussion_views(text: str, project_root: Path) -> str:
+    """Maintain readable navigation and discoverable structural gaps in the SPEC."""
+    body, audit = _split_spec_audit(text)
+    if audit:
+        audit_end = text.index(audit) + len(audit)
+        trailing = text[audit_end:]
+        if trailing.strip():
+            body = (
+                text[: text.index(audit)] + "\n## Discussion Additions\n\n" + trailing
+            )
+    for name in (
+        "Current Specification",
+        "Decision History",
+        "Pending Discussion",
+        "Completeness Gaps",
+    ):
+        body = re.sub(r"(?ms)^## " + re.escape(name) + r"\n.*?(?=^## |\Z)", "", body)
+    confirmed = _replace_metadata(body, status="confirmed")
+    gaps = _contract_completeness_gaps(project_root, confirmed)
+    rows = _snapshot_rows(body)
+    if not any(key.startswith("REQ-") for key in rows):
+        gaps.append(
+            "No adopted change requirements; pure discussion may end without confirmation."
+        )
+    if not any(key.startswith("AC-") for key in rows):
+        gaps.append("No acceptance criteria for an adopted change.")
+    open_decisions = _snapshot_consistency(body, body)["open_decisions"]
+    body = body.rstrip() + (
+        "\n\n## Current Specification\n\nSee Problem, Solution, Requirements and Acceptance Criteria above.\n"
+        "\n## Decision History\n\nSee Decisions, Discussion Context and the sourced Discussion History below.\n"
+        "\n## Pending Discussion\n\n"
+        + ("\n".join("- " + item for item in open_decisions) or "None.")
+        + "\n\n## Completeness Gaps\n\n"
+        + ("\n".join("- " + str(item) for item in gaps) or "None.")
+        + "\n"
+    )
+    return body + audit
+
+
+def _atomic_write(path: Path, text: str, *, preserve_audit: bool = True) -> None:
+    if (
+        preserve_audit
+        and path.suffix == ".md"
+        and path.is_file()
+        and "<!-- spec-audit:start -->" not in text
+    ):
+        existing = path.read_text(encoding="utf-8")
+        if "\n<!-- spec-audit:start -->" in existing:
+            text += (
+                "\n<!-- spec-audit:start -->"
+                + existing.split("\n<!-- spec-audit:start -->", 1)[1]
+            )
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
     try:
@@ -1413,6 +1701,15 @@ def _confirmed_decision_replacement_errors(
 
 
 def _working_paths(project_root: Path, working_id: str) -> tuple[Path, Path]:
+    matches = []
+    for path in (project_root / "specs").glob("SPEC-*.md"):
+        metadata, _ = _metadata(path.read_text(encoding="utf-8"))
+        if metadata.get("working_id") == working_id:
+            matches.append(path)
+    if len(matches) > 1:
+        raise ValueError("duplicate canonical working identity")
+    if matches:
+        return matches[0], matches[0]
     root = project_root / WORKING_ROOT
     return (
         root / f"{working_id}{WORKING_SNAPSHOT_SUFFIX}",
@@ -1436,7 +1733,16 @@ def _read_journal(path: Path) -> tuple[list[dict[str, Any]], str]:
     events: list[dict[str, Any]] = []
     previous_hash: str | None = None
     try:
-        for raw_line in path.read_text(encoding="utf-8").splitlines():
+        raw = path.read_text(encoding="utf-8")
+        if path.suffix == ".md":
+            if "\n<!-- spec-audit:start -->" not in raw:
+                return [], "unavailable"
+            audit = raw.split("\n<!-- spec-audit:start -->", 1)[1]
+            match = re.search(r"(?s)```jsonl\n(.*?)\n```", audit)
+            if not match or not audit.rstrip().endswith("<!-- spec-audit:end -->"):
+                return [], "unavailable"
+            raw = match.group(1)
+        for raw_line in raw.splitlines():
             if not raw_line.strip():
                 continue
             event = json.loads(raw_line)
@@ -1471,7 +1777,7 @@ def _append_journal_event(
     events, journal_continuity = _read_journal(path)
     if journal_continuity != "continuous":
         events = []
-        if event_type != "start" or journal_exists:
+        if event_type != "start" or (journal_exists and path.suffix != ".md"):
             continuity = "unavailable"
     elif events:
         continuity = events[-1].get("continuity", continuity)
@@ -1508,12 +1814,42 @@ def _append_journal_event(
         event["baseline_contract_hash"] = baseline_contract_hash
     event["event_hash"] = _journal_event_hash(event)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(_normalized_json(event) + "\n")
+    if path.suffix == ".md":
+        body = _split_spec_audit(path.read_text(encoding="utf-8"))[0]
+        history = []
+        for item in events + [event]:
+            discussion = item.get("delta", {}).get("discussion", {})
+            summary = discussion.get("summary") or discussion.get("goal")
+            if summary:
+                history.append(
+                    "- "
+                    + str(discussion.get("source_ref", "unknown"))
+                    + ": "
+                    + str(summary).replace("\n", " ")
+                )
+        audit = (
+            "\n<!-- spec-audit:start -->\n## Discussion History\n\n"
+            + "\n".join(history)
+            + "\n\n### Source and Revision Audit\n\n```jsonl\n"
+            + "\n".join(_normalized_json(item) for item in events + [event])
+            + "\n```\n<!-- spec-audit:end -->\n"
+        )
+        _atomic_write(path, body + audit)
+    else:
+        with path.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(_normalized_json(event) + "\n")
     return event
 
 
 def _contract_hash(text: str) -> str:
+    text = _split_spec_audit(text)[0]
+    for name in (
+        "Current Specification",
+        "Decision History",
+        "Pending Discussion",
+        "Completeness Gaps",
+    ):
+        text = re.sub(r"(?ms)^## " + re.escape(name) + r"\n.*?(?=^## |\Z)", "", text)
     rendered = _replace_metadata(
         text,
         revision=1,
@@ -1543,11 +1879,37 @@ def _working_reference(
     text = snapshot_path.read_text(encoding="utf-8")
     metadata, _ = _metadata(text)
     events, continuity = _read_journal(journal_path)
-    snapshot_hash = _sha256_text(text)
-    if not events or events[-1].get("snapshot_hash") != snapshot_hash:
+    snapshot_hash = _snapshot_hash(text)
+    if (
+        not events
+        or events[-1].get("snapshot_hash") != snapshot_hash
+        or events[-1].get("continuity") == "unavailable"
+    ):
         continuity = "unavailable"
-    elif events[-1].get("continuity") == "unavailable":
-        continuity = "unavailable"
+    planning = _acceptance_planning(project_root, text)
+    pending_changes = set()
+    for event in events:
+        pending_changes.update(event.get("delta", {}).get("acceptance_changes", []))
+    mapping_path = project_root / planning.get("path", "validation/missing.json")
+    try:
+        mapping = json.loads(mapping_path.read_text(encoding="utf-8")).get(
+            "acceptance", {}
+        )
+    except (OSError, ValueError, TypeError, AttributeError):
+        mapping = {}
+    pending_changes = {
+        key
+        for key in pending_changes
+        if key in planning.get("criterion_hashes", {})
+        and (
+            not isinstance(mapping.get(key), dict)
+            or mapping[key].get("criterion_sha256") != planning["criterion_hashes"][key]
+        )
+    }
+    if pending_changes:
+        planning.update(
+            verdict="BLOCKED", execution_ready=False, changed=sorted(pending_changes)
+        )
     return {
         "working_id": metadata.get("working_id"),
         "snapshot_path": snapshot_path.relative_to(project_root).as_posix(),
@@ -1560,6 +1922,11 @@ def _working_reference(
         "change_set": metadata.get("change_set"),
         "task_ref": metadata.get("task_ref") or None,
         "branch_ref": metadata.get("branch_ref") or None,
+        "validation_planning": planning,
+        "confirmed_history": metadata.get("status") == "confirmed"
+        or any(
+            event.get("event_type") in {"materialize", "reopen"} for event in events
+        ),
     }
 
 
@@ -1611,12 +1978,12 @@ def _migrate_legacy_bundle(
     events, continuity = _read_journal(legacy_journal)
     if legacy_journal.is_file() and continuity != "continuous":
         return failure("legacy journal chain is invalid")
-    source_snapshot_hash = _sha256_text(source_text)
+    source_snapshot_hash = _snapshot_hash(source_text)
     if events and events[-1].get("snapshot_hash") != source_snapshot_hash:
         return failure("legacy journal snapshot hash is stale")
     rewritten_events: list[dict[str, Any]] = []
     previous_event_hash: str | None = None
-    snapshot_hash = _sha256_text(rendered)
+    snapshot_hash = _snapshot_hash(rendered)
     for index, source_event in enumerate(events):
         event = {
             key: value for key, value in source_event.items() if key != "event_hash"
@@ -1680,9 +2047,159 @@ def _migrate_legacy_bundle(
     return _working_reference(project_root, destination_snapshot, destination_journal)
 
 
+def _migrate_flat_bundle(
+    project_root: Path, working_id: str, notes: list[str] | None = None
+) -> dict:
+    """Validate and archive a legacy pair only after the canonical audit verifies."""
+    if not WORKING_ID_RE.fullmatch(working_id):
+        return {"verdict": "BLOCKED", "reason": "invalid working ID"}
+    snapshot = project_root / WORKING_ROOT / (working_id + WORKING_SNAPSHOT_SUFFIX)
+    journal = project_root / WORKING_ROOT / (working_id + WORKING_JOURNAL_SUFFIX)
+    destination = None
+    original = None
+    moved = []
+    wrote = False
+    try:
+        if not snapshot.exists() and not journal.exists():
+            resolved = resolve_working_bundle(project_root, reference=working_id)
+            if resolved["state"] == "working":
+                return {
+                    "verdict": "PASS",
+                    "working_spec": resolved["working_spec"],
+                    "migrated": False,
+                }
+        for path in (snapshot, journal):
+            if not path.is_file() or path.is_symlink() or path.stat().st_nlink != 1:
+                raise ValueError(
+                    "legacy snapshot and journal must both be ordinary files"
+                )
+        text = snapshot.read_text(encoding="utf-8")
+        errors = _working_structure_errors(text)
+        ref = _working_reference(project_root, snapshot, journal)
+        if (
+            errors
+            or ref["working_id"] != working_id
+            or ref["continuity"] != "continuous"
+        ):
+            raise ValueError(
+                "legacy identity, structure or source continuity is invalid"
+            )
+        if ref["status"] == "implemented":
+            raise ValueError("implemented specifications are immutable")
+        spec_id = (
+            _next_spec_id(project_root)
+            if ref["spec_id"] == "SPEC-0000"
+            else ref["spec_id"]
+        )
+        destination = project_root / "specs" / f"{spec_id}-{ref['change_set']}.md"
+        if destination.exists():
+            if destination.is_symlink() or destination.stat().st_nlink != 1:
+                raise ValueError("canonical destination is redirected or shared")
+            original = destination.read_text(encoding="utf-8")
+            metadata, _ = _metadata(original)
+            if (
+                metadata.get("status") == "implemented"
+                or metadata.get("revision") != str(ref["revision"])
+                or _contract_hash(original) != _contract_hash(text)
+            ):
+                raise ValueError(
+                    "canonical and legacy versions conflict; reconcile before migration"
+                )
+        legacy_notes = []
+        for relative in notes or []:
+            path = project_root / relative
+            if (
+                not path.resolve().is_relative_to(project_root.resolve())
+                or path.is_symlink()
+            ):
+                raise ValueError("legacy note must stay inside the project")
+            content = path.read_text(encoding="utf-8")
+            if _redact_sensitive_content(content) != content:
+                raise ValueError("redact sensitive legacy notes before migration")
+            legacy_notes.append(
+                {"path": relative, "sha256": _sha256_text(content), "content": content}
+            )
+        events, _ = _read_journal(journal)
+        rendered = _refresh_discussion_views(
+            _replace_metadata(text, spec_id=spec_id), project_root
+        )
+        audit = (
+            "\n<!-- spec-audit:start -->\n## Discussion History\n\n"
+            "Legacy source events preserved below.\n\n### Source and Revision Audit\n\n```jsonl\n"
+            + "\n".join(_normalized_json(event) for event in events)
+            + "\n```\n<!-- spec-audit:end -->\n"
+        )
+        _atomic_write(destination, rendered + audit, preserve_audit=False)
+        wrote = True
+        _append_journal_event(
+            destination,
+            event_type="migration",
+            working_id=working_id,
+            revision=ref["revision"],
+            previous_snapshot_hash=ref["snapshot_hash"],
+            snapshot_hash=_snapshot_hash(rendered),
+            continuity="continuous",
+            verdict="PASS",
+            delta={
+                "added_ids": [],
+                "changed_ids": [],
+                "removed_ids": [],
+                "legacy_snapshot": snapshot.relative_to(project_root).as_posix(),
+                "legacy_journal": journal.relative_to(project_root).as_posix(),
+                "legacy_notes": legacy_notes,
+            },
+        )
+        migrated = _working_reference(project_root, destination, destination)
+        if migrated["continuity"] != "continuous":
+            raise ValueError("canonical migration verification failed")
+        for path in (snapshot, journal):
+            archive = path.with_name(path.name + ".migrated")
+            if archive.exists():
+                raise ValueError(
+                    "legacy archive already exists; inspect interrupted migration"
+                )
+            path.rename(archive)
+            moved.append((path, archive))
+        return {
+            "verdict": "PASS",
+            "working_spec": migrated,
+            "migrated": True,
+            "authorization_retained": False,
+            "repair_budget_changed": False,
+        }
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        for path, archive in reversed(moved):
+            archive.rename(path)
+        if wrote and destination is not None:
+            if original is None:
+                destination.unlink(missing_ok=True)
+            else:
+                _atomic_write(destination, original, preserve_audit=False)
+        return {"verdict": "BLOCKED", "reason": str(exc), "originals_preserved": True}
+
+
 def _working_candidates(project_root: Path) -> list[dict[str, Any]]:
     root = project_root / WORKING_ROOT
     candidates: list[dict[str, Any]] = []
+    canonical_ids = set()
+    for path in sorted((project_root / "specs").glob("SPEC-*.md")):
+        text = path.read_text(encoding="utf-8")
+        metadata, _ = _metadata(text)
+        if not metadata.get("working_id") or metadata.get("status") == "implemented":
+            continue
+        canonical_ids.add(metadata["working_id"])
+        errors = _working_structure_errors(text)
+        if errors:
+            candidates.append(
+                {
+                    "state": "invalid",
+                    "working_id": metadata["working_id"],
+                    "snapshot_path": path.relative_to(project_root).as_posix(),
+                    "errors": errors,
+                }
+            )
+        else:
+            candidates.append(_working_reference(project_root, path, path))
     legacy_root = project_root / LEGACY_WORKING_ROOT
     if legacy_root.is_dir():
         for legacy_snapshot in sorted(legacy_root.glob(f"*/{LEGACY_WORKING_SNAPSHOT}")):
@@ -1703,6 +2220,18 @@ def _working_candidates(project_root: Path) -> list[dict[str, Any]]:
         errors = _working_structure_errors(snapshot_text)
         metadata, _ = _metadata(snapshot_text)
         expected_id = snapshot.name[: -len(WORKING_SNAPSHOT_SUFFIX)]
+        if expected_id in canonical_ids:
+            candidates.append(
+                {
+                    "state": "invalid",
+                    "working_id": expected_id,
+                    "snapshot_path": snapshot.relative_to(project_root).as_posix(),
+                    "errors": [
+                        "canonical and legacy working records coexist; verify migration before resuming"
+                    ],
+                }
+            )
+            continue
         if metadata.get("working_id") != expected_id:
             errors.append("working snapshot ID does not match its filename")
         journal = snapshot.with_name(f"{expected_id}{WORKING_JOURNAL_SUFFIX}")
@@ -1757,29 +2286,23 @@ def resolve_working_bundle(
             if str(row.get("working_id", "")).casefold() == normalized
             or str(row.get("snapshot_path", "")).casefold() == normalized
         ]
-        if not matches:
-            invalid_matches = [
-                row
-                for row in invalid
-                if str(row.get("working_id", "")).casefold() in {original, normalized}
-                or str(row.get("logical_working_id", "")).casefold()
-                in {original, normalized}
-                or str(row.get("snapshot_path", "")).casefold()
-                in {original, normalized}
-            ]
-            if invalid_matches:
-                errors = sorted(
-                    {
-                        error
-                        for row in invalid_matches
-                        for error in row.get("errors", [])
-                    }
-                )
-                return result(
-                    "invalid",
-                    invalid_matches,
-                    "; ".join(errors) or "working specification is malformed",
-                )
+        invalid_matches = [
+            row
+            for row in invalid
+            if str(row.get("working_id", "")).casefold() in {original, normalized}
+            or str(row.get("logical_working_id", "")).casefold()
+            in {original, normalized}
+            or str(row.get("snapshot_path", "")).casefold() in {original, normalized}
+        ]
+        if invalid_matches:
+            errors = sorted(
+                {error for row in invalid_matches for error in row.get("errors", [])}
+            )
+            return result(
+                "invalid",
+                invalid_matches,
+                "; ".join(errors) or "working specification is malformed",
+            )
         return result(
             "working" if len(matches) == 1 else "invalid",
             matches,
@@ -1816,6 +2339,57 @@ def resolve_working_bundle(
     return result("absent", [], "no working specification exists")
 
 
+@contextmanager
+def project_state_lock(root: Path, key: str, timeout: float = 5.0):
+    """Lock a stable inode briefly; the OS releases ownership on process exit."""
+    directory = root.resolve() / "spec-governance"
+    if directory.is_symlink() or directory.resolve() != directory:
+        raise ValueError("governance directory must not be redirected")
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / (".state-" + hashlib.sha256(key.encode()).hexdigest() + ".lock")
+    if path.is_symlink():
+        raise ValueError("state lock must not be redirected")
+    with path.open("a+b") as stream:
+        if path.stat().st_size == 0:
+            stream.write(b"0")
+            stream.flush()
+        deadline = time.monotonic() + timeout
+        while True:
+            try:
+                stream.seek(0)
+                if os.name == "nt":
+                    import msvcrt
+
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("shared state is busy; retry after rereading")
+                time.sleep(0.01)
+        try:
+            yield
+        finally:
+            stream.seek(0)
+            if os.name == "nt":
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+
+
+def _serialize_spec_creation(function):
+    @wraps(function)
+    def create(project_root, *args, **kwargs):
+        with project_state_lock(project_root, "spec-id-allocation"):
+            return function(project_root, *args, **kwargs)
+
+    return create
+
+
+@_serialize_spec_creation
 def start_working_bundle(
     project_root: Path,
     slug: str,
@@ -1879,8 +2453,8 @@ def start_working_bundle(
                 event_type="reopen",
                 working_id=ref["working_id"],
                 revision=int(metadata["revision"]),
-                previous_snapshot_hash=_sha256_text(previous),
-                snapshot_hash=_sha256_text(rendered),
+                previous_snapshot_hash=_snapshot_hash(previous),
+                snapshot_hash=_snapshot_hash(rendered),
                 continuity=continuity,
                 baseline_contract_hash=baseline_contract_hash,
             )
@@ -1911,20 +2485,30 @@ def start_working_bundle(
             "reason": "invalid working snapshot",
             "errors": metadata_errors,
         }
+    spec_id = (
+        metadata.get("spec_id")
+        if preserve_spec_identity
+        else _next_spec_id(project_root)
+    )
+    snapshot_path = project_root / "specs" / f"{spec_id}-{slug}.md"
+    journal_path = snapshot_path
+    if snapshot_path.exists() and not preserve_spec_identity:
+        return {"verdict": "BLOCKED", "reason": "canonical destination already exists"}
     rendered = _redact_sensitive_content(
         _replace_metadata(
             text,
-            spec_id=metadata.get("spec_id", "SPEC-0000")
-            if preserve_spec_identity
-            else "SPEC-0000",
+            spec_id=spec_id,
             revision=1 if not preserve_spec_identity else metadata.get("revision", "1"),
-            status="working",
+            status=metadata.get("status", "working")
+            if preserve_spec_identity
+            else "working",
             change_set=slug,
             working_id=working_id,
             task_ref=task_ref,
             branch_ref=branch,
         )
     )
+    rendered = _refresh_discussion_views(rendered, project_root)
     errors = _working_structure_errors(rendered)
     if errors:
         return {
@@ -1933,7 +2517,7 @@ def start_working_bundle(
             "errors": errors,
         }
     _atomic_write(snapshot_path, rendered)
-    snapshot_hash = _sha256_text(rendered)
+    snapshot_hash = _snapshot_hash(rendered)
     initial_consistency = _snapshot_consistency(rendered, rendered)
     _append_journal_event(
         journal_path,
@@ -1985,7 +2569,7 @@ def reconcile_working_bundle(
     journal_path = project_root / reference["journal_path"]
     current = snapshot_path.read_text(encoding="utf-8")
     metadata, _ = _metadata(current)
-    current_hash = _sha256_text(current)
+    current_hash = _snapshot_hash(current)
     current_revision = int(metadata.get("revision", "0"))
     if expected_revision != current_revision or expected_hash != current_hash:
         return {
@@ -2009,6 +2593,15 @@ def reconcile_working_bundle(
     answering = any(
         item is not None for item in (question_id, question_version, answer)
     )
+    if not answering and question_update is None and next_snapshot == current:
+        return {
+            "verdict": "PASS",
+            "working_spec": reference,
+            "delta": {"added_ids": [], "changed_ids": [], "removed_ids": []},
+            "changed": False,
+            "open_decisions": _snapshot_consistency(current, current)["open_decisions"],
+        }
+
     if question_update is not None:
         try:
             if answering or next_snapshot != _question_update_snapshot(
@@ -2081,6 +2674,7 @@ def reconcile_working_bundle(
             branch_ref=metadata.get("branch_ref") or None,
         )
     )
+    rendered = _refresh_discussion_views(rendered, project_root)
     errors = _working_structure_errors(rendered)
     if errors:
         return {
@@ -2107,13 +2701,15 @@ def reconcile_working_bundle(
         }
     consistency = _snapshot_consistency(current, rendered)
     delta = consistency["delta"]
+    planning = _acceptance_planning(project_root, rendered, current)
+    delta["acceptance_changes"] = planning.get("changed", [])
     relationships = consistency["relationships"]
     conflicts = consistency["conflicts"]
     open_decisions = consistency["open_decisions"]
     verdict = consistency["verdict"]
     _, continuity = _read_journal(journal_path)
     _atomic_write(snapshot_path, rendered)
-    snapshot_hash = _sha256_text(rendered)
+    snapshot_hash = _snapshot_hash(rendered)
     _append_journal_event(
         journal_path,
         event_type="reconcile",
@@ -2311,7 +2907,7 @@ def materialize_working_bundle(
     journal_path = project_root / reference["journal_path"]
     current = snapshot_path.read_text(encoding="utf-8")
     metadata, _ = _metadata(current)
-    current_hash = _sha256_text(current)
+    current_hash = _snapshot_hash(current)
     current_revision = int(metadata.get("revision", "0"))
     if current_revision != expected_revision or current_hash != expected_hash:
         return {
@@ -2378,15 +2974,16 @@ def materialize_working_bundle(
             "reason": "acceptance evidence is insufficient",
             "validation": evidence,
         }
-    _atomic_write(destination, rendered)
     working_rendered = _replace_metadata(
         rendered,
         working_id=working_id,
         task_ref=metadata.get("task_ref") or None,
         branch_ref=metadata.get("branch_ref") or None,
     )
+    if destination != snapshot_path:
+        _atomic_write(destination, rendered)
     _atomic_write(snapshot_path, working_rendered)
-    final_hash = _sha256_text(working_rendered)
+    final_hash = _snapshot_hash(working_rendered)
     _append_journal_event(
         journal_path,
         event_type="materialize",
@@ -2472,7 +3069,8 @@ def reopen_spec(
         revision + 1,
         f"Reopened before clarification: {reason.strip()}",
     )
-    _atomic_write(path, reopened)
+    if not metadata.get("working_id"):
+        _atomic_write(path, reopened)
     result = start_working_bundle(
         project_root,
         metadata["change_set"],
@@ -2951,6 +3549,11 @@ def main(validation_assessor=None) -> int:
     status_parser.add_argument("--task-ref")
     status_parser.add_argument("--branch")
 
+    migrate_parser = subparsers.add_parser("migrate")
+    migrate_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    migrate_parser.add_argument("--working-id", required=True)
+    migrate_parser.add_argument("--note", action="append", default=[])
+
     reconcile_parser = subparsers.add_parser("reconcile")
     reconcile_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     reconcile_parser.add_argument("--working-id", required=True)
@@ -3060,7 +3663,13 @@ def main(validation_assessor=None) -> int:
                 observation=json.loads(args.observation.read_text(encoding="utf-8")),
             )
         except (OSError, ValueError, TypeError) as error:
-            result = {"verdict": "BLOCKED", "can_end_turn": False, "reason": str(error)}
+            result = {
+                "verdict": "BLOCKED",
+                "can_end_turn": True,
+                "reason": str(error),
+                "sync_status": "unverifiable",
+                "next_action": "report-save-gap-and-finish",
+            }
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if result["verdict"] == "PASS" else 2
     if args.command == "validate":
@@ -3102,6 +3711,8 @@ def main(validation_assessor=None) -> int:
             task_ref=args.task_ref,
             branch=args.branch,
         )
+    elif args.command == "migrate":
+        result = _migrate_flat_bundle(args.project_root, args.working_id, args.note)
     elif args.command == "status":
         result = resolve_working_bundle(
             args.project_root,

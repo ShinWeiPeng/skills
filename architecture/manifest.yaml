@@ -85,6 +85,8 @@ modules:
   paths:
   - skills/engineering/ask-matt
   - skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
+  - skills/engineering/implement/scripts/discussion_hook.py
+  - plugins/governed-engineering-skills/hooks/run-windows.ps1
   parent: null
   depends_on:
   - workflow_routing_domain
@@ -300,6 +302,9 @@ modules:
     symbol: assess_delivery_spec_context
     kind: function
   - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: manage_delivery_discussion
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_turn_context
     kind: function
   - path: skills/engineering/implement/scripts/spec_delivery.py
@@ -323,6 +328,9 @@ modules:
     kind: skill
   - path: skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_spec_context
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: manage_delivery_discussion
     kind: function
   - path: skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_turn_context
@@ -356,6 +364,8 @@ modules:
     purpose: Persist and reconcile engineering discussion into one canonical change-set specification,
       materialize it when decision-complete, and verify traceability before implementation.
       Verify the emitted completed-SPEC link, summary and authorization status.
+      Own task/turn discussion entry, sourced candidate observations and durable repair-input
+      deduplication across host continuations and restarts; saving and recovery remain available.
     diagram_summaries:
       zh-TW: 規格保存、調和、具體化與追溯驗證
     input_ports:
@@ -374,9 +384,10 @@ modules:
     side_effects:
     - description: Persist project and task scoped execution receipts; suspend product authority
         independently of SPEC discussion.
-    - description: Atomically persist one local project-root WORKING-SPEC Markdown snapshot
-        with structured, visibly redacted Discussion Context and append its normalized journal
-        without transcript or hidden-reasoning prose.
+    - description: Atomically persist one canonical project-root SPEC Markdown snapshot
+        with structured, visibly redacted Discussion Context and embed its normalized audit
+        without full transcripts or hidden-reasoning prose; discussion observations may
+        include bounded redacted goals, summaries and candidate metadata with sources.
     - description: Materialize one decision-complete canonical specification under specs/.
     errors:
     - id: specification_unresolved
@@ -412,7 +423,16 @@ modules:
     symbol: main
     kind: cli
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: project_state_lock
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: check_spec_dependencies
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_turn_context
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+    symbol: discussion_request
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_discussion_completion
@@ -449,7 +469,16 @@ modules:
     symbol: main
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: project_state_lock
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+    symbol: check_spec_dependencies
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_turn_context
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+    symbol: discussion_request
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_discussion_completion
@@ -1553,7 +1582,7 @@ ports:
   contract: skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Create, migrate, or resolve one flat project-root working specification pair.
+    purpose: Create, migrate, or resolve one canonical project-root working specification with embedded audit.
     data: Project root, change-set slug and optional working, task, or branch evidence
       produce one immutable WorkingSpecReference.
     timing: sync
@@ -1642,7 +1671,7 @@ ports:
     purpose: Reopen a confirmed unimplemented specification in place before clarifying
       a possible contract change.
     data: Expected canonical revision, reason, and specification path produce a working
-      canonical revision plus a local flat WORKING-SPEC pair.
+      canonical revision in the same SPEC file with embedded audit.
     timing: sync
     immediate_rejections:
     - code: implemented
@@ -2151,7 +2180,7 @@ types:
   visibility: module-public
   semantic_kind: domain-value
   description: Stable identity, revision, hash, flat project-root paths, and continuity
-    epoch for one persisted working specification pair.
+    epoch for one persisted canonical working specification.
   lifetime: One change set from first grilling question through commit disposition.
   mutability: immutable
   mutation_authority: []
@@ -2170,7 +2199,7 @@ types:
   - name: journal_path
     type: string
     role: metadata
-    meaning: Project-relative normalized JSONL journal path.
+    meaning: Project-relative audit container path; equals snapshot_path for a canonical single-file SPEC. Legacy JSONL paths remain readable during migration.
   - name: revision
     type: integer
     role: metadata
@@ -2978,16 +3007,16 @@ flows:
   - id: governed-change-set-lifecycle.start
     order: 1
     module: spec_governance_domain
-    action: Create, transactionally migrate, or resolve one project-root flat WORKING-SPEC
-      pair before the first decision question; migration validates a complete temporary pair
+    action: Create, transactionally migrate, or resolve one canonical SPEC
+      before the first decision question; migration validates legacy identity and history
       and restores the legacy source on failure.
     receives:
     - spec-governance.start
     emits: []
     state_changes: []
     side_effects:
-    - Write one local authoritative WORKING-SPEC Markdown snapshot with structured Discussion
-      Context and one normalized journal epoch.
+    - Write one canonical SPEC Markdown file with structured Discussion
+      Context and an embedded normalized audit epoch.
   - id: governed-change-set-lifecycle.reconcile
     order: 2
     module: spec_governance_domain

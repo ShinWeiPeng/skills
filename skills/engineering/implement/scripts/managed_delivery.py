@@ -3,23 +3,30 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import hashlib
 import json
 import os
 import re
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "spec-governance/scripts"))
 
+from discussion_state import discussion_request
 from execution_state import (
     execution_binding,
     read_execution_state,
     write_execution_state,
 )
-from spec_contract import assess_discussion_completion, question_surface_policy
-from spec_delivery import verify_delivery_admission, assess_project_validation
+from spec_contract import (
+    assess_discussion_completion,
+    project_state_lock,
+    question_surface_policy,
+)
+from spec_delivery import assess_project_validation, verify_delivery_admission
 
 
 def _blocked(reason: str) -> dict:
@@ -33,7 +40,23 @@ def _blocked(reason: str) -> dict:
 
 
 def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> dict:
-    receipt = state.get("receipt")
+    discussion = discussion_request(
+        root, {"operation": "resume", "task_ref": request["task_ref"]}
+    )["state"]
+    if discussion["active_turn"]:
+        entry = discussion_request(
+            root,
+            {
+                "operation": "status",
+                "task_ref": request["task_ref"],
+                "turn_id": discussion["active_turn"],
+            },
+        )
+        if not entry.get("entry_saved") or entry["verdict"] != "PASS":
+            raise ValueError(
+                "matching discussion is not synchronized; save or repair the current SPEC"
+            )
+    receipt = state.get("receipts", {}).get(request["spec"], state.get("receipt"))
     if state["phase"] != "executing" or not isinstance(receipt, dict):
         raise ValueError("execution is not authorized or is suspended")
     if not isinstance(receipt.get("instruction"), str):
@@ -53,7 +76,17 @@ def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> 
         validation_assessor=validation_assessor,
     )
     if not result["product_code_allowed"]:
-        raise ValueError(result.get("reason", "admission denied"))
+        repairable = (
+            request.get("operation") == "recover"
+            and request.get("deterministic") is True
+            and result.get("reason")
+            in {
+                "acceptance mapping requires reconciliation",
+                "project validation planning/enablement incomplete",
+            }
+        )
+        if not repairable:
+            raise ValueError(result.get("reason", "admission denied"))
     return binding
 
 
@@ -100,72 +133,382 @@ def _current_hash(path: Path) -> str | None:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
 
 
-def _apply(root: Path, request: dict, state: dict, validation_assessor=None) -> dict:
-    _admit(root, request, state, validation_assessor=validation_assessor)
+def _merge_patch(base: str, desired: str, current: str) -> str:
+    """Integrate disjoint line edits; overlapping edits require a reviewed patch."""
+    base_lines = base.splitlines(keepends=True)
+
+    def edits(text):
+        lines = text.splitlines(keepends=True)
+        return [
+            (i, j, lines[x:y])
+            for op, i, j, x, y in difflib.SequenceMatcher(
+                None, base_lines, lines, autojunk=False
+            ).get_opcodes()
+            if op != "equal"
+        ]
+
+    ours, theirs = edits(desired), edits(current)
+    combined = list(theirs)
+    for edit in ours:
+        if edit in theirs:
+            continue
+        a, b, _ = edit
+        for c, d, _ in theirs:
+            if (
+                max(a, c) < min(b, d)
+                or (a == b and c <= a <= d)
+                or (c == d and a <= c <= b)
+            ):
+                raise ValueError(
+                    "overlapping file edits; reread and resolve affected write"
+                )
+        combined.append(edit)
+    for a, b, replacement in sorted(
+        combined, key=lambda item: (item[0], item[1]), reverse=True
+    ):
+        base_lines[a:b] = replacement
+    return "".join(base_lines)
+
+
+def _apply(
+    root: Path,
+    request: dict,
+    state: dict,
+    validation_assessor=None,
+    candidate_validator=None,
+) -> dict:
     patch = request["patch"]
-    if not isinstance(patch, dict) or set(patch) != {
-        "path",
-        "before_sha256",
-        "content",
-    }:
-        raise ValueError("patch requires path, before_sha256 and content only")
-    target = _target(root, patch["path"])
-    if not isinstance(patch["content"], str):
-        raise TypeError("patch content must be UTF-8 text")
-    content = patch["content"].encode("utf-8")
-    if len(content) > 1048576:
-        raise ValueError("single-file patch exceeds 1 MiB")
-    before = _current_hash(target)
-    if patch["before_sha256"] != before:
-        raise ValueError("target hash differs from reviewed patch")
-    temporary = None
-    try:
-        fd, temporary = tempfile.mkstemp(prefix=".governed-patch-", dir=target.parent)
-        with os.fdopen(fd, "wb") as stream:
-            stream.write(content)
-        if target.exists():
-            os.chmod(temporary, target.stat().st_mode)
+    required = {"path", "before_sha256", "content"}
+    if (
+        not isinstance(patch, dict)
+        or not required <= patch.keys()
+        or set(patch) - required - {"before_content"}
+    ):
+        raise ValueError(
+            "patch requires path, before_sha256, content and optional before_content"
+        )
+    if (
+        not isinstance(patch["content"], str)
+        or len(patch["content"].encode()) > 1048576
+    ):
+        raise ValueError("patch content must be UTF-8 text at most 1 MiB")
+    base = patch.get("before_content")
+    if base is not None and (
+        not isinstance(base, str)
+        or hashlib.sha256(base.encode()).hexdigest() != patch["before_sha256"]
+    ):
+        raise ValueError("before_content must match the reviewed base hash")
+    for retry in range(3):
         _admit(
             root,
             request,
             read_execution_state(root, request["task_ref"]),
-            validation_assessor=validation_assessor,
+            validation_assessor,
         )
-        if _target(root, patch["path"]) != target or _current_hash(target) != before:
-            raise ValueError("target changed during admission")
-        os.replace(temporary, target)
+        target = _target(root, patch["path"])
+        raw = target.read_bytes() if target.exists() else None
+        before = hashlib.sha256(raw).hexdigest() if raw is not None else None
+        content = patch["content"]
+        if before != patch["before_sha256"]:
+            if base is None or raw is None:
+                raise ValueError(
+                    "target hash differs from reviewed patch; reread and integrate"
+                )
+            content = _merge_patch(base, content, raw.decode("utf-8"))
+        encoded = content.encode("utf-8")
+        if len(encoded) > 1048576:
+            raise ValueError("merged patch exceeds 1 MiB")
+        merged = before != patch["before_sha256"]
+        if merged:
+            candidate = {
+                "path": patch["path"],
+                "before_sha256": before,
+                "content": content,
+                "sha256": hashlib.sha256(encoded).hexdigest(),
+            }
+            if candidate_validator is None:
+                return _blocked(
+                    "merged content requires candidate validation before commit"
+                ) | {
+                    "reviewable_candidate": candidate,
+                    "unaffected_branches_suspended": False,
+                }
+            validation = candidate_validator(root, dict(candidate))
+            if (
+                not isinstance(validation, dict)
+                or validation.get("verdict") != "PASS"
+                or validation.get("sha256") != candidate["sha256"]
+            ):
+                return _blocked("merged candidate validation failed or is stale") | {
+                    "reviewable_candidate": candidate,
+                    "candidate_validation": validation,
+                    "unaffected_branches_suspended": False,
+                }
+        # Validate the current admission after integration and before committing.
+        fresh = read_execution_state(root, request["task_ref"])
+        binding = _admit(root, request, fresh, validation_assessor)
         temporary = None
-    finally:
-        if temporary is not None:
-            Path(temporary).unlink(missing_ok=True)
-    return {
-        "verdict": "PASS",
-        "product_code_allowed": True,
-        "path": patch["path"],
-        "before_sha256": before,
-        "after_sha256": hashlib.sha256(content).hexdigest(),
-        "enforcement_scope": "managed-entrypoint-only",
+        try:
+            fd, temporary = tempfile.mkstemp(
+                prefix=".governed-patch-", dir=target.parent
+            )
+            with os.fdopen(fd, "wb") as stream:
+                stream.write(encoded)
+            if target.exists():
+                os.chmod(temporary, target.stat().st_mode)
+            with (
+                project_state_lock(root, "product-commit"),
+                project_state_lock(root, "execution:" + request["task_ref"]),
+            ):
+                if (
+                    _target(root, patch["path"]) != target
+                    or _current_hash(target) != before
+                ):
+                    continue
+                if (
+                    read_execution_state(root, request["task_ref"]) != fresh
+                    or execution_binding(
+                        root,
+                        request["spec"],
+                        request["working_reference"],
+                        request["task_ref"],
+                    )
+                    != binding
+                ):
+                    raise ValueError("authorization changed during admission")
+                os.replace(temporary, target)
+                temporary = None
+            return {
+                "verdict": "PASS",
+                "product_code_allowed": True,
+                "path": patch["path"],
+                "before_sha256": before,
+                "after_sha256": hashlib.sha256(encoded).hexdigest(),
+                "integration_retries": retry,
+                "merged": before != patch["before_sha256"],
+                "enforcement_scope": "managed-entrypoint-only",
+            }
+        finally:
+            if temporary is not None:
+                Path(temporary).unlink(missing_ok=True)
+    return _blocked("file kept changing; pause affected write and reread") | {
+        "unaffected_branches_suspended": False
     }
 
 
-def execute_request(root: Path, request: dict, validation_assessor=None) -> dict:
+def _recover(
+    root: Path,
+    request: dict,
+    state: dict,
+    validation_assessor=None,
+    candidate_validator=None,
+) -> dict:
+    """Keep bounded repair state beside the existing receipt, never grant authority."""
+    binding = execution_binding(
+        root, request["spec"], request["working_reference"], request["task_ref"]
+    )
+    diagnosis = request["diagnosis"]
+    fields = {
+        "category",
+        "source",
+        "evidence",
+        "affected_scope",
+        "repair_suggestion",
+        "authorization",
+        "recheck_command",
+        "success_condition",
+        "resume_target",
+    }
+    if not isinstance(diagnosis, dict) or fields - diagnosis.keys():
+        raise ValueError("recovery requires a complete structured diagnosis")
+    branch = request.get("branch")
+    if not isinstance(branch, str) or not branch.strip():
+        raise ValueError("recovery branch is required")
+    recoveries = state.setdefault("recovery", {})
+    if not isinstance(recoveries, dict):
+        raise TypeError("invalid legacy recovery state; preserve it for investigation")
+    previous = recoveries.get(branch)
+    if previous and previous.get("binding") != binding:
+        _admit(root, request, state, validation_assessor=validation_assessor)
+        state.setdefault("recovery_history", []).append(
+            {"branch": branch, "cycle": previous}
+        )
+        previous = None
+    row = previous or {
+        "binding": binding,
+        "started_at": time.time(),
+        "attempts": [],
+        "diagnosis": diagnosis,
+        "resume_target": diagnosis["resume_target"],
+    }
+    recoveries[branch] = row
+    row["diagnosis"] = diagnosis
+    patch = request.get("patch")
+    recheck_phase = diagnosis.get("phase", "enablement")
+    if recheck_phase not in {"planning", "enablement", "acceptance", "release"}:
+        raise ValueError("unknown diagnosis recheck phase")
+    known_check = diagnosis["source"] in {
+        "test-validation-layout",
+        "verification-ladder",
+    }
+    known_check = known_check and diagnosis["success_condition"] in {
+        "layout verdict PASS",
+        "project validation enablement PASS",
+        "valid CLI result and passing required check",
+    }
+    if not known_check:
+        row.update(
+            status="investigate", next_action="resolve-diagnosis-specific-recheck"
+        )
+        write_execution_state(root, request["task_ref"], state)
+        return _blocked(
+            "no executable recheck is bound to this diagnosed condition"
+        ) | {"recovery": row}
+    if request.get("deterministic") is not True:
+        row.update(status="needs-decision", next_action="resolve-ambiguous-repair")
+        write_execution_state(root, request["task_ref"], state)
+        return _blocked("repair method or acceptance threshold is not unambiguous") | {
+            "recovery": row
+        }
+    try:
+        _admit(root, request, state, validation_assessor=validation_assessor)
+    except (ValueError, TypeError, KeyError) as exc:
+        row.update(
+            status="prepared", next_action="verify-existing-authority", repair=patch
+        )
+        write_execution_state(root, request["task_ref"], state)
+        return _blocked(str(exc)) | {"recovery": row, "reviewable_repair": patch}
+    inputs = {}
+    policy_inputs = {
+        path.relative_to(root).as_posix()
+        for directory in (root / "validation", root / "architecture")
+        if directory.is_dir()
+        for path in directory.rglob("*")
+        if path.is_file() and path.suffix in {".json", ".yaml", ".yml"}
+    }
+    for relative in sorted(set(request.get("inputs", [])) | policy_inputs):
+        path = (root / relative).resolve()
+        if not path.is_relative_to(root) or not path.is_file():
+            raise ValueError("recovery input must be an existing project file")
+        inputs[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+    fingerprint = hashlib.sha256(
+        json.dumps(
+            {
+                "binding": binding,
+                "inputs": inputs,
+                "patch": patch,
+                "check": diagnosis["source"],
+                "phase": recheck_phase,
+                "success_condition": diagnosis["success_condition"],
+                "recheck_command": diagnosis["recheck_command"],
+            },
+            sort_keys=True,
+            ensure_ascii=False,
+        ).encode()
+    ).hexdigest()
+    attempts = row["attempts"]
+    repeated = any(item["fingerprint"] == fingerprint for item in attempts)
+    if (
+        row.get("status") == "resolved"
+        and attempts
+        and attempts[-1]["fingerprint"] == fingerprint
+    ):
+        return {
+            "verdict": "PASS",
+            "product_code_allowed": False,
+            "spec_discussion_allowed": True,
+            "recovery": row,
+            "replayed": True,
+        }
+    if attempts and not repeated:
+        row["started_at"] = time.time()
+        row["cycle_start"] = len(attempts)
+    transient = diagnosis["category"] in {"timeout", "process-launch-failure"} and bool(
+        request.get("transient_reason")
+    )
+    if (
+        len(attempts) - row.get("cycle_start", 0) >= 3
+        or time.time() - row["started_at"] >= 120
+        or (repeated and not transient)
+    ):
+        row.update(status="blocked", next_action="collect-new-evidence-or-repair")
+        write_execution_state(root, request["task_ref"], state)
+        return _blocked("recovery budget exhausted or identical failed inputs") | {
+            "recovery": row
+        }
+    attempt = {
+        "fingerprint": fingerprint,
+        "inputs": inputs,
+        "started_at": time.time(),
+        "status": "started",
+        "transient_reason": request.get("transient_reason"),
+    }
+    attempts.append(attempt)
+    # Reserve before effects: process restart cannot silently repeat an interrupted repair.
+    write_execution_state(root, request["task_ref"], state)
+    try:
+        if patch is not None:
+            attempt["repair"] = _apply(
+                root,
+                request | {"patch": patch},
+                state,
+                validation_assessor,
+                candidate_validator,
+            )
+            if attempt["repair"]["verdict"] != "PASS":
+                raise ValueError(
+                    "repair patch was not committed: "
+                    + attempt["repair"].get("reason", "blocked")
+                )
+        checked = assess_project_validation(
+            root,
+            request["spec"],
+            phase=recheck_phase,
+            validation_assessor=validation_assessor,
+        )
+        attempt["recheck"] = checked
+        required = (
+            checked.get("layout")
+            if diagnosis["source"] == "test-validation-layout"
+            else checked
+        )
+        success = isinstance(required, dict) and required.get("verdict") == "PASS"
+        success = success and time.time() - row["started_at"] < 120
+        attempt["status"] = "PASS" if success else "BLOCKED"
+        row.update(
+            status="resolved" if success else "blocked",
+            next_action=row["resume_target"] if success else "investigate-recheck",
+        )
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        attempt.update(status="BLOCKED", error=str(exc))
+        row.update(status="blocked", next_action="investigate-recheck")
+    write_execution_state(root, request["task_ref"], state)
+    return {
+        "verdict": "PASS" if row["status"] == "resolved" else "BLOCKED",
+        "product_code_allowed": False,
+        "spec_discussion_allowed": True,
+        "recovery": row,
+        "unaffected_branches_suspended": False,
+    }
+
+
+def execute_request(
+    root: Path, request: dict, validation_assessor=None, candidate_validator=None
+) -> dict:
     """Authorize, suspend, query or apply one reviewed replacement; deny on missing evidence."""
     root = root.resolve()
-    lock = root / "spec-governance" / ".managed-delivery.lock"
-    acquired = False
     try:
         if not isinstance(request, dict):
             raise TypeError("request must be an object")
         task = request["task_ref"]
         state = read_execution_state(root, task)
-        lock.parent.mkdir(exist_ok=True)
-        fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-        os.close(fd)
-        acquired = True
-        state = read_execution_state(root, task)
         operation = request["operation"]
+        if operation == "recover":
+            return _recover(
+                root, request, state, validation_assessor, candidate_validator
+            )
         if operation == "suspend":
-            state.update(phase="suspended", receipt=None)
+            state.update(phase="suspended", receipt=None, receipts={})
             write_execution_state(root, task, state)
             return {
                 "verdict": "PASS",
@@ -199,6 +542,66 @@ def execute_request(root: Path, request: dict, validation_assessor=None) -> dict
             )
             if not admission["product_code_allowed"]:
                 raise ValueError(admission.get("reason", "admission denied"))
+            receipts = {
+                request["spec"]: {
+                    "binding": binding,
+                    "instruction": request["instruction"],
+                    "source_event_id": event,
+                }
+            }
+            explicit_batch = re.fullmatch(
+                r"開始執行\s*SPEC-(\d{4}(?:/(?:SPEC-)?\d{4})+)",
+                request["instruction"].strip().replace("\\", "/"),
+            )
+            if explicit_batch and request.get("scope") is None:
+                raise ValueError(
+                    "combined execution instruction requires all reviewed SPEC bindings"
+                )
+            if request.get("scope") is not None:
+                scope = request["scope"]
+                explicit = re.fullmatch(
+                    r"開始執行\s*SPEC-(\d{4}(?:/(?:SPEC-)?\d{4})*)",
+                    request["instruction"].strip().replace("\\", "/"),
+                )
+                if not explicit or not isinstance(scope, list) or not scope:
+                    raise ValueError(
+                        "batch scope requires explicit SPEC IDs and reviewed bindings"
+                    )
+                ids = [
+                    "SPEC-" + item.removeprefix("SPEC-")
+                    for item in explicit.group(1).split("/")
+                ]
+                if len(scope) != len(ids) or {
+                    Path(item["spec"]).name[:9] for item in scope
+                } != set(ids):
+                    raise ValueError(
+                        "batch scope differs from the original execution instruction"
+                    )
+                for item in scope:
+                    scoped = execution_binding(
+                        root, item["spec"], item["working_reference"], task
+                    )
+                    checked = verify_delivery_admission(
+                        root,
+                        item["spec"],
+                        expected_hash=item["expected_hash"],
+                        authorization=request["instruction"],
+                        working_reference=item["working_reference"],
+                        task_ref=task,
+                        validation_assessor=validation_assessor,
+                    )
+                    if (
+                        not checked["product_code_allowed"]
+                        or scoped["spec_hash"] != item["expected_hash"]
+                    ):
+                        raise ValueError(
+                            "batch scope admission failed: " + str(checked)
+                        )
+                    receipts[item["spec"]] = {
+                        "binding": scoped,
+                        "instruction": request["instruction"],
+                        "source_event_id": event,
+                    }
             state["used_event_ids"].append(event)
             state.update(
                 phase="executing",
@@ -207,6 +610,7 @@ def execute_request(root: Path, request: dict, validation_assessor=None) -> dict
                     "instruction": request["instruction"],
                     "source_event_id": event,
                 },
+                receipts=receipts,
             )
             write_execution_state(root, task, state)
             return admission | {
@@ -241,13 +645,16 @@ def execute_request(root: Path, request: dict, validation_assessor=None) -> dict
                 "enforcement_scope": "managed-entrypoint-only",
             }
         if operation == "apply":
-            return _apply(root, request, state, validation_assessor=validation_assessor)
+            return _apply(
+                root,
+                request,
+                state,
+                validation_assessor=validation_assessor,
+                candidate_validator=candidate_validator,
+            )
         raise ValueError("unknown managed operation")
     except (ValueError, OSError, KeyError, TypeError) as exc:
         return _blocked(str(exc))
-    finally:
-        if acquired:
-            lock.unlink(missing_ok=True)
 
 
 def _audit_source_trace(packet: dict) -> dict:

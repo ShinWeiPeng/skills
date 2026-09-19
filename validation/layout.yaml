@@ -165,6 +165,7 @@ entries:
   - skills/engineering/setup-matt-pocock-skills/issue-tracker-local.md
   - skills/engineering/setup-matt-pocock-skills/triage-labels.md
   - skills/engineering/spec-governance/SKILL.md
+  - skills/engineering/spec-governance/references/discussion-entry.md
   - skills/engineering/tdd/SKILL.md
   - skills/engineering/tdd/mocking.md
   - skills/engineering/tdd/tests.md
@@ -418,6 +419,10 @@ entries:
   - skills/engineering/implement/scripts/spec_delivery.py
   - skills/engineering/spec-governance/scripts/execution_state.py
   - skills/engineering/spec-governance/scripts/spec_contract.py
+  - skills/engineering/spec-governance/scripts/discussion_state.py
+  - skills/engineering/implement/scripts/discussion_hook.py
+  - plugins/governed-engineering-skills/hooks/hooks.json
+  - plugins/governed-engineering-skills/hooks/run-windows.ps1
   - skills/engineering/validate-on-device/scripts/validate_on_device.py
   - skills/engineering/validate-on-device/scripts/vod/__init__.py
   - skills/engineering/validate-on-device/scripts/vod/evidence.py
@@ -459,6 +464,10 @@ entries:
   - specs/SPEC-0026-universal-spec-execution-boundary.md
   - specs/SPEC-0027-project-runtime-validation-enforcement.md
   - specs/SPEC-0028-test-validation-architecture.md
+  - specs/SPEC-0029-proposal-discussion-entry.md
+  - specs/SPEC-0030-governance-diagnosis-recovery.md
+  - specs/SPEC-0031-execution-command-aliases.md
+  - specs/SPEC-0032-recoverable-spec-sync.md
   role: specification
 - include:
   - skills/engineering/govern-modular-event-architecture/assets/project/ADR-0001-modular-event-architecture.md.tmpl
@@ -498,6 +507,7 @@ entries:
   - tests/flows/plugin-integration/plugin/test_routing.py
   - tests/flows/plugin-integration/plugin/test_spec_governance.py
   - tests/flows/plugin-integration/plugin/test_turn_continuity.py
+  - tests/flows/plugin-integration/plugin/test_discussion_entry.py
   - tests/flows/plugin-integration/plugin/test_version_governance.py
   - tests/flows/plugin-integration/plugin/test_windows_artifact_access.ps1
   role: test
@@ -532,6 +542,12 @@ entries:
 - include:
   - validation/acceptance-SPEC-0027.json
   - validation/acceptance-SPEC-0028.json
+  - validation/acceptance-SPEC-0029.json
+  - validation/acceptance-SPEC-0030.json
+  - validation/acceptance-SPEC-0032.json
+  - validation/run-references-SPEC-0032.json
+  - validation/run-references-SPEC-0029.json
+  - validation/run-references-SPEC-0030.json
   - validation/layout.yaml
   - validation/run-references-SPEC-0028.json
   - validation/verification-ladder.yaml
@@ -604,14 +620,14 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py:
-    sha256: 5e50a0f0a50732d112317c1b86a5f721cf715234537ac5be8f138c8d9e5d027d
+    sha256: cfe795c007f12725a5aa43ae11313e81a72921677609da796664d7c1a547e531
     targets:
     - scripts/assemble_plugin.py
     - scripts/validate_distribution.py
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/plugin/test_guided_routing.py:
-    sha256: 2e0f382983882deee1efaa90422679ae803bc2b88424e8fe258f1122212733ab
+    sha256: 163ad24be028fb895bea430e2240800028ead7ef41318fb4c93f102f562d8159
     targets:
     - skills/engineering/engineering-risk-routing/scripts/project_state.py
     - skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
@@ -625,7 +641,7 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/plugin/test_spec_governance.py:
-    sha256: f47d8060d682e8f6cc69e938264ebfc56b558df6e69fd122d40b0ceabd94634c
+    sha256: 4bb78b6fd570ec343ce7a633d0faccc6da1cf51a945af33a83e035450788c7fe
     targets:
     - skills/engineering/spec-governance/scripts/spec_contract.py
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled

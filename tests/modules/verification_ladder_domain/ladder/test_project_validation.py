@@ -544,6 +544,28 @@ class ProjectValidationTests(unittest.TestCase):
             self.assertEqual(result["verdict"], "PASS")
             self.assertEqual(result["required_layers"], ["module-contract", "sil"])
             self.assertNotIn("validate-on-device", result["required_gates"])
+            text = (root / "specs/SPEC-0001-sensor.md").read_text(encoding="utf-8")
+            _, _, rows = validation.spec_contract(text)
+            names = ["id", "requirements", "criterion", "validation method", "evidence"]
+            criterion = {
+                name: value
+                for name, value in zip(names, rows["AC-001"], strict=True)
+                if name != "evidence"
+            }
+            mapping["acceptance"]["AC-001"]["criterion_sha256"] = validation.digest(
+                criterion
+            )
+            write(root, "validation/acceptance-SPEC-0001.json", mapping)
+            self.assertEqual(
+                "PASS",
+                validation.assess_project(root, "specs/SPEC-0001-sensor.md")["verdict"],
+            )
+            mapping["acceptance"]["AC-001"]["criterion_sha256"] = "0" * 64
+            write(root, "validation/acceptance-SPEC-0001.json", mapping)
+            self.assertEqual(
+                "BLOCKED",
+                validation.assess_project(root, "specs/SPEC-0001-sensor.md")["verdict"],
+            )
 
     def test_unknown_claim_and_missing_ac_mapping_block(self):
         for case in ["unknown", "missing"]:

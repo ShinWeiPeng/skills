@@ -1,0 +1,44 @@
+[
+  {
+    "path": "skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py",
+    "baseline_count": 0,
+    "current_count": 0,
+    "introduced": []
+  },
+  {
+    "path": "skills/engineering/implement/scripts/managed_delivery.py",
+    "baseline_count": 0,
+    "current_count": 0,
+    "introduced": []
+  },
+  {
+    "path": "skills/engineering/implement/scripts/spec_delivery.py",
+    "baseline_count": 0,
+    "current_count": 0,
+    "introduced": []
+  },
+  {
+    "path": "skills/engineering/spec-governance/scripts/execution_state.py",
+    "baseline_count": 0,
+    "current_count": 0,
+    "introduced": []
+  },
+  {
+    "path": "skills/engineering/spec-governance/scripts/spec_contract.py",
+    "baseline_count": 4,
+    "current_count": 4,
+    "introduced": []
+  },
+  {
+    "path": "tests/flows/plugin-integration/plugin/test_managed_delivery.py",
+    "baseline_count": 0,
+    "current_count": 0,
+    "introduced": []
+  },
+  {
+    "path": "tests/flows/plugin-integration/plugin/test_turn_continuity.py",
+    "baseline_count": 0,
+    "current_count": 0,
+    "introduced": []
+  }
+]

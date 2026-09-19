@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "run_id": "116bbe01f01040cf927b4b1729f11667",
+  "kind": "tests",
+  "started_at": "2026-09-18T16:23:16.723036+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "installed-test-build-smoke",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      ".tmp/test-installed-package.py"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "d253e814bc687edd502bbebd0322f50ff2229bfd5b0ec30a21237c5d72e9a7b7"
+    },
+    "inputs": {},
+    "spec": "SPEC-0029"
+  }
+}

@@ -43,6 +43,10 @@ Project verification requirements now follow the current specification across re
 
 ## Test and evidence boundaries
 
+Acceptance mappings can bind to the current criterion with `criterion_sha256`.
+Changing a criterion while retaining its AC ID makes the old binding stale; update
+the reviewed mapping before execution. Evidence text is excluded from this digest.
+
 Tests now have explicit Module or Flow ownership under `tests/`. Authored validation
 plans stay under `validation/`; each execution keeps its own immutable run under
 `artifacts/`. This keeps specifications readable and prevents later runs from

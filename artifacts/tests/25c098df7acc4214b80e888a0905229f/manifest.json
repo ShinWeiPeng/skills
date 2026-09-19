@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "run_id": "25c098df7acc4214b80e888a0905229f",
+  "kind": "tests",
+  "started_at": "2026-09-19T04:29:49.517979+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "followup-final-assembly",
+    "tool": {
+      "name": "SPEC-0032-check",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "spec-governance/assemble-candidate-0032.py"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "6867a852e2d20e68c645542e20291964c775b77824444bd7ea819aa229224f63"
+    },
+    "inputs": {
+      "spec": "63679764ace1552e82336e10e61f73e466d291a851d3ab81c483ca7897062288"
+    },
+    "spec": "SPEC-0032",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T04:29:54.750909+00:00",
+  "files": {
+    ".run.json": "ab1885d04f1f13740175d4c3b5b46eed2bc2e8143ff9069c79632e92dcae2495",
+    "result.json": "5a5dab664c0f1d5b75085decb671613e70d46e903e643a348c5ab0df19fdf95c",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "3412844f4d6a3840c89340693ac1f443a1f692313b7c1a99966d5565cd3e80ff"
+  }
+}

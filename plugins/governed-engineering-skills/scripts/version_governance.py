@@ -149,32 +149,42 @@ def assembly_source_inventory(
 ) -> list[tuple[str, Path]]:
     """Map tracked repository sources to their unique Plugin artifact paths."""
     repository_root = repository_root.resolve()
-    completed = subprocess.run(
-        [
-            "git",
-            "ls-files",
-            "--cached",
-            "--",
-            PLUGIN_SOURCE_ROOT.as_posix(),
-            *(root.as_posix() for root in PROMOTED_SOURCE_ROOTS),
-        ],
-        cwd=repository_root,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if completed.returncode == 0:
+    # An extracted rehearsal may live underneath an unrelated Git checkout.
+    # Its explicit inventory is authoritative only when it has no own Git root.
+    if (repository_root / REHEARSAL_SOURCE_INVENTORY).is_file() and not (
+        repository_root / ".git"
+    ).exists():
         repository_paths = [
-            Path(line.replace("\\", "/"))
-            for line in completed.stdout.splitlines()
+            Path(path) for path in _rehearsal_inventory_paths(repository_root)
         ]
     else:
-        try:
-            raw_paths = _rehearsal_inventory_paths(repository_root)
-        except ValueError as exc:
-            detail = completed.stderr.strip() or "tracked inventory unavailable"
-            raise ValueError(f"unable to inventory tracked Plugin sources: {detail}") from exc
-        repository_paths = [Path(path) for path in raw_paths]
+        completed = subprocess.run(
+            [
+                "git",
+                "ls-files",
+                "--cached",
+                "--",
+                PLUGIN_SOURCE_ROOT.as_posix(),
+                *(root.as_posix() for root in PROMOTED_SOURCE_ROOTS),
+            ],
+            cwd=repository_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if completed.returncode == 0:
+            repository_paths = [
+                Path(line.replace("\\", "/")) for line in completed.stdout.splitlines()
+            ]
+        else:
+            try:
+                raw_paths = _rehearsal_inventory_paths(repository_root)
+            except ValueError as exc:
+                detail = completed.stderr.strip() or "tracked inventory unavailable"
+                raise ValueError(
+                    f"unable to inventory tracked Plugin sources: {detail}"
+                ) from exc
+            repository_paths = [Path(path) for path in raw_paths]
 
     entries: dict[str, Path] = {}
     plugin_prefix = PLUGIN_SOURCE_ROOT.as_posix() + "/"
@@ -190,7 +200,9 @@ def assembly_source_inventory(
         ):
             continue
         if not source.is_file():
-            raise ValueError(f"tracked Plugin source is missing: {repository_path.as_posix()}")
+            raise ValueError(
+                f"tracked Plugin source is missing: {repository_path.as_posix()}"
+            )
 
         normalized = repository_path.as_posix()
         logical_path: str | None = None
@@ -672,11 +684,7 @@ def _refresh_rehearsal_inventory(
         if (repository_root / archived).is_file():
             tracked_paths.append(archived.as_posix())
     refreshed = sorted(
-        {
-            str(path)
-            for path in tracked_paths
-            if (repository_root / str(path)).is_file()
-        }
+        {str(path) for path in tracked_paths if (repository_root / str(path)).is_file()}
     )
     inventory_path.write_text(
         json.dumps(refreshed, ensure_ascii=False, indent=2) + "\n",

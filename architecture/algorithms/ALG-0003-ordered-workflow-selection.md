@@ -252,3 +252,31 @@ answer mappings. Completion checks the actual prepared question text; the delive
 auditor separately validates emitted reply and every normalized question tool call.
 Both use the same policy. Caller evidence still requires raw trace corroboration,
 and no PASS grants execution authority or proves the user saw a surface.
+
+## SPEC-0029 discussion entry refinement
+
+The composition router now establishes or reloads a task/turn-bound working entry
+before handing engineering work to its supporting skill. `grilling` is the
+`discussion_owner` for diagnosis, explanation, proposals and modifying work alike.
+An absent or stale entry selects grilling with a spec-governance resume target;
+selection flags and historical completed stages cannot substitute for saved files.
+This supersedes the earlier rejection of persisted conversation state: the existing
+spec owner stores it, with no new independent requirement authority.
+
+The host hook adapter belongs to the existing guided_workflow_router composition
+root. It calls the delivery-owned discussion interface; delivery delegates to its
+spec_governance_domain child. Unknown intent remains an obligation until classified,
+rather than a keyword-based exemption. Source references and original-turn aliases
+remain explicit; one failed automatic continuation exhausts that original turn.
+A supporting skill may read facts while the discussion owner preserves decisions.
+Pure discussion does not imply formal materialization or product authorization.
+
+## SPEC-0032 recovery routing
+
+Discussion synchronization and workflow selection are separate results. An unsaved
+discussion reports a recovery target but preserves investigation/diagnosis routing;
+the router grants no product-write authority. Delivery checks current binding and
+authorization rather than rejecting historical repair failure. Owner Stop uses a
+persisted input fingerprint to suppress unchanged automatic retries; classification,
+record and verify are still callable after exhaustion. A changed current SPEC can
+be rechecked, while turn identity or reply wording alone cannot reset the allowance.

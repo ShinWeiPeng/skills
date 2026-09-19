@@ -6,21 +6,20 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
 from pathlib import Path
+from unittest import mock
 
 from test_spec_governance import confirmed_spec
-
 
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "CLAUDE.md").is_file())
 PLUGIN = ROOT / "dist/governed-engineering-skills/skills"
 sys.path.insert(0, str(PLUGIN / "spec-governance/scripts"))
 sys.path.insert(0, str(PLUGIN / "implement/scripts"))
 sys.path.insert(0, str(PLUGIN / "engineering-risk-routing/scripts"))
+import guided_workflow_router as router
 import spec_contract as spec
 import spec_delivery as delivery
 import workflow_selection as selection
-import guided_workflow_router as router
 
 
 def host_evidence(mode="default", numbered=True):
@@ -388,7 +387,10 @@ class TurnContinuityTests(unittest.TestCase):
         self.question()
         self.assertIsNotNone(spec.pending_decision(self.reload()))
         journal = (self.root / self.ref["journal_path"]).read_text(encoding="utf-8")
-        self.assertNotIn("保留哪些檔案", journal)
+        self.assertIn("保留哪些檔案", journal)
+        self.assertEqual(
+            "continuous", spec._read_journal(self.root / self.ref["journal_path"])[1]
+        )
         self.assertIn("Q-tracking@", journal)
 
     def test_contract_sections_after_revision_history_are_not_ignored(self):
@@ -454,14 +456,24 @@ class TurnContinuityTests(unittest.TestCase):
         )
         self.question()
         result = router.route(
-            "1", self.root, task_ref="task-A", working_reference=self.wid
+            "1",
+            self.root,
+            task_ref="task-A",
+            working_reference=self.wid,
+            turn_ref="fixture-answer-turn",
+            source_ref="fixture-user-answer",
         )
         self.assertEqual("spec-governance", result["selected_skill"])
         self.assertEqual("BLOCKED", result["status"])
         self.assertEqual("PASS", self.answer("1")["verdict"])
         canonical = self.materialize()["canonical_spec"]
         result = router.route(
-            "開始執行", self.root, task_ref="task-A", working_reference=self.wid
+            "開始執行",
+            self.root,
+            task_ref="task-A",
+            working_reference=self.wid,
+            turn_ref="fixture-execution-turn",
+            source_ref="fixture-user-execute",
         )
         self.assertEqual(canonical["path"], result["spec_context"]["selected_path"])
         self.assertEqual("spec-governance", result["selected_skill"])
@@ -574,8 +586,23 @@ class DiscussionCompletionTests(unittest.TestCase):
             "status": "awaiting-authorization",
             "source_ref": "fixture-visible-reply",
             "stage": "emitted",
-            "reply_text": f"[{self.ref['spec_id']}: {title}](<{path.as_posix()}>)\n\n{summary}\n\nSPEC 已完成，等待「開始執行」。",
+            "reply_text": f"[{self.ref['spec_id']}: {title}](<{path.as_posix()}>)\n\n{summary}\n\n修訂 {self.ref['revision']} confirmed\n\nSPEC 已完成，等待「開始執行」。",
         }
+
+    def test_visible_spec_reply_requires_actual_revision_and_lifecycle_status(self):
+        self.materialize()
+        good = self.spec_reply()
+        for text in (
+            good["reply_text"].replace("confirmed", "working"),
+            good["reply_text"].replace(f"修訂 {self.ref['revision']}", "修訂 999"),
+        ):
+            self.assertFalse(
+                self.finish(
+                    proposal_presented=True,
+                    presentation_ref="reply",
+                    spec_presentation=good | {"reply_text": text},
+                )["can_end_turn"]
+            )
 
     def test_completed_spec_requires_visible_current_link_summary_and_status(self):
         self.materialize()
@@ -1027,11 +1054,11 @@ class DiscussionCompletionTests(unittest.TestCase):
             ("status: confirmed", "status: implemented"),
         ):
             path.write_text(before.replace(old, new), encoding="utf-8")
-            self.assertFalse(
-                self.finish(proposal_presented=True, presentation_ref="reply")[
-                    "can_end_turn"
-                ]
-            )
+            context = self.context()
+            if context["state"] == "invalid":
+                self.assertNotIn("spec_presentation", context)
+            else:
+                self.assertNotEqual("continuous", context["working_spec"]["continuity"])
 
 
 class QuestionPresentationTests(unittest.TestCase):

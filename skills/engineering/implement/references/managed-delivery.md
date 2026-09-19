@@ -213,3 +213,43 @@ Use skills/engineering/implement in a source checkout. This is an internal CLI,
 not a new skill. Library callers pass validation_assessor explicitly. Without it,
 direct governed library/CLI calls fail closed with a remediation message; legacy
 host projects with no governance markers retain their previous behavior.
+
+## Explicit combined execution scope
+
+An instruction such as `開始執行SPEC-0029/0030` can be admitted with a `scope`
+array containing each canonical `spec`, `working_reference` and verified
+`expected_hash`. The scope must exactly match the explicit IDs. All bindings pass
+before one source event is consumed; per-spec receipts remain in the same task
+state. A stale contract cannot use its receipt; suspend clears every scope.
+Preserve the original instruction and user source event without synthesizing
+additional user messages. Legacy single-spec receipts remain readable.
+
+## Recoverable synchronization (SPEC-0032)
+
+Historical repair_used/repair_failed flags are audit history, never a permanent
+denial. Managed admission still requires the matching current saved discussion with
+a PASS synchronization verdict and an
+independent valid execution receipt. Stale or missing entry is recoverable through
+the spec owner; routing to discussion/diagnosis must remain available. Saving a
+new SPEC may invalidate an old execution receipt under the existing binding rules;
+recovery never silently restores product authorization.
+
+## Concurrent operations and recovery
+
+Independent SPEC tasks may work concurrently. Before dependent product changes,
+require each transitive `depends_on` SPEC to be uniquely identified and implemented;
+missing prerequisites or cycles pause only affected work. Managed state uses short
+OS-owned locks and optimistic state versions. Locks are released on process exit;
+validation runs outside locks. Never delete a live lock file to steal ownership.
+For same-file edits, provide optional `before_content` matching `before_sha256`.
+The managed patch rereads and integrates disjoint line edits with at most three
+commit attempts. Overlaps pause the affected write for a reviewed resolution.
+Before a merged commit, composition must supply a candidate_validator that checks
+the proposed content outside the lock and returns PASS with its exact SHA-256.
+Without this port, the CLI returns a reviewable_candidate and pauses that write.
+Validate it with the project tests, reread its base, and submit the reviewed result;
+no extra user permission is needed within the same authorized scope. Admission
+checks alone do not prove the integrated program's behavior. No retry may overwrite a concurrent edit.
+Recovery fingerprints include the validation phase, inputs and success condition.
+A fresh valid current-binding grant starts a new recovery cycle and preserves the
+previous cycle in history; it never restores stale authority.

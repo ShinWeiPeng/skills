@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0030-governance-diagnosis-recovery.md",
+    "spec_id": "SPEC-0030",
+    "revision": 2,
+    "spec_sha256": "d78ea45a250786be16b006c95c6ce6afb149bc8b465a40a52e56441261a96469",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "448ca594e6368d2485e6cb36ebc75dd0331a898fbafdb2b015c3197382956588"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "feeed97793727af01273a7300a03df1062ada8dfa67b1ff5300dd6941df0666f"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "13ac1baef1baa70ddb70059ca774e2b895a8776565716bcb23cf9723c2b161cb"
+      },
+      "validation/acceptance-SPEC-0030.json": {
+        "state": "present",
+        "sha256": "0a1d4d80fa613075b2549e0d91e7535483cef83040164643b87a8ac70bdb9d25"
+      }
+    },
+    "skill": {
+      "version": "0.16.0",
+      "sha256": "6e7520b1638d0e8dd743932319d08e3f02a41c748aaf5f27bb9b3756259570d1"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001, REQ-002",
+        "沒有同名 SKILL.md 但有有效 layout 結果時不誤報能力缺失；有效 FAIL/BLOCKED 保留原 gate 結果；明確能力限制仍生效。",
+        "能力解析單元測試及 CLI 路由整合測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Separate discovered skills, callable capability and check verdict; valid layout FAIL/BLOCKED is callable but not passing; respect explicit capability restrictions."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002, REQ-005",
+        "入口缺失、依賴失敗、逾時、非法 JSON、退出碼不符、設定缺失、產品違規各自得到正確診斷與下一步，不被誤報 PASS。",
+        "可控 subprocess fixtures 與真實 CLI 暫存專案。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Subprocess fault matrix and real temporary CLI projects distinguish missing entry, dependency, timeout, malformed result, exit mismatch, missing configuration and product violations."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-003, REQ-004",
+        "從五項 AC 增加到八項時立即列出三項缺漏；刪除及相同 ID 語意變更均可偵測；保存成功與規劃受阻同時正確呈現。",
+        "SPEC 生命周期整合測試；核對輸出與持久化內容。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Lifecycle save and reload: five to eight ACs, removals and changed semantics; saved specification remains distinct from planning and execution readiness."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-006, REQ-007",
+        "已授權明確修復自行完成並重驗；未授權時只產出修復內容；不明門檻提出決策；不重問既有授權，不偽造方法與證據。",
+        "合成多回合工作流程 fixtures 與權限/副作用斷言。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Authorized unambiguous repairs revalidate; unauthorized repairs remain reviewable proposals; ambiguous methods require decisions and do not fabricate evidence."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-008",
+        "受阻分支暫停而獨立分支繼續；修復通過後回到原步驟；跨回合恢復與規格過期可正確辨識。",
+        "保存/重載整合測試，檢查 task、revision/hash 及下一步。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Persist task/reference/revision/hash-bound branch recovery; unrelated authorized branches proceed; stale contracts cannot reuse authority."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-009",
+        "相同失敗不無限重試；有限暫時性重試耗盡後保存待恢復狀態；新修復才重啟相關驗證。",
+        "假時鐘、執行次數斷言、失敗序列及恢復案例。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Fake clock and call-count assertions: identical failed inputs do not repeat; finite temporary retries preserve exhausted state; changed repair evidence permits recheck."
+    },
+    "AC-007": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-007",
+        "REQ-010",
+        "舊狀態可安全讀取；新契約通過 schema 檢查；技能及 docs 一致；組裝後插件通過同一能力與恢復回歸。",
+        "契約/文件檢查、插件組裝、發行包驗證與整合測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Legacy state compatibility, schema and documentation consistency, source and assembled package regression."
+    },
+    "AC-008": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-008",
+        "REQ-003, REQ-005, REQ-007, REQ-010",
+        "使用合成 SPEC-0058 類型案例同時重現能力誤報、AC 缺漏及 layout 設定缺失；逐項修復不會掩蓋其餘阻擋，不讀寫真實案例專案。",
+        "隔離暫存專案端到端 CLI 回歸，核對診斷及檔案副作用。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Isolated synthetic SPEC-0058-like end-to-end case exposes capability, AC mapping and layout gaps independently without accessing the real project."
+    }
+  }
+}

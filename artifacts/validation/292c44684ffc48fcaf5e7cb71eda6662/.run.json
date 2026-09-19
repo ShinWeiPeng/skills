@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "run_id": "292c44684ffc48fcaf5e7cb71eda6662",
+  "kind": "validation",
+  "started_at": "2026-09-18T15:51:32.798393+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0029-proposal-discussion-entry.md"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "adf912a3e18e1f2526f2b70360aac7efeae19e7e588adf67f821dab85575e418"
+    },
+    "inputs": {
+      "plan": "01fdd84af5a3c928f6f4d88f41caee86621aa7bde07137dfd73da0c62dabaa9d"
+    },
+    "spec": "SPEC-0029",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016",
+      "AC-017",
+      "AC-018"
+    ]
+  }
+}

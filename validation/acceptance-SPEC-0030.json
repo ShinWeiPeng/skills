@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "spec_id": "SPEC-0030",
+  "acceptance": {
+    "AC-001": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Separate discovered skills, callable capability and check verdict; valid layout FAIL/BLOCKED is callable but not passing; respect explicit capability restrictions."
+    },
+    "AC-002": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Subprocess fault matrix and real temporary CLI projects distinguish missing entry, dependency, timeout, malformed result, exit mismatch, missing configuration and product violations."
+    },
+    "AC-003": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Lifecycle save and reload: five to eight ACs, removals and changed semantics; saved specification remains distinct from planning and execution readiness."
+    },
+    "AC-004": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Authorized unambiguous repairs revalidate; unauthorized repairs remain reviewable proposals; ambiguous methods require decisions and do not fabricate evidence."
+    },
+    "AC-005": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Persist task/reference/revision/hash-bound branch recovery; unrelated authorized branches proceed; stale contracts cannot reuse authority."
+    },
+    "AC-006": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Fake clock and call-count assertions: identical failed inputs do not repeat; finite temporary retries preserve exhausted state; changed repair evidence permits recheck."
+    },
+    "AC-007": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Legacy state compatibility, schema and documentation consistency, source and assembled package regression."
+    },
+    "AC-008": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Isolated synthetic SPEC-0058-like end-to-end case exposes capability, AC mapping and layout gaps independently without accessing the real project."
+    }
+  }
+}

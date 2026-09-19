@@ -4,7 +4,6 @@ import json
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = next(
     p for p in Path(__file__).resolve().parents if (p / "CLAUDE.md").is_file()
 )
@@ -138,7 +137,9 @@ class DecisionQuestionContractTests(unittest.TestCase):
             self.assertIn("spec-governance.reconcile", text)
             self.assertIn("spec-governance.materialize", text)
             self.assertIn("DISC", text)
-        self.assertIn("before the first decision", grilling)
+        self.assertIn(
+            "before the first substantive answer or decision question", grilling
+        )
         self.assertIn("before another question", governance)
         self.assertIn("without waiting for `開始執行`", governance)
         self.assertIn("spec-governance.reopen", ask_matt)

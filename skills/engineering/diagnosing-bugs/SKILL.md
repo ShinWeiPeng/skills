@@ -3,6 +3,36 @@ name: diagnosing-bugs
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
 ---
 
+## Engineering discussion entry
+
+For every engineering task, `grilling` owns discussion state from entry, including
+read-only diagnosis, explanation and proposal exploration. Start or resume the
+same task's canonical working SPEC in `specs/` before a substantive answer. Initial
+fact discovery may precede entry; ask only genuine unresolved user decisions.
+Supporting skills still diagnose, explain and compare alternatives.
+
+Use the spec-governance discussion entry contract at
+`references/discussion-entry.md` in the resolved spec-governance skill. Save sourced
+goals, constraints, facts, answers and candidate suggestions. A candidate is not an
+adopted requirement or execution grant; rejected/deferred candidates do not block
+the original task. If saving fails, disclose the gap and continue discussion or repair; only dependent product changes wait for synchronization. Pure discussion may finish with a saved working record and no
+formal SPEC. Materialize only a complete adopted change scope, expected behavior,
+decisions and acceptance criteria. Reopen confirmed changes and create successors
+for implemented contracts using the existing lifecycle.
+
+Bundled trusted hooks establish task/turn obligations, inspect covered dependent
+operations and check Stop persistence. Unknown intent is not silently exempt.
+SPEC-0032 separates synchronization from recovery permission. Permit one automatic
+repair per actual input state; replay or restart cannot reset its durable history.
+After a failed repair, report unsaved scope and finish normally. Discussion, reading,
+classification, saving and rechecking remain available; product changes still require
+a current SPEC and valid execution authorization. Historical repair failure is not
+a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
+hooks require the explicit owner CLI and remain a capability gap. Do not bypass
+hook trust or claim interception of every tool, reply or interrupt.
+
+
+
 # Diagnosing Bugs
 
 A discipline for hard bugs. Skip phases only when explicitly justified.

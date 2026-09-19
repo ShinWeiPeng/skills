@@ -1,0 +1,80 @@
+{
+  "tests": {
+    "AC-001": [
+      "test_discussion_entry.DiscussionEntryTests.test_single_file_views_and_noop_reconcile",
+      "test_discussion_entry.DiscussionEntryTests.test_reply_wording_is_audit_only",
+      "test_discussion_entry.DiscussionEntryTests.test_wrong_task_stale_binding_and_missing_journal_fail"
+    ],
+    "AC-002": [
+      "test_discussion_entry.DiscussionEntryTests.test_failed_unknown_turn_can_be_classified_after_exhaustion",
+      "test_discussion_entry.DiscussionEntryTests.test_changed_spec_can_be_rechecked_after_exhaustion",
+      "test_discussion_entry.DiscussionEntryTests.test_single_continuation_can_save_successfully"
+    ],
+    "AC-003": [
+      "test_discussion_entry.DiscussionEntryTests.test_one_repair_survives_continuation_restart_and_general_recovery",
+      "test_discussion_entry.DiscussionEntryTests.test_duplicate_prompt_cannot_reset_consumed_budget",
+      "test_discussion_entry.DiscussionEntryTests.test_new_turn_id_alone_does_not_repeat_automatic_repair"
+    ],
+    "AC-004": [
+      "test_discussion_entry.DiscussionEntryTests.test_host_detects_model_omitted_calls_and_consumes_once",
+      "test_discussion_entry.DiscussionEntryTests.test_malformed_hook_payload_warns_without_terminating_task",
+      "test_discussion_entry.DiscussionEntryTests.test_corrupt_state_shapes_do_not_terminate_hook_or_overwrite_store"
+    ],
+    "AC-005": [
+      "test_discussion_entry.DiscussionEntryTests.test_native_windows_owner_command_is_recovery_not_arbitrary_python",
+      "test_discussion_entry.DiscussionEntryTests.test_request_patch_absolute_path_allowed_but_mixed_product_patch_denied",
+      "test_discussion_entry.DiscussionEntryTests.test_recovery_does_not_ignore_exec_workdir_override"
+    ],
+    "AC-006": [
+      "test_discussion_entry.DiscussionEntryTests.test_router_keeps_read_only_support_when_persistence_is_unavailable",
+      "test_discussion_entry.DiscussionEntryTests.test_product_authority_is_independent_of_historical_repair_failure",
+      "test_discussion_entry.DiscussionEntryTests.test_pending_sync_hook_denies_product_but_allows_recovery"
+    ],
+    "AC-007": [
+      "test_discussion_entry.DiscussionEntryTests.test_v1_failed_state_migrates_without_erasing_history",
+      "test_discussion_entry.DiscussionEntryTests.test_invalid_save_after_retry_does_not_poison_valid_save",
+      "test_discussion_entry.DiscussionEntryTests.test_missing_v2_repair_history_is_not_reset"
+    ],
+    "AC-009": [
+      "test_managed_delivery.ManagedDeliveryTests.test_dependency_blocks_until_prerequisite_implemented",
+      "test_managed_delivery.ManagedDeliveryTests.test_transitive_implemented_dependencies_and_cycle",
+      "test_managed_delivery.ManagedDeliveryTests.test_slow_validation_does_not_lock_an_unrelated_task"
+    ],
+    "AC-010": [
+      "test_managed_delivery.ManagedDeliveryTests.test_state_lock_is_released_when_process_is_killed",
+      "test_managed_delivery.ManagedDeliveryTests.test_slow_validation_does_not_lock_an_unrelated_task"
+    ],
+    "AC-011": [
+      "test_managed_delivery.ManagedDeliveryTests.test_disjoint_stale_patch_is_integrated_but_overlap_is_rejected",
+      "test_managed_delivery.ManagedDeliveryTests.test_merged_program_requires_content_validation",
+      "test_managed_delivery.ManagedDeliveryTests.test_recovery_passes_merged_candidate_to_validator",
+      "test_managed_delivery.ManagedDeliveryTests.test_commit_serializes_with_authorization_revocation"
+    ],
+    "AC-012": [
+      "test_managed_delivery.ManagedDeliveryTests.test_parallel_spec_allocation_is_unique"
+    ],
+    "AC-013": [
+      "test_managed_delivery.ManagedDeliveryTests.test_recovery_cache_binds_phase_and_success_condition",
+      "test_managed_delivery.ManagedDeliveryTests.test_new_repair_inputs_start_a_new_bounded_cycle"
+    ],
+    "AC-014": [
+      "test_managed_delivery.ManagedDeliveryTests.test_new_authorization_recovers_stale_binding_and_keeps_history",
+      "test_managed_delivery.ManagedDeliveryTests.test_stale_state_writer_cannot_overwrite_suspension"
+    ],
+    "AC-015": [
+      "test_managed_delivery.ManagedDeliveryTests.test_pending_entry_is_not_promoted_to_sync_pass",
+      "test_managed_delivery.ManagedDeliveryTests.test_finish_turn_bad_json_reports_gap_and_can_finish"
+    ],
+    "AC-016": [
+      "test_turn_continuity.DiscussionCompletionTests.test_visible_spec_reply_requires_actual_revision_and_lifecycle_status",
+      "test_turn_continuity.DiscussionCompletionTests.test_completed_spec_requires_visible_current_link_summary_and_status"
+    ]
+  },
+  "module_contract": "Production public APIs assert state, permission, ordering, recovery and persistence contracts.",
+  "sil": "The same tests compose production discussion/router/delivery implementations with temporary filesystem fixtures and fake validation ports; process/lock cases use real subprocesses. Layers reuse one run, not two independent runs.",
+  "limits": [
+    "No real Desktop hook activation; excluded by user.",
+    "AC-008 cross-check and true-host criterion not fully accepted in this host-only run."
+  ],
+  "original_run": "artifacts/tests/b56288863d37458cbee8add0cba5a814"
+}

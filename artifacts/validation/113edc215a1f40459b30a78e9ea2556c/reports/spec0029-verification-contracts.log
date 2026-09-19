@@ -1,0 +1,17 @@
+test_added_file_invalidates_terminal_evidence (test_run_storage.RunStorageTests.test_added_file_invalidates_terminal_evidence) ... ok
+test_duplicate_allocation_is_exclusive (test_run_storage.RunStorageTests.test_duplicate_allocation_is_exclusive) ... ok
+test_escape_and_missing_metadata_rejected (test_run_storage.RunStorageTests.test_escape_and_missing_metadata_rejected) ... ok
+test_finalization_is_exclusive (test_run_storage.RunStorageTests.test_finalization_is_exclusive) ... ok
+test_incomplete_and_terminal_outcomes (test_run_storage.RunStorageTests.test_incomplete_and_terminal_outcomes) ... ok
+test_interrupted_finalize_remains_incomplete (test_run_storage.RunStorageTests.test_interrupted_finalize_remains_incomplete) ... ok
+test_operation_lock_covers_terminal_publication (test_run_storage.RunStorageTests.test_operation_lock_covers_terminal_publication) ... ok
+test_parallel_distinct_runs_preserve_contents (test_run_storage.RunStorageTests.test_parallel_distinct_runs_preserve_contents) ... ok
+test_reclassified_vendor_source_changes_snapshot (test_run_storage.RunStorageTests.test_reclassified_vendor_source_changes_snapshot) ... ok
+test_tamper_and_added_output_rejected (test_run_storage.RunStorageTests.test_tamper_and_added_output_rejected) ... ok
+test_terminal_published_between_precheck_and_lock_is_rejected (test_run_storage.RunStorageTests.test_terminal_published_between_precheck_and_lock_is_rejected) ... ok
+test_unknown_target_does_not_allocate (test_run_storage.RunStorageTests.test_unknown_target_does_not_allocate) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.534s
+
+OK

@@ -1,0 +1,496 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0029-proposal-discussion-entry.md",
+    "spec_id": "SPEC-0029",
+    "revision": 22,
+    "spec_sha256": "28bd0346f5eb8c97c9955233fcb308991b942a573559965a77e3b2b5c9ced580",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "448ca594e6368d2485e6cb36ebc75dd0331a898fbafdb2b015c3197382956588"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "feeed97793727af01273a7300a03df1062ada8dfa67b1ff5300dd6941df0666f"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "13ac1baef1baa70ddb70059ca774e2b895a8776565716bcb23cf9723c2b161cb"
+      },
+      "validation/acceptance-SPEC-0029.json": {
+        "state": "present",
+        "sha256": "be2a1cbdcd6961307d3a55c81de0e478a1cb3d2ff84761c3d297541b2a6fffc2"
+      }
+    },
+    "skill": {
+      "version": "0.16.0",
+      "sha256": "6e7520b1638d0e8dd743932319d08e3f02a41c748aaf5f27bb9b3756259570d1"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001",
+        "工程診斷、說明、方案與變更任務均從入口保存；只讀問答不虛構決策；非工程任務不誤觸發。",
+        "路由與多輪真實任務驗證，分別核對入口有無呼叫、紀錄與答覆先後。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Engineering and non-engineering routing, plus real multi-turn entry order."
+    },
+    "AC-002": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002",
+        "首份方案或問題前已有 specs/ 中本主題唯一工作狀態 SPEC，保存原始目標；無新增平行 WORKING-SPEC/journal。",
+        "重播原始對話，核對 trace 順序、檔案路徑及建立清單。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Original proposal replay: first canonical working SPEC precedes reply; no new parallel working snapshot or discussion journal."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-003",
+        "短答、混合回答、只讀插問、零問題完成均保留或更新同一 SPEC。",
+        "多回合整合測試及 DISC/版本斷言。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Short answers, mixed turns, read-only interjections and no-question completion."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-004",
+        "僅 selected_skill、自報完成、錯任務或過期 hash 不能通過；有效保存可繼續。",
+        "managed handoff/finish-turn 正反例與獨立 trace 審查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Wrong task, stale revision/hash and self-reported flags fail managed handoff and finish-turn."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-005",
+        "範圍變更、舊工作檔恢復、confirmed/implemented 邊界可驗證且不偽造舊證據。",
+        "lifecycle 回歸案例與正式 SPEC 檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Confirmed reopen, implemented successor and legacy recovery without invented historical entry evidence."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-006",
+        "技能、文件、契約和發布產物規則一致，完整原始失敗案例無使用者追問也能保存。",
+        "文件檢查、完整測試、架構 gate、assemble 與 distribution validation。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Skill/doc contracts, full regression, architecture and assembled distribution."
+    },
+    "AC-007": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-007",
+        "REQ-007",
+        "純解釋不產生正式 SPEC；具體變更在同一紀錄發展，範圍與驗收未明時不確認正式 SPEC。",
+        "多輪測試，核對工作版本與 materialize 順序。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Read-only working records remain unmaterialized until a complete adopted change contract exists."
+    },
+    "AC-008": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-008",
+        "REQ-008",
+        "主動建議被保存並釐清；否決或延後保留紀錄，原任務仍可完成；未採納候選不進入正式需求與授權範圍。",
+        "多輪候選狀態及正式化/完成判定正反例。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Candidate provenance and accepted/rejected/deferred states; unadopted candidates do not block completion."
+    },
+    "AC-009": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-009",
+        "REQ-009",
+        "刻意讓模型不呼叫 router/finish-turn，已啟用 hooks 仍有主動觸發證據；錯任務與過期版本不通過；正常只讀解釋可保存而不產生正式 SPEC。",
+        "隔離候選插件與真實桌面多輪紀錄，核對 hook 事件、task/turn 與檔案版本。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Real trusted desktop hooks trigger even when the model omits voluntary router/finish-turn calls."
+    },
+    "AC-010": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-010",
+        "REQ-010",
+        "成功漏存補救只有一次；持續失敗時無第二次自動接續，依賴操作停止；重啟與接續不重設額度；不創造使用者決策。",
+        "合成事件/整合測試加真實漏存及持續失敗案例，核對次數與原始對話。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Persisted original-turn repair allowance survives continuations/restart; real failure and recovery traces required."
+    },
+    "AC-011": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-011",
+        "REQ-011",
+        "未信任、停用、不支援、hook 執行錯誤及工具未覆蓋均有明確缺口，不能回報整體成功；安裝候選不略過信任。",
+        "能力/載入/觸發矩陣及桌面真實證據，完整回歸、架構与發布檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Separate supported/trusted/loaded/fired evidence; missing, disabled, timeout and unsupported paths cannot pass."
+    },
+    "AC-012": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-012",
+        "REQ-012",
+        "補存失敗後即使 0030 修好設定並重驗通過，同一原始回合亦不發起第二次自動補存；未採納候選不執行。",
+        "兩規格共用恢復整合測試，核對原始回合、額度及副作用。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "General repair/revalidation cannot reset the same original-turn one-repair budget."
+    },
+    "AC-013": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-013",
+        "REQ-013",
+        "討論、持續更新至正式確認使用相同 SPEC ID/路徑；四類內容與來源/歷史均在該檔，無獨立 WORKING-SPEC 或討論 journal 的必要依賴。",
+        "新任務及多輪確認/重開測試，核對檔案清單、身分、內容與狀態。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "One canonical SPEC ID/path from working through confirmation, with readable current contract, decisions, pending discussion and gaps plus embedded provenance."
+    },
+    "AC-014": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-014",
+        "REQ-014",
+        "每輪新資訊先寫入工作版再呈現下一問題/方案；無新資訊不虛增規格版本，漏存不繞過既有一次上限。",
+        "多輪事件順序、快照及版本斷言，加真實桌面討論 trace 檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Persist new information before the next question or proposal; unchanged information does not create a revision; actual desktop trace and one-repair budget."
+    },
+    "AC-015": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-015",
+        "REQ-015",
+        "恢復後不重問已解決問題；新資訊改變前提時可重開，原決策、原因與影響可追溯。",
+        "跨回合與重啟案例，比對問題/決策識別碼、重開來源與實際提問內容。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Resume saved decisions; reopen only with sourced premise changes and preserved decision history."
+    },
+    "AC-016": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-016",
+        "REQ-016",
+        "可辨識缺少行為、例外或驗收等缺口；可查得事實先調查，只對真正未決事項提問，更新後正確移除已解決缺口。",
+        "使用缺漏/完整規格 fixtures 與多輪討論，核對缺口清單、需求對照與問題順序。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Detect behavior, exception and acceptance gaps; investigate discoverable facts and remove resolved gaps."
+    },
+    "AC-017": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-017",
+        "REQ-017",
+        "收斂後不待追問即在原檔確認並呈現；候選/否決/延後不誤列採納，純說明可保存後結束且不強制確認，正式化不放行實作。",
+        "單檔討論至確認/finish-turn/admission 整合及真實多輪 trace。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Automatically confirm a complete adopted contract in the original file, with actual multi-turn trace; confirmation does not grant implementation."
+    },
+    "AC-018": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-018",
+        "REQ-018",
+        "舊工作檔/筆記/歷史可遷入唯一 SPEC；缺損或衝突明確阻擋、不遺失來源，不雙寫、不重設補存額度或舊授權。",
+        "遷移成功、衝突、缺檔、中途失敗及重試 fixtures，核對原檔保存、內容完整性、授權與額度。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Validate and migrate legacy snapshots, journals and notes without provenance loss, dual writes, authority refresh or repair-budget reset; failures preserve originals."
+    }
+  }
+}

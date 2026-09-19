@@ -17,19 +17,29 @@ if str(DELIVERY_SCRIPTS_ROOT) not in sys.path:
 
 from classify_risk import classify
 from project_state import assess_project_state
+from project_validation_adapter import assess_project_validation
 from repository_evidence import GitFilesystemRepositoryEvidenceAdapter
 from spec_delivery import (
     assess_delivery_spec_context,
     assess_delivery_turn_context,
+    manage_delivery_discussion,
 )
 from workflow_selection import classify_intent, select_workflow
-from project_validation_adapter import assess_project_validation
 
 
 def discover_available_skills(skills_root: Path = SKILLS_ROOT) -> set[str]:
     """Return the fresh-task inventory represented by this plugin package."""
+    roots = [skills_root]
+    if (
+        skills_root.name == "engineering"
+        and (skills_root.parent / "productivity").is_dir()
+    ):
+        roots.append(skills_root.parent / "productivity")
     return {
-        path.parent.name for path in skills_root.glob("*/SKILL.md") if path.is_file()
+        path.parent.name
+        for root in roots
+        for path in root.glob("*/SKILL.md")
+        if path.is_file()
     }
 
 
@@ -79,6 +89,8 @@ def route(
     working_reference: str | None = None,
     task_ref: str | None = None,
     turn_kind: str = "auto",
+    turn_ref: str | None = None,
+    source_ref: str | None = None,
 ) -> dict[str, Any]:
     capabilities = (
         discover_available_skills() if available_skills is None else available_skills
@@ -90,11 +102,57 @@ def route(
         reference=working_reference,
         task_ref=task_ref,
     )
+    discussion = {
+        "verdict": "BLOCKED",
+        "reason": "task/turn/source references required for discussion entry",
+    }
+    if task_ref and turn_ref and source_ref:
+        try:
+            discussion = manage_delivery_discussion(
+                project_root,
+                {
+                    "operation": "enter",
+                    "task_ref": task_ref,
+                    "turn_id": turn_ref,
+                    "prompt": prompt,
+                    "source_ref": source_ref,
+                    "engineering": True,
+                    "working_reference": working_reference,
+                },
+            )
+            checked = manage_delivery_discussion(
+                project_root,
+                {"operation": "status", "task_ref": task_ref, "turn_id": turn_ref},
+            )
+            discussion = checked
+            turn_context = assess_delivery_turn_context(
+                project_root, reference=working_reference, task_ref=task_ref
+            )
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            discussion = {"verdict": "BLOCKED", "reason": str(error)}
+    elif task_ref:
+        # Reload an actual host-created obligation; a selected-skill flag is insufficient.
+        try:
+            saved = manage_delivery_discussion(
+                project_root, {"operation": "resume", "task_ref": task_ref}
+            )["state"]
+            if saved["active_turn"]:
+                discussion = manage_delivery_discussion(
+                    project_root,
+                    {
+                        "operation": "status",
+                        "task_ref": task_ref,
+                        "turn_id": saved["active_turn"],
+                    },
+                )
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            discussion = {"verdict": "BLOCKED", "reason": str(error)}
     active_working = turn_context.get("working_spec")
     if (
         active_working
         and not tracker_spec_path
         and active_working["spec_id"] != "SPEC-0000"
+        and (working_reference or active_working.get("confirmed_history") is True)
     ):
         tracker_spec_path = (
             f"specs/{active_working['spec_id']}-{active_working['change_set']}.md"
@@ -115,6 +173,13 @@ def route(
     validation = assess_project_validation(
         project_root, spec_context.get("selected_path")
     )
+    if available_skills is None:
+        capabilities = capabilities | {
+            name
+            for name, evidence in validation.get("capabilities", {}).items()
+            if evidence.get("callable") is True
+            and evidence.get("evidence") == "validated-cli-result"
+        }
     risk["required_gates"] = list(
         dict.fromkeys(risk["required_gates"] + validation["required_gates"])
     )
@@ -133,8 +198,30 @@ def route(
         turn_context=turn_context,
         turn_kind=turn_kind,
     )
+    result["discussion_owner"] = "grilling"
+    result["discussion_entry"] = discussion
+    result["supporting_skill"] = result.get("selected_skill")
+    if discussion["verdict"] != "PASS":
+        # Routing to investigation/discussion is not permission to mutate products.
+        # Preserve the supporting route and its own validation failures.
+        result["discussion_recovery"] = {
+            "required": True,
+            "reason": discussion.get(
+                "reason", "Save or repair the current discussion."
+            ),
+            "resume_target": "spec-governance",
+            "discussion_allowed": True,
+        }
+        result["product_code_allowed"] = False
     result["project_validation"] = validation
-    if validation["verdict"] != "PASS" or missing:
+    result["capability_resolution"] = {
+        "explicit_limit": available_skills is not None,
+        "available": sorted(capabilities),
+        "checks": validation.get("capabilities", {}),
+    }
+    if (validation["verdict"] != "PASS" or missing) and spec_context.get(
+        "state"
+    ) != "working":
         result.update(
             status="BLOCKED",
             reason="; ".join(
@@ -155,6 +242,8 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prompt", required=True)
+    parser.add_argument("--turn-ref")
+    parser.add_argument("--source-ref")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--explicit-skill")
     parser.add_argument("--available-skill", action="append")
@@ -210,6 +299,8 @@ def main() -> int:
         working_reference=args.working_reference,
         task_ref=args.task_ref,
         turn_kind=args.turn_kind,
+        turn_ref=args.turn_ref,
+        source_ref=args.source_ref,
     )
     print(format_route_output(result, force_json=args.json))
     return 0 if result["status"] in {"PASS", "DEGRADED"} else 2

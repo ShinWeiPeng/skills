@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "run_id": "113edc215a1f40459b30a78e9ea2556c",
+  "kind": "validation",
+  "started_at": "2026-09-18T11:42:37.861984+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "spec0029-host-review",
+    "tool": {
+      "name": "bounded-evidence-review",
+      "version": "1"
+    },
+    "command": [
+      "review",
+      "SPEC-0029",
+      "recorded-host-tests-and-known-desktop-gaps"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "921d657889706a1dfa098797fdd00933016d86a7cb59335a15b4931ee39e0e2e"
+    },
+    "inputs": {
+      "architecture/adoption.yaml": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88",
+      "architecture/manifest.yaml": "0eafb535003242b99f70ae9b9359677e320a640402b2acc8b1cc606f1471eb00",
+      "validation/verification-ladder.yaml": "feeed97793727af01273a7300a03df1062ada8dfa67b1ff5300dd6941df0666f",
+      "validation/layout.yaml": "1a783c54adaeb0d4d55af492537b2ce7086969816b6a11e5f60f2157904205eb",
+      "validation/acceptance-SPEC-0029.json": "3302d42a506a2e3eac9f4e6acf3972b118725aaa362dfd703758ed6958bda555",
+      "plan": "7b318459316ad6a907baae019698a814eabedc1b1ded313d4cf325e6f2d31692"
+    },
+    "spec": "SPEC-0029",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012"
+    ]
+  },
+  "status": "completed",
+  "outcome": "BLOCKED",
+  "ended_at": "2026-09-18T11:42:38.021826+00:00",
+  "files": {
+    ".run.json": "ab32e9da4fd6b73469747c00ddd5b261a1d69037e91affa478f62ec5f383a8b0",
+    "evidence.json": "33eb16b3ceacf29a4d96203360b27962338d436514e26e040e6f7d5f7571f46f",
+    "report.md": "f9e4506aac8074bbbf5815875010c2c35ae6d6fff54e650b707b22d98f5c95f2",
+    "reports/spec0029-architecture-unit.log": "84b2f072db8681152ec1ee7c3e391bb0f76c8b3b8140fd13959b804ebec11772",
+    "reports/spec0029-device-contracts.log": "e5b63618de820504ff51c031577265bb20564c069ae8dfbcbada21e38a2990a5",
+    "reports/spec0029-final-architecture.log": "e4ef8307868898d7d57d0bc7827a7bf54bc556534956478cf282278fc59fd18f",
+    "reports/spec0029-final-distribution-contracts.log": "557137324ed5ccd7206c7354de859eac76a1d55ae37928d0e74c880c715991ed",
+    "reports/spec0029-final-rehearsal.log": "976d37fe430b3186f466de5ba51af1a7fe1c79f497f15811010a3643ebcffe8a",
+    "reports/spec0029-governance-contracts.log": "b0fec033f30c46fdc3533ed64625fad8f0c43c754062f27119542da779f9f1f1",
+    "reports/spec0029-isolated-distribution.log": "cbab459290473c807fa52bb2be8603e858beecd14eef26a9f89bf8ee2623feee",
+    "reports/spec0029-isolated-integration.log": "fce18e0e8455af0d8c0ecd1eac6f431aa0451b24a4f0340c4b46c686bb4d74b4",
+    "reports/spec0029-isolated-plugin-contracts.log": "6ec713e801bd88b058035b94311a10a2f149ee77b4faf5a579dc48b3a0ae3031",
+    "reports/spec0029-isolated-windows-artifact.log": "d19e76eba204dd68fb24af1aef75e53e8ace190bde0add0fa780128473c1e75e",
+    "reports/spec0029-isolated-windows-install.log": "71d5f13d223ea3837d30bcf84ba7cc0507eb63d21b2481a9a26b94806a861bb3",
+    "reports/spec0029-ladder-contracts.log": "b13cad3be0aa61438f8f047847e2f5c0fccacde8705a91297de6b9dec5b8f953",
+    "reports/spec0029-verification-contracts.log": "447045765ae6aab926a217f978cfb184cba74d06a7e7843da5edbdda7bba7a7f"
+  }
+}

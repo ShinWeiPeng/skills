@@ -8,7 +8,6 @@ from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
-
 REPOSITORY_ROOT = next(
     p for p in Path(__file__).resolve().parents if (p / "CLAUDE.md").is_file()
 )
@@ -380,19 +379,17 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
                 r"^WORKING-SPEC-[0-9a-f]{12}-payment-retry$",
             )
             self.assertEqual(
-                f"spec-governance/{reference['working_id']}.md",
+                "specs/SPEC-0001-payment-retry.md",
                 reference["snapshot_path"],
             )
             self.assertEqual(
-                f"spec-governance/{reference['working_id']}.journal.jsonl",
+                reference["snapshot_path"],
                 reference["journal_path"],
             )
             self.assertEqual("continuous", reference["continuity"])
             self.assertTrue((root / reference["snapshot_path"]).is_file())
             journal_path = root / reference["journal_path"]
-            first_event = json.loads(
-                journal_path.read_text(encoding="utf-8").splitlines()[0]
-            )
+            first_event = SPEC_CONTRACT._read_journal(journal_path)[0][0]
             self.assertEqual("start", first_event["event_type"])
             self.assertEqual(reference["snapshot_hash"], first_event["snapshot_hash"])
             self.assertIn("event_hash", first_event)
@@ -429,7 +426,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
             self.assertEqual(2, reconciled["working_spec"]["revision"])
             journal = journal_path.read_text(encoding="utf-8")
             self.assertNotIn("this must never reach the journal", journal)
-            events = [json.loads(line) for line in journal.splitlines()]
+            events = SPEC_CONTRACT._read_journal(journal_path)[0]
             self.assertEqual(events[0]["event_hash"], events[1]["previous_event_hash"])
             self.assertEqual(["REQ-001"], events[1]["affected_ids"])
 
@@ -470,11 +467,7 @@ class CanonicalSpecLifecycleTests(unittest.TestCase):
 
             self.assertEqual("PASS", result["verdict"])
             self.assertEqual(["DISC-002"], result["delta"]["added_ids"])
-            event = json.loads(
-                (root / reference["journal_path"])
-                .read_text(encoding="utf-8")
-                .splitlines()[-1]
-            )
+            event = SPEC_CONTRACT._read_journal(root / reference["journal_path"])[0][-1]
             self.assertEqual(["DISC-002"], event["affected_ids"])
             self.assertNotIn("The payment domain.", json.dumps(event))
 
@@ -864,9 +857,14 @@ Assistant: first
                 confirmed_spec(spec_id="SPEC-0000", status="working"),
             )["working_spec"]
             journal_path = root / reference["journal_path"]
-            event = json.loads(journal_path.read_text(encoding="utf-8"))
+            event = SPEC_CONTRACT._read_journal(journal_path)[0][0]
+            original = journal_path.read_text(encoding="utf-8")
+            serialized = SPEC_CONTRACT._normalized_json(event)
             event["snapshot_hash"] = "0" * 64
-            journal_path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+            journal_path.write_text(
+                original.replace(serialized, SPEC_CONTRACT._normalized_json(event)),
+                encoding="utf-8",
+            )
 
             resolved = SPEC_CONTRACT.resolve_working_bundle(
                 root,
@@ -922,7 +920,13 @@ Assistant: first
                 confirmed_spec(spec_id="SPEC-0000", status="working"),
             )
             reference = started["working_spec"]
-            (root / reference["journal_path"]).unlink()
+            path = root / reference["journal_path"]
+            path.write_text(
+                path.read_text(encoding="utf-8").split("\n<!-- spec-audit:start -->")[
+                    0
+                ],
+                encoding="utf-8",
+            )
             next_snapshot = (
                 (root / reference["snapshot_path"])
                 .read_text(encoding="utf-8")
@@ -943,9 +947,7 @@ Assistant: first
 
             self.assertEqual("BLOCKED", result["verdict"])
             self.assertEqual("unavailable", result["working_spec"]["continuity"])
-            event = json.loads(
-                (root / reference["journal_path"]).read_text(encoding="utf-8")
-            )
+            event = SPEC_CONTRACT._read_journal(root / reference["journal_path"])[0][-1]
             self.assertEqual("unavailable", event["continuity"])
             self.assertIsNone(event["previous_event_hash"])
 

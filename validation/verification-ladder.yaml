@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: '1.0'
 architecture_manifest: architecture/manifest.yaml
 layers:
   module-contract:
@@ -16,7 +16,8 @@ layers:
     next_layers:
     - sil
   sil:
-    scope: Production planner and router code executed on the host with temporary project documents.
+    scope: Production planner and router code executed on the host with temporary
+      project documents.
     inputs:
     - Production CLI, routing code, and Fake filesystem fixtures.
     metrics:
@@ -27,6 +28,25 @@ layers:
       blocked: The production code or host test runner cannot execute.
     evidence: Behavioral unittest output.
     stop_condition: Stop when all fixtures pass or any fixture fails or blocks.
+    next_layers: []
+  adapter-contract:
+    scope: Codex desktop hook stdin/stdout adapter and trusted plugin loading for
+      SPEC-0029 and SPEC-0032.
+    inputs:
+    - Isolated candidate plugin and real desktop prompt, resume, pre-tool and stop
+      events.
+    metrics:
+    - Actual hook invocation, task/turn binding, persistence order, repair count and
+      capability gaps.
+    thresholds:
+      pass: Real desktop traces satisfy the selected acceptance criterion; fixture
+        success alone is insufficient.
+      fail: Observed wrong binding, lost persistence or repeated automatic repair for unchanged inputs.
+      blocked: Host event, trust, loaded candidate or real trace is unavailable.
+    evidence: Original desktop events, candidate hash, invocation ledger and working
+      pair hashes.
+    stop_condition: Pause dependent product changes on unverified synchronization; keep discussion,
+      saving and repair available and end exhausted automatic continuations normally.
     next_layers: []
 rules:
 - id: verification-planner-contract
@@ -58,9 +78,22 @@ rules:
   - sil
   on_device_scenarios: []
   execution_profiles: []
+- id: discussion-hook-adapter
+  architecture_refs:
+  - workflow_routing_domain
+  - governed-engineering-route
+  contract_dimensions:
+  - external-port
+  execution_changes: []
+  evidence_claims:
+  - adapter-conformance
+  layers:
+  - module-contract
+  - sil
+  - adapter-contract
+  on_device_scenarios: []
+  execution_profiles: []
 not_applicable:
-- layer: adapter-contract
-  rationale: This change adds no external-technology Port Adapter implementation.
 - layer: pil
   rationale: The planner and router make no target-processor execution-cost claim.
 - layer: hil

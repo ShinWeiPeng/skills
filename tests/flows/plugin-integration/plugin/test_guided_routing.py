@@ -9,7 +9,6 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-
 REPOSITORY_ROOT = next(
     p for p in Path(__file__).resolve().parents if (p / "CLAUDE.md").is_file()
 )
@@ -1211,6 +1210,8 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 "SpecContextAssessment",
                 "WorkflowSelectionOptions",
                 "GuidedRouteDecision",
+                "GovernanceDiagnosis",
+                "RecoveryBranch",
             },
             set(schema["$defs"]),
         )
@@ -1261,6 +1262,12 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 [
                     sys.executable,
                     str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--task-ref",
+                    "fixture-task",
+                    "--turn-ref",
+                    "fixture-turn",
+                    "--source-ref",
+                    "fixture-user-message",
                     "--prompt",
                     "建立一個自己使用的投資工具",
                     "--project-root",
@@ -1297,6 +1304,12 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 [
                     sys.executable,
                     str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--task-ref",
+                    "fixture-task",
+                    "--turn-ref",
+                    "fixture-turn",
+                    "--source-ref",
+                    "fixture-user-message",
                     "--prompt",
                     "1",
                     "--project-root",
@@ -1344,6 +1357,12 @@ class GuidedRoutingContractTests(unittest.TestCase):
             base_command = [
                 sys.executable,
                 str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                "--task-ref",
+                "fixture-task",
+                "--turn-ref",
+                "fixture-turn",
+                "--source-ref",
+                "fixture-user-message",
                 "--project-root",
                 str(root),
                 "--json",
@@ -1389,11 +1408,19 @@ class GuidedRoutingContractTests(unittest.TestCase):
         build_root = TEST_BUILD_ROOT
         build_root.mkdir(exist_ok=True)
 
-        def invoke(root: Path, prompt: str) -> subprocess.CompletedProcess[str]:
+        def invoke(
+            root: Path, prompt: str, task: str = "fixture-task"
+        ) -> subprocess.CompletedProcess[str]:
             return subprocess.run(
                 [
                     sys.executable,
                     str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--task-ref",
+                    task,
+                    "--turn-ref",
+                    "fixture-turn",
+                    "--source-ref",
+                    "fixture-user-message",
                     "--prompt",
                     prompt,
                     "--project-root",
@@ -1417,7 +1444,12 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 ["git", "init"], cwd=root, check=True, capture_output=True, text=True
             )
 
-            zero = invoke(root, "開始執行")
+            empty_root = root / "empty-project"
+            empty_root.mkdir()
+            subprocess.run(
+                ["git", "init"], cwd=empty_root, check=True, capture_output=True
+            )
+            zero = invoke(empty_root, "開始執行")
 
             first_path = specs_dir / "SPEC-0001-payment-retry.md"
             first_path.write_text(CONFIRMED_SPEC_TEXT, encoding="utf-8")
@@ -1444,8 +1476,24 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
-            many = invoke(root, "開始執行")
-            explicit = invoke(root, "開始執行 specs/SPEC-0002-order-retry.md")
+            many_root = root / "many-project"
+            (many_root / "specs").mkdir(parents=True)
+            subprocess.run(
+                ["git", "init"], cwd=many_root, check=True, capture_output=True
+            )
+            (many_root / "specs" / first_path.name).write_text(
+                CONFIRMED_SPEC_TEXT, encoding="utf-8"
+            )
+            (many_root / "specs" / second_path.name).write_text(
+                second_path.read_text(encoding="utf-8"), encoding="utf-8"
+            )
+            subprocess.run(
+                ["git", "add", "specs"], cwd=many_root, check=True, capture_output=True
+            )
+            many = invoke(many_root, "開始執行", "unbound-task")
+            explicit = invoke(
+                many_root, "開始執行 specs/SPEC-0002-order-retry.md", "explicit-task"
+            )
 
         zero_result = json.loads(zero.stdout)
         self.assertEqual(2, zero.returncode)
@@ -1468,7 +1516,7 @@ class GuidedRoutingContractTests(unittest.TestCase):
         self.assertIn("select exactly one", many_result["reason"])
 
         explicit_result = json.loads(explicit.stdout)
-        self.assertEqual(0, explicit.returncode)
+        self.assertEqual(0, explicit.returncode, explicit.stdout)
         self.assertEqual(
             "specs/SPEC-0002-order-retry.md",
             explicit_result["spec_context"]["selected_path"],
@@ -1482,6 +1530,12 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 [
                     sys.executable,
                     str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--task-ref",
+                    "fixture-task",
+                    "--turn-ref",
+                    "fixture-turn",
+                    "--source-ref",
+                    "fixture-user-message",
                     "--prompt",
                     "建立一個自己使用的投資工具",
                     "--project-root",
@@ -1506,6 +1560,12 @@ class GuidedRoutingContractTests(unittest.TestCase):
                 [
                     sys.executable,
                     str(SCRIPTS_ROOT / "guided_workflow_router.py"),
+                    "--task-ref",
+                    "fixture-task",
+                    "--turn-ref",
+                    "fixture-turn",
+                    "--source-ref",
+                    "fixture-user-message",
                     "--prompt",
                     "建立一個自己使用的投資工具",
                     "--project-root",

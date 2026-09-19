@@ -51,3 +51,31 @@ unanswered choice. Waiting requires a presented question, a concrete blocker,
 your request to pause discussion, or a complete proposal awaiting authorization.
 The completion check uses existing SPEC state and observed presentation evidence;
 it does not control the app's final-response behavior or grant execution permission.
+
+## Discussion is saved from entry
+
+Engineering work automatically starts or resumes a task-specific working record,
+including diagnosis and code explanation. Grilling manages that discussion while
+specialist skills provide facts. Questions are reserved for decisions the user
+must make. A saved explanation does not need a formal SPEC; an adopted change with
+complete scope and acceptance does. Suggested changes remain candidates until
+accepted and do not expand authorization.
+
+The candidate plugin includes prompt, resume, pre-tool and Stop hooks. Review and
+trust their exact definitions before activation. Missing discussion can trigger
+one automatic continuation for an actual input state. Unchanged failures do not
+loop, and restarting does not erase retry history. Failed saving reports the missing
+scope and ends the reply normally; discussion and recovery can continue. After a
+repair, saving and rechecking can succeed in the same task. Product changes still
+require a current SPEC and execution authorization. Reply wording differences do
+not count as missing requirements. Script tests alone do not prove desktop hooks were loaded
+or fired. The covered tool paths are Bash, exec_command and file edits; other tools, hosted
+search, streamed text and interruptions have explicit coverage limits.
+
+Discussion starts in one `specs/SPEC-####-*.md` working file. Each new answer updates that file; confirmation keeps its ID and path. Decisions, pending discussion, completeness gaps and source history remain together. New discussions do not create a parallel WORKING-SPEC/journal pair.
+
+## Visible specification updates
+
+Each saved working or confirmed SPEC update includes a clickable canonical link,
+revision, status, change summary and execution authorization state in the reply.
+Failed saves remain explicit so you can tell what was actually persisted.

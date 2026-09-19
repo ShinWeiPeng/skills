@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from spec_contract import _atomic_write, assess_turn_context
+from spec_contract import _atomic_write, assess_turn_context, project_state_lock
 
 
 def execution_binding(
@@ -58,12 +58,14 @@ def read_execution_state(root: Path, task_ref: str) -> dict:
     path = _state_path(root, task_ref)
     if not path.exists():
         return {
+            "_loaded_sha256": None,
             "schema_version": 1,
             "phase": "discussion",
             "used_event_ids": [],
             "receipt": None,
         }
-    value = json.loads(path.read_text(encoding="utf-8"))
+    raw = path.read_bytes()
+    value = json.loads(raw.decode("utf-8"))
     if (
         not isinstance(value, dict)
         or value.get("schema_version") != 1
@@ -73,12 +75,37 @@ def read_execution_state(root: Path, task_ref: str) -> dict:
         or (value.get("receipt") is not None and not isinstance(value["receipt"], dict))
     ):
         raise ValueError("invalid execution state")
+    for field in ("receipts", "recovery"):
+        if field in value and (
+            not isinstance(value[field], dict)
+            or any(not isinstance(item, dict) for item in value[field].values())
+        ):
+            raise ValueError("invalid " + field + " state; preserve for investigation")
+    if "recovery_history" in value and (
+        not isinstance(value["recovery_history"], list)
+        or any(not isinstance(item, dict) for item in value["recovery_history"])
+    ):
+        raise ValueError("invalid recovery history; preserve for investigation")
+    value["_loaded_sha256"] = hashlib.sha256(raw).hexdigest()
     return value
 
 
 def write_execution_state(root: Path, task_ref: str, value: dict) -> None:
-    """Persist one receipt atomically; managed delivery serializes state mutations."""
-    _atomic_write(
-        _state_path(root, task_ref),
-        json.dumps(value, ensure_ascii=False, indent=2) + "\n",
-    )
+    """Compare and commit state under a short per-task lock, preserving newer writes."""
+    path = _state_path(root, task_ref)
+    with project_state_lock(root, "execution:" + task_ref):
+        actual = (
+            hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+        )
+        if value.get("_loaded_sha256") != actual:
+            raise ValueError("execution state changed; reread and retry")
+        text = (
+            json.dumps(
+                {k: v for k, v in value.items() if k != "_loaded_sha256"},
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n"
+        )
+        _atomic_write(path, text)
+        value["_loaded_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()

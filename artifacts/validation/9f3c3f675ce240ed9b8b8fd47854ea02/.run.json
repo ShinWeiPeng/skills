@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "9f3c3f675ce240ed9b8b8fd47854ea02",
+  "kind": "validation",
+  "started_at": "2026-09-18T11:43:37.802699+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "spec0029-managed-acceptance",
+    "tool": {
+      "name": "managed-delivery",
+      "version": "1"
+    },
+    "command": [
+      "project_validation_workflow.py",
+      "managed",
+      "--request",
+      "spec-governance/spec0029-complete.json"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "921d657889706a1dfa098797fdd00933016d86a7cb59335a15b4931ee39e0e2e"
+    },
+    "inputs": {
+      "plan": "7b318459316ad6a907baae019698a814eabedc1b1ded313d4cf325e6f2d31692"
+    },
+    "spec": "SPEC-0029"
+  }
+}

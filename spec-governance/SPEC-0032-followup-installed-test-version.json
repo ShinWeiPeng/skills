@@ -1,0 +1,28 @@
+{
+  "pluginId": "governed-engineering-skills@governed-engineering-development",
+  "name": "governed-engineering-skills",
+  "marketplaceName": "governed-engineering-development",
+  "version": "0.16.0+codex.local-20260919043342659436",
+  "installedPath": "C:\\Users\\hugo_peng\\.codex\\plugins\\cache\\governed-engineering-development\\governed-engineering-skills\\0.16.0+codex.local-20260919043342659436",
+  "authPolicy": "ON_INSTALL",
+  "source_matches": {
+    "skills/spec-governance/scripts/spec_contract.py": true,
+    "skills/spec-governance/scripts/execution_state.py": true,
+    "skills/implement/scripts/spec_delivery.py": true,
+    "skills/engineering-risk-routing/scripts/guided_workflow_router.py": true,
+    "skills/ask-matt/SKILL.md": true,
+    "skills/spec-governance/SKILL.md": true,
+    "skills/spec-governance/scripts/discussion_state.py": true,
+    "skills/implement/scripts/discussion_hook.py": true,
+    "skills/implement/scripts/managed_delivery.py": true,
+    "scripts/version_governance.py": true,
+    "hooks/hooks.json": true,
+    "hooks/run-windows.ps1": true
+  },
+  "hooks_enabled": {
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:pre_tool_use:0:0": false,
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:session_start:0:0": false,
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:user_prompt_submit:0:0": false,
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:stop:0:0": false
+  }
+}

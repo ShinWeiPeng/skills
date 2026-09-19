@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "spec_id": "SPEC-0032",
+  "acceptance": {
+    "AC-001": {
+      "criterion_sha256": "ec11fd04ed5c6ac5bb7320d7270678a3169a57c03252ba4616e968a505206261",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-002": {
+      "criterion_sha256": "59fb0eff41da25d3d213ae204aff04b862a3453d56f736604cd6f7cbb56c97f3",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-003": {
+      "criterion_sha256": "430d2bf8b6e488c29d5d53b132f40e1e09048ed4cea50888d1e32387de566acf",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-004": {
+      "criterion_sha256": "71f732975c5ba7f2cb4ae0989c17eecdb2b489eed35cd863d020db0cb3bad3fa",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-005": {
+      "criterion_sha256": "05d3b846531cdbdde60eb903466b0422f05df3e0baaa430fad6004f798a09a3d",
+      "evidence_claims": [
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-006": {
+      "criterion_sha256": "18d0de23be322001b56aa5456051c146018ac080029c429156f82634a6690817",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-007": {
+      "criterion_sha256": "7b531f85583d8831a6c62b609cb8d4713205030cc37bc76f707e17b2f0f14988",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-008": {
+      "criterion_sha256": "721d85a0563c91f729fa058b27b20d77082ab700b5e5d1120709829477bbe911",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Focused owner/router/delivery behavior with isolated Windows hook adapter integration; real host evidence reported separately."
+    },
+    "AC-009": {
+      "criterion_sha256": "2dd33660ff4fca9413162943ad0cf3a7b651db93d0dd3ac735e55fb7be363209",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-010": {
+      "criterion_sha256": "2b850c4c1376c09ab9f24c00af4fd51095c25fe804e5851164a65e93cf944260",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-011": {
+      "criterion_sha256": "8284b0262f06737aee0a9c2a6589fefd3a76e9b51797b5fe17ba53d3e0c80db7",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-012": {
+      "criterion_sha256": "22e8e78fc4c9fa061d976bd8e94ded1fc60953a2e0e99171d4ad001da7cefc62",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-013": {
+      "criterion_sha256": "fa0bacd791918e19cf10aac8729cadf1ae0adce32a91cc1aa39f8c2100464417",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-014": {
+      "criterion_sha256": "700c4292cb17c17c81b086ab6798ea4d67f0aa9300a6d7dd6e461905ad4d5b9c",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-015": {
+      "criterion_sha256": "b5de9bd7a79b7e8f72ed54af0b2531221f9e423775631d7e3096b99c4dc57a74",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    },
+    "AC-016": {
+      "criterion_sha256": "826fec6a0a4f577e0965e355247158ca3acec0da673a06c51242259665d8d87c",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Concurrent process, dependency admission, recovery phase/input binding and SPEC reply visibility behavior; host tests do not claim real Codex hook firing."
+    }
+  }
+}

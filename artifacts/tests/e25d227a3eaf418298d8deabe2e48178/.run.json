@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "run_id": "e25d227a3eaf418298d8deabe2e48178",
+  "kind": "tests",
+  "started_at": "2026-09-18T15:48:54.438448+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0029-0030-plugin-regression",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin",
+      "-q"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "0c0545e9edd5103aae3ac3e1bbae1c6962e33306795ce8d4b6c7e166fafd342f"
+    },
+    "inputs": {},
+    "spec": "SPEC-0029"
+  }
+}

@@ -3,6 +3,36 @@ name: clarify-improvement-proposals
 description: "Clarify every unresolved ambiguity before producing an improvement proposal, then present rendered Markdown with explicit impacts, tradeoffs, and evidence-backed validation. Invoke implicitly for 改善方案、改進方案、優化方案、重構方案、架構改善、設計改善、改善建議、優化建議、方案比較、方案評估、技術選型、提出建議、怎麼改比較好, and equivalent English requests to propose, compare, review, optimize, refactor, or plan improvements. Do not invoke for a direct copyedit, translation, or wording-only change that does not ask for a proposal or design decision. Invoke explicitly with $clarify-improvement-proposals."
 ---
 
+## Engineering discussion entry
+
+For every engineering task, `grilling` owns discussion state from entry, including
+read-only diagnosis, explanation and proposal exploration. Start or resume the
+same task's canonical working SPEC in `specs/` before a substantive answer. Initial
+fact discovery may precede entry; ask only genuine unresolved user decisions.
+Supporting skills still diagnose, explain and compare alternatives.
+
+Use the spec-governance discussion entry contract at
+`references/discussion-entry.md` in the resolved spec-governance skill. Save sourced
+goals, constraints, facts, answers and candidate suggestions. A candidate is not an
+adopted requirement or execution grant; rejected/deferred candidates do not block
+the original task. If saving fails, disclose the gap and continue discussion or repair; only dependent product changes wait for synchronization. Pure discussion may finish with a saved working record and no
+formal SPEC. Materialize only a complete adopted change scope, expected behavior,
+decisions and acceptance criteria. Reopen confirmed changes and create successors
+for implemented contracts using the existing lifecycle.
+
+Bundled trusted hooks establish task/turn obligations, inspect covered dependent
+operations and check Stop persistence. Unknown intent is not silently exempt.
+SPEC-0032 separates synchronization from recovery permission. Permit one automatic
+repair per actual input state; replay or restart cannot reset its durable history.
+After a failed repair, report unsaved scope and finish normally. Discussion, reading,
+classification, saving and rechecking remain available; product changes still require
+a current SPEC and valid execution authorization. Historical repair failure is not
+a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
+hooks require the explicit owner CLI and remain a capability gap. Do not bypass
+hook trust or claim interception of every tool, reply or interrupt.
+
+
+
 ## Universal SPEC visibility and execution boundary
 
 Apply this workflow to every project, language, size of change and later turn.
@@ -277,3 +307,24 @@ will continue later is insufficient. A product pause does not pause discussion.
 Only a presented pending question, an evidenced blocker with required input, an
 explicit user discussion pause, or a presented decision-complete proposal permits
 waiting. The check grants no product execution authority.
+
+## Bounded diagnosis and recovery
+
+Separate discovered skill names, callable CLI capabilities and actual check
+verdicts. `test-validation-layout` resolves to the validated `architecture_cli.py
+layout` result; a callable FAIL or BLOCKED remains a failed or blocked check.
+An explicit caller capability limit is never expanded by discovery.
+
+A blocker records category, original evidence, affected branch, repair suggestion,
+authorization requirement, reproducible recheck, success condition and resume target.
+Investigate discoverable facts and prepare the concrete repair first. Reuse current
+authorization for deterministic repairs within the confirmed contract; ask only
+for missing decisions, authority or external conditions. Never change acceptance
+thresholds or replace required runtime evidence with host results.
+
+Managed `recover` stores branch state beside the existing execution receipt. It
+checks the same task/SPEC binding, reserves each attempt before effects, and allows
+at most three attempts and 120 seconds per input cycle. Identical failed inputs
+require evidenced temporary failure to retry; changed actual inputs or repair
+start a new bounded cycle while preserving history. Unsupported rechecks remain
+investigation, never success. Discussion repair uses SPEC-0032 input-state deduplication; historical failure never bars saving or rechecking.

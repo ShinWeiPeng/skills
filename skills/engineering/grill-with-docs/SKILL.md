@@ -15,7 +15,7 @@ architecture records count as durable context; a README or template alone does n
 Ask one question at a time, recommend an answer, and investigate discoverable facts
 instead of asking the user.
 
-Start or resolve the persistent working bundle before the first decision. Invoke
+Start or resolve the persistent canonical working SPEC before the first decision. Invoke
 `spec-governance.reconcile` after every answer and persist it before another
 question. Compare the working spec with non-empty legacy context, accepted ADRs, and
 the architecture manifest; show the Spec delta, affected IDs, relationships,

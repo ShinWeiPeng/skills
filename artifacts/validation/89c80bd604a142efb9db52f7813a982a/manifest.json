@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "run_id": "89c80bd604a142efb9db52f7813a982a",
+  "kind": "validation",
+  "started_at": "2026-09-19T05:48:10.720720+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0032-recoverable-spec-sync.md"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "3c0bed22788b3e80216fdbbf6064e9512d18c2c79fffb082b74f1b4b99e539bb"
+    },
+    "inputs": {
+      "plan": "5bd0e76d0a086ab2dddeafb54ee5bb5539a7f2a5cdae9f98809a7920229f97c7"
+    },
+    "spec": "SPEC-0032",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T05:48:10.881698+00:00",
+  "files": {
+    ".run.json": "216ff7968be62ed05bfa7d5dfa30ddc22431898211efb0d092d4a35d404fc707",
+    "plan.snapshot.json": "079c64958e414f8d6a6bf0197eda03f5b5da24e68f6211bd8c559d05a336a60b"
+  }
+}

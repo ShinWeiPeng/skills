@@ -5,52 +5,119 @@
   "$defs": {
     "RepositoryArtifact": {
       "type": "object",
-      "required": ["path", "tracking", "size_bytes", "exclusion_reason"],
+      "required": [
+        "path",
+        "tracking",
+        "size_bytes",
+        "exclusion_reason"
+      ],
       "properties": {
-        "path": {"type": "string", "minLength": 1},
-        "tracking": {"type": "string", "enum": ["tracked", "untracked"]},
-        "size_bytes": {"type": "integer", "minimum": 0},
-        "exclusion_reason": {"type": ["string", "null"]}
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tracking": {
+          "type": "string",
+          "enum": [
+            "tracked",
+            "untracked"
+          ]
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exclusion_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
       "additionalProperties": false
     },
     "RepositoryEvidence": {
       "type": "object",
-      "required": ["path", "tracking", "size_bytes", "classification", "reason"],
+      "required": [
+        "path",
+        "tracking",
+        "size_bytes",
+        "classification",
+        "reason"
+      ],
       "properties": {
-        "path": {"type": "string", "minLength": 1},
-        "tracking": {"type": "string", "enum": ["tracked", "untracked"]},
-        "size_bytes": {"type": "integer", "minimum": 0},
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tracking": {
+          "type": "string",
+          "enum": [
+            "tracked",
+            "untracked"
+          ]
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
         "classification": {
           "type": "string",
-          "enum": ["implementation", "stateful-context", "ambiguous", "excluded"]
+          "enum": [
+            "implementation",
+            "stateful-context",
+            "ambiguous",
+            "excluded"
+          ]
         },
-        "reason": {"type": "string", "minLength": 1}
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "additionalProperties": false
     },
     "ProjectStateAssessment": {
       "type": "object",
-      "required": ["implementation", "stateful_context", "evidence"],
+      "required": [
+        "implementation",
+        "stateful_context",
+        "evidence"
+      ],
       "properties": {
         "implementation": {
           "type": "string",
-          "enum": ["present", "absent", "indeterminate"]
+          "enum": [
+            "present",
+            "absent",
+            "indeterminate"
+          ]
         },
         "stateful_context": {
           "type": "string",
-          "enum": ["present", "absent", "indeterminate"]
+          "enum": [
+            "present",
+            "absent",
+            "indeterminate"
+          ]
         },
         "evidence": {
           "type": "array",
-          "items": {"$ref": "#/$defs/RepositoryEvidence"}
+          "items": {
+            "$ref": "#/$defs/RepositoryEvidence"
+          }
         }
       },
       "additionalProperties": false
     },
     "IntentAssessment": {
       "type": "object",
-      "required": ["intent", "explicit_skill", "matched_terms", "requires_modification"],
+      "required": [
+        "intent",
+        "explicit_skill",
+        "matched_terms",
+        "requires_modification"
+      ],
       "properties": {
         "intent": {
           "type": "string",
@@ -64,12 +131,21 @@
             "indeterminate"
           ]
         },
-        "explicit_skill": {"type": ["string", "null"]},
+        "explicit_skill": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "matched_terms": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": {
+            "type": "string"
+          }
         },
-        "requires_modification": {"type": "boolean"}
+        "requires_modification": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
@@ -92,19 +168,41 @@
     },
     "SpecContextAssessment": {
       "type": "object",
-      "required": ["state", "selected_path", "candidates", "reason"],
+      "required": [
+        "state",
+        "selected_path",
+        "candidates",
+        "reason"
+      ],
       "properties": {
         "state": {
           "type": "string",
-          "enum": ["none", "ambiguous", "working", "confirmed", "implemented", "invalid"]
+          "enum": [
+            "none",
+            "ambiguous",
+            "working",
+            "confirmed",
+            "implemented",
+            "invalid"
+          ]
         },
-        "selected_path": {"type": ["string", "null"]},
+        "selected_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "candidates": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "uniqueItems": true
         },
-        "reason": {"type": "string", "minLength": 1}
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "additionalProperties": false
     },
@@ -122,30 +220,277 @@
         "resume_target"
       ],
       "properties": {
-        "product_code_allowed": {"const": false},
-        "authority": {"const": "routing-only"},
-        "next_action": {"type": ["string", "null"]},
-        "spec_discussion_allowed": {"const": true},
-        "project_validation": {"type": "object", "required": ["verdict", "required_gates", "errors"], "properties": {"verdict": {"enum": ["PASS", "FAIL", "BLOCKED"]}, "required_gates": {"type": "array", "items": {"type": "string"}}, "errors": {"type": "array", "items": {"type": "string"}}, "device_actions_authorized": {"const": false}}, "description": "Fresh project policy, plan and evidence diagnostics; never a device-operation permission."},
-        "turn_context": {"type": ["object", "null"]},
-        "selected_skill": {"type": ["string", "null"]},
-        "project_state": {"$ref": "#/$defs/ProjectStateAssessment"},
-        "intent_assessment": {"$ref": "#/$defs/IntentAssessment"},
-        "spec_context": {"$ref": "#/$defs/SpecContextAssessment"},
+        "product_code_allowed": {
+          "const": false
+        },
+        "authority": {
+          "const": "routing-only"
+        },
+        "next_action": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "spec_discussion_allowed": {
+          "const": true
+        },
+        "project_validation": {
+          "type": "object",
+          "required": [
+            "verdict",
+            "required_gates",
+            "errors"
+          ],
+          "properties": {
+            "verdict": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            },
+            "required_gates": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "errors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "device_actions_authorized": {
+              "const": false
+            }
+          },
+          "description": "Fresh project policy, plan and evidence diagnostics; never a device-operation permission."
+        },
+        "turn_context": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "selected_skill": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_state": {
+          "$ref": "#/$defs/ProjectStateAssessment"
+        },
+        "intent_assessment": {
+          "$ref": "#/$defs/IntentAssessment"
+        },
+        "spec_context": {
+          "$ref": "#/$defs/SpecContextAssessment"
+        },
         "required_gates": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "uniqueItems": true
         },
         "status": {
           "type": "string",
-          "enum": ["PASS", "DEGRADED", "BLOCKED"]
+          "enum": [
+            "PASS",
+            "DEGRADED",
+            "BLOCKED"
+          ]
         },
-        "fallback": {"type": ["string", "null"]},
-        "reason": {"type": "string", "minLength": 1},
-        "resume_target": {"type": ["string", "null"]}
+        "fallback": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resume_target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "discussion_owner": {
+          "const": "grilling"
+        },
+        "discussion_entry": {
+          "type": "object"
+        },
+        "supporting_skill": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capability_resolution": {
+          "type": "object",
+          "required": [
+            "explicit_limit",
+            "available",
+            "checks"
+          ],
+          "properties": {
+            "explicit_limit": {
+              "type": "boolean"
+            },
+            "available": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "checks": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "discussion_recovery": {
+          "type": "object",
+          "required": [
+            "required",
+            "reason",
+            "resume_target",
+            "discussion_allowed"
+          ],
+          "properties": {
+            "required": {
+              "const": true
+            },
+            "reason": {
+              "type": "string"
+            },
+            "resume_target": {
+              "const": "spec-governance"
+            },
+            "discussion_allowed": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
+    },
+    "GovernanceDiagnosis": {
+      "type": "object",
+      "required": [
+        "category",
+        "source",
+        "evidence",
+        "affected_scope",
+        "repair_suggestion",
+        "authorization",
+        "recheck_command",
+        "success_condition",
+        "resume_target"
+      ],
+      "properties": {
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repair_suggestion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "success_condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resume_target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {},
+        "affected_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recheck_command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phase": {
+          "enum": [
+            "planning",
+            "enablement",
+            "acceptance",
+            "release"
+          ]
+        }
+      }
+    },
+    "RecoveryBranch": {
+      "type": "object",
+      "required": [
+        "binding",
+        "started_at",
+        "attempts",
+        "diagnosis",
+        "resume_target",
+        "status",
+        "next_action"
+      ],
+      "properties": {
+        "binding": {
+          "type": "object"
+        },
+        "started_at": {
+          "type": "number"
+        },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "diagnosis": {
+          "$ref": "#/$defs/GovernanceDiagnosis"
+        },
+        "resume_target": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "prepared",
+            "needs-decision",
+            "investigate",
+            "blocked",
+            "resolved"
+          ]
+        },
+        "next_action": {
+          "type": "string"
+        },
+        "cycle_start": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   }
 }

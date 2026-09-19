@@ -3,6 +3,36 @@ name: explain-code-flow
 description: Guide developers through existing code using governed System and L0/L1 Parent views, end-to-end Flows, and progressively deeper explanations. Use for every code-understanding request, including implicit questions such as what code does, how data reaches a driver or other sink, where state changes, or why a branch exists, even when the user does not say explain or trace. Route project or composition-root questions to Level 0, Parent or cross-module from-A-to-B behavior to Level 1, modules and symbols to Level 2, and code regions to Level 3. Keep implementation, debugging, and code-review skills primary when the user's goal is to change, diagnose, or review code. Require supported formal architecture governance for System and Parent guidance, and coordinate with $govern-modular-event-architecture when it is missing, stale, invalid, or unsupported.
 ---
 
+## Engineering discussion entry
+
+For every engineering task, `grilling` owns discussion state from entry, including
+read-only diagnosis, explanation and proposal exploration. Start or resume the
+same task's canonical working SPEC in `specs/` before a substantive answer. Initial
+fact discovery may precede entry; ask only genuine unresolved user decisions.
+Supporting skills still diagnose, explain and compare alternatives.
+
+Use the spec-governance discussion entry contract at
+`references/discussion-entry.md` in the resolved spec-governance skill. Save sourced
+goals, constraints, facts, answers and candidate suggestions. A candidate is not an
+adopted requirement or execution grant; rejected/deferred candidates do not block
+the original task. If saving fails, disclose the gap and continue discussion or repair; only dependent product changes wait for synchronization. Pure discussion may finish with a saved working record and no
+formal SPEC. Materialize only a complete adopted change scope, expected behavior,
+decisions and acceptance criteria. Reopen confirmed changes and create successors
+for implemented contracts using the existing lifecycle.
+
+Bundled trusted hooks establish task/turn obligations, inspect covered dependent
+operations and check Stop persistence. Unknown intent is not silently exempt.
+SPEC-0032 separates synchronization from recovery permission. Permit one automatic
+repair per actual input state; replay or restart cannot reset its durable history.
+After a failed repair, report unsaved scope and finish normally. Discussion, reading,
+classification, saving and rechecking remain available; product changes still require
+a current SPEC and valid execution authorization. Historical repair failure is not
+a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
+hooks require the explicit owner CLI and remain a capability gap. Do not bypass
+hook trust or claim interception of every tool, reply or interrupt.
+
+
+
 # Governed iterative code-flow guidance
 
 Guide a developer from the governed architecture to the implementation, then expand only the selected scope. Default to Traditional Chinese, preserve identifiers and technical terms, and assume the reader can program but does not know the project.

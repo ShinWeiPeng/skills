@@ -319,7 +319,11 @@ def select_workflow(
             resume_target="spec-context-decision",
         ) | {"status": "BLOCKED"}
 
-    if modifies and spec_state == "working":
+    if (
+        modifies
+        and spec_state == "working"
+        and (turn_context or {}).get("working_spec", {}).get("confirmed_history", True)
+    ):
         return capability_checked(
             "spec-governance",
             reason=(

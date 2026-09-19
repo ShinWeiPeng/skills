@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "run_id": "d54e43a0f2e24b729d1f620878997976",
+  "kind": "validation",
+  "started_at": "2026-09-18T15:51:34.290439+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0030-governance-diagnosis-recovery.md"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "adf912a3e18e1f2526f2b70360aac7efeae19e7e588adf67f821dab85575e418"
+    },
+    "inputs": {
+      "plan": "15aec011a80691289000da88664b6daff950e7e02f87e2dece9e79769c0d9b2b"
+    },
+    "spec": "SPEC-0030",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-18T15:51:34.396607+00:00",
+  "files": {
+    ".run.json": "f9e607f92c0eb3a303c86dfa173019b0fd099582828c04283c95a8781d72bc1e",
+    "plan.snapshot.json": "3fc2d53576b06219b5c4392b6870e633108eb9f390db75e4aaa328320a3996ff"
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "spec_id": "SPEC-0029",
+  "acceptance": {
+    "AC-001": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Engineering and non-engineering routing, plus real multi-turn entry order."
+    },
+    "AC-002": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Original proposal replay: first canonical working SPEC precedes reply; no new parallel working snapshot or discussion journal."
+    },
+    "AC-003": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Short answers, mixed turns, read-only interjections and no-question completion."
+    },
+    "AC-004": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Wrong task, stale revision/hash and self-reported flags fail managed handoff and finish-turn."
+    },
+    "AC-005": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Confirmed reopen, implemented successor and legacy recovery without invented historical entry evidence."
+    },
+    "AC-006": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Skill/doc contracts, full regression, architecture and assembled distribution."
+    },
+    "AC-007": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Read-only working records remain unmaterialized until a complete adopted change contract exists."
+    },
+    "AC-008": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Candidate provenance and accepted/rejected/deferred states; unadopted candidates do not block completion."
+    },
+    "AC-009": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Real trusted desktop hooks trigger even when the model omits voluntary router/finish-turn calls."
+    },
+    "AC-010": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Persisted original-turn repair allowance survives continuations/restart; real failure and recovery traces required."
+    },
+    "AC-011": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Separate supported/trusted/loaded/fired evidence; missing, disabled, timeout and unsupported paths cannot pass."
+    },
+    "AC-012": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "General repair/revalidation cannot reset the same original-turn one-repair budget."
+    },
+    "AC-013": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "One canonical SPEC ID/path from working through confirmation, with readable current contract, decisions, pending discussion and gaps plus embedded provenance."
+    },
+    "AC-014": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Persist new information before the next question or proposal; unchanged information does not create a revision; actual desktop trace and one-repair budget."
+    },
+    "AC-015": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Resume saved decisions; reopen only with sourced premise changes and preserved decision history."
+    },
+    "AC-016": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Detect behavior, exception and acceptance gaps; investigate discoverable facts and remove resolved gaps."
+    },
+    "AC-017": {
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Automatically confirm a complete adopted contract in the original file, with actual multi-turn trace; confirmation does not grant implementation."
+    },
+    "AC-018": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Validate and migrate legacy snapshots, journals and notes without provenance loss, dual writes, authority refresh or repair-budget reset; failures preserve originals."
+    }
+  }
+}

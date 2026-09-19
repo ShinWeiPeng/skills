@@ -3,22 +3,32 @@
 
 from __future__ import annotations
 
-import sys
 import argparse
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
-
 
 SKILLS_ROOT = Path(__file__).resolve().parents[2]
 SPEC_SCRIPTS_ROOT = SKILLS_ROOT / "spec-governance" / "scripts"
 if str(SPEC_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPEC_SCRIPTS_ROOT))
 
-from spec_contract import resolve_spec_context, assess_turn_context, validate_spec_text
-from spec_contract import assess_project_validation
+from discussion_state import discussion_request
+from spec_contract import (
+    assess_project_validation,
+    assess_turn_context,
+    check_spec_dependencies,
+    resolve_spec_context,
+    validate_spec_text,
+)
+
+
+def manage_delivery_discussion(project_root: Path, request: dict) -> dict:
+    """Delegate task discussion state to its sole specification owner."""
+    return discussion_request(project_root, request)
 
 
 def assess_delivery_spec_context(
@@ -66,10 +76,26 @@ def verify_delivery_admission(
             "reason": "canonical path must be a file directly under project specs"
         }
     relative = path.relative_to(root).as_posix()
-    if not re.fullmatch(
+    instruction = authorization.strip().replace("\\", "/")
+    legacy_instruction = re.fullmatch(
         r"開始執行(?:\s+" + re.escape(relative) + r")?",
-        authorization.strip().replace("\\", "/"),
-    ):
+        instruction,
+    )
+    explicit = re.fullmatch(
+        r"開始執行\s*SPEC-(\d{4}(?:/(?:SPEC-)?\d{4})*)", instruction
+    )
+    ids = (
+        ["SPEC-" + item.removeprefix("SPEC-") for item in explicit.group(1).split("/")]
+        if explicit
+        else []
+    )
+    scoped_instruction = (
+        bool(ids)
+        and len(ids) == len(set(ids))
+        and path.name[:9] in ids
+        and all(len(list((root / "specs").glob(item + "-*.md"))) == 1 for item in ids)
+    )
+    if not (legacy_instruction or scoped_instruction):
         return blocked | {
             "reason": "explicit execution authorization required for this specification"
         }
@@ -88,6 +114,13 @@ def verify_delivery_admission(
             "turn_context": turn,
         }
     working = turn.get("working_spec")
+    if working and working.get("continuity") != "continuous":
+        return blocked | {"reason": "working specification audit continuity is invalid"}
+    if working and working.get("validation_planning", {}).get("verdict") == "BLOCKED":
+        return blocked | {
+            "reason": "acceptance mapping requires reconciliation",
+            "validation_planning": working["validation_planning"],
+        }
     canonical = validate_spec_text(path.read_text(encoding="utf-8"))["canonical_spec"]
     if working and (
         working["spec_id"] != canonical["spec_id"]
@@ -98,6 +131,13 @@ def verify_delivery_admission(
     ):
         return blocked | {
             "reason": "working and canonical specification identity/status mismatch"
+        }
+    dependencies = check_spec_dependencies(root, path)
+    if dependencies:
+        return blocked | {
+            "reason": "prerequisite SPEC is not complete",
+            "dependencies": dependencies,
+            "unaffected_branches_suspended": False,
         }
     validation = assess_project_validation(
         root, relative, phase="enablement", validation_assessor=validation_assessor

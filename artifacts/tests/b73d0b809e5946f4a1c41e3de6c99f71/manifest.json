@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "run_id": "b73d0b809e5946f4a1c41e3de6c99f71",
+  "kind": "tests",
+  "started_at": "2026-09-19T04:33:03.776475+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "followup-final-diff",
+    "tool": {
+      "name": "SPEC-0032-check",
+      "version": "1"
+    },
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "source": {
+      "revision": "8a781dfcd8301279bc34365d88e97c0abd62b1a1",
+      "dirty_sha256": "6867a852e2d20e68c645542e20291964c775b77824444bd7ea819aa229224f63"
+    },
+    "inputs": {
+      "spec": "63679764ace1552e82336e10e61f73e466d291a851d3ab81c483ca7897062288"
+    },
+    "spec": "SPEC-0032",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T04:33:04.042231+00:00",
+  "files": {
+    ".run.json": "1db96bfcd9c6f7eb82efd13822b803c0779851858843b1839dd6de877d4034fa",
+    "result.json": "5a5dab664c0f1d5b75085decb671613e70d46e903e643a348c5ab0df19fdf95c",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
