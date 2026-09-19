@@ -1,5 +1,16 @@
 # Governed Engineering Skills
 
+## 0.18.0
+
+### Added
+
+- Bounded acceptance and validation preparation under retained execution authorization.
+
+### Fixed
+
+- Keep discussion in one canonical SPEC and automatically confirm complete adopted contracts after sourced review.
+- Preserve execution authority across verified discussion-only history appends while rejecting changed contracts, broken history and revoked authority.
+
 ## 0.17.0
 
 ### Added
