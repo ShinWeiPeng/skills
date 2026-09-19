@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.19.0
+
+### Added
+
+- Version and governance compatibility inventory with validated cache reuse and explicit diagnosis.
+
+### Fixed
+
+- Restore legacy authorization only from provable original hashes and discussion history; retain bounded preparation and all admission checks.
+
 ## 0.18.0
 
 ### Added
