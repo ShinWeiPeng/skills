@@ -306,8 +306,10 @@ Completeness Gaps views in the same file. Save new information before the next
 question; an identical reconciliation does not increment revision. Reuse settled
 question IDs and decisions; new premises require a sourced superseding decision.
 Inspect behavior, exception handling and acceptance gaps before declaring closure.
-Recording a complete adopted REQ/AC contract confirms it automatically in place;
-pure explanation remains working and can end without inventing a change contract.
+A sourced completeness review of a settled adopted contract automatically confirms
+the same file when all five dimensions are reviewed and no blocking gaps remain.
+No extra `confirm_contract` flag or user reminder is required. Pure explanation
+without an adopted complete change remains working.
 Confirmation never grants implementation authority.
 
 Acceptance planning is separate from saving: report missing/removed/changed ACs,
@@ -321,7 +323,7 @@ Use `migrate --working-id <id> [--note <project-relative-note>]` for legacy reco
 Verified originals are retained with `.migrated` suffixes; failures restore inputs.
 Never reset execution grants or the original-turn discussion repair allowance.
 
-Before automatic confirmation, the agent reviews goal, scope, behavior, exceptions
+Before explicit contract confirmation, the agent reviews goal, scope, behavior, exceptions
 and acceptance against the actual adopted contract. Supply `completeness_review`
 to `record`, with those five keys, each containing bounded `source_ref` and
 `evidence` text. This is sourced review evidence, not user authorization. Empty
@@ -335,3 +337,13 @@ turn with a clickable canonical SPEC ID/title link, actual revision and lifecycl
 status, a short change summary and the current execution authorization state.
 A failed save must be described as failed; never claim that an unpersisted change
 was saved. Link the same canonical file through reopening and confirmation.
+
+For each new turn, use `observe` to register identified items and reviewed source
+references before `record`; map every accepted item to an actual DEC row through
+`item_bindings`. Summary text cannot replace those mappings. Follow
+[the discussion entry contract](references/discussion-entry.md) for task root
+binding, carried unsaved items, idempotent saves and unverified hook observations.
+For missing acceptance mappings, keep saving the SPEC independently and follow
+[managed delivery](../implement/references/managed-delivery.md) for a retained
+pending application and its restricted additive repair. Do not demand repeated
+approval for the same still-valid contract.

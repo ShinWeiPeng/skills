@@ -54,11 +54,11 @@ If a *fact* can be found by exploring the environment (filesystem, tools, etc.),
 Do not implement or perform product, Git, or external actions until I confirm we
 have reached a shared understanding.
 
-For all engineering work, start or resolve one persistent flat
-`spec-governance/WORKING-SPEC-<id>-<slug>.md` snapshot and same-stem
-`.journal.jsonl` before the first substantive answer or decision question. After every answer invoke
-`spec-governance.reconcile`; persist the human-readable snapshot, structured
-`DISC-###` context, and normalized hash-linked journal before displaying the
+For all engineering work, start or resolve the same canonical working
+`specs/SPEC-####-<slug>.md` before the first substantive answer or decision question.
+After each turn invoke `spec-governance.reconcile` for new adopted content and append sourced
+discussion history there. Do not create a separate working document or journal.
+Persist readable requirements and structured `DISC-###` context before displaying the
 Spec delta, affected stable IDs, relationships, conflicts, open decisions, and
 `PASS/BLOCKED` consistency result or asking another question. Preserve the visible
 user answer and explicitly stated rationale in DISC records, but never store a full

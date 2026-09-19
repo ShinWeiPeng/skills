@@ -117,7 +117,7 @@ def assess_project_validation(
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
-                timeout=30,
+                timeout=120,
                 env=os.environ | {"PYTHONIOENCODING": "utf-8"},
             )
             if len(layout_run.stdout) > 4194304:

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "run_id": "78eb7756e0494f98b3d48e5b7cddb322",
+  "kind": "validation",
+  "started_at": "2026-09-19T08:33:49.080512+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0033-preauthorization-acceptance-repair.md"
+    ],
+    "source": {
+      "revision": "691b4f71ec436704105297b1dfc89302994d761c",
+      "dirty_sha256": "e62dc9560e417d5d214cb57b0d512637a8973877f44d0125ea4a3e8e5762bf18"
+    },
+    "inputs": {
+      "plan": "6c45869628f8bdf3d4cc04381884ce6b64a33784b93e308de9db89306ef51694"
+    },
+    "spec": "SPEC-0033",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T08:33:49.195687+00:00",
+  "files": {
+    ".run.json": "245690d5758600064994d8100d39ff0c3c422bb6ec2e0b46f2bd2b6bf02cba35",
+    "plan.snapshot.json": "a225ac696eca82a90b0c8c7116acb176ef8ca8f4c8515e787c76a8657a880bfb"
+  }
+}

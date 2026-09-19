@@ -79,3 +79,5 @@ Discussion starts in one `specs/SPEC-####-*.md` working file. Each new answer up
 Each saved working or confirmed SPEC update includes a clickable canonical link,
 revision, status, change summary and execution authorization state in the reply.
 Failed saves remain explicit so you can tell what was actually persisted.
+
+The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review confirms an adopted contract in place, without an additional flag. Confirmation does not grant execution authority.

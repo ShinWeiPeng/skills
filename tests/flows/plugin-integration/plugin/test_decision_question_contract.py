@@ -133,7 +133,7 @@ class DecisionQuestionContractTests(unittest.TestCase):
         ask_matt = read(SKILLS_ROOT / "ask-matt" / "SKILL.md")
 
         for text in (grilling, governance, ask_matt):
-            self.assertIn("spec-governance/WORKING-SPEC", text)
+            self.assertIn("specs/SPEC-", text)
             self.assertIn("spec-governance.reconcile", text)
             self.assertIn("spec-governance.materialize", text)
             self.assertIn("DISC", text)

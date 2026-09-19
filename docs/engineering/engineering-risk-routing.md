@@ -59,3 +59,8 @@ investigation, never success. Existing discussion repair allowances are untouche
 Discussion entry and synchronization are reported separately. A saved entry with
 pending synchronization stays pending; the route exposes recovery while preserving
 discussion and read access. Product admission still checks synchronization.
+
+The guided router resolves the spec owner's explicit task/project binding before
+collecting repository evidence. Hook, router and owner therefore inspect the same
+canonical root even when desktop cwd is its parent. This binding does not change
+risk classification or authorize product operations.

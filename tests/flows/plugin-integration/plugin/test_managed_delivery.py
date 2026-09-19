@@ -56,6 +56,72 @@ class ManagedDeliveryTests(unittest.TestCase):
         self.target = self.root / "program.txt"
         self.target.write_bytes(b"before\n")
 
+    def append_discussion(self):
+        from discussion_state import _append
+
+        ref = spec.resolve_working_bundle(
+            self.root, reference=self.base["working_reference"]
+        )["working_spec"]
+        _append(
+            self.root, ref, {"summary": "Clarified existing scope without changes."}
+        )
+
+    def test_discussion_only_append_keeps_authority_and_original_receipt(self):
+        from execution_state import read_execution_state
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        receipt = read_execution_state(self.root, "task-A")["receipt"]
+        self.append_discussion()
+        self.assertEqual("PASS", self.patch()["verdict"])
+        self.assertEqual(receipt, read_execution_state(self.root, "task-A")["receipt"])
+        self.assertEqual(
+            "PASS",
+            execute_request(self.root, self.base | {"operation": "status"})["verdict"],
+        )
+
+    def test_pending_authority_survives_discussion_but_not_revocation(self):
+        (self.root / "validation").mkdir()
+        self.assertEqual("pending", self.authorize()["authorization_status"])
+        self.append_discussion()
+        retried = self.authorize()
+        self.assertEqual("pending", retried["authorization_status"], retried)
+        self.assertTrue(retried["replayed"])
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        self.append_discussion()
+        self.assertEqual("BLOCKED", self.authorize()["verdict"])
+
+    def test_discussion_append_does_not_hide_body_or_history_tampering(self):
+        for target in ("body", "history"):
+            with self.subTest(target=target):
+                self.assertEqual("PASS", self.authorize("event-" + target)["verdict"])
+                self.append_discussion()
+                path = self.root / self.path
+                original = path.read_text(encoding="utf-8")
+                if target == "body":
+                    changed = original.replace("## Problem", "## Changed Problem", 1)
+                else:
+                    changed = original.replace(
+                        '"event_type":"discussion"', '"event_type":"reconcile"', 1
+                    )
+                self.assertNotEqual(original, changed)
+                path.write_text(changed, encoding="utf-8")
+                self.assertEqual("BLOCKED", self.patch()["verdict"])
+                path.write_text(original, encoding="utf-8")
+
+    def test_legacy_binding_requires_exact_hashes(self):
+        from execution_state import execution_binding, execution_binding_matches
+
+        current = execution_binding(
+            self.root, self.path, self.base["working_reference"], "task-A"
+        )
+        legacy = {k: v for k, v in current.items() if k != "journal_tip"}
+        self.assertTrue(execution_binding_matches(self.root, legacy, current))
+        self.append_discussion()
+        after = execution_binding(
+            self.root, self.path, self.base["working_reference"], "task-A"
+        )
+        self.assertFalse(execution_binding_matches(self.root, legacy, after))
+
     def authorize(self, event="user-1", **changes):
         request = (
             self.base
@@ -104,6 +170,466 @@ class ManagedDeliveryTests(unittest.TestCase):
             }
             | updates
         )
+
+    def test_pending_authorization_survives_planning_failure_and_retries(self):
+        (self.root / "validation").mkdir()
+        request = self.base | {
+            "operation": "authorize",
+            "instruction": "開始執行",
+            "source_event_id": "pending-event",
+            "expected_hash": hashlib.sha256(
+                (self.root / self.path).read_bytes()
+            ).hexdigest(),
+        }
+        first = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", first["verdict"])
+        self.assertEqual("pending", first.get("authorization_status"), first)
+        self.assertFalse(first["product_code_allowed"])
+        again = execute_request(self.root, request)
+        self.assertEqual(first["pending_authorization"], again["pending_authorization"])
+        self.assertTrue(again["replayed"])
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        suspended = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", suspended["verdict"])
+        self.assertNotEqual("pending", suspended.get("authorization_status"))
+
+    def preparation(self, path, content, **changes):
+        target = self.root / path
+        return (
+            self.base
+            | {
+                "operation": "prepare-validation",
+                "source_event_id": "user-1",
+                "patch": {
+                    "path": path,
+                    "before_sha256": hashlib.sha256(target.read_bytes()).hexdigest()
+                    if target.exists()
+                    else None,
+                    "content": content,
+                },
+            }
+            | changes
+        )
+
+    def test_preparation_enables_implementation_then_requires_acceptance_evidence(self):
+        (self.root / "validation").mkdir()
+        (self.root / "architecture").mkdir()
+        self.assertEqual("pending", self.authorize()["authorization_status"])
+        state = {"enablement": False, "acceptance": False}
+        # Start after acceptance repair; isolate sequencing at the validation port.
+        (self.root / "validation/acceptance-SPEC-0001.json").write_text(
+            json.dumps({"acceptance": {"AC-001": {}}}), encoding="utf-8"
+        )
+
+        def assessor(root, spec_path, *, phase, **kwargs):
+            ready = all(
+                (root / name).is_file()
+                for name in (
+                    "architecture/adoption.yaml",
+                    "validation/on-device.yaml",
+                    "validation/layout.yaml",
+                    "validation/verification-ladder.yaml",
+                )
+            )
+            passed = ready and (phase == "planning" or state.get(phase, False))
+            return {"verdict": "PASS" if passed else "BLOCKED", "phase": phase}
+
+        for path, content in (
+            (
+                "architecture/adoption.yaml",
+                "runtime_validation:\n  applicability: required\n  rationale: Physical timing requires device evidence.\n",
+            ),
+            ("validation/on-device.yaml", "schema_version: '1.0'\nscenarios: []\n"),
+            ("validation/layout.yaml", "schema_version: 1\nentries: []\n"),
+            (
+                "validation/verification-ladder.yaml",
+                "schema_version: '1.0'\nlayers: {}\n",
+            ),
+        ):
+            result = execute_request(
+                self.root, self.preparation(path, content), validation_assessor=assessor
+            )
+            self.assertTrue(result.get("preparation_applied"), result)
+            self.assertFalse(result["product_code_allowed"])
+            self.assertFalse(result["device_actions_authorized"])
+        enable = execute_request(
+            self.root,
+            self.base
+            | {
+                "operation": "enablement-status",
+                "source_event_id": "user-1",
+            },
+            validation_assessor=assessor,
+        )
+        self.assertTrue(enable["enablement_allowed"], enable)
+        self.assertFalse(enable["device_actions_authorized"])
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+        state["enablement"] = True
+        # Same retained user event, no new authorization or reset.
+        result = execute_request(
+            self.root,
+            self.base
+            | {
+                "operation": "authorize",
+                "instruction": "開始執行",
+                "source_event_id": "user-1",
+                "expected_hash": hashlib.sha256(
+                    (self.root / self.path).read_bytes()
+                ).hexdigest(),
+            },
+            validation_assessor=assessor,
+        )
+        self.assertTrue(result["product_code_allowed"], result)
+        applied = execute_request(
+            self.root,
+            self.base
+            | {
+                "operation": "apply",
+                "patch": {
+                    "path": "program.txt",
+                    "before_sha256": hashlib.sha256(b"before\n").hexdigest(),
+                    "content": "after\n",
+                },
+            },
+            validation_assessor=assessor,
+        )
+        self.assertEqual("PASS", applied["verdict"], applied)
+        self.assertEqual(b"after\n", self.target.read_bytes())
+        complete = self.base | {"operation": "complete"}
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(self.root, complete, validation_assessor=assessor)[
+                "verdict"
+            ],
+        )
+        state["acceptance"] = True
+        self.assertEqual(
+            "PASS",
+            execute_request(self.root, complete, validation_assessor=assessor)[
+                "verdict"
+            ],
+        )
+
+    def test_preparation_rejects_source_downgrades_and_revoked_authority(self):
+        directory = self.root / "validation"
+        directory.mkdir()
+        self.assertEqual("pending", self.authorize()["authorization_status"])
+        for path, content in (
+            ("program.txt", "unauthorized source"),
+            ("validation/acceptance-SPEC-0001.json", "{}"),
+            ("specs/other.yaml", "status: confirmed"),
+            ("validation/on-device.yaml", "[not a mapping]"),
+            ("validation/on-device.yaml", "malformed: ["),
+        ):
+            with self.subTest(path=path, content=content):
+                result = execute_request(self.root, self.preparation(path, content))
+                self.assertEqual("BLOCKED", result["verdict"], result)
+        profile = directory / "on-device.yaml"
+        profile.write_text("threshold: 10\nscenarios: [required]\n", encoding="utf-8")
+        for content in (
+            "threshold: 20\nscenarios: [required]\n",
+            "threshold: 10\nscenarios: []\n",
+        ):
+            self.assertEqual(
+                "BLOCKED",
+                execute_request(
+                    self.root, self.preparation("validation/on-device.yaml", content)
+                )["verdict"],
+            )
+        request = self.preparation(
+            "validation/on-device.yaml",
+            profile.read_text() + "rationale: Preserve existing limits.\n",
+        )
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_preparation_rechecks_scope_and_hash_without_manufacturing_authority(self):
+        (self.root / "validation").mkdir()
+        request = self.preparation(
+            "validation/layout.yaml", "schema_version: 1\nentries: []\n"
+        )
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        self.assertEqual("pending", self.authorize()["authorization_status"])
+        wrong = request | {"source_event_id": "different-user-event"}
+        self.assertEqual("BLOCKED", execute_request(self.root, wrong)["verdict"])
+        (self.root / "validation/layout.yaml").write_text(
+            "schema_version: 1\nentries: [concurrent]\n", encoding="utf-8"
+        )
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        self.assertIn("concurrent", (self.root / "validation/layout.yaml").read_text())
+
+    def test_acceptance_repair_requires_a_bound_declared_plan(self):
+        from spec_contract import acceptance_repair_plan
+
+        directory = self.root / "validation"
+        directory.mkdir()
+        plan = acceptance_repair_plan(self.root, self.path)
+        self.assertEqual("BLOCKED", plan["verdict"])
+        self.assertTrue(plan["draft_required"])
+        self.assertFalse((directory / "acceptance-SPEC-0001.json").exists())
+
+        # The reviewed contract states the mapping explicitly. No prose-to-test
+        # inference or caller deterministic flag can substitute for this source.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            mapping = {
+                "AC-001": {
+                    "evidence_claims": ["host-semantics"],
+                    "contract_dimensions": ["call-order"],
+                    "execution_changes": [],
+                    "rationale": "The retry contract requires a host call-order test.",
+                }
+            }
+            created = spec.start_working_bundle(
+                root,
+                "payment-retry",
+                confirmed_spec(status="working")
+                + "\n## Acceptance Mapping\n\n```json\n"
+                + json.dumps(mapping)
+                + "\n```\n",
+                task_ref="repair-task",
+            )["working_spec"]
+            confirmed = spec.materialize_working_bundle(
+                root,
+                created["working_id"],
+                expected_revision=created["revision"],
+                expected_hash=created["snapshot_hash"],
+            )
+            path = confirmed["canonical_spec"]["path"]
+            (root / "validation").mkdir()
+            base = {
+                "spec": path,
+                "working_reference": created["working_id"],
+                "task_ref": "repair-task",
+            }
+            auth = base | {
+                "operation": "authorize",
+                "instruction": "開始執行",
+                "source_event_id": "reviewed-repair",
+                "expected_hash": hashlib.sha256((root / path).read_bytes()).hexdigest(),
+            }
+            self.assertEqual(
+                "pending", execute_request(root, auth)["authorization_status"]
+            )
+            plan = acceptance_repair_plan(root, path)
+            self.assertEqual("PASS", plan["verdict"], plan)
+            repair = base | {
+                "operation": "repair-acceptance",
+                "source_event_id": "reviewed-repair",
+                "patch": plan["patch"],
+            }
+            bad = repair | {"patch": plan["patch"] | {"path": "program.txt"}}
+            self.assertEqual("BLOCKED", execute_request(root, bad)["verdict"])
+            result = execute_request(root, repair)
+            self.assertTrue(result["repair_applied"], result)
+            self.assertFalse(result["product_code_allowed"])
+            # Missing external validation still prevents a receipt after repair.
+            self.assertEqual("BLOCKED", result["verdict"])
+            self.assertEqual(
+                "PASS",
+                execute_request(
+                    root, auth, validation_assessor=lambda *a, **k: {"verdict": "PASS"}
+                )["verdict"],
+            )
+
+    def test_completed_pending_authorization_replay_is_idempotent(self):
+        (self.root / "validation").mkdir()
+        request = self.base | {
+            "operation": "authorize",
+            "instruction": "開始執行",
+            "source_event_id": "retry-pending",
+            "expected_hash": hashlib.sha256(
+                (self.root / self.path).read_bytes()
+            ).hexdigest(),
+        }
+        self.assertEqual(
+            "pending", execute_request(self.root, request)["authorization_status"]
+        )
+        # Removing the unconfigured empty fixture folder resolves this planning gap.
+        (self.root / "validation").rmdir()
+        self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        again = execute_request(self.root, request)
+        self.assertEqual("PASS", again["verdict"], again)
+        self.assertTrue(again["replayed"])
+        changed = request | {"instruction": "開始執行 SPEC-9999"}
+        self.assertEqual("BLOCKED", execute_request(self.root, changed)["verdict"])
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+
+    def test_ambiguous_draft_and_revocation_survive_owner_restart(self):
+        (self.root / "validation").mkdir()
+        self.assertEqual("pending", self.authorize()["authorization_status"])
+        draft = {
+            "path": "validation/acceptance-SPEC-0001.json",
+            "before_sha256": None,
+            "content": '{"review": "Need to select validation methods from the specification."}',
+        }
+        repair = self.base | {
+            "operation": "repair-acceptance",
+            "source_event_id": "user-1",
+            "patch": draft,
+        }
+        blocked = execute_request(self.root, repair)
+        self.assertEqual("BLOCKED", blocked["verdict"])
+        query = self.base | {
+            "operation": "authorization-status",
+            "source_event_id": "user-1",
+        }
+        self.assertEqual(draft, execute_request(self.root, query)["draft"]["patch"])
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        restored = execute_request(self.root, query)
+        self.assertEqual("revoked", restored["authorization_status"])
+        self.assertEqual(draft, restored["draft"]["patch"])
+        self.assertFalse(restored["product_code_allowed"])
+
+    def test_parameterized_additive_repair_handles_stale_inputs_and_interruption(self):
+        import os
+        from unittest.mock import patch
+
+        from spec_contract import acceptance_repair_plan
+
+        for identity, revision, ac in (
+            ("SPEC-0013", 2, "AC-017"),
+            ("SPEC-0241", 9, "AC-093"),
+        ):
+            with (
+                self.subTest(spec=identity, revision=revision, ac=ac),
+                tempfile.TemporaryDirectory() as temp,
+            ):
+                root = Path(temp)
+                row = {
+                    "evidence_claims": ["host-semantics"],
+                    "contract_dimensions": ["call-order"],
+                    "execution_changes": [],
+                    "rationale": "Host retry call order is observable.",
+                }
+                declared = {ac: row, "AC-099": row}
+                text = (
+                    confirmed_spec(spec_id=identity, status="working")
+                    .replace("revision: 1", f"revision: {revision}")
+                    .replace("AC-001", ac)
+                )
+                text = text.replace(
+                    "| "
+                    + ac
+                    + " | REQ-001 | A fourth attempt is never made. | `test_retry_limit` | pending |",
+                    "| "
+                    + ac
+                    + " | REQ-001 | A fourth attempt is never made. | `test_retry_limit` | pending |\n| AC-099 | REQ-001 | Exhaustion stops further calls. | `test_exhaustion` | pending |",
+                )
+                text += (
+                    "\n## Acceptance Mapping\n\n```json\n"
+                    + json.dumps(declared)
+                    + "\n```\n"
+                )
+                created = spec.start_working_bundle(
+                    root,
+                    "payment-retry",
+                    text,
+                    task_ref="repair-task",
+                    preserve_spec_identity=True,
+                )["working_spec"]
+                confirmed = spec.materialize_working_bundle(
+                    root,
+                    created["working_id"],
+                    expected_revision=created["revision"],
+                    expected_hash=created["snapshot_hash"],
+                )
+                path = confirmed["canonical_spec"]["path"]
+                self.assertIn(identity, path)
+                self.assertEqual(revision, confirmed["working_spec"]["revision"])
+                (root / "validation").mkdir()
+                complete = acceptance_repair_plan(root, path)
+                seeded = json.loads(complete["patch"]["content"])
+                seeded["acceptance"].pop("AC-099")
+                seeded["acceptance"][ac]["rationale"] = (
+                    "Existing reviewed row must remain unchanged."
+                )
+                original_row = dict(seeded["acceptance"][ac])
+                target = root / complete["patch"]["path"]
+                target.write_text(json.dumps(seeded), encoding="utf-8")
+                base = {
+                    "spec": path,
+                    "working_reference": created["working_id"],
+                    "task_ref": "repair-task",
+                }
+                auth = base | {
+                    "operation": "authorize",
+                    "instruction": "開始執行",
+                    "source_event_id": "matrix-event",
+                    "expected_hash": hashlib.sha256(
+                        (root / path).read_bytes()
+                    ).hexdigest(),
+                }
+                self.assertEqual(
+                    "pending", execute_request(root, auth)["authorization_status"]
+                )
+                plan = acceptance_repair_plan(root, path)
+                repair = base | {
+                    "operation": "repair-acceptance",
+                    "source_event_id": "matrix-event",
+                    "patch": plan["patch"],
+                }
+                before = target.read_bytes()
+                altered = json.loads(plan["patch"]["content"])
+                altered["acceptance"][ac]["evidence_claims"] = []
+                result = execute_request(
+                    root,
+                    repair
+                    | {"patch": plan["patch"] | {"content": json.dumps(altered)}},
+                )
+                self.assertEqual("BLOCKED", result["verdict"])
+                self.assertEqual(before, target.read_bytes())
+                self.assertEqual(
+                    "BLOCKED",
+                    execute_request(root, repair | {"task_ref": "other-task"})[
+                        "verdict"
+                    ],
+                )
+                target.write_bytes(before + b"\n")
+                self.assertEqual("BLOCKED", execute_request(root, repair)["verdict"])
+                self.assertEqual(before + b"\n", target.read_bytes())
+                repair["patch"] = acceptance_repair_plan(root, path)["patch"]
+                replace = os.replace
+
+                def interrupted(source, destination, target=target, replace=replace):
+                    if Path(destination).resolve() == target.resolve():
+                        raise OSError("injected interruption before mapping commit")
+                    return replace(source, destination)
+
+                with patch.object(os, "replace", side_effect=interrupted):
+                    result = execute_request(root, repair)
+                self.assertEqual("BLOCKED", result["verdict"])
+                self.assertEqual(before + b"\n", target.read_bytes())
+                assessor = lambda *a, **k: {"verdict": "PASS"}
+                result = execute_request(root, repair, validation_assessor=assessor)
+                self.assertEqual("PASS", result["verdict"], result)
+                self.assertEqual(
+                    original_row,
+                    json.loads(target.read_text(encoding="utf-8"))["acceptance"][ac],
+                )
+                replay = execute_request(root, repair, validation_assessor=assessor)
+                self.assertEqual("PASS", replay["verdict"], replay)
+                self.assertTrue(replay["repair_replayed"])
+                history = execute_request(
+                    root,
+                    base
+                    | {
+                        "operation": "authorization-status",
+                        "source_event_id": "matrix-event",
+                    },
+                )
+                self.assertGreaterEqual(len(history["repair_history"]), 3)
+                (root / path).write_bytes((root / path).read_bytes() + b"\n")
+                self.assertEqual(
+                    "BLOCKED",
+                    execute_request(root, auth, validation_assessor=assessor)[
+                        "verdict"
+                    ],
+                )
 
     def test_disjoint_stale_patch_is_integrated_but_overlap_is_rejected(self):
         self.assertEqual("PASS", self.authorize()["verdict"])

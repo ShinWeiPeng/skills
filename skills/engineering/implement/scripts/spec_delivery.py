@@ -16,7 +16,7 @@ SPEC_SCRIPTS_ROOT = SKILLS_ROOT / "spec-governance" / "scripts"
 if str(SPEC_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPEC_SCRIPTS_ROOT))
 
-from discussion_state import discussion_request
+from discussion_state import discussion_request, resolve_discussion_project
 from spec_contract import (
     assess_project_validation,
     assess_turn_context,
@@ -24,6 +24,11 @@ from spec_contract import (
     resolve_spec_context,
     validate_spec_text,
 )
+
+
+def resolve_delivery_project(project_root: Path, task_ref: str) -> Path:
+    """Use the discussion owner's explicit task binding at every adapter boundary."""
+    return resolve_discussion_project(project_root, task_ref)
 
 
 def manage_delivery_discussion(project_root: Path, request: dict) -> dict:
@@ -66,6 +71,7 @@ def verify_delivery_admission(
     working_reference: str | None = None,
     task_ref: str | None = None,
     validation_assessor=None,
+    authorization_only: bool = False,
 ) -> dict[str, Any]:
     """Check current canonical content, pending work and the final human instruction."""
     blocked = {"verdict": "BLOCKED", "product_code_allowed": False}
@@ -116,11 +122,6 @@ def verify_delivery_admission(
     working = turn.get("working_spec")
     if working and working.get("continuity") != "continuous":
         return blocked | {"reason": "working specification audit continuity is invalid"}
-    if working and working.get("validation_planning", {}).get("verdict") == "BLOCKED":
-        return blocked | {
-            "reason": "acceptance mapping requires reconciliation",
-            "validation_planning": working["validation_planning"],
-        }
     canonical = validate_spec_text(path.read_text(encoding="utf-8"))["canonical_spec"]
     if working and (
         working["spec_id"] != canonical["spec_id"]
@@ -138,6 +139,19 @@ def verify_delivery_admission(
             "reason": "prerequisite SPEC is not complete",
             "dependencies": dependencies,
             "unaffected_branches_suspended": False,
+        }
+    if authorization_only:
+        return {
+            "verdict": "PASS",
+            "authorization_valid": True,
+            "product_code_allowed": False,
+            "spec_path": relative,
+            "spec_hash": current_hash,
+        }
+    if working and working.get("validation_planning", {}).get("verdict") == "BLOCKED":
+        return blocked | {
+            "reason": "acceptance mapping requires reconciliation",
+            "validation_planning": working["validation_planning"],
         }
     validation = assess_project_validation(
         root, relative, phase="enablement", validation_assessor=validation_assessor

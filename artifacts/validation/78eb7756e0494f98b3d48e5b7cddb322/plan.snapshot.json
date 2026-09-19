@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0033-preauthorization-acceptance-repair.md",
+    "spec_id": "SPEC-0033",
+    "revision": 5,
+    "spec_sha256": "af88e5f3fc6f95e3cd27b1ac7cf4e46781af64379b912e63eba9ae4da0c0dba7",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "cd2a223b1fcaebcef2bcba48d52ae1d7b05a82245ec35803e6b9575e693a28b0"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "12a583bf79f8cb437cc5bbcd7a0434272488b91644d65a93faf1fd47e4d1c331"
+      },
+      "validation/acceptance-SPEC-0033.json": {
+        "state": "present",
+        "sha256": "f0c4008001834e5be700ced175f44d6ae3c2259c85eafeaff4b443f7220c7ec6"
+      }
+    },
+    "skill": {
+      "version": "0.17.0",
+      "sha256": "da65e585995a9e2eebb8f5cf23ca7a341cfce6973cfae17992b2b218fcd6d3c6"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001",
+        "規則及測試以多組 SPEC ID、版本與 AC 編號驗證通用缺漏處理；不得依賴真實事件的固定 ID。",
+        "參數化流程測試及來源審查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002",
+        "文件存於 specs/，有固定 ID、working 狀態、來源及候選與採用內容區別；回覆提供連結。",
+        "文件及 owner lifecycle 狀態檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-003": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-003",
+        "新工程討論有 working SPEC；每個已決定事項在相依後續步驟前保存在同一文件並可核對來源；候選不誤記為採用。",
+        "多回合 owner/router 測試與實際桌面 trace；保存失敗故障注入。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Requires host owner/router tests plus real desktop hook event, omission/block/recovery evidence. Synthetic fixtures cannot establish actual host firing."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-004",
+        "持續多回合與恢復後討論均更新同一 SPEC；不限三回合，不因摘要或重啟另建文件；重複輸入不重複新增決定。",
+        "多回合數參數化序列、長序列及恢復測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-005",
+        "有效授權可建立待完成申請；同申請重試不重複消耗來源，無授權／跨 task／跨 SPEC／跨版仍拒絕。",
+        "狀態與 CLI 行為測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-006",
+        "無有效正式憑證但有目前授權且只有對照缺漏时可受限補齊；禁止範圍外寫入、降低要求、過期原檔或非確定性內容。",
+        "參數化完整流程及負向差異測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-007": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-007",
+        "REQ-007",
+        "補齊後重新檢查全部條件，其他阻擋不核發；撤銷、重播、中斷、競態均保留正確權限與歷史。",
+        "故障注入、獨立預期狀態測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-008": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-008",
+        "REQ-008",
+        "父 cwd 與子 repo 的 hook/router/owner 對到同 SPEC；多 repo 歧義與非法改綁拒絕且不另建。",
+        "暫存目錄 adapter 測試與路徑檢查。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-009": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-009",
+        "REQ-009",
+        "已識別決定 A/B 只存 A 的摘要不能 PASS；完整逐項對照保存後可 PASS，候選不誤列採用。",
+        "owner/reconcile 行為測試、多回合 source 對照。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-010": {
+      "claims": [
+        "adapter-conformance",
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-010",
+        "REQ-010, REQ-011",
+        "真實桌面 UserPromptSubmit/PreToolUse/Stop 攜帶正確 task/turn/root；刻意漏存可攔截受涵蓋操作，補存解除，無 loaded/fired 證據不假報。",
+        "真實桌面原始事件、候選雜湊、保存及攔截紀錄；模擬不替代。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract",
+        "discussion-hook-adapter"
+      ],
+      "layers": [
+        "module-contract",
+        "sil",
+        "adapter-contract"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Requires host owner/router tests plus real desktop hook event, omission/block/recovery evidence. Synthetic fixtures cannot establish actual host firing."
+    },
+    "AC-011": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-011",
+        "REQ-011",
+        "補存預算耗盡保留 unsaved，可讀／可修復／可回報；重啟不重置預算，實際輸入變更可重查。",
+        "程序中斷、重播、故障注入與狀態持久化測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-012": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-012",
+        "REQ-012",
+        "舊資料可讀，既有授權與修復回歸通過，組裝來源一致且缺少桌面證據時保留整體驗收阻擋。",
+        "既有整合測試、layout、組裝與發佈包驗證。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    }
+  }
+}

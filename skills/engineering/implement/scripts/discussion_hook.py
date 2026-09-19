@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+from datetime import datetime, timezone
 import re
 import shlex
 import sys
@@ -12,7 +14,7 @@ SKILLS = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(SKILLS / "spec-governance/scripts"))
 sys.path.insert(0, str(SKILLS / "engineering-risk-routing/scripts"))
-from spec_delivery import manage_delivery_discussion
+from spec_delivery import manage_delivery_discussion, resolve_delivery_project
 
 
 def _context(event, message):
@@ -45,9 +47,15 @@ def _recovery_or_read(payload):
     data = payload.get("tool_input", {})
     if not isinstance(data, dict):
         return False
-    root = Path(payload["cwd"]).resolve(strict=True)
     if name in {"Read", "Glob", "Grep", "read_file", "list_directory"}:
         return True
+    host = Path(payload["cwd"]).resolve(strict=True)
+    task = payload.get("session_id")
+    root = (
+        resolve_delivery_project(host, task)
+        if isinstance(task, str) and task.strip()
+        else host
+    )
     if name in {"Edit", "Write"}:
         return _request_path(data.get("file_path", data.get("path")), root)
     if name == "apply_patch":
@@ -151,14 +159,14 @@ def _failure(payload, reason):
 def handle_hook(payload):
     event = payload.get("hook_event_name")
     task = payload.get("session_id")
-    root = Path(payload["cwd"]).resolve(strict=True)
+    root = resolve_delivery_project(Path(payload["cwd"]), payload.get("session_id"))
     base = {"task_ref": task}
     if event == "SessionStart":
         result = manage_delivery_discussion(root, {**base, "operation": "resume"})
         active = result["state"]["active_turn"]
         return _context(
             event,
-            "SPEC synchronization checks are active. Restore original turn "
+            "This adapter invocation supports SPEC synchronization checks; host trust/loading/firing still needs separate evidence. Restore original turn "
             + str(active)
             + "; resume preserves automatic-repair history. Saving and rechecking remain available. No host-wide interception is claimed.",
         )
@@ -185,7 +193,7 @@ def handle_hook(payload):
             "before substantive answers; support skills may investigate without invented questions. Current entry: "
             + json.dumps(result, ensure_ascii=False)
             + ". Unknown intent must be classified via discussion_state.py as engineering or non-engineering "
-            "with a reason; keyword nonmatches are not exemptions. Record a sourced summary and current binding; "
+            "with a reason; keyword nonmatches are not exemptions. Observe items and source_refs, reconcile accepted decisions, then record every item_binding and current binding; "
             "reply wording is audit only. Saving failures must not prevent discussion or recovery. Formal SPEC requires a complete adopted change; candidates do not authorize work.",
         )
     if event == "PreToolUse":
@@ -195,7 +203,7 @@ def handle_hook(payload):
                 "Read/SPEC recovery is allowed independently of synchronization. Product authorization is unchanged.",
             )
         result = manage_delivery_discussion(root, {**base, "operation": "status"})
-        if result.get("kind") == "non-engineering" or result["verdict"] == "PASS":
+        if result["verdict"] == "PASS":
             return {}
         return {
             "hookSpecificOutput": {
@@ -233,6 +241,39 @@ def main():
         if not isinstance(payload, dict):
             raise ValueError("hook input must be an object")
         result = handle_hook(payload)
+        package_version = "unverified"
+        for parent in Path(__file__).resolve().parents:
+            manifest = parent / ".codex-plugin/plugin.json"
+            if manifest.is_file():
+                package_version = str(
+                    json.loads(manifest.read_text(encoding="utf-8")).get(
+                        "version", "unverified"
+                    )
+                )
+                break
+        manage_delivery_discussion(
+            Path(payload["cwd"]),
+            {
+                "operation": "record-hook-observation",
+                "task_ref": payload["session_id"],
+                "turn_id": payload.get("turn_id"),
+                "observation": {
+                    "event": payload["hook_event_name"],
+                    "host_root": str(Path(payload["cwd"]).resolve()),
+                    "entrypoint_sha256": hashlib.sha256(
+                        Path(__file__).read_bytes()
+                    ).hexdigest(),
+                    "package_version": package_version,
+                    "input_sha256": hashlib.sha256(
+                        json.dumps(payload, sort_keys=True).encode()
+                    ).hexdigest(),
+                    "result_sha256": hashlib.sha256(
+                        json.dumps(result, sort_keys=True).encode()
+                    ).hexdigest(),
+                    "observed_at": datetime.now(timezone.utc).isoformat(),
+                },
+            },
+        )
     except (OSError, ValueError, TypeError, KeyError) as exc:
         reason = "Discussion hook failed; saved scope cannot be verified: " + str(exc)
         result = _failure(payload if isinstance(payload, dict) else {}, reason)

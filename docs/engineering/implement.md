@@ -18,6 +18,13 @@ and does not claim to intercept arbitrary host tools.
 
 ## What it does
 
+An authorized task continues through validation preparation, implementation and
+verification. Missing runtime policy, device profile, verification matrix or layout
+definitions can be added under the retained authorization before a receipt exists.
+Declared enablement checks can then produce the evidence needed for admission.
+Preparation never counts as acceptance, and existing validation values remain
+protected. Recoverable setup gaps do not require repeating the same permission.
+
 `implement` builds the work described in a spec or a set of tickets — driving it through test-driven development, typechecking, and the full test suite, then handing off to review and committing to the current branch.
 
 It does **not** decide what to build. The spec is already settled and the seams are already agreed; `implement` executes that plan rather than reopening it. It is the hands, not the head — the thinking happened upstream.
@@ -138,3 +145,14 @@ Independent SPEC tasks can run concurrently. Dependencies wait for prerequisite
 completion, while same-file conflicts use bounded reread and integration.
 Short OS locks release after a crash; long validation does not lock the project.
 Recovery rechecks the requested phase and retains prior recovery history.
+
+## When validation preparation is incomplete
+
+A valid execution instruction can remain pending while its acceptance mapping is
+repaired. Pending approval grants no product-write permission. Deterministic repair
+adds only missing rows explicitly declared by the reviewed SPEC; ambiguous mappings
+remain durable drafts. Existing rows, draft history and revocations are preserved.
+The tool reruns full admission after repair and reuses the still-valid instruction,
+so a preparation failure does not make you approve the same contract again.
+
+Saving a discussion-only suffix preserves current execution authority when the unchanged SPEC snapshot and original audit anchor are verified. Contract changes, revoked authority and broken history still block dependent edits. Legacy receipts without an anchor keep exact-binding checks.

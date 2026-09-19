@@ -128,8 +128,8 @@ investigation, never success. Existing discussion repair allowances are untouche
 
 Discussion starts in one `specs/SPEC-####-*.md` working file. Each new answer updates that file; confirmation keeps its ID and path. Decisions, pending discussion, completeness gaps and source history remain together. New discussions do not create a parallel WORKING-SPEC/journal pair.
 
-Before automatic confirmation, the agent reviews goal, scope, behavior, exceptions
-and acceptance against the actual adopted contract. Supply `completeness_review`
+Before contract confirmation, the agent reviews goal, scope, behavior, exceptions
+and acceptance against the actual adopted contract. For a settled adopted scope, supply `completeness_review`; confirmation is automatic without an extra flag. Pass that review
 to `record`, with those five keys, each containing bounded `source_ref` and
 `evidence` text. This is sourced review evidence, not user authorization. Empty
 contract cells cannot confirm; missing review leaves the file working and the
@@ -140,3 +140,18 @@ agent continues the completeness review without asking for redundant approval.
 Each saved working or confirmed SPEC update includes a clickable canonical link,
 revision, status, change summary and execution authorization state in the reply.
 Failed saves remain explicit so you can tell what was actually persisted.
+
+## Every decided item stays traceable
+
+Each new engineering turn explicitly reviews its sources and identified items.
+Accepted items must map to saved decision rows; a summary mentioning only some of
+them cannot pass synchronization. Unsaved items carry forward, while unchanged
+observations do not duplicate decisions. Continuing discussion keeps one working
+SPEC until an explicit confirmation step. An explicit task root binding lets a
+parent workspace and its selected child repository use the same document.
+
+Hook observations report their runtime and task identity separately from host
+trust, loading and firing. Manual saves and simulated events cannot prove desktop
+hook enforcement; missing real evidence remains unverified.
+
+Distinct accepted items need distinct saved decision rows with matching sources. An unrelated non-engineering reply keeps earlier engineering obligations pending until they are saved.

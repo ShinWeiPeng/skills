@@ -198,15 +198,15 @@ regardless of size or an explicitly requested skill such as `tdd`.
   grilling.
 - Ask one decision question at a time under the shared Decision Question Contract.
 - Do not ask discoverable facts.
-- Before the first substantive engineering answer, start or resolve the flat local pair
-  `spec-governance/WORKING-SPEC-<id>-<slug>.md` and
-  `.journal.jsonl`. Persist every answered decision and its structured `DISC-###`
+- Before the first substantive engineering answer, start or resolve the same canonical working file
+  `specs/SPEC-####-<slug>.md`, including its embedded discussion history.
+  Persist every answered decision and its structured `DISC-###`
   context before another question.
 - Invoke `spec-governance.reconcile` after every answer and display its Spec delta,
   affected IDs, relations, conflicts, open decisions, and verdict. Missing journal
   continuity is explicit and never reopens already settled decisions by itself.
-- When an adopted change contract is decision-complete, invoke `spec-governance.materialize` to create
-  one canonical `specs/SPEC-####-<slug>.md`. This spec-only lifecycle write does not
+- When an adopted change contract is decision-complete, invoke `spec-governance.materialize` to confirm
+  that same canonical `specs/SPEC-####-<slug>.md` in place. This spec-only lifecycle write does not
   authorize product changes.
 - Do not modify product source, tests, configuration, `CONTEXT.md`, ADRs,
   architecture artifacts, generated files, Git, or external state until the user
@@ -315,3 +315,28 @@ turn with a clickable canonical SPEC ID/title link, actual revision and lifecycl
 status, a short change summary and the current execution authorization state.
 A failed save must be described as failed; never claim that an unpersisted change
 was saved. Link the same canonical file through reopening and confirmation.
+
+## Persistent discussion and pre-receipt repair
+
+Resolve the task's explicitly selected project root through the spec owner's binding
+before router, hook or owner work. Every new engineering turn reviews its sources
+and identified items through `observe`, then records actual contract row mappings
+in the same working SPEC; a summary alone is insufficient. Confirmation is explicit,
+not a side effect of saving discussion. Follow the spec-governance discussion entry
+contract for recovery and honest hook-health reporting.
+
+Delivery retains valid pending authorization separately from a receipt. Route a
+missing acceptance mapping through `plan-acceptance-repair` / `repair-acceptance`
+in the managed delivery contract; unknown mappings stay as durable drafts. Full
+admission still controls product operations, and regular recovery keeps its receipt
+requirement. Never equate an adapter invocation with verified desktop hook firing.
+
+For other missing validation definitions, use `prepare-validation` with the same
+retained authorization. Use `enablement-status` to admit the declared preparation
+checks before requiring their evidence. Follow the managed delivery continuation
+contract through preparation, implementation and final validation. Do not return
+control merely on a repairable configuration gap or request the same permission
+again. Preserve required evidence and report only genuine unresolved decisions,
+unavailable external conditions or failures that bounded recovery cannot repair.
+
+The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review confirms an adopted contract in place, without an additional flag. Confirmation does not grant execution authority.

@@ -1352,6 +1352,112 @@ def _acceptance_planning(
     }
 
 
+def acceptance_repair_plan(project_root: Path, spec_path: str) -> dict:
+    """Derive an additive mapping only from explicitly declared contract data.
+
+    Natural-language test selection remains a reviewed draft. This read-only
+    operation grants no authority and never interprets prose as machine policy.
+    """
+    root = project_root.resolve()
+    path = (root / spec_path).resolve()
+    blocked = {
+        "verdict": "BLOCKED",
+        "product_code_allowed": False,
+        "draft_required": True,
+    }
+    if path.parent != root / "specs" or not path.is_file():
+        return blocked | {"reason": "canonical specification required"}
+    text = path.read_text(encoding="utf-8")
+    checked = validate_spec_text(text)
+    if checked["verdict"] != "PASS":
+        return blocked | {"reason": "invalid canonical specification"}
+    planning = _acceptance_planning(root, text)
+    if planning.get("errors") or any(
+        planning.get(k) for k in ("stale", "removed", "changed")
+    ):
+        return blocked | {
+            "reason": "repair cannot replace or remove existing criteria",
+            "planning": planning,
+        }
+    declared = _sections(text).get("acceptance mapping", "").strip()
+    if declared.startswith("```json\n") and declared.endswith("```"):
+        declared = declared[len("```json\n") : -3].strip()
+    try:
+        approved = json.loads(declared)
+    except (ValueError, TypeError):
+        return blocked | {
+            "reason": "missing explicit Acceptance Mapping data; retain a reviewed draft",
+            "planning": planning,
+        }
+    if not isinstance(approved, dict):
+        return blocked | {"reason": "Acceptance Mapping must be an AC-keyed object"}
+    identity = checked["canonical_spec"]["spec_id"]
+    relative = f"validation/acceptance-{identity}.json"
+    target = root / relative
+    raw = target.read_bytes() if target.exists() else None
+    document = (
+        json.loads(raw.decode("utf-8"))
+        if raw is not None
+        else {
+            "schema_version": 1,
+            "spec_id": identity,
+            "acceptance": {},
+        }
+    )
+    if (
+        not isinstance(document, dict)
+        or set(document) != {"schema_version", "spec_id", "acceptance"}
+        or type(document["schema_version"]) is not int
+        or document["schema_version"] != 1
+        or document["spec_id"] != identity
+        or not isinstance(document["acceptance"], dict)
+    ):
+        return blocked | {"reason": "existing mapping schema/identity is invalid"}
+    hashes = planning.get("criterion_hashes", {})
+    missing = sorted(set(hashes) - set(document["acceptance"]))
+    if not missing:
+        return {
+            "verdict": "PASS",
+            "product_code_allowed": False,
+            "missing": [],
+            "patch": None,
+        }
+    for key in missing:
+        row = approved.get(key)
+        if not isinstance(row, dict) or set(row) != {
+            "evidence_claims",
+            "contract_dimensions",
+            "execution_changes",
+            "rationale",
+        }:
+            return blocked | {"reason": key + ": explicit bounded mapping required"}
+        if not isinstance(row["rationale"], str) or not row["rationale"].strip():
+            return blocked | {"reason": key + ": mapping rationale required"}
+        for field in ("evidence_claims", "contract_dimensions", "execution_changes"):
+            values = row[field]
+            if (
+                not isinstance(values, list)
+                or any(not isinstance(v, str) or not v.strip() for v in values)
+                or len(set(values)) != len(values)
+            ):
+                return blocked | {"reason": key + ": invalid mapping dimensions"}
+        if not row["evidence_claims"]:
+            return blocked | {"reason": key + ": evidence claims required"}
+        document["acceptance"][key] = row | {"criterion_sha256": hashes[key]}
+    return {
+        "verdict": "PASS",
+        "product_code_allowed": False,
+        "missing": missing,
+        "patch": {
+            "path": relative,
+            "before_sha256": hashlib.sha256(raw).hexdigest()
+            if raw is not None
+            else None,
+            "content": json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+        },
+    }
+
+
 def _contract_completeness_gaps(project_root: Path, text: str) -> list[str]:
     gaps = list(
         validate_spec_text(text, known_spec_ids=_repository_spec_ids(project_root))[

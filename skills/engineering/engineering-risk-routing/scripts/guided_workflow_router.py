@@ -23,6 +23,7 @@ from spec_delivery import (
     assess_delivery_spec_context,
     assess_delivery_turn_context,
     manage_delivery_discussion,
+    resolve_delivery_project,
 )
 from workflow_selection import classify_intent, select_workflow
 
@@ -92,6 +93,8 @@ def route(
     turn_ref: str | None = None,
     source_ref: str | None = None,
 ) -> dict[str, Any]:
+    if task_ref:
+        project_root = resolve_delivery_project(project_root, task_ref)
     capabilities = (
         discover_available_skills() if available_skills is None else available_skills
     )

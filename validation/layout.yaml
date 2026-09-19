@@ -468,6 +468,8 @@ entries:
   - specs/SPEC-0030-governance-diagnosis-recovery.md
   - specs/SPEC-0031-execution-command-aliases.md
   - specs/SPEC-0032-recoverable-spec-sync.md
+  - specs/SPEC-0033-preauthorization-acceptance-repair.md
+  - specs/SPEC-0034-continuous-validation-preparation.md
   role: specification
 - include:
   - skills/engineering/govern-modular-event-architecture/assets/project/ADR-0001-modular-event-architecture.md.tmpl
@@ -545,7 +547,9 @@ entries:
   - validation/acceptance-SPEC-0029.json
   - validation/acceptance-SPEC-0030.json
   - validation/acceptance-SPEC-0032.json
+  - validation/acceptance-SPEC-0033.json
   - validation/run-references-SPEC-0032.json
+  - validation/run-references-SPEC-0033.json
   - validation/run-references-SPEC-0029.json
   - validation/run-references-SPEC-0030.json
   - validation/layout.yaml

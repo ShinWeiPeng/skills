@@ -18,6 +18,12 @@ and does not claim to intercept arbitrary host tools.
 
 ## What it does
 
+The router keeps an authorized change moving through preparation, implementation
+and validation. It reuses retained authorization for missing validation definitions
+and declared enablement checks, while keeping final evidence requirements intact.
+A repairable setup gap is work to complete, rather than a reason to ask the user
+for the same approval again.
+
 `ask-matt` is the automatic router over the engineering skills in this repo. It assesses the repository state and risk, starts the canonical spec when work will modify the project, then sends the request into the required workflow.
 
 It does not replace the focused skills. Its work is orchestration: determine the entry state, preserve required governance gates, and invoke the focused skill that performs the diagnosis, interview, implementation, review, or validation. Read-only questions remain read-only; only modifying work with an unresolved decision enters `grilling`.
@@ -137,3 +143,11 @@ investigation, never success. Existing discussion repair allowances are untouche
 Each saved working or confirmed SPEC update includes a clickable canonical link,
 revision, status, change summary and execution authorization state in the reply.
 Failed saves remain explicit so you can tell what was actually persisted.
+
+The router uses the task's explicit project binding, so a parent desktop workspace
+does not create a second SPEC beside its selected repository. It hands each new
+engineering turn to source/item review and persistence. Valid execution approval
+can remain pending during restricted acceptance-map repair; it does not grant
+product access until full admission passes.
+
+The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review confirms an adopted contract in place, without an additional flag. Confirmation does not grant execution authority.

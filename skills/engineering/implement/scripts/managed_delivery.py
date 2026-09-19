@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import difflib
 import hashlib
 import json
@@ -18,10 +19,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "spec-governance/sc
 from discussion_state import discussion_request
 from execution_state import (
     execution_binding,
+    execution_binding_matches,
     read_execution_state,
     write_execution_state,
 )
 from spec_contract import (
+    acceptance_repair_plan,
     assess_discussion_completion,
     project_state_lock,
     question_surface_policy,
@@ -56,6 +59,10 @@ def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> 
             raise ValueError(
                 "matching discussion is not synchronized; save or repair the current SPEC"
             )
+    if request.get("operation") == "prepare-validation":
+        return _admit_preparation(root, request, state)
+    if request.get("operation") == "enablement-status":
+        return _pending_binding(root, request, state)
     receipt = state.get("receipts", {}).get(request["spec"], state.get("receipt"))
     if state["phase"] != "executing" or not isinstance(receipt, dict):
         raise ValueError("execution is not authorized or is suspended")
@@ -64,7 +71,7 @@ def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> 
     binding = execution_binding(
         root, request["spec"], request["working_reference"], request["task_ref"]
     )
-    if receipt.get("binding") != binding:
+    if not execution_binding_matches(root, receipt.get("binding"), binding):
         raise ValueError("execution receipt is stale or belongs to another contract")
     result = verify_delivery_admission(
         root,
@@ -87,6 +94,99 @@ def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> 
         )
         if not repairable:
             raise ValueError(result.get("reason", "admission denied"))
+    return binding
+
+
+def _pending_binding(root: Path, request: dict, state: dict) -> dict:
+    """Recheck retained authority without requiring the evidence it must produce."""
+    pending = state.get("pending_authorizations", {}).get(request["source_event_id"])
+    if not isinstance(pending, dict) or state["phase"] == "suspended":
+        raise ValueError("current pending authorization is required for preparation")
+    binding = execution_binding(
+        root, request["spec"], request["working_reference"], request["task_ref"]
+    )
+    if not execution_binding_matches(root, pending["binding"], binding):
+        raise ValueError("preparation authorization is stale or scope differs")
+    authority = verify_delivery_admission(
+        root,
+        request["spec"],
+        expected_hash=binding["spec_hash"],
+        authorization=pending["instruction"],
+        working_reference=request["working_reference"],
+        task_ref=request["task_ref"],
+        authorization_only=True,
+    )
+    if not authority.get("authorization_valid"):
+        raise ValueError(authority.get("reason", "preparation authorization denied"))
+    return binding
+
+
+def _admit_preparation(root: Path, request: dict, state: dict) -> dict:
+    """Allow additive validation definitions under the retained scope, never code."""
+    import yaml
+
+    binding = _pending_binding(root, request, state)
+    patch = request["patch"]
+    if (
+        not isinstance(patch, dict)
+        or not isinstance(patch.get("content"), str)
+        or len(patch["content"].encode("utf-8")) > 1048576
+        or set(patch) != {"path", "before_sha256", "content"}
+        or patch["path"]
+        not in {
+            "architecture/adoption.yaml",
+            "validation/verification-ladder.yaml",
+            "validation/on-device.yaml",
+            "validation/layout.yaml",
+        }
+    ):
+        raise ValueError("preparation is limited to reviewed validation definitions")
+    target = _target(root, patch["path"])
+    if _current_hash(target) != patch["before_sha256"]:
+        raise ValueError("preparation target changed; reread the existing definition")
+    if target.exists() and target.stat().st_size > 1048576:
+        raise ValueError("existing validation definition exceeds 1 MiB")
+    try:
+        old = (
+            yaml.safe_load(target.read_text(encoding="utf-8-sig"))
+            if target.exists()
+            else {}
+        )
+        new = yaml.safe_load(patch["content"])
+    except yaml.YAMLError as exc:
+        raise ValueError("invalid preparation YAML") from exc
+    if not isinstance(old, dict) or not isinstance(new, dict) or not new:
+        raise ValueError("validation definitions must be nonempty mappings")
+
+    def preserves(before, after, depth=0):
+        if depth > 32:
+            raise ValueError(
+                "validation definition nesting exceeds the preparation limit"
+            )
+        if isinstance(before, dict):
+            return isinstance(after, dict) and all(
+                key in after and preserves(value, after[key], depth + 1)
+                for key, value in before.items()
+            )
+        if isinstance(before, list):
+            return isinstance(after, list) and after[: len(before)] == before
+        return type(before) is type(after) and before == after
+
+    if not preserves(old, new):
+        raise ValueError("preparation must preserve every existing validation value")
+    if patch["path"] == "architecture/adoption.yaml":
+        if {k: v for k, v in old.items() if k != "runtime_validation"} != {
+            k: v for k, v in new.items() if k != "runtime_validation"
+        }:
+            raise ValueError("preparation may only add the runtime validation policy")
+        policy = new.get("runtime_validation")
+        if (
+            not isinstance(policy, dict)
+            or policy.get("applicability") != "required"
+            or not isinstance(policy.get("rationale"), str)
+            or not policy["rationale"].strip()
+        ):
+            raise ValueError("preparation cannot exempt required runtime validation")
     return binding
 
 
@@ -328,7 +428,9 @@ def _recover(
     if not isinstance(recoveries, dict):
         raise TypeError("invalid legacy recovery state; preserve it for investigation")
     previous = recoveries.get(branch)
-    if previous and previous.get("binding") != binding:
+    if previous and not execution_binding_matches(
+        root, previous.get("binding"), binding
+    ):
         _admit(root, request, state, validation_assessor=validation_assessor)
         state.setdefault("recovery_history", []).append(
             {"branch": branch, "cycle": previous}
@@ -492,6 +594,197 @@ def _recover(
     }
 
 
+def _retain_history(state, field, event, record):
+    observation = {"source_event_id": event, **copy.deepcopy(record)}
+    history = state.setdefault(field, [])
+    if observation not in history:
+        history.append(observation)
+
+
+def _authorization_status(state, event):
+    history = [
+        row
+        for row in state.get("authorization_history", [])
+        if row["source_event_id"] == event
+    ]
+    return {
+        "verdict": "PASS",
+        "product_code_allowed": False,
+        "authorization_status": "pending"
+        if event in state.get("pending_authorizations", {})
+        else history[-1]["status"]
+        if history
+        else "absent",
+        "pending_authorization": state.get("pending_authorizations", {}).get(event),
+        "draft": state.get("acceptance_drafts", {}).get(event),
+        "history": history,
+        "repair_history": [
+            row
+            for row in state.get("acceptance_repair_history", [])
+            if row["source_event_id"] == event
+        ],
+    }
+
+
+def _repair_acceptance(root, request, state, validation_assessor):
+    """Commit only a deterministic additive mapping under retained authorization."""
+    event = request["source_event_id"]
+    pending = state.get("pending_authorizations", {}).get(event)
+    if pending is None and event in state.get("fulfilled_authorizations", {}):
+        completed = state["fulfilled_authorizations"][event]
+        previous = state.get("acceptance_repairs", {}).get(event)
+        if not isinstance(previous, dict) or request.get("patch") != previous["patch"]:
+            raise ValueError("no matching completed repair")
+        if (
+            _current_hash(_target(root, previous["patch"]["path"]))
+            != previous["after_sha256"]
+        ):
+            raise ValueError("completed repair result changed")
+        result = execute_request(
+            root,
+            request
+            | {
+                "operation": "authorize",
+                "instruction": completed["instruction"],
+                "expected_hash": completed["binding"]["spec_hash"],
+            },
+            validation_assessor=validation_assessor,
+        )
+        return result | {"repair_applied": True, "repair_replayed": True}
+    if not isinstance(pending, dict) or state["phase"] == "suspended":
+        raise ValueError("current pending authorization is required")
+    binding = execution_binding(
+        root, request["spec"], request["working_reference"], request["task_ref"]
+    )
+    if not execution_binding_matches(root, pending["binding"], binding):
+        raise ValueError(
+            "pending authorization is stale or belongs to another contract"
+        )
+    authority = verify_delivery_admission(
+        root,
+        request["spec"],
+        expected_hash=binding["spec_hash"],
+        authorization=pending["instruction"],
+        working_reference=request["working_reference"],
+        task_ref=request["task_ref"],
+        authorization_only=True,
+    )
+    if not authority.get("authorization_valid"):
+        raise ValueError(authority.get("reason", "authorization denied"))
+    patch = request.get("patch")
+    expected_path = (
+        "validation/acceptance-" + Path(binding["spec_path"]).name[:9] + ".json"
+    )
+    if (
+        not isinstance(patch, dict)
+        or set(patch) != {"path", "before_sha256", "content"}
+        or patch["path"] != expected_path
+        or not isinstance(patch["content"], str)
+        or len(patch["content"].encode("utf-8")) > 1048576
+    ):
+        raise ValueError(
+            "repair draft must be a bounded patch for this SPEC acceptance file"
+        )
+    planned = acceptance_repair_plan(root, request["spec"])
+    if planned["verdict"] != "PASS":
+        draft = {
+            "binding": binding,
+            "patch": patch,
+            "status": "draft",
+            "reason": planned.get("reason"),
+        }
+        state.setdefault("acceptance_drafts", {})[event] = draft
+        _retain_history(state, "acceptance_repair_history", event, draft)
+        write_execution_state(root, request["task_ref"], state)
+        return planned | {
+            "reviewable_candidate": patch,
+            "draft_saved": True,
+            "authorization_status": "pending",
+        }
+    previous = state.get("acceptance_repairs", {}).get(event)
+    replayed = planned["patch"] is None
+    if replayed:
+        if not isinstance(previous, dict) or patch != previous.get("patch"):
+            raise ValueError("no matching interrupted acceptance repair")
+        target = _target(root, patch["path"])
+        if _current_hash(target) != previous["after_sha256"]:
+            raise ValueError("repair result changed; preserve and investigate")
+    else:
+        if patch != planned["patch"]:
+            raise ValueError("patch differs from the deterministic contract mapping")
+        target = _target(root, patch["path"])
+        encoded = patch["content"].encode("utf-8")
+        if len(encoded) > 1048576:
+            raise ValueError("acceptance repair exceeds 1 MiB")
+        after = hashlib.sha256(encoded).hexdigest()
+        state.setdefault("acceptance_repairs", {})[event] = {
+            "patch": patch,
+            "after_sha256": after,
+            "status": "prepared",
+            "attempt": (previous or {}).get("attempt", 0) + 1,
+        }
+        _retain_history(
+            state,
+            "acceptance_repair_history",
+            event,
+            state["acceptance_repairs"][event],
+        )
+        write_execution_state(root, request["task_ref"], state)
+        temporary = None
+        try:
+            fd, temporary = tempfile.mkstemp(
+                prefix=".governed-patch-", dir=target.parent
+            )
+            with os.fdopen(fd, "wb") as stream:
+                stream.write(encoded)
+                stream.flush()
+                os.fsync(stream.fileno())
+            if target.exists():
+                os.chmod(temporary, target.stat().st_mode)
+            with (
+                project_state_lock(root, "product-commit"),
+                project_state_lock(root, "execution:" + request["task_ref"]),
+            ):
+                if (
+                    _target(root, patch["path"]) != target
+                    or _current_hash(target) != patch["before_sha256"]
+                    or read_execution_state(root, request["task_ref"]) != state
+                    or execution_binding(
+                        root,
+                        request["spec"],
+                        request["working_reference"],
+                        request["task_ref"],
+                    )
+                    != binding
+                ):
+                    raise ValueError("acceptance repair inputs changed before commit")
+                os.replace(temporary, target)
+                temporary = None
+        finally:
+            if temporary is not None:
+                Path(temporary).unlink(missing_ok=True)
+    state["acceptance_repairs"][event]["status"] = "applied"
+    _retain_history(
+        state, "acceptance_repair_history", event, state["acceptance_repairs"][event]
+    )
+    write_execution_state(root, request["task_ref"], state)
+    # Never mint a receipt from repair success. Re-run every admission check.
+    checked = execute_request(
+        root,
+        {
+            "operation": "authorize",
+            "task_ref": request["task_ref"],
+            "spec": request["spec"],
+            "working_reference": request["working_reference"],
+            "source_event_id": event,
+            "instruction": pending["instruction"],
+            "expected_hash": binding["spec_hash"],
+        },
+        validation_assessor=validation_assessor,
+    )
+    return checked | {"repair_applied": True, "repair_replayed": replayed}
+
+
 def execute_request(
     root: Path, request: dict, validation_assessor=None, candidate_validator=None
 ) -> dict:
@@ -503,12 +796,82 @@ def execute_request(
         task = request["task_ref"]
         state = read_execution_state(root, task)
         operation = request["operation"]
+        if operation == "authorization-status":
+            return _authorization_status(state, request["source_event_id"])
+        if operation == "plan-acceptance-repair":
+            return acceptance_repair_plan(root, request["spec"])
+        if operation == "repair-acceptance":
+            return _repair_acceptance(root, request, state, validation_assessor)
+        if operation == "prepare-validation":
+            _admit(root, request, state, validation_assessor)
+            pending = state["pending_authorizations"][request["source_event_id"]]
+            result = _apply(root, request, state, validation_assessor)
+            if result["verdict"] != "PASS":
+                return result | {"product_code_allowed": False}
+            admission = execute_request(
+                root,
+                {
+                    "operation": "authorize",
+                    "task_ref": request["task_ref"],
+                    "spec": request["spec"],
+                    "working_reference": request["working_reference"],
+                    "source_event_id": request["source_event_id"],
+                    "instruction": pending["instruction"],
+                    "expected_hash": pending["binding"]["spec_hash"],
+                },
+                validation_assessor=validation_assessor,
+            )
+            return result | {
+                "product_code_allowed": False,
+                "preparation_applied": True,
+                "admission": admission,
+                "next_action": "resume-implementation"
+                if admission.get("product_code_allowed")
+                else "continue-validation-preparation",
+                "device_actions_authorized": False,
+            }
+        if operation == "enablement-status":
+            binding = _admit(root, request, state, validation_assessor)
+            validation = assess_project_validation(
+                root,
+                request["spec"],
+                phase="planning",
+                validation_assessor=validation_assessor,
+            )
+            ready = (
+                validation.get("verdict") == "PASS"
+                and validation.get("layout", {"verdict": "PASS"}).get("verdict")
+                == "PASS"
+            )
+            return {
+                "verdict": "PASS" if ready else "BLOCKED",
+                "binding": binding,
+                "validation": validation,
+                "enablement_allowed": ready,
+                "product_code_allowed": False,
+                "device_actions_authorized": False,
+                "next_action": "run-declared-enablement"
+                if ready
+                else "continue-validation-preparation",
+            }
         if operation == "recover":
             return _recover(
                 root, request, state, validation_assessor, candidate_validator
             )
         if operation == "suspend":
-            state.update(phase="suspended", receipt=None, receipts={})
+            for application in [
+                *state.get("pending_authorizations", {}).values(),
+                *state.get("receipts", {}).values(),
+            ]:
+                _retain_history(
+                    state,
+                    "authorization_history",
+                    application["source_event_id"],
+                    {"status": "revoked", "application": application},
+                )
+            state.update(
+                phase="suspended", receipt=None, receipts={}, pending_authorizations={}
+            )
             write_execution_state(root, task, state)
             return {
                 "verdict": "PASS",
@@ -522,15 +885,68 @@ def execute_request(
             event = request["source_event_id"]
             if not isinstance(event, str) or not event.strip() or len(event) > 256:
                 raise ValueError("source event ID is required")
-            if event in state["used_event_ids"]:
+            pending = state.get("pending_authorizations", {}).get(event)
+            fulfilled = state.get("fulfilled_authorizations", {}).get(event)
+            if (
+                event in state["used_event_ids"]
+                and pending is None
+                and fulfilled is None
+            ):
                 raise ValueError(
                     "source event was already used; require fresh user authorization"
                 )
             binding = execution_binding(
                 root, request["spec"], request["working_reference"], task
             )
+            retained = pending or fulfilled
+            if retained is not None:
+                if (
+                    retained.get("instruction") != request["instruction"]
+                    or retained.get("source_event_id") != event
+                    or not execution_binding_matches(
+                        root, retained.get("binding"), binding
+                    )
+                ):
+                    raise ValueError("retained authorization is stale or scope differs")
+                if request["expected_hash"] == retained["binding"]["spec_hash"]:
+                    request = request | {"expected_hash": binding["spec_hash"]}
             if request["expected_hash"] != binding["spec_hash"]:
                 raise ValueError("reviewed specification hash is stale")
+            authority = verify_delivery_admission(
+                root,
+                request["spec"],
+                expected_hash=request["expected_hash"],
+                authorization=request["instruction"],
+                working_reference=request["working_reference"],
+                task_ref=task,
+                validation_assessor=validation_assessor,
+                authorization_only=True,
+            )
+            if not authority.get("authorization_valid"):
+                raise ValueError(authority.get("reason", "authorization denied"))
+            application = {
+                "binding": binding,
+                "instruction": request["instruction"],
+                "source_event_id": event,
+            }
+            if retained is not None:
+                application = retained
+            if fulfilled is not None:
+                receipt = state.get("receipts", {}).get(request["spec"], {})
+                if fulfilled != application or receipt.get("source_event_id") != event:
+                    raise ValueError(
+                        "completed authorization is stale, superseded or revoked"
+                    )
+                _admit(root, request, state, validation_assessor)
+                return {
+                    "verdict": "PASS",
+                    "product_code_allowed": True,
+                    "phase": "executing",
+                    "source_event_id": event,
+                    "replayed": True,
+                }
+            if pending is not None and pending != application:
+                raise ValueError("pending authorization is stale or scope differs")
             admission = verify_delivery_admission(
                 root,
                 request["spec"],
@@ -541,7 +957,29 @@ def execute_request(
                 validation_assessor=validation_assessor,
             )
             if not admission["product_code_allowed"]:
-                raise ValueError(admission.get("reason", "admission denied"))
+                # A batch is validated as a whole below; never reserve a partial scope.
+                if request.get("scope") is not None or re.fullmatch(
+                    r"開始執行\s*SPEC-(\d{4}(?:/(?:SPEC-)?\d{4})+)",
+                    request["instruction"].strip().replace("\\", "/"),
+                ):
+                    raise ValueError(admission.get("reason", "batch admission denied"))
+                if pending is None:
+                    state.setdefault("pending_authorizations", {})[event] = application
+                    state["used_event_ids"].append(event)
+                    _retain_history(
+                        state,
+                        "authorization_history",
+                        event,
+                        {"status": "pending", "application": application},
+                    )
+                    write_execution_state(root, task, state)
+                return admission | {
+                    "authorization_status": "pending",
+                    "pending_authorization": application,
+                    "replayed": pending is not None,
+                    "spec_discussion_allowed": True,
+                    "evidence_trust": "caller-attested-not-host-authenticated",
+                }
             receipts = {
                 request["spec"]: {
                     "binding": binding,
@@ -602,7 +1040,17 @@ def execute_request(
                         "instruction": request["instruction"],
                         "source_event_id": event,
                     }
-            state["used_event_ids"].append(event)
+            if pending is None:
+                state["used_event_ids"].append(event)
+            if pending is not None:
+                state.setdefault("fulfilled_authorizations", {})[event] = application
+                _retain_history(
+                    state,
+                    "authorization_history",
+                    event,
+                    {"status": "fulfilled", "application": application},
+                )
+            state.get("pending_authorizations", {}).pop(event, None)
             state.update(
                 phase="executing",
                 receipt={

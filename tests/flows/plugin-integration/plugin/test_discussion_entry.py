@@ -19,6 +19,7 @@ from spec_contract import (
     finish_discussion_turn,
     reconcile_working_bundle,
 )
+from test_spec_governance import confirmed_spec
 
 
 class DiscussionEntryTests(unittest.TestCase):
@@ -43,6 +44,13 @@ class DiscussionEntryTests(unittest.TestCase):
         )
 
     def save(self, reply="實際答覆", **values):
+        status = self.call("status")
+        if status.get("item_coverage") in {"legacy-unregistered", "unreviewed"}:
+            self.call(
+                "observe",
+                items=[],
+                source_refs=status.get("source_refs", ["fixture-user-1"]),
+            )
         binding = self.call("status")["binding"]
         return self.call(
             "record",
@@ -52,6 +60,375 @@ class DiscussionEntryTests(unittest.TestCase):
             binding=binding,
             **values,
         )
+
+    def test_identified_decisions_need_individual_contract_bindings(self):
+        from test_spec_governance import confirmed_spec
+
+        self.enter()
+        ref = assess_turn_context(self.root, task_ref="task-a")["working_spec"]
+        text = confirmed_spec(status="working").replace(
+            "| DEC-001 | Use exponential backoff. |",
+            "| DEC-001 | Use exponential backoff. | fixture-user-1 |\n| DEC-002 | Keep the retry limit visible. | fixture-user-1 |",
+        )
+        text = text.replace("| ID | Decision |", "| ID | Decision | Source |").replace(
+            "|---|---|\n| DEC-001", "|---|---|---|\n| DEC-001"
+        )
+        result = reconcile_working_bundle(
+            self.root,
+            ref["working_id"],
+            text,
+            {},
+            expected_revision=ref["revision"],
+            expected_hash=ref["snapshot_hash"],
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        items = [
+            {
+                "id": "A",
+                "kind": "accepted",
+                "source_ref": "fixture-user-1",
+                "text": "Use backoff.",
+            },
+            {
+                "id": "B",
+                "kind": "accepted",
+                "source_ref": "fixture-user-1",
+                "text": "Show retry limit.",
+            },
+        ]
+        self.call("observe", items=items, source_refs=["fixture-user-1"])
+        with self.assertRaisesRegex(ValueError, "every identified item"):
+            self.save(item_bindings={"A": ["DEC-001"]})
+        self.assertEqual("BLOCKED", self.call("status")["verdict"])
+        with self.assertRaisesRegex(ValueError, "distinct"):
+            self.save(item_bindings={"A": ["DEC-001"], "B": ["DEC-001"]})
+        saved = self.save(item_bindings={"A": ["DEC-001"], "B": ["DEC-002"]})
+        self.assertEqual("PASS", self.call("status")["verdict"])
+        self.assertEqual("working", saved["spec_presentation"]["status"])
+        self.call("observe", items=items, source_refs=["fixture-user-1"])
+        self.assertEqual("PASS", self.call("status")["verdict"])
+        again = self.save(item_bindings={"A": ["DEC-001"], "B": ["DEC-002"]})
+        self.assertTrue(again["replayed"])
+        self.assertEqual(saved["event_hash"], again["event_hash"])
+
+    def test_explicit_host_root_binding_uses_one_spec_store(self):
+        project = self.root / "project"
+        project.mkdir()
+        self.call("bind-project", project_root=str(project))
+        self.enter()
+        self.assertFalse((self.root / "specs").exists())
+        self.assertEqual(1, len(list((project / "specs").glob("SPEC-*.md"))))
+        from guided_workflow_router import route
+
+        routed = route(
+            "提出量測方案",
+            self.root,
+            task_ref="task-a",
+            turn_ref="turn-1",
+            source_ref="fixture-user-1",
+        )
+        self.assertEqual("SPEC-0001", routed["turn_context"]["working_spec"]["spec_id"])
+        recovery = handle_hook(
+            {
+                "hook_event_name": "PreToolUse",
+                "session_id": "task-a",
+                "turn_id": "turn-1",
+                "cwd": str(self.root),
+                "tool_name": "Write",
+                "tool_input": {
+                    "file_path": str(
+                        project / "spec-governance/DISCUSSION-REQUEST-repair.json"
+                    )
+                },
+            }
+        )
+        self.assertNotEqual(
+            "deny", recovery.get("hookSpecificOutput", {}).get("permissionDecision")
+        )
+        self.save()
+        result = handle_hook(
+            {
+                "hook_event_name": "Stop",
+                "session_id": "task-a",
+                "turn_id": "turn-1",
+                "cwd": str(self.root),
+            }
+        )
+        self.assertEqual({}, result)
+        other = self.root / "other"
+        other.mkdir()
+        with self.assertRaisesRegex(ValueError, "already bound"):
+            self.call("bind-project", project_root=str(other))
+        self.assertFalse((other / "specs").exists())
+
+    def test_new_turn_requires_explicit_item_review(self):
+        self.enter()
+        with self.assertRaisesRegex(ValueError, "identify"):
+            self.call(
+                "record",
+                binding=self.call("status")["binding"],
+                summary="A summary alone does not classify all identified decisions.",
+                source_ref="fixture-reply",
+                reply_text="saved",
+            )
+        self.assertEqual("BLOCKED", self.call("status")["verdict"])
+        self.save()
+        self.assertEqual("PASS", self.call("status")["verdict"])
+
+    def test_hook_health_distinguishes_manual_save_from_adapter_observation(self):
+        health = self.call("hook-health")
+        for key in ("trusted", "loaded", "fired"):
+            self.assertEqual("unverified", health[key])
+        self.assertEqual([], health["adapter_observations"])
+        self.enter()
+        self.save()
+        self.assertEqual([], self.call("hook-health")["adapter_observations"])
+        payload = {
+            "hook_event_name": "SessionStart",
+            "session_id": "task-a",
+            "cwd": str(self.root),
+        }
+        run = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "skills/engineering/implement/scripts/discussion_hook.py"),
+            ],
+            input=json.dumps(payload),
+            capture_output=True,
+            encoding="utf-8",
+            timeout=15,
+            check=False,
+        )
+        self.assertEqual(0, run.returncode, run.stderr)
+        health = self.call("hook-health")
+        observation = health["adapter_observations"][-1]
+        self.assertEqual("SessionStart", observation["event"])
+        self.assertEqual("task-a", observation["task_ref"])
+        self.assertEqual(str(self.root.resolve()), observation["project_root"])
+        self.assertEqual(64, len(observation["entrypoint_sha256"]))
+        self.assertEqual("unverified", health["fired"])
+        self.assertEqual("unverified", health["trusted"])
+        self.assertEqual("caller-attested-adapter-stdin", observation["provenance"])
+
+    def test_ambiguous_parent_retains_source_until_explicit_binding(self):
+        for name in ("one", "two"):
+            (self.root / name / ".git").mkdir(parents=True)
+        entered = self.enter()
+        self.assertEqual("BLOCKED", entered["verdict"])
+        self.assertTrue(entered["mapping_gap"])
+        self.assertFalse((self.root / "specs").exists())
+        restored = self.call("resume")["state"]
+        self.assertEqual("fixture-user-1", restored["turns"]["turn-1"]["source_ref"])
+        bound = self.call("bind-project", project_root=str(self.root / "two"))
+        self.assertEqual("fixture-user-1", bound["pending_sources"][0]["source_ref"])
+        self.enter()
+        self.assertEqual(1, len(list((self.root / "two/specs").glob("SPEC-*.md"))))
+        self.assertFalse((self.root / "one/specs").exists())
+
+    def test_unsaved_identified_items_carry_into_the_next_turn(self):
+        self.enter()
+        self.call(
+            "observe",
+            items=[
+                {
+                    "id": "fact-A",
+                    "kind": "fact",
+                    "source_ref": "fixture-user-1",
+                    "text": "The current hook has no real host proof.",
+                }
+            ],
+            source_refs=["fixture-user-1"],
+        )
+        self.base["turn_id"] = "turn-2"
+        self.call(
+            "enter",
+            engineering=True,
+            prompt="Continue the same discussion",
+            source_ref="fixture-user-2",
+        )
+        pending = self.call("status")
+        self.assertEqual(["fact-A"], pending["pending_items"])
+        self.assertEqual(["fixture-user-1", "fixture-user-2"], pending["source_refs"])
+        self.save(item_bindings={"fact-A": []})
+        self.assertEqual("PASS", self.call("status")["verdict"])
+        self.assertEqual(1, len(list((self.root / "specs").glob("SPEC-*.md"))))
+
+    def test_continuing_discussion_has_no_three_turn_limit(self):
+        for count in (1, 5, 17):
+            with self.subTest(turns=count), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                first_path = None
+                for number in range(count):
+                    base = {"task_ref": "long-discussion", "turn_id": f"turn-{number}"}
+                    source = f"source-{number}"
+                    discussion_request(
+                        root,
+                        base
+                        | {
+                            "operation": "enter",
+                            "engineering": True,
+                            "prompt": f"Discuss fact {number}",
+                            "source_ref": source,
+                        },
+                    )
+                    status = discussion_request(root, base | {"operation": "status"})
+                    discussion_request(
+                        root,
+                        base
+                        | {
+                            "operation": "observe",
+                            "items": [],
+                            "source_refs": [source],
+                        },
+                    )
+                    record = base | {
+                        "operation": "record",
+                        "binding": status["binding"],
+                        "summary": f"Recorded fact {number}",
+                        "reply_text": f"Fact {number}",
+                        "source_ref": source,
+                        "item_bindings": {},
+                    }
+                    saved = discussion_request(root, record)
+                    self.assertEqual("working", saved["spec_presentation"]["status"])
+                    first_path = first_path or saved["spec_presentation"]["path"]
+                    self.assertEqual(first_path, saved["spec_presentation"]["path"])
+                    self.assertTrue(discussion_request(root, record)["replayed"])
+                self.assertEqual(1, len(list((root / "specs").glob("SPEC-*.md"))))
+
+    def test_accepted_candidate_cannot_bypass_identified_item_mapping(self):
+        self.enter()
+        self.call("observe", items=[], source_refs=["fixture-user-1"])
+        with self.assertRaisesRegex(ValueError, "accepted candidate"):
+            self.save(
+                candidates=[
+                    {
+                        "id": "candidate-A",
+                        "status": "accepted",
+                        "source_ref": "proposal-A",
+                        "reason": "The user selected this option",
+                        "impact": "A new adopted decision",
+                        "user_source_ref": "fixture-user-1",
+                        "reconciliation_ref": "DEC-001",
+                    }
+                ]
+            )
+
+    def test_nonengineering_interlude_preserves_pending_engineering_items(self):
+        self.enter()
+        self.call(
+            "observe",
+            items=[
+                {
+                    "id": "A",
+                    "kind": "fact",
+                    "source_ref": "fixture-user-1",
+                    "text": "Unrecorded fact",
+                }
+            ],
+            source_refs=["fixture-user-1"],
+        )
+        self.base["turn_id"] = "turn-2"
+        self.call("enter", prompt="Hello", source_ref="source-2")
+        self.call("classify", kind="non-engineering", reason="A greeting")
+        self.assertEqual("BLOCKED", self.call("status")["verdict"])
+        blocked = handle_hook(
+            {
+                "cwd": str(self.root),
+                "hook_event_name": "PreToolUse",
+                "session_id": "task-a",
+                "turn_id": "turn-2",
+                "tool_name": "Bash",
+                "tool_input": {"command": "build-product"},
+            },
+        )
+        self.assertEqual("deny", blocked["hookSpecificOutput"]["permissionDecision"])
+        self.assertEqual(
+            "BLOCKED",
+            self.call("stop", reply_text="Pending engineering work")["verdict"],
+        )
+        final = self.call(
+            "stop", reply_text="Pending engineering work", stop_hook_active=True
+        )
+        self.assertTrue(final["continue"])
+        self.assertNotEqual(True, final.get("saved"))
+        self.base["turn_id"] = "turn-3"
+        self.call(
+            "enter", prompt="Continue the work", source_ref="source-3", engineering=True
+        )
+        status = self.call("status")
+        self.assertIn("A", status["pending_items"])
+        self.assertIn("fixture-user-1", status["source_refs"])
+        self.save(item_bindings={"A": []})
+        self.assertEqual("PASS", self.call("status")["verdict"])
+
+    def test_binding_transfers_unknown_prompt_before_classification(self):
+        project = self.root / "child"
+        project.mkdir()
+        self.call("enter", prompt="Discuss architecture", source_ref="fixture-user-1")
+        self.call("bind-project", project_root=str(project))
+        restored = self.call("resume")["state"]
+        self.assertEqual("fixture-user-1", restored["turns"]["turn-1"]["source_ref"])
+        self.call(
+            "classify", kind="engineering", reason="Explicit engineering discussion"
+        )
+        self.save()
+        self.assertFalse((self.root / "specs").exists())
+        self.assertEqual(1, len(list((project / "specs").glob("SPEC-*.md"))))
+
+    def test_accepted_item_cannot_reference_another_sources_decision(self):
+        self.enter()
+        ref = assess_turn_context(self.root, task_ref="task-a")["working_spec"]
+        text = (
+            confirmed_spec(status="working")
+            .replace("| ID | Decision |", "| ID | Decision | Source |")
+            .replace("|---|---|\n| DEC-001", "|---|---|---|\n| DEC-001")
+            .replace(
+                "| DEC-001 | Use exponential backoff. |",
+                "| DEC-001 | Use exponential backoff. | other-source |",
+            )
+        )
+        self.assertEqual(
+            "PASS",
+            reconcile_working_bundle(
+                self.root,
+                ref["working_id"],
+                text,
+                {},
+                expected_revision=ref["revision"],
+                expected_hash=ref["snapshot_hash"],
+            )["verdict"],
+        )
+        self.call(
+            "observe",
+            items=[
+                {
+                    "id": "A",
+                    "kind": "accepted",
+                    "source_ref": "fixture-user-1",
+                    "text": "A different decision",
+                }
+            ],
+            source_refs=["fixture-user-1"],
+        )
+        with self.assertRaisesRegex(ValueError, "source"):
+            self.save(item_bindings={"A": ["DEC-001"]})
+
+    def test_binding_preserves_active_nonengineering_turn_and_unknown_history(self):
+        project = self.root / "child"
+        project.mkdir()
+        self.call(
+            "enter", prompt="Unclassified earlier discussion", source_ref="source-1"
+        )
+        self.base["turn_id"] = "turn-2"
+        self.call("enter", prompt="Hello", source_ref="source-2")
+        self.call("classify", kind="non-engineering", reason="A greeting")
+        self.call("bind-project", project_root=str(project))
+        state = self.call("resume")["state"]
+        self.assertEqual("turn-2", state["active_turn"])
+        self.assertEqual("source-1", state["turns"]["turn-1"]["source_ref"])
+        self.assertEqual("non-engineering", state["turns"]["turn-2"]["kind"])
+        self.assertEqual("PASS", self.call("status")["verdict"])
 
     def test_single_file_views_and_noop_reconcile(self):
         self.enter()
@@ -552,6 +929,7 @@ class DiscussionEntryTests(unittest.TestCase):
 
     def test_host_topic_change_can_be_nonengineering(self):
         self.enter()
+        self.save()
         base = {"cwd": str(self.root), "session_id": "task-a", "turn_id": "poetry"}
         handle_hook(
             {**base, "hook_event_name": "UserPromptSubmit", "prompt": "寫一首詩"}
@@ -589,6 +967,7 @@ class DiscussionEntryTests(unittest.TestCase):
             capture_output=True,
             cwd=self.root,
             env=os.environ | {"PLUGIN_ROOT": str(plugin), "PYTHONIOENCODING": "utf-8"},
+            check=False,
         )
         self.assertEqual(0, run.returncode, run.stderr)
         output = json.loads(run.stdout)
@@ -620,6 +999,7 @@ class DiscussionEntryTests(unittest.TestCase):
                 cwd=self.root,
                 env=env,
                 timeout=15,
+                check=False,
             )
             self.assertEqual(0, run.returncode, run.stderr)
             self.assertIn("hookSpecificOutput", json.loads(run.stdout))
@@ -644,6 +1024,7 @@ class DiscussionEntryTests(unittest.TestCase):
                     cwd=self.root,
                     env=env,
                     timeout=15,
+                    check=False,
                 )
                 self.assertEqual(0, run.returncode, run.stderr)
                 return json.loads(run.stdout)
@@ -692,6 +1073,7 @@ class DiscussionEntryTests(unittest.TestCase):
                     cwd=self.root,
                     env=env,
                     timeout=15,
+                    check=False,
                 )
                 response = json.loads(run.stdout)
                 if operation != "status":
@@ -702,6 +1084,11 @@ class DiscussionEntryTests(unittest.TestCase):
                 "classify", kind="engineering", reason="Windows fault/recovery fixture"
             )
             binding = owner_call("status")["binding"]
+            owner_call(
+                "observe",
+                items=[],
+                source_refs=["host:UserPromptSubmit:windows-launch-turn"],
+            )
             owner_call(
                 "record",
                 binding=binding,
@@ -722,6 +1109,7 @@ class DiscussionEntryTests(unittest.TestCase):
                 cwd=self.root,
                 env=env,
                 timeout=15,
+                check=False,
             )
             self.assertNotIn("continue", json.loads(run.stdout))
             self.assertIn("systemMessage", json.loads(run.stdout))
@@ -740,6 +1128,7 @@ class DiscussionEntryTests(unittest.TestCase):
             ],
             capture_output=True,
             timeout=10,
+            check=False,
         )
         self.assertEqual(3, run.returncode, run.stderr)
         self.assertTrue(self.call("status")["repair_used"])
@@ -863,7 +1252,7 @@ class DiscussionEntryTests(unittest.TestCase):
         self.assertEqual("PASS", self.call("status")["verdict"])
 
     def test_native_windows_owner_command_is_recovery_not_arbitrary_python(self):
-        from discussion_hook import _recovery_or_read, SKILLS
+        from discussion_hook import SKILLS, _recovery_or_read
 
         owner = SKILLS / "spec-governance/scripts/discussion_state.py"
         request = "spec-governance/DISCUSSION-REQUEST-save.json"
@@ -937,6 +1326,7 @@ class DiscussionEntryTests(unittest.TestCase):
                 text=True,
                 encoding="utf-8",
                 capture_output=True,
+                check=False,
             )
             self.assertEqual(0, run.returncode, run.stderr)
             result = json.loads(run.stdout)
@@ -945,6 +1335,7 @@ class DiscussionEntryTests(unittest.TestCase):
 
     def test_product_authority_is_independent_of_historical_repair_failure(self):
         import hashlib
+
         import spec_contract as contract
         from managed_delivery import execute_request
         from test_spec_governance import confirmed_spec
@@ -1010,15 +1401,15 @@ class DiscussionEntryTests(unittest.TestCase):
         state_path.write_text(original_state, encoding="utf-8")
         self.assertEqual("PASS", execute_request(self.root, patch)["verdict"])
         self.assertEqual("after", target.read_text(encoding="utf-8"))
-        # A new saved audit changes the receipt binding; recovery cannot revive it.
+        # A sourced audit append preserves the authorized contract and receipt.
         self.save("additional sourced observation")
         patch["patch"]["before_sha256"] = hashlib.sha256(
             target.read_bytes()
         ).hexdigest()
-        patch["patch"]["content"] = "must-not-write"
-        blocked = execute_request(self.root, patch)
-        self.assertEqual("BLOCKED", blocked["verdict"])
-        self.assertEqual("after", target.read_text(encoding="utf-8"))
+        patch["patch"]["content"] = "continued"
+        continued = execute_request(self.root, patch)
+        self.assertEqual("PASS", continued["verdict"], continued)
+        self.assertEqual("continued", target.read_text(encoding="utf-8"))
 
     def test_router_keeps_read_only_support_when_persistence_is_unavailable(self):
         from unittest.mock import patch
@@ -1069,6 +1460,7 @@ class DiscussionEntryTests(unittest.TestCase):
                 text=True,
                 encoding="utf-8",
                 capture_output=True,
+                check=False,
             )
             self.assertEqual(0, run.returncode, run.stderr)
             response = json.loads(run.stdout)
@@ -1077,7 +1469,7 @@ class DiscussionEntryTests(unittest.TestCase):
             self.assertEqual(bad, state_path.read_text(encoding="utf-8"))
 
     def test_recovery_does_not_ignore_exec_workdir_override(self):
-        from discussion_hook import _recovery_or_read, SKILLS
+        from discussion_hook import SKILLS, _recovery_or_read
 
         owner = SKILLS / "spec-governance/scripts/discussion_state.py"
         command = f'"{sys.executable}" "{owner}" --project-root . --request spec-governance/DISCUSSION-REQUEST-x.json'

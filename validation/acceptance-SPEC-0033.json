@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "spec_id": "SPEC-0033",
+  "acceptance": {
+    "AC-001": {
+      "criterion_sha256": "618081abcb61444fa51abbf572944cb8be735713c275275bfce7d841edf12a52",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-002": {
+      "criterion_sha256": "46a90dbc569a3202a6995d9836c4a4d4359f0ac62b97a09517d8f90504e0c55e",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-003": {
+      "criterion_sha256": "182b883d67cbd1f85103a1cd70470743942719c76dc06eea3f9beb73a7680219",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Requires host owner/router tests plus real desktop hook event, omission/block/recovery evidence. Synthetic fixtures cannot establish actual host firing."
+    },
+    "AC-004": {
+      "criterion_sha256": "2750682c669f67499cbc5e87cb1f657e73a355dfc4a79ab965158b7d5ca20297",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-005": {
+      "criterion_sha256": "af4c26f8e94218879b660d1172bc1fd6d024bb0e7067f4541ba4bf8b0af09b93",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-006": {
+      "criterion_sha256": "79d9e172efc1eafe3b315774a3271ecef3ccd4d83e1d7d22f0b1246a4dcc7c25",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-007": {
+      "criterion_sha256": "847d8f6d764f3cf31b79957c17a05ab81695b21c4bce543f69113738dcc02812",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-008": {
+      "criterion_sha256": "da39fa9e728814782cb4557f50446b8d8d991d52059652549ff21c575d18a892",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-009": {
+      "criterion_sha256": "011ed864fd755feae97bbb2b08db1189cb69931c8c634582c61eee6c06545fa1",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-010": {
+      "criterion_sha256": "a15a6d59b1e4f6c92cc99dd04a7e9272f29c12817663875d8868d2320a6b5c6d",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "execution_changes": [],
+      "rationale": "Requires host owner/router tests plus real desktop hook event, omission/block/recovery evidence. Synthetic fixtures cannot establish actual host firing."
+    },
+    "AC-011": {
+      "criterion_sha256": "6959653ade856b33bd39410106a7c52c7cd0d265102c5d7ce0f2b1ce105f4338",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    },
+    "AC-012": {
+      "criterion_sha256": "a2cd227205020ce38503e4e0743f7b63d77f1bf58d74b4f30c6db8224b1af9eb",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host owner/router/managed delivery behavior with isolated filesystem, negative authorization, continuity, interruption and package regression appropriate to this criterion."
+    }
+  }
+}

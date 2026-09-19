@@ -20,9 +20,14 @@ working SPEC in `specs/` automatically. For a non-engineering request, explicitl
 turn as `non-engineering` with a reason; no working SPEC is created. Do not inherit
 engineering classification merely because an earlier turn discussed code.
 
-Use the same project root for hook events and the router. A nested repository whose
-root differs from the host task cwd needs an explicit matching-root task setup;
-report that gap rather than saving in two unrelated stores. Hook session/turn IDs
+Bind the selected canonical repository before the first SPEC when host cwd differs.
+Send `operation: bind-project`, `task_ref` and an absolute `project_root` to the owner
+at the host root. Hook, router and owner resolve that same task binding. Rebinding
+an established task or silently relocating an existing SPEC is refused. Existing
+unknown source records transfer under the shared binding lock before the pointer
+changes; conflicts preserve both stores and block the binding. Ambiguous
+parent workspaces retain their pending source and require an explicit selection;
+never guess a child repository or create a second SPEC. Hook session/turn IDs
 are source observations, not user approval. Legacy records have no retroactive
 entry evidence; resuming does not invent it.
 
@@ -48,7 +53,21 @@ permit an arbitrary script, shell chain, receipt replacement or product patch.
 }
 ```
 
-`status` returns the current `binding`. Before the final reply, use `record` with
+`status` returns the current `binding` and required `source_refs`. First register
+this turn's actual items. For a reviewed turn with no newly identified items:
+
+```json
+{
+  "operation": "observe",
+  "task_ref": "actual-session-id",
+  "turn_id": "actual-turn-id",
+  "source_refs": ["copy-every-source-from-status"],
+  "items": []
+}
+```
+
+For decisions, candidates, facts or questions, provide sourced item rows instead;
+see the item contract below. Before the final reply, use `record` with
 that exact binding, a sourced summary and prepared `reply_text`. The journal stores
 only its reply hash as audit evidence, not a full assistant transcript. Stop checks
 source/current binding and saved audit continuity, not reply wording equality.
@@ -64,15 +83,18 @@ semantic completeness. With no new content, verify without changing SPEC revisio
   "source_ref": "actual-visible-message-or-prepared-reply-reference",
   "summary": "Sourced goals, constraints, facts, decisions and remaining work.",
   "reply_text": "The exact final response to be emitted.",
-  "candidates": []
+  "candidates": [],
+  "item_bindings": {}
 }
 ```
 
 Candidate rows have `id`, `status`, `source_ref`, `reason` and `impact`. Initial
 status is `candidate`; `accepted`, `rejected` or `deferred` additionally needs the
 actual `user_source_ref`. Accepted candidates also identify the lifecycle
-`reconciliation_ref`; this summary operation cannot insert a formal requirement,
-adopt a candidate or authorize execution. A complete previously adopted contract may be confirmed automatically in place. Do not invent IDs or adoption evidence.
+`reconciliation_ref` and an observed accepted item with the same ID and user source; this summary operation cannot insert a formal requirement,
+adopt a candidate or authorize execution. A complete sourced review automatically
+confirms a settled adopted contract in place; no extra `confirm_contract` flag is
+required. Candidates and unresolved gaps do not qualify. Do not invent IDs or adoption evidence.
 
 ## Persistence and completion
 
@@ -129,9 +151,44 @@ Synthetic events and launcher-process tests establish host-side contracts only.
 Real desktop traces are required for AC-001/002/009/010/011 and overall acceptance;
 missing trust/loading/firing evidence keeps those criteria pending.
 
-Before automatic confirmation, the agent reviews goal, scope, behavior, exceptions
+Before explicit contract confirmation, the agent reviews goal, scope, behavior, exceptions
 and acceptance against the actual adopted contract. Supply `completeness_review`
 to `record`, with those five keys, each containing bounded `source_ref` and
 `evidence` text. This is sourced review evidence, not user authorization. Empty
 contract cells cannot confirm; missing review leaves the file working and the
 agent continues the completeness review without asking for redundant approval.
+
+## Review each turn's identified items
+
+New engineering turns require `observe` before `record`, including an explicit
+empty list for a reviewed factual turn with no newly identified items. Supply
+`source_refs` covering every current/carried source returned by `status`, and
+`items` with `id`, `kind`, `source_ref`, and bounded `text`. Kinds are `accepted`,
+`candidate`, `fact`, and `question`. Preserve real sources; do not manufacture a
+user decision from an assistant suggestion. Register new items before work depending
+on them. Use a separately sourced correction instead of changing an item's identity.
+
+Reconcile adopted changes into the same canonical file. In `record`, supply
+`item_bindings`, an object with one entry for every observed item. Each value is a
+list of existing REQ/DEC/AC IDs. Every accepted item needs a DEC row whose Source cell contains its source reference; candidates
+cannot claim adopted rows. A missing item or missing contract row blocks sync even
+when the summary is present. The owner reads back the actual document and matching
+journal event. Replaying identical observations/records does not append duplicates;
+new turns carry unresolved sources and items forward, including across non-engineering
+interludes, without resetting repair history.
+
+Legacy records remain readable and are labelled `legacy-unregistered`; this is not
+retroactive proof of item coverage. The mechanism checks identified items, not the
+model's ability to understand every natural-language decision. Report the actual
+`spec_presentation` link, revision and status and any unsaved scope.
+
+## Hook observations are separate from host verification
+
+Query `hook-health` for declared event support and adapter observations. A direct
+owner save is manual and creates no hook observation. The stdin adapter records its
+event, task/turn, host and canonical roots, entrypoint hash, package version, and
+input/output hashes. Those records are caller-attested observations, not authenticated
+proof that Codex trusted, loaded or fired that candidate. `trusted`, `loaded`, and
+`fired` remain `unverified` without external host evidence; absent observations never
+mean success. Bounded observation history discloses truncation. Do not enable trust
+automatically or substitute simulated subprocess events for desktop validation.

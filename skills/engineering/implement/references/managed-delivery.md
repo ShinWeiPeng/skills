@@ -12,7 +12,8 @@ independent of language, framework, project age, and the words in an example.
 | Stop implementation / not yet authorized | Keep saving later discussion decisions | Suspend immediately |
 | Explicit stop all work or stop SPEC writes | Honor that scope; do not continue those writes | Stop as requested |
 | Current confirmed contract plus exact execution instruction | Preserve verified contract | Authorize the managed entrypoint |
-| Contract, working snapshot or journal changed | Reconcile and verify the current state | Receipt is stale; do not replay an earlier instruction |
+| Contract or working snapshot changed | Reconcile and verify the current state | Receipt is stale; do not replay an earlier instruction |
+| Only discussion history appended | Verify unchanged snapshot and continuous history from the receipt anchor | Preserve the current authorization |
 
 Do not say “wait for 開始執行 before updating SPEC.” An execution pause does not
 erase accepted decisions. Once an implemented contract needs new requirements,
@@ -57,15 +58,15 @@ do not fabricate evidence. IDs and receipts remain caller-attested, not proof of
 host-authenticated human approval. Local receipt deletion or malicious rewriting
 is outside this plugin's trust boundary.
 
-The receipt binds the resolved project, task, SPEC bytes, working snapshot and
-journal. The managed entrypoint rejects reused event IDs in the retained local
-history. Every SPEC revision makes this receipt stale, including editorial,
-evidence-only and no-semantic-delta reconfirmation. Reverify and wait for a fresh
-exact `開始執行` covering the revision; never refresh the binding or reuse an old
-message. A single user message may specify and explicitly authorize that exact
-change; reconcile it before admission. Finish product checks before recording
-final implementation evidence, then perform no further product operations on the
-invalidated receipt. Read-only checks and SPEC persistence remain allowed.
+The receipt retains project, task, SPEC and snapshot hashes plus the journal tip
+observed at authorization. A later binding may differ only by a continuous suffix
+of discussion events with the identical snapshot. The original anchor must still
+exist; changed requirements, reopened/reconfirmed contracts, rewritten history,
+suspension and unrelated tasks remain rejected. No new user event is fabricated.
+Legacy receipts without an anchor retain exact-binding checks. Concurrent product
+writes still require exact current hashes under the existing commit lock.
+A single user message may specify and authorize the same change; reconcile it before
+admission. Confirmation itself never authorizes product execution.
 
 After successful authorization, apply one reviewed replacement:
 
@@ -253,3 +254,85 @@ checks alone do not prove the integrated program's behavior. No retry may overwr
 Recovery fingerprints include the validation phase, inputs and success condition.
 A fresh valid current-binding grant starts a new recovery cycle and preserves the
 previous cycle in history; it never restores stale authority.
+
+## Pending authorization and additive acceptance repair
+
+A valid current execution instruction is retained separately from its receipt when
+planning or enablement is incomplete. `authorization_status: pending` always has
+`product_code_allowed: false`. Retry the same event and exact contract after fixing
+preparation; do not ask for the same approval again. Changed bindings, revoked
+applications and different scopes cannot reuse that event. Successful retries of
+a previously pending application verify its existing receipt without issuing another.
+Use `authorization-status` with `task_ref` and `source_event_id` to recover the
+application, retained draft, and authorization/repair history. This read never grants
+product authority. Source IDs remain caller-attested rather than host-authenticated.
+
+`plan-acceptance-repair` is read-only and uses the current canonical SPEC. Automatic
+mapping is deliberately limited to explicit machine-readable data in that confirmed
+contract's `## Acceptance Mapping` section, a JSON object keyed by AC ID. Each row
+contains exactly `evidence_claims`, `contract_dimensions`, `execution_changes`
+(string arrays) and a nonempty `rationale`. The owner derives `criterion_sha256`
+from the actual criterion. For example:
+
+```json
+{
+  "AC-001": {
+    "evidence_claims": ["host-semantics"],
+    "contract_dimensions": ["call-order"],
+    "execution_changes": [],
+    "rationale": "The reviewed host contract requires a call-order test."
+  }
+}
+```
+
+Do not add or infer that declaration merely to get past a gate. If the reviewed
+contract does not determine a mapping, submit the bounded candidate as a draft;
+`repair-acceptance` retains it with its binding and reason without applying it.
+A caller's `deterministic` flag is not evidence. More complex or stale existing
+mappings require review; this additive route does not rewrite or lower them.
+
+To apply a deterministic plan, send `operation: repair-acceptance`, the current
+`task_ref`, `spec`, `working_reference`, retained `source_event_id`, and the exact
+`patch` returned by the planner. Only `validation/acceptance-SPEC-####.json` is
+eligible. Existing rows remain unchanged; old target hashes, redirects, different
+content and unrelated paths are rejected. Interrupted attempts retain their inputs;
+a matching committed result can be rechecked without rewriting it.
+
+Repair success reruns all admission checks and does not mean acceptance passed.
+If the verification plan is stale, regenerate it through the planning owner and
+retry the retained application; do not reset receipts or invent a new user event.
+Normal `recover` still requires an effective current receipt. Suspension preserves
+history and drafts while revoking authority.
+
+## Continue preparation through implementation and validation
+
+A retained current authorization also admits `prepare-validation` for additive
+definitions in `architecture/adoption.yaml`, `validation/verification-ladder.yaml`,
+`validation/on-device.yaml` and `validation/layout.yaml`. Supply the same `task_ref`,
+`spec`, `working_reference`, retained `source_event_id` and one reviewed `patch`
+with `path`, `before_sha256` and complete `content`. Reuse facts from the confirmed
+contract and project; ask only for a genuinely missing decision. Every existing
+value and list prefix is preserved. Adoption edits may only add a required runtime
+validation policy. Product code, acceptance results, scope changes, stale hashes
+and revoked or mismatched authority remain inadmissible through this operation.
+
+Preparation does not require the receipt whose prerequisites it repairs. It uses
+the managed writer's atomic replacement and concurrency checks, then retries the
+retained application. `preparation_applied` records only a definition write;
+inspect the nested `admission` result. Continue remaining preparation on
+`continue-validation-preparation`; on `resume-implementation`, verify managed
+status and continue source edits and checks without a new user event. A retry of
+an interrupted write first rereads the target; never overwrite a stale base.
+
+When declared enablement scenarios themselves need to run before admission, use
+`enablement-status` with the same binding and source event. It requires passing
+planning and layout, not the enablement evidence being produced. A PASS grants
+only `enablement_allowed`; execute the declared bounded preparation checks and
+save their evidence using the existing validation owner. This is not firmware
+write, flash, device-action or acceptance authority. Reuse separately established
+device authorization for the same scope; ask only if it is actually missing.
+Retry the retained application after recording enablement evidence, then continue
+implementation, build/tests, authorized device checks and `complete`. Never end
+the task merely because a recoverable preparation item was discovered. Full
+acceptance/release still requires the existing evidence gates; a passing
+preparation result cannot substitute for real runtime evidence.
