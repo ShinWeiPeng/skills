@@ -156,3 +156,18 @@ The tool reruns full admission after repair and reuses the still-valid instructi
 so a preparation failure does not make you approve the same contract again.
 
 Saving a discussion-only suffix preserves current execution authority when the unchanged SPEC snapshot and original audit anchor are verified. Contract changes, revoked authority and broken history still block dependent edits. Legacy receipts without an anchor keep exact-binding checks.
+
+
+## Version compatibility
+
+When the plugin or governance inputs change, the workflow inventories the current
+SPEC, retained authorization and validation settings before continuing. Unchanged
+verified inputs reuse the inventory; execution admission still runs. The report
+separates readable state, proven legacy authorization, unusable historical grants
+and validation definitions requiring checks or preparation.
+
+Known equivalent repairs stay within the existing authorization. A legacy receipt
+is preserved and accepted only after its original byte hashes and continuous
+unchanged discussion suffix are proven. Missing history cannot be replaced by a
+matching revision number. Unknown or scope-changing repairs return to discussion;
+format migration never counts as validation success or device authorization.

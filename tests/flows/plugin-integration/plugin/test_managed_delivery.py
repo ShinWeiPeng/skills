@@ -108,7 +108,7 @@ class ManagedDeliveryTests(unittest.TestCase):
                 self.assertEqual("BLOCKED", self.patch()["verdict"])
                 path.write_text(original, encoding="utf-8")
 
-    def test_legacy_binding_requires_exact_hashes(self):
+    def test_legacy_binding_requires_proven_original_hashes(self):
         from execution_state import execution_binding, execution_binding_matches
 
         current = execution_binding(
@@ -120,7 +120,283 @@ class ManagedDeliveryTests(unittest.TestCase):
         after = execution_binding(
             self.root, self.path, self.base["working_reference"], "task-A"
         )
-        self.assertFalse(execution_binding_matches(self.root, legacy, after))
+        self.assertTrue(execution_binding_matches(self.root, legacy, after))
+
+    def legacy_receipt(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        state = read_execution_state(self.root, "task-A")
+        for key in ("receipt",):
+            state[key]["binding"].pop("journal_tip", None)
+        for receipt in state.get("receipts", {}).values():
+            receipt["binding"].pop("journal_tip", None)
+        write_execution_state(self.root, "task-A", state)
+        return state["receipt"]
+
+    def test_legacy_receipt_reconstructs_original_bytes_after_discussion(self):
+        from execution_state import read_execution_state
+
+        original = self.legacy_receipt()
+        for _ in range(3):
+            self.append_discussion()
+        self.assertEqual("PASS", self.patch()["verdict"])
+        self.assertEqual(original, read_execution_state(self.root, "task-A")["receipt"])
+
+    def test_legacy_equivalent_snapshot_cannot_replace_original_hash(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        self.legacy_receipt()
+        self.append_discussion()
+        state = read_execution_state(self.root, "task-A")
+        for receipt in [state["receipt"], *state["receipts"].values()]:
+            receipt["binding"]["spec_hash"] = "0" * 64
+            receipt["binding"]["journal_hash"] = "0" * 64
+        write_execution_state(self.root, "task-A", state)
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_legacy_receipt_rejects_contract_change_and_suspension(self):
+        self.legacy_receipt()
+        self.append_discussion()
+        path = self.root / self.path
+        before = path.read_bytes()
+        path.write_bytes(before.replace(b"## Problem", b"## Different Problem", 1))
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+        path.write_bytes(before)
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def compatibility(self, version="v1", persist=True):
+        from execution_state import assess_execution_compatibility
+
+        return assess_execution_compatibility(
+            self.root,
+            self.path,
+            self.base["working_reference"],
+            "task-A",
+            {"version": version, "rules_sha256": version},
+            persist=persist,
+            validation_assessor=lambda *a, **k: {"verdict": "PASS"},
+        )
+
+    def test_compatibility_cache_reuses_only_matching_inputs(self):
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        first = self.compatibility()
+        self.assertEqual("PASS", first["verdict"], first)
+        self.assertFalse(first["reused"])
+        self.assertTrue(self.compatibility()["reused"])
+        self.append_discussion()
+        self.assertTrue(self.compatibility()["reused"])
+        self.assertFalse(self.compatibility("v2")["reused"])
+        (self.root / "validation").mkdir()
+        (self.root / "validation/layout.yaml").write_text(
+            "schema_version: 1\n", encoding="utf-8"
+        )
+        changed = self.compatibility("v2")
+        self.assertFalse(changed["reused"])
+        self.assertFalse(changed["product_code_allowed"])
+        self.assertTrue(self.compatibility("v2")["reused"])
+
+    def test_compatibility_corrupt_cache_and_revoked_authority_not_reused(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        self.authorize()
+        self.compatibility()
+        state = read_execution_state(self.root, "task-A")
+        state["compatibility"]["report_hash"] = "corrupt"
+        write_execution_state(self.root, "task-A", state)
+        self.assertFalse(self.compatibility()["reused"])
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
+        report = self.compatibility()
+        self.assertFalse(report["reused"])
+        self.assertFalse(report["product_code_allowed"])
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_compatibility_write_failure_preserves_receipt(self):
+        from unittest.mock import patch
+
+        import execution_state
+
+        self.authorize()
+        before = execution_state.read_execution_state(self.root, "task-A")
+        with patch.object(
+            execution_state, "_atomic_write", side_effect=OSError("disk failure")
+        ):
+            result = self.compatibility()
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual(
+            before, execution_state.read_execution_state(self.root, "task-A")
+        )
+
+    def test_compatibility_compare_and_swap_rejects_concurrent_state_change(self):
+        from unittest.mock import patch
+
+        import execution_state
+
+        self.authorize()
+        original = execution_state.write_execution_state
+
+        def concurrent(root, task, value):
+            newer = execution_state.read_execution_state(root, task)
+            newer["concurrent_marker"] = "preserve"
+            original(root, task, newer)
+            original(root, task, value)
+
+        with patch.object(
+            execution_state, "write_execution_state", side_effect=concurrent
+        ):
+            result = self.compatibility()
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual(
+            "preserve",
+            execution_state.read_execution_state(self.root, "task-A")[
+                "concurrent_marker"
+            ],
+        )
+
+    def test_compatibility_managed_entry_does_not_grant_authority(self):
+        report = execute_request(self.root, self.base | {"operation": "compatibility"})
+        self.assertEqual("PASS", report["verdict"], report)
+        self.assertFalse(report["product_code_allowed"])
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_compatibility_rechecks_unprovable_byte_drift(self):
+        self.authorize()
+        self.compatibility()
+        path = self.root / self.path
+        path.write_bytes(path.read_bytes() + b"\n")
+        report = self.compatibility()
+        self.assertEqual("BLOCKED", report["verdict"], report)
+        self.assertFalse(report["reused"])
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_compatibility_malformed_binding_fails_closed(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        self.authorize()
+        for value in ([], None):
+            state = read_execution_state(self.root, "task-A")
+            state["receipt"]["binding"] = value
+            write_execution_state(self.root, "task-A", state)
+            report = self.compatibility()
+            self.assertEqual("BLOCKED", report["verdict"], report)
+            self.assertIn("binding", report["reason"])
+
+    def test_direct_managed_mutations_check_compatibility_before_effects(self):
+        from unittest.mock import patch
+
+        import managed_delivery
+
+        self.authorize()
+        before = self.target.read_bytes()
+        with patch.object(
+            managed_delivery,
+            "assess_delivery_compatibility",
+            return_value={"verdict": "BLOCKED", "reason": "unknown rules"},
+        ) as assess:
+            for operation in (
+                "apply",
+                "prepare-validation",
+                "repair-acceptance",
+                "recover",
+                "complete",
+                "status",
+            ):
+                result = execute_request(
+                    self.root, self.base | {"operation": operation}
+                )
+                self.assertEqual("BLOCKED", result["verdict"], result)
+                self.assertFalse(result["product_code_allowed"])
+            self.assertEqual(6, assess.call_count)
+        self.assertEqual(before, self.target.read_bytes())
+
+    def test_router_renders_fresh_and_blocked_compatibility_inventory(self):
+        from guided_workflow_router import format_route_output
+
+        for report in (
+            {"verdict": "PASS", "reused": False, "inventory": []},
+            {"verdict": "BLOCKED", "reused": True, "reason": "unknown"},
+        ):
+            rendered = format_route_output({"status": "PASS", "compatibility": report})
+            self.assertEqual(report, json.loads(rendered)["compatibility"])
+
+    def test_validation_unknown_is_reported_without_blocking_bounded_preparation(self):
+        from execution_state import assess_execution_compatibility
+        from project_validation_adapter import assess_project_validation
+
+        self.authorize()
+        (self.root / "validation").mkdir()
+        (self.root / "validation/verification-ladder.yaml").write_text(
+            "broken: [", encoding="utf-8"
+        )
+        report = assess_execution_compatibility(
+            self.root,
+            self.path,
+            self.base["working_reference"],
+            "task-A",
+            {"version": "v1"},
+            persist=True,
+            validation_assessor=assess_project_validation,
+        )
+        self.assertEqual("BLOCKED", report["verdict"], report)
+        self.assertTrue(report["preparation_allowed"])
+        self.assertFalse(report["product_code_allowed"])
+        self.assertNotEqual("PASS", report["validation_assessment"]["verdict"])
+        self.assertTrue(
+            any(
+                r["kind"] == "validation" and r["disposition"] == "unknown"
+                for r in report["inventory"]
+            )
+        )
+
+    def test_planning_pass_does_not_hide_blocked_layout(self):
+        from execution_state import assess_execution_compatibility
+
+        self.authorize()
+        report = assess_execution_compatibility(
+            self.root,
+            self.path,
+            self.base["working_reference"],
+            "task-A",
+            {"version": "v1"},
+            validation_assessor=lambda *a, **k: {
+                "verdict": "PASS",
+                "layout": {"verdict": "BLOCKED"},
+            },
+        )
+        self.assertEqual("BLOCKED", report["verdict"], report)
+        self.assertTrue(report["preparation_allowed"])
+        self.assertFalse(report["product_code_allowed"])
+
+    def test_cached_inventory_rechecks_changed_validation_outcome(self):
+        from execution_state import assess_execution_compatibility
+
+        self.authorize()
+        current = {"verdict": "PASS", "layout": {"verdict": "PASS"}}
+
+        def assessor(*args, **kwargs):
+            return current
+
+        args = (
+            self.root,
+            self.path,
+            self.base["working_reference"],
+            "task-A",
+            {"version": "v1"},
+        )
+        first = assess_execution_compatibility(
+            *args, persist=True, validation_assessor=assessor
+        )
+        self.assertEqual("PASS", first["verdict"])
+        self.assertTrue(
+            assess_execution_compatibility(*args, validation_assessor=assessor)[
+                "reused"
+            ]
+        )
+        current = {"verdict": "PASS", "layout": {"verdict": "BLOCKED"}}
+        changed = assess_execution_compatibility(*args, validation_assessor=assessor)
+        self.assertEqual("BLOCKED", changed["verdict"], changed)
+        self.assertFalse(changed["reused"])
 
     def authorize(self, event="user-1", **changes):
         request = (

@@ -1,0 +1,14 @@
+{
+  "bump": "minor",
+  "changesets": [
+    "version-compatibility-inventory"
+  ],
+  "summary": {
+    "Added": [
+      "Version and governance compatibility inventory with validated cache reuse and explicit diagnosis."
+    ],
+    "Fixed": [
+      "Restore legacy authorization only from provable original hashes and discussion history; retain bounded preparation and all admission checks."
+    ]
+  }
+}

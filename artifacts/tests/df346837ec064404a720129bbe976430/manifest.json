@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "df346837ec064404a720129bbe976430",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:32:33.736369+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-ladder-regression-recheck",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain/ladder",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "d92262928368025a0746b89fa34c29bac2ecb1324fe22359d9c5f315fd1331e6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T15:33:00.455891+00:00",
+  "files": {
+    ".run.json": "139ba51b9b7ccdb993a121ca26ed043807f96fdc8cde0dc34c444cf722084f5a",
+    "reports/command.log": "af4513161a240a0379ece78e206b4e4bb6d33e97cf1c858859c466b89c26250e",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

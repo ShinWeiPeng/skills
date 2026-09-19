@@ -599,6 +599,15 @@ entries:
 - include:
   - .governed-release-source-inventory.json
   role: metadata
+- include:
+  - specs/SPEC-0035-execution-authorization-compatibility.md
+  role: specification
+- include:
+  - validation/acceptance-SPEC-0035.json
+  role: validation-definition
+- include:
+  - validation/run-references-SPEC-0035.json
+  role: validation-definition
 required_analyzers:
 - python
 external_modules:

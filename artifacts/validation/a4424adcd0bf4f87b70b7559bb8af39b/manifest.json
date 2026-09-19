@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "run_id": "a4424adcd0bf4f87b70b7559bb8af39b",
+  "kind": "validation",
+  "started_at": "2026-09-19T16:06:28.679346+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0035-execution-authorization-compatibility.md"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "1294914a8e072ae349acd877c3160807c57a8054097b2a51e1d789363b40318c"
+    },
+    "inputs": {
+      "plan": "f47578f8bccb696c25bbf78871ed5b86ba00a60ae4d7e96f9da333daae501ae1"
+    },
+    "spec": "SPEC-0035",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T16:06:28.787092+00:00",
+  "files": {
+    ".run.json": "aa3df40f7f02d8b241192aa7462f1c20921ff84812da4c65c702f8b18ed80acb",
+    "plan.snapshot.json": "97ab710f10ec55fad27092cc872b8c04f5e0cdf9eb8e153cd22196b19adfba36"
+  }
+}

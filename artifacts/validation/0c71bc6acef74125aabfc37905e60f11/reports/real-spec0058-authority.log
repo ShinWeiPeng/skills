@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS",
+  "scope": "read-only-authority-check-no-preparation-or-device-action",
+  "results": [
+    {
+      "event": "msg_01a0b8ff-cb39-70f3-bf8d-27c00c6a6afc",
+      "authority_only_preparation_admission": "BLOCKED",
+      "reason": "preparation authorization is stale or scope differs"
+    },
+    {
+      "event": "msg_01a0b958-bee0-70b1-beda-3dcc7e28e2bf",
+      "authority_only_preparation_admission": "PASS",
+      "current_spec_hash": "185de8b2298d9269163f74c74d1479c7ff72635e9c027d46c8fdbf418c55bcc7"
+    }
+  ]
+}

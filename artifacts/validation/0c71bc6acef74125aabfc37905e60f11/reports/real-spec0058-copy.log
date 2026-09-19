@@ -1,0 +1,18 @@
+{
+  "verdict": "PASS",
+  "scope": "read-only-original-and-temporary-copy",
+  "inventory": [
+    {
+      "source_event_id": "msg_01a0b8ff-cb39-70f3-bf8d-27c00c6a6afc",
+      "legacy": true,
+      "proven_compatible": false,
+      "original_sha256": "185de8b2298d9269163f74c74d1479c7ff72635e9c027d46c8fdbf418c55bcc7"
+    },
+    {
+      "source_event_id": "msg_01a0b958-bee0-70b1-beda-3dcc7e28e2bf",
+      "legacy": true,
+      "proven_compatible": true,
+      "original_sha256": "185de8b2298d9269163f74c74d1479c7ff72635e9c027d46c8fdbf418c55bcc7"
+    }
+  ]
+}

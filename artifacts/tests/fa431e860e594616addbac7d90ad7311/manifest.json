@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "run_id": "fa431e860e594616addbac7d90ad7311",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:25:13.950179+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-real-spec0058-copy",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-c",
+      "import sys,tempfile,json,hashlib\nfrom pathlib import Path\nsys.path.insert(0,str(Path.cwd()/'skills/engineering/implement/scripts'))\nimport managed_delivery\nfrom execution_state import read_execution_state,execution_binding,execution_binding_matches\nroot=Path('C:/Users/hugo_peng/firmware/periphery/env_sensing');task='01a0b339-4b59-7002-9ea1-1b82132dd2c4'\nstate=read_execution_state(root,task);rows=[]\nwith tempfile.TemporaryDirectory() as d:\n copy=Path(d)\n for receipt in state.get('pending_authorizations',{}).values():\n  old=receipt['binding']\n  if old.get('spec_path')!='specs/SPEC-0058-web-heap-instrumentation.md':continue\n  current=execution_binding(root,old['spec_path'],old['working_id'],task)\n  original=(root/old['spec_path']).read_bytes();target=copy/old['spec_path'];target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(original)\n  matched=execution_binding_matches(copy,old,current)\n  rows.append({'source_event_id':receipt.get('source_event_id'),'legacy': 'journal_tip' not in old,'proven_compatible':matched,'original_sha256':hashlib.sha256(original).hexdigest()})\n  if matched:\n   assert not execution_binding_matches(copy,dict(old,spec_hash='0'*64,journal_hash='0'*64),current)\n   assert not execution_binding_matches(copy,dict(old,task_ref='different-task'),current)\n   target.write_bytes(original.replace(b'## Problem',b'## Different Problem',1))\n   assert not execution_binding_matches(copy,old,current)\n  assert (root/old['spec_path']).read_bytes()==original\nassert any(r['proven_compatible'] and r['legacy'] for r in rows),rows\nassert any(not r['proven_compatible'] for r in rows),rows\nassert read_execution_state(root,task)==state\nprint(json.dumps({'verdict':'PASS','scope':'read-only-original-and-temporary-copy','inventory':rows},ensure_ascii=False,indent=2))"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "3b7b66a5a0f1406252bf52d41120667be103c9466b94edf1a9dba5252a8268e8"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T15:25:14.288721+00:00",
+  "files": {
+    ".run.json": "bff5177edf7f881c4206b74079832d5ad1afe3ddbe4b726f153eb0460898312a",
+    "reports/command.log": "37687ab316f0f20fd89f756af0a70b1081b56d09b6c31683c4e69a3d1db2ad98",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

@@ -29,7 +29,11 @@ from spec_contract import (
     project_state_lock,
     question_surface_policy,
 )
-from spec_delivery import assess_project_validation, verify_delivery_admission
+from spec_delivery import (
+    assess_delivery_compatibility,
+    assess_project_validation,
+    verify_delivery_admission,
+)
 
 
 def _blocked(reason: str) -> dict:
@@ -788,6 +792,48 @@ def _repair_acceptance(root, request, state, validation_assessor):
 def execute_request(
     root: Path, request: dict, validation_assessor=None, candidate_validator=None
 ) -> dict:
+    """Inventory dependent operations, then recheck existing authority and admission."""
+    compatibility = None
+    try:
+        if isinstance(request, dict) and request.get("operation") in {
+            "apply",
+            "prepare-validation",
+            "repair-acceptance",
+            "recover",
+            "complete",
+            "status",
+            "enablement-status",
+        }:
+            compatibility = assess_delivery_compatibility(
+                root.resolve(),
+                request["spec"],
+                request["working_reference"],
+                request["task_ref"],
+                persist=False,
+                validation_assessor=validation_assessor,
+            )
+            if compatibility["verdict"] != "PASS" and not (
+                request["operation"]
+                in {
+                    "prepare-validation",
+                    "repair-acceptance",
+                    "recover",
+                    "enablement-status",
+                }
+                and compatibility.get("preparation_allowed") is True
+            ):
+                return _blocked("compatibility requires diagnosis") | {
+                    "compatibility": compatibility,
+                }
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return _blocked(str(error))
+    result = _execute_request(root, request, validation_assessor, candidate_validator)
+    return result | {"compatibility": compatibility} if compatibility else result
+
+
+def _execute_request(
+    root: Path, request: dict, validation_assessor=None, candidate_validator=None
+) -> dict:
     """Authorize, suspend, query or apply one reviewed replacement; deny on missing evidence."""
     root = root.resolve()
     try:
@@ -796,6 +842,15 @@ def execute_request(
         task = request["task_ref"]
         state = read_execution_state(root, task)
         operation = request["operation"]
+        if operation == "compatibility":
+            return assess_delivery_compatibility(
+                root,
+                request["spec"],
+                request["working_reference"],
+                task,
+                persist=True,
+                validation_assessor=validation_assessor,
+            )
         if operation == "authorization-status":
             return _authorization_status(state, request["source_event_id"])
         if operation == "plan-acceptance-repair":
@@ -896,7 +951,10 @@ def execute_request(
                     "source event was already used; require fresh user authorization"
                 )
             binding = execution_binding(
-                root, request["spec"], request["working_reference"], task
+                root,
+                request["spec"],
+                request["working_reference"],
+                task,
             )
             retained = pending or fulfilled
             if retained is not None:

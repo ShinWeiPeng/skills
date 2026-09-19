@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "2b81c5977fb24e7dbf0545df3858197f",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:27:36.605811+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-supporting-1",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "a54f78c424bb91c56353102f49873bda65623a6fed013e765a6ba30f01b4d4c7"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T15:27:37.913826+00:00",
+  "files": {
+    ".run.json": "3e53b81482e98c82d33ba5bec74aac9a01fdc9e9f7bdb6efa1519fb5a1d1473e",
+    "reports/command.log": "688eacf2f67d5e7f390f71e38c9ff97002c53d5297907c8962b76b203cc7de02",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

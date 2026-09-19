@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "spec_id": "SPEC-0035",
+  "acceptance": {
+    "AC-001": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim.",
+      "criterion_sha256": "172a0441e91249ec8ec2a5b9f6e89f26d34c74ab9d446fd392eb866faf1d42d2"
+    },
+    "AC-002": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim.",
+      "criterion_sha256": "ea5b491b088bdb390b4e813de44f2add4b4b2ba938fe3ee4b51024d2e8107c77"
+    },
+    "AC-003": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim.",
+      "criterion_sha256": "9368acbd69c77fa9dba3143aa55dd92c2b6bdd84aba1d453080d9d7ff2485ef9"
+    },
+    "AC-004": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim.",
+      "criterion_sha256": "96e1d9f6d8fd19cbf1659f2e98fd100bcabd6912f8ccaf3d940007e75077faf2"
+    },
+    "AC-005": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim.",
+      "criterion_sha256": "b446f414ea8efbc1caf863fa72806244273f533e6eacea6aa29569aaad111945"
+    },
+    "AC-006": {
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim.",
+      "criterion_sha256": "dcba38af43bd0eb1ccb42ab13676060860333510e92ce53c293b74da42dc7969"
+    }
+  }
+}

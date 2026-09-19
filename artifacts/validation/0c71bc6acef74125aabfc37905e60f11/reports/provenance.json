@@ -1,0 +1,16 @@
+{
+  "tested_plugin_fingerprint": "sha256:41d34d72a1791037127ef0195bcdbbbe4826d1e165344b8b4162fed8c50f1bfe",
+  "scope": "Host module-contract and SIL; no installed-plugin, device or measurement claim. Legacy binding matching code is unchanged since the real-case checks.",
+  "supplemental_runs": [
+    {
+      "label": "real-spec0058-copy",
+      "original_manifest": "artifacts/tests/fa431e860e594616addbac7d90ad7311/manifest.json",
+      "manifest_sha256": "279eedc7db4bb4a6328a4f0a94b415be97c0421ff2b84f79868c0e94fb69ca2c"
+    },
+    {
+      "label": "real-spec0058-authority",
+      "original_manifest": "artifacts/tests/8f6c1d967b554494b276f9d382f8cbbe/manifest.json",
+      "manifest_sha256": "f46be9c5971a8bf9d251cf0b0d0532ef5a74319c2cd7a3d5760a2bae4d7e5eab"
+    }
+  ]
+}

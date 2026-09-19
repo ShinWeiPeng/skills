@@ -20,6 +20,7 @@ from project_state import assess_project_state
 from project_validation_adapter import assess_project_validation
 from repository_evidence import GitFilesystemRepositoryEvidenceAdapter
 from spec_delivery import (
+    assess_delivery_compatibility,
     assess_delivery_spec_context,
     assess_delivery_turn_context,
     manage_delivery_discussion,
@@ -59,7 +60,13 @@ def detect_branch(project_root: Path) -> str | None:
 
 def format_route_output(result: dict[str, Any], *, force_json: bool = False) -> str:
     """Render one PASS summary line or expanded exceptional evidence."""
-    if force_json or result["status"] != "PASS":
+    compatibility = result.get("compatibility", {})
+    if (
+        force_json
+        or result["status"] != "PASS"
+        or (compatibility and not compatibility.get("reused"))
+        or compatibility.get("verdict") == "BLOCKED"
+    ):
         return json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True)
     project = result["project_state"]
     spec = result["spec_context"]
@@ -201,6 +208,26 @@ def route(
         turn_context=turn_context,
         turn_kind=turn_kind,
     )
+    if task_ref and active_working and spec_context.get("selected_path"):
+        result["compatibility"] = assess_delivery_compatibility(
+            project_root,
+            spec_context["selected_path"],
+            active_working["working_id"],
+            task_ref,
+            persist=True,
+            validation_assessor=assess_project_validation,
+        )
+        # Inventory never suppresses the original validation/authorization gates.
+        # Unknown state still permits diagnosis and discussion.
+        if result["compatibility"]["verdict"] != "PASS":
+            result["product_code_allowed"] = False
+            result["compatibility_recovery"] = {
+                "required": True,
+                "next_action": "diagnose-compatibility",
+                "discussion_allowed": True,
+            }
+            # Routing into diagnosis is valid even when execution is blocked.
+            # The renderer exposes this BLOCKED inventory instead of hiding it.
     result["discussion_owner"] = "grilling"
     result["discussion_entry"] = discussion
     result["supporting_skill"] = result.get("selected_skill")

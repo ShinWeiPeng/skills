@@ -17,6 +17,7 @@ if str(SPEC_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPEC_SCRIPTS_ROOT))
 
 from discussion_state import discussion_request, resolve_discussion_project
+from execution_state import assess_execution_compatibility
 from spec_contract import (
     assess_project_validation,
     assess_turn_context,
@@ -200,6 +201,83 @@ def main(validation_assessor=None) -> int:
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["verdict"] == "PASS" else 2
+
+
+def _assess_loaded_compatibility(
+    project_root: Path,
+    spec_path: str,
+    working_reference: str,
+    task_ref: str,
+    *,
+    persist: bool = False,
+    validation_assessor=None,
+) -> dict:
+    """Bind compatibility checks to actual loaded rules, not a version label alone."""
+    paths = [
+        p
+        for p in SKILLS_ROOT.rglob("*")
+        if p.is_file()
+        and p.suffix in {".py", ".md", ".json", ".yaml", ".yml"}
+        and "__pycache__" not in p.parts
+    ]
+    signature = hashlib.sha256()
+    for path in sorted(paths):
+        signature.update(path.relative_to(SKILLS_ROOT).as_posix().encode())
+        signature.update(hashlib.sha256(path.read_bytes()).digest())
+    manifests = [
+        SKILLS_ROOT.parent / ".codex-plugin/plugin.json",
+        SKILLS_ROOT.parent.parent
+        / "plugins/governed-engineering-skills/.codex-plugin/plugin.json",
+    ]
+    version = "unknown"
+    for manifest in manifests:
+        if manifest.is_file():
+            raw = manifest.read_bytes()
+            signature.update(raw)
+            version = json.loads(raw).get("version", "unknown")
+            break
+    return assess_execution_compatibility(
+        project_root,
+        spec_path,
+        working_reference,
+        task_ref,
+        {
+            "version": version,
+            "rules_sha256": signature.hexdigest(),
+            "supported_state_schema": 1,
+        },
+        persist=persist,
+        validation_assessor=validation_assessor,
+    )
+
+
+def assess_delivery_compatibility(
+    project_root: Path,
+    spec_path: str,
+    working_reference: str,
+    task_ref: str,
+    *,
+    persist: bool = False,
+    validation_assessor=None,
+) -> dict:
+    """Keep diagnosis available when loaded version/rule evidence is unreadable."""
+    try:
+        return _assess_loaded_compatibility(
+            project_root,
+            spec_path,
+            working_reference,
+            task_ref,
+            persist=persist,
+            validation_assessor=validation_assessor,
+        )
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return {
+            "verdict": "BLOCKED",
+            "product_code_allowed": False,
+            "reused": False,
+            "next_action": "diagnose-compatibility",
+            "reason": str(error),
+        }
 
 
 if __name__ == "__main__":

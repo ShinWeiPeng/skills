@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "run_id": "e824178112ac4243922d0b113eefc2de",
+  "kind": "tests",
+  "started_at": "2026-09-19T16:06:56.523881+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-final-version-validation",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "plugins/governed-engineering-skills/scripts/version_governance.py",
+      "check"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "1294914a8e072ae349acd877c3160807c57a8054097b2a51e1d789363b40318c"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T16:06:57.067096+00:00",
+  "files": {
+    ".run.json": "efe26d76a8ae6a49d7f40932ac50a7a08d817290fdb3374db39203bf707720b6",
+    "reports/command.log": "de5ffedaef689e1396f0d94967e487b45a86707821f7cb97ee71b6c3c8641940",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

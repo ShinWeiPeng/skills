@@ -155,3 +155,18 @@ trust, loading and firing. Manual saves and simulated events cannot prove deskto
 hook enforcement; missing real evidence remains unverified.
 
 Distinct accepted items need distinct saved decision rows with matching sources. An unrelated non-engineering reply keeps earlier engineering obligations pending until they are saved.
+
+
+## Version compatibility
+
+When the plugin or governance inputs change, the workflow inventories the current
+SPEC, retained authorization and validation settings before continuing. Unchanged
+verified inputs reuse the inventory; execution admission still runs. The report
+separates readable state, proven legacy authorization, unusable historical grants
+and validation definitions requiring checks or preparation.
+
+Known equivalent repairs stay within the existing authorization. A legacy receipt
+is preserved and accepted only after its original byte hashes and continuous
+unchanged discussion suffix are proven. Missing history cannot be replaced by a
+matching revision number. Unknown or scope-changing repairs return to discussion;
+format migration never counts as validation success or device authorization.

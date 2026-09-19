@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "e6f08fb2529f4ca59b62c0058bdbfdbf",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:27:36.810251+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-supporting-2",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "a54f78c424bb91c56353102f49873bda65623a6fed013e765a6ba30f01b4d4c7"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T15:27:38.647848+00:00",
+  "files": {
+    ".run.json": "485ae71b78171d536adeff9a27012452a61c66956b288871501ac6f3c9b126fd",
+    "reports/command.log": "4434ff29edd3925ee082cddaee6aac3a1ed09b14605dd31fd890e07354dbf4f7",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

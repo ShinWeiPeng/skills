@@ -151,3 +151,18 @@ can remain pending during restricted acceptance-map repair; it does not grant
 product access until full admission passes.
 
 The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review confirms an adopted contract in place, without an additional flag. Confirmation does not grant execution authority.
+
+
+## Version compatibility
+
+When the plugin or governance inputs change, the workflow inventories the current
+SPEC, retained authorization and validation settings before continuing. Unchanged
+verified inputs reuse the inventory; execution admission still runs. The report
+separates readable state, proven legacy authorization, unusable historical grants
+and validation definitions requiring checks or preparation.
+
+Known equivalent repairs stay within the existing authorization. A legacy receipt
+is preserved and accepted only after its original byte hashes and continuous
+unchanged discussion suffix are proven. Missing history cannot be replaced by a
+matching revision number. Unknown or scope-changing repairs return to discussion;
+format migration never counts as validation success or device authorization.

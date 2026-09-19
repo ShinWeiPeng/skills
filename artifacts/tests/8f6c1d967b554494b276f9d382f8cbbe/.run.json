@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "run_id": "8f6c1d967b554494b276f9d382f8cbbe",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:46:30.961680+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-real-spec0058-authority",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-c",
+      "from pathlib import Path\nimport sys,json\nsys.path.insert(0,str(Path.cwd()/'skills/engineering/implement/scripts'))\nimport managed_delivery as delivery\nfrom execution_state import read_execution_state\nroot=Path('C:/Users/hugo_peng/firmware/periphery/env_sensing');task='01a0b339-4b59-7002-9ea1-1b82132dd2c4'\nstate=read_execution_state(root,task);results=[]\nfor event,row in state.get('pending_authorizations',{}).items():\n old=row['binding']\n if old.get('spec_path')!='specs/SPEC-0058-web-heap-instrumentation.md':continue\n request={'task_ref':task,'spec':old['spec_path'],'working_reference':old['working_id'],'source_event_id':event,'operation':'enablement-status'}\n try:\n  binding=delivery._pending_binding(root,request,state)\n  results.append({'event':event,'authority_only_preparation_admission':'PASS','current_spec_hash':binding['spec_hash']})\n except (ValueError,TypeError,KeyError) as error:\n  results.append({'event':event,'authority_only_preparation_admission':'BLOCKED','reason':str(error)})\nassert any(r['authority_only_preparation_admission']=='PASS' for r in results),results\nassert read_execution_state(root,task)==state\nprint(json.dumps({'verdict':'PASS','scope':'read-only-authority-check-no-preparation-or-device-action','results':results},indent=2))"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "7191990fad6ef2aa2c53f96634a20d260a1dd2f617c996607acb4321525b7dce"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  }
+}

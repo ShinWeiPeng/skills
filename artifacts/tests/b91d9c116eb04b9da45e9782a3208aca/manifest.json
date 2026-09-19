@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "run_id": "b91d9c116eb04b9da45e9782a3208aca",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:54:27.037408+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-distribution-workspace-temp",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/distribution",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "fbdf11eb6d038ecad0c9a5a49b5f7a19f80771bad5b54c53d44ba3f3468ca7ae"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T15:56:01.856269+00:00",
+  "files": {
+    ".run.json": "393f4fe5187948b99915969838e2c62d808568d74004156d75f2f74a55075fe7",
+    "reports/command.log": "946e0c9cb41e8e81669f99b081840382adf881a7ca7e336bacac284edfd960ff",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

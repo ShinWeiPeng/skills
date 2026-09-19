@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "run_id": "b286737ec54a4989a6190dbca8a209e2",
+  "kind": "tests",
+  "started_at": "2026-09-19T15:32:50.327939+00:00",
+  "metadata": {
+    "target": {
+      "module": "governance_workflow_domain"
+    },
+    "scenario": "spec0035-architecture-contracts",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain/architecture",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "d92262928368025a0746b89fa34c29bac2ecb1324fe22359d9c5f315fd1331e6"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  }
+}

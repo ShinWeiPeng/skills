@@ -347,3 +347,35 @@ For missing acceptance mappings, keep saving the SPEC independently and follow
 [managed delivery](../implement/references/managed-delivery.md) for a retained
 pending application and its restricted additive repair. Do not demand repeated
 approval for the same still-valid contract.
+
+
+## Version compatibility before continuing (SPEC-0035)
+
+On resume or reload, inspect the router's `compatibility` report before dependent
+operations. The loaded rules/manifest digest, supported state format, SPEC contract
+history, retained authority and validation input hashes key the owner's cache.
+Changed inputs or a missing/corrupt record trigger a full inventory; only an
+unchanged verified record may be reused. Present the version, inventory and next
+action when a full scan runs. Do not treat a version label or cached PASS as an
+execution receipt or as acceptance evidence. Existing admission always reruns.
+
+The managed `compatibility` operation takes the usual task, spec and working
+reference and never grants product authority. It can run while execution is
+blocked; unknown history keeps diagnosis and specification saving available.
+A legacy receipt without `journal_tip` can be read compatibly only when the owner
+reconstructs its original document bytes and matches BOTH old file hashes, then
+proves the suffix consists solely of unchanged-snapshot discussion events. Preserve
+the original receipt/source. Matching revision or snapshot alone is insufficient;
+unknown historical serializers, tampering, changed contracts and revocation never
+become permission. A stale older application must not invalidate a separately
+verified current application, and must never itself be reused.
+
+For a deterministic same-scope gap, use the existing acceptance planner and
+`repair-acceptance`, or reviewed additive `prepare-validation`, preserve original
+inputs/hashes and recovery evidence, then replan and retry the original grant.
+Do this automatically within the retained scope; do not ask for the same grant
+again. The compatibility inventory does not infer arbitrary missing settings,
+reduce thresholds, select an ambiguous SPEC or approve firmware/device actions.
+If equivalence cannot be established, report the concrete gap and return to
+investigation/discussion. Keep rejection evidence and never overwrite concurrent
+changes, clear receipts, or fabricate a successful validation.

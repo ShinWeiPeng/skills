@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0035-execution-authorization-compatibility.md",
+    "spec_id": "SPEC-0035",
+    "revision": 11,
+    "spec_sha256": "f12776da657c54cd109e9f6e177f39125a4f7e427cb120468fd05ad7ddb9293e",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "89a79bc664217e42eab106effbadae3b916efced313d038e5036465a89b33179"
+      },
+      "validation/acceptance-SPEC-0035.json": {
+        "state": "present",
+        "sha256": "107b35eac3431d036673bd9385fac3154630bdf76d5a019a0d39b111228a947b"
+      }
+    },
+    "skill": {
+      "version": "0.18.0",
+      "sha256": "5ced0c540877f3119aa8eb48bbd0d190ab09de3f3b56769c0a5fa7c8ff721daf"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001",
+        "版本、格式或相關規則改變及無可信紀錄時，均在相依操作前盤點並呈現結論。",
+        "參數化入口流程測試與真實升版案例核對。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002",
+        "只有與目前輸入匹配的可信結果可重用；缺漏、過期及未知資料不能誤報相容；報告覆蓋 SPEC、授權及驗證設定。",
+        "重載、資料改變、紀錄缺漏及過期案例。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-003",
+        "確定性同範圍修復可自動執行並保留來源；需新授權/需求者不自動採用。",
+        "準備入口端到端正反例測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-004",
+        "舊 binding 缺 journal_tip 的真實案例可在可證明歷史下銜接；僅相同版號/快照不足以通過，撤銷/改版/跨範圍/不明歷史皆拒絕。",
+        "舊狀態 fixture、歷史偽造反例及 SPEC-0058 唯讀資料副本回歸。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-005",
+        "遷移保留原資料、不降要求，重播冪等，中斷/並行修改/磁碟失敗不覆寫未知資料且可復原。",
+        "故障注入與並行測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-006",
+        "修復後重跑全部准入，其他阻擋不被掩蓋；未知返回具體診斷/討論，不能冒充驗收完成或要求重複有效授權。",
+        "路由/準備/准入整合與組裝插件一致性測試。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Existing AC requires host router/receipt/filesystem semantics and packaged regression; no device or new runtime timing claim."
+    }
+  }
+}

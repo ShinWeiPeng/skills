@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "run_id": "0c71bc6acef74125aabfc37905e60f11",
+  "kind": "validation",
+  "started_at": "2026-09-19T16:06:30.390863+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-final-acceptance",
+    "tool": {
+      "name": "spec0035-host-verification",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "1294914a8e072ae349acd877c3160807c57a8054097b2a51e1d789363b40318c"
+    },
+    "inputs": {
+      "plan": "f47578f8bccb696c25bbf78871ed5b86ba00a60ae4d7e96f9da333daae501ae1",
+      "architecture/adoption.yaml": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88",
+      "architecture/manifest.yaml": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0",
+      "validation/verification-ladder.yaml": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9",
+      "validation/layout.yaml": "89a79bc664217e42eab106effbadae3b916efced313d038e5036465a89b33179",
+      "validation/acceptance-SPEC-0035.json": "107b35eac3431d036673bd9385fac3154630bdf76d5a019a0d39b111228a947b"
+    },
+    "spec": "SPEC-0035",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006"
+    ],
+    "scenarios": []
+  }
+}

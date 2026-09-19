@@ -322,6 +322,9 @@ modules:
   - path: skills/engineering/implement/scripts/managed_delivery.py
     symbol: main
     kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: assess_delivery_compatibility
+    kind: function
   public_symbols:
   - path: skills/engineering/implement/SKILL.md
     symbol: implement
@@ -349,6 +352,9 @@ modules:
     kind: function
   - path: skills/engineering/implement/scripts/managed_delivery.py
     symbol: main
+    kind: function
+  - path: skills/engineering/implement/scripts/spec_delivery.py
+    symbol: assess_delivery_compatibility
     kind: function
 - id: spec_governance_domain
   level: L2
@@ -461,6 +467,9 @@ modules:
   - path: skills/engineering/spec-governance/scripts/execution_state.py
     symbol: write_execution_state
     kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: assess_execution_compatibility
+    kind: function
   public_symbols:
   - path: skills/engineering/spec-governance/SKILL.md
     symbol: spec-governance
@@ -509,6 +518,9 @@ modules:
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_spec_evidence_update
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/execution_state.py
+    symbol: assess_execution_compatibility
     kind: function
 - id: formatter_governance_domain
   level: L2

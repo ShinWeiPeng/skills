@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "run_id": "a382d15e214940c485f712d7d38b0348",
+  "kind": "tests",
+  "started_at": "2026-09-19T16:06:56.196417+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0035-final-architecture",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "tools/architecture/architecture_cli.py",
+      "gate",
+      "--phase",
+      "release",
+      "--manifest",
+      "architecture/manifest.yaml",
+      "--adoption",
+      "architecture/adoption.yaml",
+      "--baseline",
+      "architecture/baseline.yaml",
+      "--format",
+      "text"
+    ],
+    "source": {
+      "revision": "7d448e5d4495dab53efb7d9abb4933b204315611",
+      "dirty_sha256": "1294914a8e072ae349acd877c3160807c57a8054097b2a51e1d789363b40318c"
+    },
+    "inputs": {},
+    "spec": "SPEC-0035"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-19T16:07:46.130559+00:00",
+  "files": {
+    ".run.json": "83c37dd2a6b1aeb5a2f5ce23367a26a25809b51b84310ee7489acb85b3e61d14",
+    "reports/command.log": "e4ef8307868898d7d57d0bc7827a7bf54bc556534956478cf282278fc59fd18f",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}
