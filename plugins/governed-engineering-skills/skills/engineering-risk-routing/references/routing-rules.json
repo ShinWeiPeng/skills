@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "precedence": ["R3", "R2", "R1", "R0"],
+  "out_of_scope": {
+    "task_class": "out_of_scope",
+    "terms": ["hackmd", "learning note", "study note", "學習筆記", "建立筆記", "整理成筆記"]
+  },
+  "classes": [
+    {
+      "risk_class": "R3",
+      "task_class": "runtime-critical",
+      "terms": ["hardware", "firmware", "can bus", "can protocol", "transport", "timing", "deadline", "isr", "interrupt", "dma", "thread", "boot", "power", "peripheral", "on-device", "實機", "韌體", "硬體", "中斷", "時序"],
+      "required_gates": ["clarify-improvement-proposals", "govern-modular-event-architecture", "validate-on-device"],
+      "next_skill": "clarify-improvement-proposals",
+      "return_to_flow": "to-spec"
+    },
+    {
+      "risk_class": "R2",
+      "task_class": "governed-change",
+      "terms": ["module", "port", "event", "type ownership", "state ownership", "algorithm", "schema", "dependency", "public contract", "persistent format", "architecture", "refactor", "架構", "型別", "狀態", "依賴", "演算法", "重構"],
+      "required_gates": ["clarify-improvement-proposals", "govern-modular-event-architecture"],
+      "next_skill": "clarify-improvement-proposals",
+      "return_to_flow": "to-spec"
+    },
+    {
+      "risk_class": "R0",
+      "task_class": "knowledge",
+      "terms": ["explain code", "trace flow", "read-only", "how does", "walk me through", "導讀", "解釋程式", "資料流", "呼叫流程"],
+      "required_gates": ["explain-code-flow"],
+      "next_skill": "explain-code-flow",
+      "return_to_flow": null
+    }
+  ],
+  "default": {
+    "risk_class": "R1",
+    "task_class": "standard-change",
+    "required_gates": ["tdd", "code-review"],
+    "next_skill": "tdd",
+    "return_to_flow": "code-review"
+  },
+  "mutation_entries": ["implement", "tdd", "diagnosing-bugs", "prototype", "resolving-merge-conflicts"],
+  "governance_gate": "govern-modular-event-architecture"
+}

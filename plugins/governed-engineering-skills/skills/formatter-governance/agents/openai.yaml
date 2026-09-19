@@ -1,0 +1,4 @@
+interface:
+  display_name: "Formatter Governance"
+  short_description: "Enforce repository-aware formatter policy."
+  default_prompt: "Use $formatter-governance to select and verify the formatter policy before modifying code."
