@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.17.0
+
+### Added
+
+- Engineering discussion entry and trusted lifecycle hooks with bounded repair.
+
+### Changed
+
+- Keep read-only discussions and unadopted candidates outside formal SPEC materialization.
+
 ## 0.16.0
 
 ### Breaking Changes
