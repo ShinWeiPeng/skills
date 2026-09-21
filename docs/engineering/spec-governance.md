@@ -82,8 +82,9 @@ Tests now have explicit Module or Flow ownership under `tests/`. Authored valida
 plans stay under `validation/`; each execution keeps its own immutable run under
 `artifacts/`. This keeps specifications readable and prevents later runs from
 replacing the evidence they cite. Whole-project checks include existing files and
-report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
-boundaries; project-specific retention and Git ignore choices remain separate.
+report misplaced files and broken references. Layout does not impose language
+analysis, dependency or isolation proofs; independent architecture and runtime
+verification requirements remain applicable; project-specific retention and Git ignore choices remain separate.
 
 ## Discussion is saved from entry
 
@@ -129,7 +130,7 @@ investigation, never success. Existing discussion repair allowances are untouche
 Discussion starts in one `specs/SPEC-####-*.md` working file. Each new answer updates that file; confirmation keeps its ID and path. Decisions, pending discussion, completeness gaps and source history remain together. New discussions do not create a parallel WORKING-SPEC/journal pair.
 
 Before contract confirmation, the agent reviews goal, scope, behavior, exceptions
-and acceptance against the actual adopted contract. For a settled adopted scope, supply `completeness_review`; confirmation is automatic without an extra flag. Pass that review
+and acceptance against the actual adopted contract. For a settled adopted scope, present the complete proposal and obtain explicit user confirmation. Supply `user_confirmed` and its observed `confirmation_source_ref` together with `completeness_review`. Pass that review
 to `record`, with those five keys, each containing bounded `source_ref` and
 `evidence` text. This is sourced review evidence, not user authorization. Empty
 contract cells cannot confirm; missing review leaves the file working and the
@@ -170,3 +171,28 @@ is preserved and accepted only after its original byte hashes and continuous
 unchanged discussion suffix are proven. Missing history cannot be replaced by a
 matching revision number. Unknown or scope-changing repairs return to discussion;
 format migration never counts as validation success or device authorization.
+
+## Discussion, confirmation and correction
+
+The shared workflow restores the relevant decision history and pending question,
+then presents a complete proposal for explicit user confirmation. A completeness
+check does not confirm it automatically. Decision choices have at least three
+meaningful alternatives; numeric and clear free-text answers are supported.
+
+SPEC saving uses a short shared lock with a 30-second maximum wait and rereads the
+latest version before saving. Any SPEC revision requires fresh execution authority.
+With an unchanged confirmed SPEC, implementation and correction use one managed
+entry. The result a change must produce is checked after that change. Definitions
+are rebuilt from SPEC; missing verification selectors or evidence remain explicit
+and cannot be reported as completed acceptance.
+
+See [spec-governance](https://aihero.dev/skills-spec-governance) for the shared
+responsibility and [implement](https://aihero.dev/skills-implement) for execution.
+
+## Review the validation plan before confirming
+
+The assistant prepares the readable validation methods and tool selections from
+the same SPEC. Missing selections are listed together before confirmation, while
+drafts can still be saved. A generated mapping is not a complete plan or passing
+test evidence. Explicit user waivers are recorded with their scope and source and
+shown separately from tests that passed; other evidence remains required.

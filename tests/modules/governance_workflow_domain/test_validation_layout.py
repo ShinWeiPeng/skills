@@ -62,7 +62,7 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(len(unclassified), 1, unclassified)
         self.assertIn("unexpected.py", str(unclassified[0]))
 
-    def test_vendor_exclusion_cannot_hide_owned_dependency(self):
+    def test_vendor_exclusion_cannot_hide_owned_dependency_outside_layout_scope(self):
         self.policy["entries"].extend(
             [
                 {
@@ -81,8 +81,10 @@ class LayoutTests(unittest.TestCase):
         self.write("tests/modules/one/test_one.py", "VALUE = 1")
         self.write("vendor/adapter.py", "from tests.modules.one.test_one import VALUE")
         result = self.assess()
-        self.assertEqual(result["verdict"], "FAIL")
-        self.assertTrue(any(d["rule_id"] == "DEP001" for d in result["diagnostics"]))
+        self.assertEqual(result["verdict"], "PASS")
+        self.assertFalse(
+            any(d["rule_id"].startswith("DEP") for d in result["diagnostics"])
+        )
 
     def test_valid_owned_test(self):
         self.write("tests/modules/one/test_one.py", "def test_one(): assert True")
@@ -108,18 +110,18 @@ class LayoutTests(unittest.TestCase):
         self.policy["entries"].append({"include": ["unknown.xyz"], "role": "fixture"})
         self.assertEqual(self.assess()["verdict"], "BLOCKED")
 
-    def test_private_helper_cross_use_fails(self):
+    def test_private_helper_cross_use_fails_outside_layout_scope(self):
         self.write("tests/modules/one/support/helper.py", "VALUE = 1")
         self.write(
             "tests/modules/two/test_two.py",
             "from tests.modules.one.support.helper import VALUE",
         )
-        self.assertEqual(self.assess()["verdict"], "FAIL")
+        self.assertEqual(self.assess()["verdict"], "PASS")
 
-    def test_production_test_dependency_fails(self):
+    def test_production_test_dependency_fails_outside_layout_scope(self):
         self.write("tests/modules/one/test_one.py", "VALUE = 1")
         self.write("src/main.py", "from tests.modules.one.test_one import VALUE")
-        self.assertEqual(self.assess()["verdict"], "FAIL")
+        self.assertEqual(self.assess()["verdict"], "PASS")
 
     def test_unknown_owner_and_analyzer_block(self):
         self.write("tests/modules/one/test_one.py", "")
@@ -127,7 +129,7 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(self.assess()["verdict"], "BLOCKED")
         self.policy["entries"][1]["owner"] = "one"
         self.policy["required_analyzers"] = ["rust"]
-        self.assertEqual(self.assess()["verdict"], "BLOCKED")
+        self.assertEqual(self.assess()["verdict"], "PASS")
 
     def test_terminal_test_run_is_not_a_legacy_test_root(self):
         sys.path.insert(0, str(ROOT / "skills/engineering/verification-ladder/scripts"))
@@ -164,34 +166,38 @@ class LayoutTests(unittest.TestCase):
         self.write("artifacts/report.json", "{}")
         self.assertEqual(self.assess()["verdict"], "FAIL")
 
-    def test_dynamic_alias_cannot_hide_private_dependency(self):
+    def test_dynamic_alias_cannot_hide_private_dependency_outside_layout_scope(self):
         self.write("tests/modules/one/support/helper.py", "VALUE = 1")
         self.write(
             "tests/modules/two/test_two.py",
             "from importlib import import_module as load\nload('tests.modules.one.support.helper')",
         )
         result = self.assess()
-        self.assertEqual(result["verdict"], "BLOCKED")
-        self.assertTrue(any(d["rule_id"] == "DEP006" for d in result["diagnostics"]))
+        self.assertEqual(result["verdict"], "PASS")
+        self.assertFalse(
+            any(d["rule_id"].startswith("DEP") for d in result["diagnostics"])
+        )
 
-    def test_alternate_import_root_still_checks_private_support(self):
+    def test_alternate_import_root_still_checks_private_support_outside_layout_scope(
+        self,
+    ):
         self.write("tests/modules/one/support/helper.py", "VALUE = 1")
         self.write(
             "tests/modules/two/test_two.py",
             "from modules.one.support.helper import VALUE",
         )
-        self.assertEqual(self.assess()["verdict"], "FAIL")
+        self.assertEqual(self.assess()["verdict"], "PASS")
 
-    def test_unresolved_dependency_is_not_silently_external(self):
+    def test_unresolved_dependency_is_not_silently_external_outside_layout_scope(self):
         self.write("tests/modules/one/test_one.py", "import support.secret")
-        self.assertEqual(self.assess()["verdict"], "BLOCKED")
+        self.assertEqual(self.assess()["verdict"], "PASS")
 
     def test_tooling_role_cannot_hide_old_tests(self):
         self.policy["entries"].append({"include": ["tools/**"], "role": "tooling"})
         self.write("tools/tests/case.py", "def test_case(): pass")
         self.assertEqual(self.assess()["verdict"], "FAIL")
 
-    def test_shared_support_cannot_import_cases(self):
+    def test_shared_support_cannot_import_cases_outside_layout_scope(self):
         self.policy["entries"].append(
             {"include": ["tests/support/**"], "role": "support", "owner": "one"}
         )
@@ -200,7 +206,7 @@ class LayoutTests(unittest.TestCase):
             "tests/support/shared/helper.py",
             "from tests.modules.one.test_one import VALUE",
         )
-        self.assertEqual(self.assess()["verdict"], "FAIL")
+        self.assertEqual(self.assess()["verdict"], "PASS")
 
     def test_explicit_curated_fixture_is_input(self):
         self.policy["entries"][1]["exclude"] = ["tests/modules/one/support/**"]
@@ -214,6 +220,27 @@ class LayoutTests(unittest.TestCase):
         )
         self.write("tests/modules/one/support/reference.csv", "x,y\n1,2\n")
         self.assertEqual(self.assess()["verdict"], "PASS")
+
+    def test_mixed_languages_need_no_analyzers(self):
+        self.policy["required_analyzers"] = ["c-cpp", "javascript"]
+        self.policy["release_isolation"] = True
+        self.policy["external_resources"] = [{}]
+        self.write(
+            "tests/modules/one/test_one.cpp", "invalid C++ is outside layout scope"
+        )
+        self.write(
+            "tests/modules/one/test_one.js", "invalid JS is outside layout scope"
+        )
+        self.write(
+            "tests/modules/one/test_one.py", "invalid Python is outside layout scope"
+        )
+        result = self.assess()
+        self.assertEqual(result["verdict"], "PASS", result)
+        self.assertEqual(result["coverage"]["language_analysis"], "not-required")
+        self.policy["references"] = [{"path": "missing.json", "sha256": "0" * 64}]
+        result = self.assess()
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertTrue(any(d["rule_id"] == "REF001" for d in result["diagnostics"]))
 
 
 if __name__ == "__main__":

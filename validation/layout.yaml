@@ -510,6 +510,7 @@ entries:
   - tests/flows/plugin-integration/plugin/test_spec_governance.py
   - tests/flows/plugin-integration/plugin/test_turn_continuity.py
   - tests/flows/plugin-integration/plugin/test_discussion_entry.py
+  - tests/flows/plugin-integration/plugin/test_spec0036_consolidation.py
   - tests/flows/plugin-integration/plugin/test_version_governance.py
   - tests/flows/plugin-integration/plugin/test_windows_artifact_access.ps1
   role: test
@@ -601,9 +602,12 @@ entries:
   role: metadata
 - include:
   - specs/SPEC-0035-execution-authorization-compatibility.md
+  - specs/SPEC-0036-generic-layout-repair.md
   role: specification
 - include:
   - validation/acceptance-SPEC-0035.json
+  - validation/acceptance-SPEC-0036.json
+  - validation/run-references-SPEC-0036.json
   role: validation-definition
 - include:
   - validation/run-references-SPEC-0035.json

@@ -1,6 +1,5 @@
 """Dedicated test/layout governance; independent of production type catalogs."""
 
-import ast
 import fnmatch
 import hashlib
 import json
@@ -87,189 +86,6 @@ def _read(path):
     if not isinstance(result, dict):
         raise ValueError("expected a mapping")
     return result
-
-
-def _suite(path):
-    parts = path.split("/")
-    return (
-        "/".join(parts[:3])
-        if len(parts) > 3 and parts[:2] in (["tests", "modules"], ["tests", "flows"])
-        else None
-    )
-
-
-def _edge(items, source, target, records):
-    source_role = records[source]["role"]
-    target_role = records[target]["role"]
-    if source_role == "production" and target_role in {"test", "support", "fixture"}:
-        _diag(
-            items,
-            "DEP001",
-            source,
-            "production contracts",
-            "production depends on test asset: " + target,
-        )
-    if "/support/" in target and _suite(target) and _suite(source) != _suite(target):
-        _diag(
-            items,
-            "DEP002",
-            source,
-            "tests/support/<capability>/",
-            "cross-suite private helper: " + target,
-        )
-    if (
-        (source_role == "support" or source.startswith("tests/support/"))
-        and target_role == "test"
-        and "/support/" not in target
-    ):
-        _diag(
-            items,
-            "DEP003",
-            source,
-            "support independent of cases",
-            "support depends on case: " + target,
-        )
-
-
-def _python_edges(root, records, items, resolutions, external_modules):
-    files = [
-        p
-        for p, e in records.items()
-        if p.endswith(".py")
-        and e["role"] in {"test", "support", "production", "tooling"}
-    ]
-    names = {}
-    for path in files:
-        name = path[:-3].replace("/", ".")
-        if name.endswith(".__init__"):
-            name = name[:-9]
-        components = name.split(".")
-        for offset in range(len(components)):
-            names.setdefault(".".join(components[offset:]), []).append(path)
-    edges = 0
-    for path in sorted(files):
-        try:
-            tree = ast.parse((root / path).read_text(encoding="utf-8-sig"))
-        except (SyntaxError, UnicodeError, OSError) as exc:
-            _diag(items, "DEP004", path, "parseable Python AST", str(exc), True)
-            continue
-        dynamic_aliases = {
-            "__import__",
-            "import_module",
-            "spec_from_file_location",
-            "run_path",
-            "exec",
-            "eval",
-        }
-        for imported_node in ast.walk(tree):
-            if isinstance(imported_node, ast.ImportFrom):
-                for alias in imported_node.names:
-                    if alias.name in dynamic_aliases:
-                        dynamic_aliases.add(alias.asname or alias.name)
-        for node in ast.walk(tree):
-            imported = []
-            if isinstance(node, ast.Import):
-                imported = [alias.name for alias in node.names]
-            elif isinstance(node, ast.ImportFrom):
-                base = node.module or ""
-                if node.level:
-                    package = path.split("/")[: -node.level]
-                    base = ".".join(package + ([base] if base else []))
-                imported = [base] + [
-                    base + "." + alias.name
-                    for alias in node.names
-                    if base + "." + alias.name in names
-                ]
-            for name in imported:
-                targets = sorted(set(names.get(name, [])))
-                if len(targets) > 1:
-                    sibling = str(Path(path).parent / (name + ".py")).replace("\\", "/")
-                    targets = [sibling] if sibling in targets else targets
-                if len(targets) > 1:
-                    _diag(
-                        items,
-                        "DEP005",
-                        path,
-                        "unambiguous import resolution",
-                        name,
-                        True,
-                    )
-                elif targets:
-                    _edge(items, path, targets[0], records)
-                    edges += 1
-                elif name.split(".")[0] not in set(sys.stdlib_module_names) | set(
-                    external_modules
-                ):
-                    _diag(
-                        items,
-                        "DEP005",
-                        path,
-                        "existing owned test dependency",
-                        name,
-                        True,
-                    )
-            if isinstance(node, ast.Call):
-                function = (
-                    node.func.id
-                    if isinstance(node.func, ast.Name)
-                    else node.func.attr
-                    if isinstance(node.func, ast.Attribute)
-                    else ""
-                )
-                if function in dynamic_aliases:
-                    evidence = resolutions.get(path, {})
-                    digest = hashlib.sha256((root / path).read_bytes()).hexdigest()
-                    if (
-                        evidence.get("sha256") != digest
-                        or not evidence.get("rationale")
-                        or not isinstance(evidence.get("targets"), list)
-                    ):
-                        _diag(
-                            items,
-                            "DEP006",
-                            path,
-                            "source-bound dynamic dependency resolution",
-                            "dynamic loading requires reviewed targets",
-                            True,
-                        )
-                    else:
-                        for target in evidence["targets"]:
-                            if target not in records:
-                                _diag(
-                                    items,
-                                    "DEP006",
-                                    path,
-                                    "existing resolved target",
-                                    str(target),
-                                    True,
-                                )
-                            else:
-                                _edge(items, path, target, records)
-        if records[path]["role"] == "test":
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
-                    targets = (
-                        node.targets if isinstance(node, ast.Assign) else [node.target]
-                    )
-                    for target in targets:
-                        if (
-                            isinstance(target, ast.Attribute)
-                            and target.attr.startswith("_")
-                            and not (
-                                isinstance(target.value, ast.Name)
-                                and target.value.id in {"self", "cls"}
-                            )
-                        ):
-                            _diag(
-                                items,
-                                "DEP007",
-                                path,
-                                "module-owned controlled test seam",
-                                "private attribute mutation requires an owned test hook",
-                            )
-    return dict(
-        files=len(files), edges=edges, mode="python-ast-and-source-bound-resolutions"
-    )
 
 
 def assess_layout(project_root, manifest, *, analyzer_evidence=None):
@@ -416,38 +232,6 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                         "validation/ definitions or artifacts/ run outputs",
                         "legacy nested validation root",
                     )
-                if Path(relative).suffix == ".py" and role in {
-                    "production",
-                    "tooling",
-                    "metadata",
-                    "documentation",
-                }:
-                    tree = ast.parse((root / relative).read_text(encoding="utf-8-sig"))
-                    test_functions = any(
-                        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                        and node.name.startswith("test_")
-                        for node in tree.body
-                    )
-                    test_classes = any(
-                        isinstance(node, ast.ClassDef)
-                        and any(
-                            (
-                                isinstance(base, ast.Attribute)
-                                and base.attr == "TestCase"
-                            )
-                            or (isinstance(base, ast.Name) and base.id == "TestCase")
-                            for base in node.bases
-                        )
-                        for node in tree.body
-                    )
-                    if test_functions or test_classes:
-                        _diag(
-                            items,
-                            "LAY002",
-                            relative,
-                            "declared owned tests/ source",
-                            "test declarations classified as non-test code",
-                        )
                 if role in {"test", "support", "fixture"}:
                     valid = (
                         len(parts) >= 4
@@ -598,55 +382,10 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                         "valid allocated run or intact terminal manifest",
                         str(exc),
                     )
-        required = policy.get("required_analyzers", [])
-        if not isinstance(required, list):
-            raise ValueError("required_analyzers must be a list")
-        if "python" in required:
-            coverage["python"] = _python_edges(
-                root,
-                records,
-                items,
-                policy.get("dynamic_dependencies", {}),
-                policy.get("external_modules", []),
-            )
-        for capability in required:
-            if capability == "python":
-                continue
-            evidence = (analyzer_evidence or {}).get(capability)
-            if (
-                not evidence
-                or evidence.get("mode") != "ast"
-                or evidence.get("test_dependency_coverage") != "complete"
-            ):
-                _diag(
-                    items,
-                    "CAP001",
-                    "validation/layout.yaml",
-                    "capable " + str(capability) + " test dependency adapter",
-                    "required capability unavailable",
-                    True,
-                )
-            else:
-                coverage[capability] = evidence
-        for path, entry in records.items():
-            suffix = Path(path).suffix
-            if entry["role"] in {"production", "test", "support"} and suffix in CODE:
-                needed = (
-                    "python"
-                    if suffix == ".py"
-                    else "c-cpp"
-                    if suffix in {".c", ".cpp", ".cc", ".h", ".hpp"}
-                    else suffix[1:]
-                )
-                if needed not in required:
-                    _diag(
-                        items,
-                        "CAP001",
-                        path,
-                        "required analyzer: " + needed,
-                        "dependency coverage undeclared",
-                        True,
-                    )
+        # Legacy analyzer/isolation declarations remain readable for migration.
+        # They are not executed and never grant architecture or runtime coverage.
+        coverage["dependency_analysis"] = "outside-layout-scope"
+        coverage["language_analysis"] = "not-required"
         for reference in policy.get("references", []):
             path = _safe(root, reference["path"])
             if not path.is_file() or hashlib.sha256(
@@ -669,29 +408,6 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                     "artifacts/tests or artifacts/validation",
                     "invalid writer destination",
                 )
-        for resource in policy.get("external_resources", []):
-            if (
-                resource.get("isolation") not in {"per-case", "serialized"}
-                or not resource.get("owner")
-                or not resource.get("cleanup")
-            ):
-                _diag(
-                    items,
-                    "ISO001",
-                    "validation/layout.yaml",
-                    "owner, isolation and cleanup",
-                    "shared external resource lacks isolation",
-                    True,
-                )
-        if policy.get("release_isolation"):
-            _diag(
-                items,
-                "CAP002",
-                "validation/layout.yaml",
-                "source-bound build/runtime release isolation evidence",
-                "test control release claim requires capable evidence adapter",
-                True,
-            )
     except (
         OSError,
         ValueError,

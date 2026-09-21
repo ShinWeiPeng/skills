@@ -77,15 +77,16 @@ Commit only when the user or repository instructions explicitly authorize a comm
 
 ## Project validation obligations
 
-Managed admission now verifies project planning and enablement. Prepare `validation/acceptance-SPEC-####.json` and save its bound plan through verification-ladder before product work in a governed project. Final HIL evidence is not required to perform authorized implementation that produces it. Before reporting overall acceptance, call managed `complete` with phase `acceptance`; release requires a separate `release` assessment. Preserve partial host PASS while missing necessary evidence keeps overall acceptance BLOCKED.
+Managed modification admission verifies the current SPEC and valid authorization. Generate `validation/acceptance-SPEC-####.json` from SPEC through the common entry; planning and enablement are checked when their operations require them, not as preconditions for the edits that produce them. Final HIL evidence is not required to perform authorized implementation that produces it. Before reporting overall acceptance, call managed `complete` with phase `acceptance`; release requires a separate `release` assessment. Preserve partial host PASS while missing necessary evidence keeps overall acceptance BLOCKED.
 
 ## Test and validation storage governance
 
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
-fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
-missing required capability blocks completion. Do not change project Git policy.
+fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
+Language, dependency and isolation checks are outside layout scope; independently
+required architecture or device checks retain their own completion requirements. Do not change project Git policy.
 
 ## Bounded diagnosis and recovery
 
@@ -115,3 +116,12 @@ turn with a clickable canonical SPEC ID/title link, actual revision and lifecycl
 status, a short change summary and the current execution authorization state.
 A failed save must be described as failed; never claim that an unpersisted change
 was saved. Link the same canonical file through reopening and confirmation.
+
+## Shared implementation and correction path
+
+Follow the common modification entry in `references/managed-delivery.md` and the
+consolidated discussion policy in spec-governance. Setup, implementation and
+same-scope verification repairs use the same current authorization. Missing
+results to be produced do not prohibit their implementation; final acceptance
+still requires the confirmed layers and evidence. Read `generate-acceptance`
+output before applying its derived patch and preserve unresolved planning gaps.

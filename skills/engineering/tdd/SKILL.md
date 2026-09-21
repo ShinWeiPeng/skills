@@ -56,7 +56,8 @@ Ask: "What's the public interface, and which seams should we test?"
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
-fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
-missing required capability blocks completion. Do not change project Git policy.
+fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
+Language, dependency and isolation checks are outside layout scope; independently
+required architecture or device checks retain their own completion requirements. Do not change project Git policy.
 
 Own setup/reset/cleanup per case; shared fixtures are readonly by default. Use private support/ locally and tests/support/<capability>/ for shared assets. Verify state isolation with reorder/repeat/concurrency tests where applicable.

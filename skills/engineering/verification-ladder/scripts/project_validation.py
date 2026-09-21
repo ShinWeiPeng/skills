@@ -244,14 +244,46 @@ def _assess(root, spec, phase, candidate_text, result):
     if not matrix:
         raise ValueError("AC claims require a verification matrix")
     if (
-        set(mapping) != {"schema_version", "spec_id", "acceptance"}
+        set(mapping)
+        != (
+            {"schema_version", "spec_id", "acceptance", "source"}
+            if mapping.get("schema_version") == 2
+            else {"schema_version", "spec_id", "acceptance"}
+        )
         or type(mapping["schema_version"]) is not int
-        or mapping["schema_version"] != 1
+        or mapping["schema_version"] not in (1, 2)
         or mapping["spec_id"] != spec_id
         or not isinstance(mapping["acceptance"], dict)
         or set(mapping["acceptance"]) != set(rows)
     ):
         raise ValueError("acceptance mapping must cover exactly this SPEC's AC IDs")
+    if mapping.get("schema_version") == 2:
+        governance = Path(__file__).resolve().parents[2] / "spec-governance" / "scripts"
+        if str(governance) not in sys.path:
+            sys.path.insert(0, str(governance))
+        from spec_contract import generated_acceptance, _repository_spec_ids
+
+        if mapping != generated_acceptance(
+            text, known_spec_ids=_repository_spec_ids(root)
+        ):
+            raise ValueError(
+                "generated acceptance projection is stale or modified; regenerate from SPEC"
+            )
+        mapping = {
+            **mapping,
+            "acceptance": {
+                key: {k: v for k, v in row.items() if k != "definition"}
+                for key, row in mapping["acceptance"].items()
+            },
+        }
+    governance = Path(__file__).resolve().parents[2] / "spec-governance" / "scripts"
+    if str(governance) not in sys.path:
+        sys.path.insert(0, str(governance))
+    from spec_contract import acceptance_selector_gaps
+
+    selection_errors = acceptance_selector_gaps(mapping["acceptance"], matrix)
+    if selection_errors:
+        raise ValueError("; ".join(selection_errors))
     plans = {}
     scenario_by_id = {s["id"]: s for s in docs[DOCUMENTS[3]].get("scenarios", [])}
     for ac, item in mapping["acceptance"].items():

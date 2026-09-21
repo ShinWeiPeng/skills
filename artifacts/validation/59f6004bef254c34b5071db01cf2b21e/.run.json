@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "59f6004bef254c34b5071db01cf2b21e",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:28:49.454067+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0036-installed-candidate-verification",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "installed-candidate-verification"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "8500f06bd2d6995bb2d6b352a51830494e26afa62c9c3104cad72ba9610e45d3"
+    },
+    "inputs": {
+      "installed_inventory": "140abfd5a746013f8fbf5e10b3c407e1b6d3d8f9fe6d11e9d1e87f1e505b78f1"
+    },
+    "spec": "SPEC-0036"
+  }
+}

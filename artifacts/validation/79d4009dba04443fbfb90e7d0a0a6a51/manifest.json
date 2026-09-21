@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "run_id": "79d4009dba04443fbfb90e7d0a0a6a51",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:58:28.020932+00:00",
+  "metadata": {
+    "target": {
+      "module": "verification_ladder_domain"
+    },
+    "scenario": "validation-planning",
+    "tool": {
+      "name": "project_validation",
+      "version": "1"
+    },
+    "command": [
+      "project_validation.py",
+      "--write-plan",
+      "--spec",
+      "specs/SPEC-0036-generic-layout-repair.md"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "39c1c2becf4e1593d7d287ffbb7e6c11b79b4229acb450a2dcd25327adea2394"
+    },
+    "inputs": {
+      "plan": "728961ffb08b43a412ec42e6348e8b47e5590551e49924b8078ef3e1df865c0d"
+    },
+    "spec": "SPEC-0036",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016",
+      "AC-017",
+      "AC-018",
+      "AC-019",
+      "AC-020",
+      "AC-021"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-20T05:58:28.144520+00:00",
+  "files": {
+    ".run.json": "840db968ca1fd97b62399f8a1ae2563e3a1e9f30257e08f5ad38540c1eefe77a",
+    "plan.snapshot.json": "a60f9a45f78e33bf60a38079a0537ab6cb9b01285ddb584e27fccb8a1699a528"
+  }
+}

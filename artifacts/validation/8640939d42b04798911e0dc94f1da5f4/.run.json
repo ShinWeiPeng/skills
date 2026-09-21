@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "8640939d42b04798911e0dc94f1da5f4",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:57:48.023643+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0036-final-plan-binding",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "final-plan-binding"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "39c1c2becf4e1593d7d287ffbb7e6c11b79b4229acb450a2dcd25327adea2394"
+    },
+    "inputs": {
+      "test_manifest": "910b14575a3cdf03021b72edff710e1c8ab60f3cf4bd8119e09245b6f3f911d4"
+    },
+    "spec": "SPEC-0036"
+  }
+}

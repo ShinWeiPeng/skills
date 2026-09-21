@@ -80,4 +80,21 @@ Each saved working or confirmed SPEC update includes a clickable canonical link,
 revision, status, change summary and execution authorization state in the reply.
 Failed saves remain explicit so you can tell what was actually persisted.
 
-The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review confirms an adopted contract in place, without an additional flag. Confirmation does not grant execution authority.
+The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review prepares the proposal; the user explicitly confirms the adopted contract in place before execution authorization is considered. Confirmation does not grant execution authority.
+
+## Discussion, confirmation and correction
+
+The shared workflow restores the relevant decision history and pending question,
+then presents a complete proposal for explicit user confirmation. A completeness
+check does not confirm it automatically. Decision choices have at least three
+meaningful alternatives; numeric and clear free-text answers are supported.
+
+SPEC saving uses a short shared lock with a 30-second maximum wait and rereads the
+latest version before saving. Any SPEC revision requires fresh execution authority.
+With an unchanged confirmed SPEC, implementation and correction use one managed
+entry. The result a change must produce is checked after that change. Definitions
+are rebuilt from SPEC; missing verification selectors or evidence remain explicit
+and cannot be reported as completed acceptance.
+
+See [spec-governance](https://aihero.dev/skills-spec-governance) for the shared
+responsibility and [implement](https://aihero.dev/skills-implement) for execution.

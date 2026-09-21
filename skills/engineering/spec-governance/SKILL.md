@@ -85,10 +85,10 @@ verified implementation and commit disposition.
   one normalized hash-linked journal event before another question; then show the
   Spec delta, affected IDs, relationships, conflicts, open decisions, and
   `PASS/BLOCKED` verdict.
-- `spec-governance.materialize`: when decision-complete, write
-  `specs/SPEC-####-<feature-slug>.md` using the next repository-wide four-digit
-  number without waiting for `開始執行`. This spec-only write never grants product
-  execution authority.
+- `spec-governance.materialize`: after the complete proposal is presented and
+  explicitly confirmed by the user, confirm the existing canonical file with the
+  same ID and path, without waiting for `開始執行` to save that confirmation; this
+  spec-only operation never grants product execution authority.
 - `spec-governance.reopen`: before clarifying a possible contract change, change a
   confirmed unimplemented spec to `working` in the same ID/path and create its
   bundle. Implemented specs are immutable.
@@ -258,7 +258,7 @@ and unknown modes never permit menus. Failed surfaces stay blocked until explici
 retry/recovery evidence is saved. No result authorizes product operations.
 
 `question --kind open-text` accepts no options; absent kind remains legacy choice
-with two or three options. Reconciliation accepts a free-form answer for either.
+with legacy two-option records still readable. New or revised choice questions require at least three meaningful options. Reconciliation accepts a free-form answer for either.
 `question-update --project-root <root> --working-id <id> --request <json>
 --expected-revision <revision> --expected-hash <hash>` preserves identity and records
 history. The request includes action, question_version, original user_text and
@@ -296,8 +296,9 @@ Before recording any AC PASS, including evidence-only updates to a confirmed SPE
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
-fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
-missing required capability blocks completion. Do not change project Git policy.
+fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
+Language, dependency and isolation checks are outside layout scope; independently
+required architecture or device checks retain their own completion requirements. Do not change project Git policy.
 
 ## Continuous discussion and recovery
 
@@ -306,11 +307,12 @@ Completeness Gaps views in the same file. Save new information before the next
 question; an identical reconciliation does not increment revision. Reuse settled
 question IDs and decisions; new premises require a sourced superseding decision.
 Inspect behavior, exception handling and acceptance gaps before declaring closure.
-A sourced completeness review of a settled adopted contract automatically confirms
-the same file when all five dimensions are reviewed and no blocking gaps remain.
-No extra `confirm_contract` flag or user reminder is required. Pure explanation
-without an adopted complete change remains working.
-Confirmation never grants implementation authority.
+Present the complete proposal once after reviewing all five dimensions and related
+history. Confirmation requires the user's explicit answer: `record` receives
+`user_confirmed: true` and `confirmation_source_ref` matching an observed user
+source in the current turn. Completeness review alone never confirms the file.
+Pure explanation and incomplete proposals remain working. Confirmation never
+supplies execution authorization.
 
 Acceptance planning is separate from saving: report missing/removed/changed ACs,
 including same-ID criterion, requirement-reference and validation-method changes.
@@ -379,3 +381,48 @@ reduce thresholds, select an ambiguous SPEC or approve firmware/device actions.
 If equivalence cannot be established, report the concrete gap and return to
 investigation/discussion. Keep rejection evidence and never overwrite concurrent
 changes, clear receipts, or fabricate a successful validation.
+
+## Consolidated discussion and delivery policy
+
+Before each decision, present the complete relevant history summary: original
+purpose, accepted decisions and stated reasons, replacements, current conclusion,
+open items and source references. Mark unknown reasons and unadopted candidates.
+On resumption, restore the still-valid pending question without asking the user
+to choose a topic again. If new premises invalidate it, save its revised status.
+
+A genuine scope change pauses the entire affected change set. Preserve its work,
+reconcile the complete proposal, obtain confirmation and fresh authorization.
+Independent tasks remain independent. Any SPEC revision invalidates old authority;
+an unchanged-contract audit append is not a revision. The common modification
+entry checks current SPEC, authorization and scope. Verification failures are
+repaired through that same entry while its authorization remains valid.
+
+For saving, wait at most 30 seconds for the shared SPEC lock, then reread and check
+the baseline inside it. Reconcile nonconflicting edits against that latest state;
+never overwrite a stale or conflicting decision. Save atomically and release the
+lock immediately. Preserve unsaved changes on timeout; identify a holder only from
+verified evidence. Permission/readonly failures are not evidence of another task.
+Saving and bounded recovery do not depend on product acceptance.
+
+Use managed `generate-acceptance` to prepare a schema-2 projection from the current
+SPEC, then ordinary managed `apply` to persist its returned patch. The projection
+contains every criterion and validation method, source revision and definition
+hashes. Additions, removals and edits rebuild from SPEC; never hand-maintain a
+second definition. Explicit `Acceptance Mapping` selectors in SPEC are copied;
+missing selectors remain unresolved, never inferred from prose or counted as PASS.
+Execution evidence remains in fixed runs. Legacy schema-1 mappings and bounded
+repair operations remain readable for compatibility, not the new authoring flow.
+
+## Acceptance planning before confirmation
+
+During specification synthesis, prepare readable methods and their machine-readable
+Acceptance Mapping together from adopted decisions. List all AC selection gaps in
+one review before confirmation; do not ask the user to fill tool fields. Governed
+plans require evidence claims, applicability rationale and applicable scenarios.
+Draft saving and authorized same-scope repairs remain available with incomplete
+plans. Generation PASS means a projection was produced; planning PASS means its
+selections are complete; neither establishes acceptance PASS. Rebuild projections
+from SPEC after revisions and preserve legacy ungoverned host compatibility.
+Record explicit user waivers with their source and exact scope in SPEC, report
+them as user-waived rather than tested PASS, and retain every unwaived obligation.
+Never infer a waiver from unavailable hosts or hardware.

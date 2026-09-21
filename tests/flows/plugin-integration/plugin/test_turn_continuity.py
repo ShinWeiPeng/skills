@@ -98,7 +98,7 @@ class TurnContinuityTests(unittest.TestCase):
             self.wid,
             "Q-tracking",
             "保留哪些檔案？",
-            ["保留追蹤", "保留本機、排除 commit"],
+            ["保留追蹤", "保留本機、排除 commit", "移至獨立保存位置"],
             expected_revision=self.ref["revision"],
             expected_hash=self.ref["snapshot_hash"],
         )
@@ -178,14 +178,14 @@ class TurnContinuityTests(unittest.TestCase):
         context = json.loads(result.stdout)
         self.assertEqual("pending", context["state"])
         self.assertEqual(
-            ["保留追蹤", "保留本機、排除 commit"],
+            ["保留追蹤", "保留本機、排除 commit", "移至獨立保存位置"],
             context["pending_question"]["options"],
         )
         self.assertNotIn("deadline", context["pending_question"])
         self.assertIsNone(context["presentation"]["response_deadline"])
         self.assertFalse(context["presentation"]["request_mode_change"])
         self.assertEqual(
-            "保留哪些檔案？\n\n1. 保留追蹤\n2. 保留本機、排除 commit",
+            "保留哪些檔案？\n\n1. 保留追蹤\n2. 保留本機、排除 commit\n3. 移至獨立保存位置",
             context["presentation"]["markdown"],
         )
         with mock.patch.object(spec, "datetime") as clock:
@@ -798,7 +798,7 @@ class DiscussionCompletionTests(unittest.TestCase):
             self.wid,
             "Q-filter",
             "Where should filtering run?",
-            ["In this project", "Before import"],
+            ["In this project", "Before import", "In a separate preprocessing service"],
             expected_revision=self.ref["revision"],
             expected_hash=self.ref["snapshot_hash"],
         )
@@ -1133,7 +1133,7 @@ class QuestionPresentationTests(unittest.TestCase):
                 "action": "revise",
                 "question_version": q["version"],
                 "question": q["question"],
-                "options": q["options"] + ["新增第三種保留方式"],
+                "options": q["options"] + ["新增第四種保留方式"],
                 "source_ref": "user-turn-2",
                 "user_text": "提供其他方案",
             },
@@ -1143,10 +1143,10 @@ class QuestionPresentationTests(unittest.TestCase):
         self.assertEqual("BLOCKED", r["verdict"])
         new = spec.pending_decision(self.reload())
         self.assertGreater(new["version"], q["version"])
-        self.assertEqual(3, len(new["options"]))
+        self.assertEqual(4, len(new["options"]))
         self.assertEqual("BLOCKED", self.answer("3", version=q["version"])["verdict"])
         self.assertIn("Question Record", self.reload())
-        self.assertEqual("BLOCKED", self.answer("4")["verdict"])
+        self.assertEqual("BLOCKED", self.answer("5")["verdict"])
         self.assertEqual("PASS", self.answer("3")["verdict"])
 
     def test_failed_surface_survives_reload_without_becoming_answer(self):
@@ -1352,7 +1352,7 @@ class QuestionPresentationTests(unittest.TestCase):
                 )["verdict"],
             )
 
-    def test_final_reply_cannot_add_an_unsaved_third_option(self):
+    def test_final_reply_cannot_add_an_unsaved_fourth_option(self):
         from managed_delivery import audit_trace
 
         self.question()
@@ -1367,8 +1367,8 @@ class QuestionPresentationTests(unittest.TestCase):
         }
         self.assertTrue(spec.assess_discussion_completion(c, obs)["can_end_turn"])
         for reply in (
-            evidence["text"] + "\n3. unsaved alternative",
-            "3. unsaved alternative\n" + evidence["text"],
+            evidence["text"] + "\n4. unsaved alternative",
+            "4. unsaved alternative\n" + evidence["text"],
         ):
             bad = {**evidence, "reply_text": reply}
             self.assertFalse(

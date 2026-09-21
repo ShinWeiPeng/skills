@@ -1,0 +1,12 @@
+{
+  "verdict": "PASS",
+  "diagnostics": [],
+  "coverage": {
+    "layout": "whole-filesystem-declared-scope",
+    "runtime_isolation": "not-proven-by-layout",
+    "dependency_analysis": "outside-layout-scope",
+    "language_analysis": "not-required"
+  },
+  "files": 573
+}
+

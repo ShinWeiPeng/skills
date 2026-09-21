@@ -1,0 +1,616 @@
+{
+  "verdict": "PASS",
+  "required_gates": [
+    "verification-ladder"
+  ],
+  "required_layers": [
+    "module-contract",
+    "sil",
+    "adapter-contract"
+  ],
+  "errors": [],
+  "documents": {
+    "architecture/adoption.yaml": {
+      "state": "present",
+      "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+    },
+    "architecture/manifest.yaml": {
+      "state": "present",
+      "sha256": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0"
+    },
+    "validation/verification-ladder.yaml": {
+      "state": "present",
+      "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+    },
+    "validation/on-device.yaml": {
+      "state": "missing",
+      "sha256": null
+    },
+    "validation/layout.yaml": {
+      "state": "present",
+      "sha256": "a325c19de72b3430ad4f95ccd6784658700aabdd30c78f7b928f2e3713735075"
+    },
+    "validation/acceptance-SPEC-0036.json": {
+      "state": "present",
+      "sha256": "568fce2d08001f4bdb4a09d6dd9047d202896fea732f4b804b5e70f8adb3e558"
+    }
+  },
+  "phase": "planning",
+  "device_actions_authorized": false,
+  "applicability": "not-applicable",
+  "skill": {
+    "version": "0.19.0",
+    "sha256": "f52377c31935d489402bb4de78669daa461dea7bea4777af5fce4ae4dd143386"
+  },
+  "plan": {
+    "schema_version": 1,
+    "binding": {
+      "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+      "spec": "specs/SPEC-0036-generic-layout-repair.md",
+      "spec_id": "SPEC-0036",
+      "revision": 63,
+      "spec_sha256": "017128dd304377ff1b78970e29322c4faf93c936f9a0c9168715c00e47c0f5b1",
+      "documents": {
+        "architecture/adoption.yaml": {
+          "state": "present",
+          "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+        },
+        "architecture/manifest.yaml": {
+          "state": "present",
+          "sha256": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0"
+        },
+        "validation/verification-ladder.yaml": {
+          "state": "present",
+          "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+        },
+        "validation/on-device.yaml": {
+          "state": "missing",
+          "sha256": null
+        },
+        "validation/layout.yaml": {
+          "state": "present",
+          "sha256": "a325c19de72b3430ad4f95ccd6784658700aabdd30c78f7b928f2e3713735075"
+        },
+        "validation/acceptance-SPEC-0036.json": {
+          "state": "present",
+          "sha256": "568fce2d08001f4bdb4a09d6dd9047d202896fea732f4b804b5e70f8adb3e558"
+        }
+      },
+      "skill": {
+        "version": "0.19.0",
+        "sha256": "f52377c31935d489402bb4de78669daa461dea7bea4777af5fce4ae4dd143386"
+      },
+      "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "acceptance": {
+      "AC-001": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-001",
+          "REQ-001, REQ-020",
+          "流程責任及各舊 SPEC 的保留、取代或修正關係明確，無重複且矛盾的授權規則。",
+          "規格責任矩陣與多輪場景檢查。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "規格責任矩陣與多輪場景檢查。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-002": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-002",
+          "REQ-006",
+          "無論產品准入或驗收是否通過，允許保存合法討論及工作 SPEC；不把保存視為執行授權。",
+          "保存、恢復與准入整合案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "保存、恢復與准入整合案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      },
+      "AC-003": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-003",
+          "REQ-002",
+          "合法數字識別碼保持不變，真正電話號碼仍適當遮罩。",
+          "SPEC-0021 回歸案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "SPEC-0021 回歸案例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-004": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-004",
+          "REQ-003",
+          "目錄檢查不要求 C/C++ 或 JavaScript AST；可回報檔案位置與引用問題。",
+          "無語言分析器的可攜混合檔案 fixture。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "無語言分析器的可攜混合檔案 fixture。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-005": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-005",
+          "REQ-004",
+          "適用分層驗證在繼續、短指令及重載後不被遺漏；host 成功不能冒充需要 HIL 的成功。",
+          "以 v0.9/v0.10/v0.15 差異設計流程回歸。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "以 v0.9/v0.10/v0.15 差異設計流程回歸。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-006": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-006",
+          "REQ-005",
+          "已明確保留的安裝、格式化及提問行為不回歸。",
+          "相關既有契約測試。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "相關既有契約測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-007": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-007",
+          "REQ-007",
+          "同範圍已授權修改及驗證後修正均經同一入口；不得要求待修復結果先 PASS，也不得放行未授權或越界修改。",
+          "合法修改→驗證失敗→同入口修正→重驗，以及缺授權、範圍變更與裝置權限反例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "合法修改→驗證失敗→同入口修正→重驗，以及缺授權、範圍變更與裝置權限反例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-008": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-008",
+          "REQ-008",
+          "討論前的可見回覆完整涵蓋相關歷史目的、決策、變更、有效結論及未決事項，提供来源并標明未知；無衝突時也呈現，不重問已決事項。",
+          "多輪回覆與歷史決策對照，含無衝突、已取代、缺來源及中斷情境。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "多輪回覆與歷史決策對照，含無衝突、已取代、缺來源及中斷情境。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      },
+      "AC-009": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-009",
+          "REQ-009",
+          "中斷後先呈現摘要並接續原有效問題；改變前提或延後時保存對應狀態，不重問已決議題。",
+          "中斷、混合回答、新前提及明示延後的多輪恢復案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "中斷、混合回答、新前提及明示延後的多輪恢復案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      },
+      "AC-010": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-010",
+          "REQ-010",
+          "真實新增範圍暫停整個變更集；任何 SPEC 修訂後舊授權均不可繼續產品修改，對目前版本取得授權後恢復。未修訂的同範圍修正不重複索權。",
+          "新增功能、文字修訂、證據更新、討論追加修訂、未修訂修正及重新授權測試。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "新增功能、文字修訂、證據更新、討論追加修訂、未修訂修正及重新授權測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-011": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-011",
+          "REQ-011",
+          "有實質缺口繼續問或查核；完整時助理主動呈現總方案，使用者確認規格不被冒充執行授權。",
+          "未決需求、歷史衝突、完整方案、方案採納及執行授權多輪案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "未決需求、歷史衝突、完整方案、方案採納及執行授權多輪案例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-012": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-012",
+          "REQ-012",
+          "編輯鎖占用時最多等待 30 秒，期間釋放就接續；取得後使用最新版整合，不以等待前的舊快照覆寫。逾時、衝突、權限錯誤保留原資料並如實回報；正常保存及異常退出均不遺留永久鎖。",
+          "多程序占用、期限邊界、程序中斷、同時/先後更新、衝突、權限拒絕與未知持鎖者測試。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "多程序占用、期限邊界、程序中斷、同時/先後更新、衝突、權限拒絕與未知持鎖者測試。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      },
+      "AC-013": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-013",
+          "REQ-013",
+          "保存故障有限重試且不損壞原資料；失敗時明列未保存範圍並保留討論，恢復後補存；不得偽稱成功或用未保存決策驅動相依修改。",
+          "權限拒絕、空間不足、寫入中斷、相同輸入重播與恢復成功測試。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "權限拒絕、空間不足、寫入中斷、相同輸入重播與恢復成功測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-014": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-014",
+          "REQ-014",
+          "完整 SPEC 的每項驗收條件有適用層級、理由、情境及門檻，確認後實作與驗證沿用；短指令或重載不丟失計畫，host 結果不冒充必要 HIL。",
+          "規格到驗證追溯、重載、部分完成及分層證據反例測試。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "規格到驗證追溯、重載、部分完成及分層證據反例測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-015": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-015",
+          "REQ-015",
+          "外部環境缺失時独立且已授權工作可繼續，依賴該環境的驗證及整體完成保持未通過；環境恢復後沿原計畫接續。",
+          "無裝置、裝置恢復、独立 host 工作、缺證據完成拒絕與需求变更暫停案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "無裝置、裝置恢復、独立 host 工作、缺證據完成拒絕與需求变更暫停案例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-016": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-016",
+          "REQ-016",
+          "決策選項至少三項，具有實際取捨；數字與清楚自由文字均能對應目前問題版本，含糊回答不自動當選擇。",
+          "呈現與保存選項對照、數字/文字等價回答、含糊與過期選項回答案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "呈現與保存選項對照、數字/文字等價回答、含糊與過期選項回答案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      },
+      "AC-017": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-017",
+          "REQ-017",
+          "文字、證據、討論及無需求變動的 SPEC 修訂均拒絕舊授權，新的目前版本授權可恢復；討論及保存仍可進行。",
+          "共用入口授權版本回歸，覆蓋上述修訂類型及舊授權拒絕。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "共用入口授權版本回歸，覆蓋上述修訂類型及舊授權拒絕。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-018": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-018",
+          "REQ-018",
+          "SPEC新增、刪除或變更驗收定義後，產生的對照與目前SPEC一致；缺漏/過期/歧義不被當成有效計畫，派生檔不成为第二個人工需求來源，既有證據不被改寫為通過。",
+          "以5項增至8項、刪除、同ID條件變更、過期/缺失檔案及原始證據保留案例驗證。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "以5項增至8項、刪除、同ID條件變更、過期/缺失檔案及原始證據保留案例驗證。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-019": {
+        "claims": [
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-019",
+          "REQ-019",
+          "三區分類與模組/流程/support配置符合REQ-019；全專案混放/失效引用被指出且含檔案及預期位置；同一完成run不覆寫，遷移保留歷史內容與引用，不自動更動Git政策或刪除資料。",
+          "暫存專案正反例、舊布局遷移及run不可覆寫測試。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract"
+        ],
+        "layers": [
+          "module-contract",
+          "sil"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "暫存專案正反例、舊布局遷移及run不可覆寫測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+      },
+      "AC-020": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-020",
+          "REQ-020",
+          "相容性矩陣覆蓋0031短指令、0032有界恢復/並行、0033驗收修復，以及0034/0035接續；僅對可重現不相容做必要修正，不引入第二套授權狀態。",
+          "既有回歸與整合差異案例；逐項記錄保留或必要修正及理由。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "既有回歸與整合差異案例；逐項記錄保留或必要修正及理由。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      },
+      "AC-021": {
+        "claims": [
+          "adapter-conformance",
+          "host-semantics"
+        ],
+        "contract": [
+          "AC-021",
+          "REQ-021",
+          "工程任務起始與跨輪均使用同一SPEC，候選與已採納可追溯；無新內容不空增版本，完整前不confirmed，使用者確認後方可confirmed，確認不等於執行授權。",
+          "多輪討論/中斷/只讀插問/拒絕候選/確認與執行分離案例。"
+        ],
+        "rules": [
+          "verification-planner-contract",
+          "verification-routing-contract",
+          "discussion-hook-adapter"
+        ],
+        "layers": [
+          "module-contract",
+          "sil",
+          "adapter-contract"
+        ],
+        "scenario_layers": {},
+        "execution_profiles": [],
+        "enablement_scenarios": [],
+        "build_artifact": null,
+        "rationale": "多輪討論/中斷/只讀插問/拒絕候選/確認與執行分離案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+      }
+    }
+  },
+  "plan_sha256": "728961ffb08b43a412ec42e6348e8b47e5590551e49924b8078ef3e1df865c0d",
+  "plan_manifest": "artifacts/validation/79d4009dba04443fbfb90e7d0a0a6a51/manifest.json"
+}
+

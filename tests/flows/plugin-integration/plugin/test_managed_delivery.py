@@ -28,6 +28,36 @@ from managed_delivery import audit_trace, execute_request
 from test_spec_governance import confirmed_spec
 
 
+def seed_legacy_pending(root, request):
+    """Load an old pending receipt fixture; new authorization no longer creates it."""
+    from execution_state import (
+        execution_binding,
+        read_execution_state,
+        write_execution_state,
+    )
+
+    state = read_execution_state(root, request["task_ref"])
+    application = {
+        "binding": execution_binding(
+            root, request["spec"], request["working_reference"], request["task_ref"]
+        ),
+        "instruction": request["instruction"],
+        "source_event_id": request["source_event_id"],
+    }
+    event = request["source_event_id"]
+    state.setdefault("pending_authorizations", {})[event] = application
+    state["used_event_ids"].append(event)
+    state.setdefault("authorization_history", []).append(
+        {"source_event_id": event, "status": "pending", "application": application}
+    )
+    write_execution_state(root, request["task_ref"], state)
+    return {
+        "verdict": "BLOCKED",
+        "authorization_status": "pending",
+        "pending_authorization": application,
+    }
+
+
 class ManagedDeliveryTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -56,6 +86,16 @@ class ManagedDeliveryTests(unittest.TestCase):
         self.target = self.root / "program.txt"
         self.target.write_bytes(b"before\n")
 
+    def seed_pending(self):
+        return seed_legacy_pending(
+            self.root,
+            self.base
+            | {
+                "instruction": "開始執行",
+                "source_event_id": "user-1",
+            },
+        )
+
     def append_discussion(self):
         from discussion_state import _append
 
@@ -81,11 +121,10 @@ class ManagedDeliveryTests(unittest.TestCase):
 
     def test_pending_authority_survives_discussion_but_not_revocation(self):
         (self.root / "validation").mkdir()
-        self.assertEqual("pending", self.authorize()["authorization_status"])
+        self.assertEqual("pending", self.seed_pending()["authorization_status"])
         self.append_discussion()
         retried = self.authorize()
-        self.assertEqual("pending", retried["authorization_status"], retried)
-        self.assertTrue(retried["replayed"])
+        self.assertEqual("PASS", retried["verdict"], retried)
         execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
         self.append_discussion()
         self.assertEqual("BLOCKED", self.authorize()["verdict"])
@@ -447,29 +486,27 @@ class ManagedDeliveryTests(unittest.TestCase):
             | updates
         )
 
-    def test_pending_authorization_survives_planning_failure_and_retries(self):
+    def test_common_entry_does_not_require_its_future_validation_results(self):
         (self.root / "validation").mkdir()
-        request = self.base | {
-            "operation": "authorize",
-            "instruction": "開始執行",
-            "source_event_id": "pending-event",
-            "expected_hash": hashlib.sha256(
-                (self.root / self.path).read_bytes()
-            ).hexdigest(),
-        }
-        first = execute_request(self.root, request)
-        self.assertEqual("BLOCKED", first["verdict"])
-        self.assertEqual("pending", first.get("authorization_status"), first)
-        self.assertFalse(first["product_code_allowed"])
-        again = execute_request(self.root, request)
-        self.assertEqual(first["pending_authorization"], again["pending_authorization"])
-        self.assertTrue(again["replayed"])
-        self.assertEqual("BLOCKED", self.patch()["verdict"])
-        self.assertEqual(b"before\n", self.target.read_bytes())
+        first = self.authorize()
+        self.assertEqual("PASS", first["verdict"], first)
+        self.assertTrue(first["product_code_allowed"])
+        self.assertEqual(
+            "PASS",
+            execute_request(self.root, self.base | {"operation": "status"})["verdict"],
+        )
+        self.assertEqual("PASS", self.patch()["verdict"])
+        complete = execute_request(
+            self.root,
+            self.base | {"operation": "complete"},
+            validation_assessor=lambda *a, **k: {
+                "verdict": "BLOCKED",
+                "errors": ["missing required evidence"],
+            },
+        )
+        self.assertEqual("BLOCKED", complete["verdict"], complete)
         execute_request(self.root, {"operation": "suspend", "task_ref": "task-A"})
-        suspended = execute_request(self.root, request)
-        self.assertEqual("BLOCKED", suspended["verdict"])
-        self.assertNotEqual("pending", suspended.get("authorization_status"))
+        self.assertEqual("BLOCKED", self.authorize()["verdict"])
 
     def preparation(self, path, content, **changes):
         target = self.root / path
@@ -492,7 +529,7 @@ class ManagedDeliveryTests(unittest.TestCase):
     def test_preparation_enables_implementation_then_requires_acceptance_evidence(self):
         (self.root / "validation").mkdir()
         (self.root / "architecture").mkdir()
-        self.assertEqual("pending", self.authorize()["authorization_status"])
+        self.assertEqual("pending", self.seed_pending()["authorization_status"])
         state = {"enablement": False, "acceptance": False}
         # Start after acceptance repair; isolate sequencing at the validation port.
         (self.root / "validation/acceptance-SPEC-0001.json").write_text(
@@ -541,7 +578,14 @@ class ManagedDeliveryTests(unittest.TestCase):
         )
         self.assertTrue(enable["enablement_allowed"], enable)
         self.assertFalse(enable["device_actions_authorized"])
-        self.assertEqual("BLOCKED", self.patch()["verdict"])
+        self.assertEqual(
+            "PASS",
+            execute_request(
+                self.root,
+                self.base | {"operation": "status"},
+                validation_assessor=assessor,
+            )["verdict"],
+        )
         state["enablement"] = True
         # Same retained user event, no new authorization or reset.
         result = execute_request(
@@ -591,7 +635,7 @@ class ManagedDeliveryTests(unittest.TestCase):
     def test_preparation_rejects_source_downgrades_and_revoked_authority(self):
         directory = self.root / "validation"
         directory.mkdir()
-        self.assertEqual("pending", self.authorize()["authorization_status"])
+        self.assertEqual("pending", self.seed_pending()["authorization_status"])
         for path, content in (
             ("program.txt", "unauthorized source"),
             ("validation/acceptance-SPEC-0001.json", "{}"),
@@ -628,7 +672,7 @@ class ManagedDeliveryTests(unittest.TestCase):
             "validation/layout.yaml", "schema_version: 1\nentries: []\n"
         )
         self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
-        self.assertEqual("pending", self.authorize()["authorization_status"])
+        self.assertEqual("pending", self.seed_pending()["authorization_status"])
         wrong = request | {"source_event_id": "different-user-event"}
         self.assertEqual("BLOCKED", execute_request(self.root, wrong)["verdict"])
         (self.root / "validation/layout.yaml").write_text(
@@ -688,7 +732,7 @@ class ManagedDeliveryTests(unittest.TestCase):
                 "expected_hash": hashlib.sha256((root / path).read_bytes()).hexdigest(),
             }
             self.assertEqual(
-                "pending", execute_request(root, auth)["authorization_status"]
+                "pending", seed_legacy_pending(root, auth)["authorization_status"]
             )
             plan = acceptance_repair_plan(root, path)
             self.assertEqual("PASS", plan["verdict"], plan)
@@ -701,9 +745,13 @@ class ManagedDeliveryTests(unittest.TestCase):
             self.assertEqual("BLOCKED", execute_request(root, bad)["verdict"])
             result = execute_request(root, repair)
             self.assertTrue(result["repair_applied"], result)
-            self.assertFalse(result["product_code_allowed"])
-            # Missing external validation still prevents a receipt after repair.
-            self.assertEqual("BLOCKED", result["verdict"])
+            # Legacy repair can now resume implementation; final acceptance is separate.
+            self.assertTrue(result["product_code_allowed"])
+            self.assertEqual("PASS", result["verdict"])
+            self.assertEqual(
+                "BLOCKED",
+                execute_request(root, base | {"operation": "complete"})["verdict"],
+            )
             self.assertEqual(
                 "PASS",
                 execute_request(
@@ -722,7 +770,7 @@ class ManagedDeliveryTests(unittest.TestCase):
             ).hexdigest(),
         }
         self.assertEqual(
-            "pending", execute_request(self.root, request)["authorization_status"]
+            "pending", seed_legacy_pending(self.root, request)["authorization_status"]
         )
         # Removing the unconfigured empty fixture folder resolves this planning gap.
         (self.root / "validation").rmdir()
@@ -737,7 +785,7 @@ class ManagedDeliveryTests(unittest.TestCase):
 
     def test_ambiguous_draft_and_revocation_survive_owner_restart(self):
         (self.root / "validation").mkdir()
-        self.assertEqual("pending", self.authorize()["authorization_status"])
+        self.assertEqual("pending", self.seed_pending()["authorization_status"])
         draft = {
             "path": "validation/acceptance-SPEC-0001.json",
             "before_sha256": None,
@@ -841,7 +889,7 @@ class ManagedDeliveryTests(unittest.TestCase):
                     ).hexdigest(),
                 }
                 self.assertEqual(
-                    "pending", execute_request(root, auth)["authorization_status"]
+                    "pending", seed_legacy_pending(root, auth)["authorization_status"]
                 )
                 plan = acceptance_repair_plan(root, path)
                 repair = base | {

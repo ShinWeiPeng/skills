@@ -58,5 +58,6 @@ Tests now have explicit Module or Flow ownership under `tests/`. Authored valida
 plans stay under `validation/`; each execution keeps its own immutable run under
 `artifacts/`. This keeps specifications readable and prevents later runs from
 replacing the evidence they cite. Whole-project checks include existing files and
-report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
-boundaries; project-specific retention and Git ignore choices remain separate.
+report misplaced files and broken references. Layout does not impose language
+analysis, dependency or isolation proofs; independent architecture and runtime
+verification requirements remain applicable; project-specific retention and Git ignore choices remain separate.

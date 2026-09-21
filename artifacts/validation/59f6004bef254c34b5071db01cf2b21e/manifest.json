@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "run_id": "59f6004bef254c34b5071db01cf2b21e",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:28:49.454067+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0036-installed-candidate-verification",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "installed-candidate-verification"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "8500f06bd2d6995bb2d6b352a51830494e26afa62c9c3104cad72ba9610e45d3"
+    },
+    "inputs": {
+      "installed_inventory": "140abfd5a746013f8fbf5e10b3c407e1b6d3d8f9fe6d11e9d1e87f1e505b78f1"
+    },
+    "spec": "SPEC-0036"
+  },
+  "status": "completed",
+  "outcome": "BLOCKED",
+  "ended_at": "2026-09-20T05:28:52.612791+00:00",
+  "files": {
+    ".run.json": "986f97386e628b6e5c708309d7ee224b8527ccb809efa4bee1591d074bd05d66",
+    "checks.json": "e25999c3896f75e204b8175aa2c285b1cece5e3538ceae349d4c225fd238e86f",
+    "host-state.json": "bf12f47ed162042007491988b2b21f8166a1ddf9f382966fa9e78be20965c419",
+    "installed-acceptance.log": "9ac696edfc6073bc4beb3a8037b293ef2cb2fa122606e71d1a0e164d5a219e4a",
+    "installed-consolidation.log": "4d62b0cd4739419b93904cbe0579d57f5c7ac851b411719276526536c093e484",
+    "report.md": "9dddea93ae484a6af12a75636db2913c92b9fb8c5f9a7029e66e4dea0c37f303",
+    "source-acceptance.log": "0b2a4935c6f04984b93e1f36c509d19e55f53342472a6f2c9c2e0a9aacc57a75"
+  }
+}

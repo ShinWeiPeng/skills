@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "run_id": "d1e77265a75741b589b7ed2640446ee2",
+  "kind": "validation",
+  "started_at": "2026-09-20T04:33:19.848973+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0036-consolidation",
+    "tool": {
+      "name": "python-unittest-and-project-cli",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "spec-governance/verify-spec0036.py"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "48d8f6a975812b693cc86a0858ead4c113f3f9696d398ed62d2624dea3d759f8"
+    },
+    "inputs": {},
+    "spec": "SPEC-0036",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009",
+      "AC-010",
+      "AC-011",
+      "AC-012",
+      "AC-013",
+      "AC-014",
+      "AC-015",
+      "AC-016",
+      "AC-017",
+      "AC-018",
+      "AC-019",
+      "AC-020",
+      "AC-021"
+    ]
+  },
+  "status": "completed",
+  "outcome": "BLOCKED",
+  "ended_at": "2026-09-20T04:36:00.643851+00:00",
+  "files": {
+    ".run.json": "f16da8b25bde6b2e8df207363bd642e487834c9b7348d9dd55640031763a5934",
+    "checks.json": "a4ce9f3763dcd9a9f6afa3126db67e72e546ea225487a52158463a37cedc33a4",
+    "completion.log": "87363ab5594e9ce7d8497ec2006e3f1730e3baabfdea2f7c83e0b275692ac226",
+    "diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "distribution.log": "cbab459290473c807fa52bb2be8603e858beecd14eef26a9f89bf8ee2623feee",
+    "format.log": "cfe5c6461b42a90595a492aed11f2c8e6eb98b7c4caf2cc9f47e3333185e3f33",
+    "layout-tests.log": "b6d713a5264a72a887b58aa628a12d9cdb042df2c6616c908b38a6c7f5b86b27",
+    "layout.log": "24d0bf22189afacae31210b08bd1a3f2c36ce4a5de7e83bc0519073669bd7bc0",
+    "plugin-tests.log": "cff5ed7b1690d72bc954ddac4a57b7aca6fbb139d3bdd4a8e7202467c9bb329e",
+    "report.md": "4f16147906a481bd5708cb5adada478a2233a8500ab7bc19842f906237916ea4",
+    "validation-tests.log": "15ad91d197f6c67bd38002534e410b7ed7ffb36836abc78fbf3d94e9c8d448f0"
+  }
+}

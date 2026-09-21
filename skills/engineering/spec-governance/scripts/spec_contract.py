@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import difflib
+import errno
 import hashlib
 import json
 import os
@@ -213,7 +215,7 @@ def pending_decision(text: str) -> dict[str, Any] | None:
         or (
             len(question["options"]) != 0
             if question.get("kind") == "open-text"
-            else not 2 <= len(question["options"]) <= 3
+            else len(question["options"]) < 2
         )
         or any(
             not isinstance(item, str) or not item.strip()
@@ -328,6 +330,13 @@ def _question_update_snapshot(text: str, request: dict[str, Any], revision: int)
         "user_text": request["user_text"],
     }
     if action == "revise":
+        if (
+            request.get("kind", "choice") == "choice"
+            and len(request.get("options") or []) < 3
+        ):
+            raise ValueError(
+                "revised decision questions require at least three meaningful options"
+            )
         revised = {
             "id": pending["id"],
             "version": revision + 1,
@@ -773,7 +782,7 @@ def assess_discussion_completion(
             or (
                 len(options) != 0
                 if question.get("kind") == "open-text"
-                else not 2 <= len(options) <= 3
+                else len(options) < 2
             )
             or any(not isinstance(x, str) or not x.strip() for x in options)
         ):
@@ -917,6 +926,11 @@ def record_question(
     validation_assessor=None,
 ) -> dict[str, Any]:
     """Persist options before presentation, without a deadline or mode dependency."""
+    if question_kind == "choice" and len(options) < 3:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "new decision questions require at least three meaningful options",
+        }
     if question_kind not in ("choice", "open-text"):
         return {"verdict": "BLOCKED", "reason": "unknown question kind"}
     resolved = resolve_working_bundle(project_root, reference=working_id)
@@ -1352,6 +1366,198 @@ def _acceptance_planning(
     }
 
 
+def generated_acceptance(text: str, *, known_spec_ids=None) -> dict:
+    """Rebuild definitions from SPEC; never infer selectors or execution evidence."""
+    checked = validate_spec_text(text, known_spec_ids=known_spec_ids)
+    if checked["verdict"] != "PASS":
+        raise ValueError("invalid canonical specification")
+    metadata, _ = _metadata(text)
+    criteria = {
+        key: {k: v for k, v in row.items() if k.casefold() != "evidence"}
+        for key, row in _snapshot_rows(text).items()
+        if key.startswith("AC-")
+    }
+    declared = _sections(text).get("acceptance mapping", "").strip()
+    if declared.startswith("```json\n") and declared.endswith("```"):
+        declared = declared[len("```json\n") : -3].strip()
+    selectors = json.loads(declared) if declared else {}
+    if not isinstance(selectors, dict) or set(selectors) - set(criteria):
+        raise ValueError("Acceptance Mapping must refer only to current AC IDs")
+    for key, value in selectors.items():
+        if not isinstance(value, dict) or set(value) - {
+            "evidence_claims",
+            "contract_dimensions",
+            "execution_changes",
+            "rationale",
+            "scenario_layers",
+            "enablement_scenarios",
+            "build_artifact",
+        }:
+            raise ValueError(key + ": unsupported selector fields")
+    definitions = {
+        key: {
+            "definition": row,
+            "criterion_sha256": _sha256_text(_normalized_json(row)),
+            **selectors.get(key, {}),
+        }
+        for key, row in criteria.items()
+    }
+    return {
+        "schema_version": 2,
+        "spec_id": metadata["spec_id"],
+        "source": {
+            "revision": int(metadata["revision"]),
+            "definitions_sha256": _sha256_text(_normalized_json(definitions)),
+        },
+        "acceptance": definitions,
+    }
+
+
+def acceptance_selector_gaps(acceptance: dict, matrix=None) -> list[str]:
+    """Report every AC selection gap without treating a projection as evidence."""
+    ladder = Path(__file__).resolve().parents[2] / "verification-ladder" / "scripts"
+    if str(ladder) not in sys.path:
+        sys.path.insert(0, str(ladder))
+    from verification_ladder import TAXONOMY, UNIVERSAL_LAYERS, plan
+
+    gaps = []
+    for ac, item in acceptance.items():
+        if not isinstance(item, dict):
+            gaps.append(f"{ac}: selectors must be an object")
+            continue
+        requested = {}
+        invalid = False
+        for field, allowed in TAXONOMY.items():
+            values = item.get(field, [])
+            if not isinstance(values, list) or any(
+                not isinstance(v, str) or v not in allowed for v in values
+            ):
+                gaps.append(f"{ac}: {field} must contain known selection values")
+                invalid = True
+            else:
+                requested[field] = set(values)
+        if not item.get("evidence_claims"):
+            gaps.append(f"{ac}: evidence claims (evidence_claims) required")
+            invalid = True
+        rationale = item.get("rationale")
+        if not isinstance(rationale, str) or not rationale.strip():
+            gaps.append(f"{ac}: applicability rationale required")
+            invalid = True
+        if matrix is None and not invalid:
+            selected_layers = set().union(
+                *(UNIVERSAL_LAYERS[v] for values in requested.values() for v in values)
+            )
+            if selected_layers & {"pil", "hil", "system-soak"}:
+                gaps.append(f"{ac}: device selections require a verification matrix")
+        if matrix is not None and not invalid:
+            selected = plan(matrix, requested)
+            if selected["status"] != "PASS":
+                gaps.extend(f"{ac}: {error}" for error in selected["errors"])
+                continue
+            layers = set(selected["required_layers"])
+            if layers - set(matrix["layers"]):
+                gaps.append(f"{ac}: required layer has no project contract")
+            devices = layers & {"pil", "hil", "system-soak"}
+            scenarios = item.get("scenario_layers", {})
+            if (
+                not isinstance(scenarios, dict)
+                or set(scenarios) != devices
+                or any(
+                    not isinstance(v, list)
+                    or not v
+                    or any(not isinstance(s, str) or not s.strip() for s in v)
+                    for v in scenarios.values()
+                )
+            ):
+                gaps.append(f"{ac}: scenario_layers must cover selected device layers")
+            if devices and (
+                not isinstance(item.get("build_artifact"), str)
+                or not item["build_artifact"].strip()
+            ):
+                gaps.append(f"{ac}: build_artifact required for device layers")
+    return gaps
+
+
+def acceptance_plan_completeness(project_root: Path, text: str) -> list[str]:
+    """Read canonical selections before confirmation; preserve legacy host drafts."""
+    matrix_path = project_root / "validation/verification-ladder.yaml"
+    declared = "acceptance mapping" in _sections(text)
+    if not matrix_path.is_file() and not declared:
+        return []
+    import yaml
+
+    try:
+        document = generated_acceptance(
+            text,
+            known_spec_ids=_repository_spec_ids(project_root)
+            | {_metadata(text)[0].get("spec_id", "")},
+        )
+        matrix = None
+        if matrix_path.is_file():
+            matrix = yaml.safe_load(matrix_path.read_text(encoding="utf-8"))
+            if (
+                not isinstance(matrix, dict)
+                or not isinstance(matrix.get("layers"), dict)
+                or not isinstance(matrix.get("rules"), list)
+            ):
+                return ["Acceptance planning: invalid verification matrix"]
+        return acceptance_selector_gaps(document["acceptance"], matrix)
+    except (ValueError, TypeError, KeyError, OSError, yaml.YAMLError) as error:
+        return ["Acceptance planning: " + str(error)]
+
+
+def acceptance_generation_plan(project_root: Path, spec_path: str) -> dict:
+    """Prepare a reconstructible projection for the ordinary managed apply entry."""
+    root = project_root.resolve()
+    path = (root / spec_path).resolve()
+    if path.parent != root / "specs" or not path.is_file():
+        return {"verdict": "BLOCKED", "reason": "canonical specification required"}
+    try:
+        document = generated_acceptance(
+            path.read_text(encoding="utf-8"), known_spec_ids=_repository_spec_ids(root)
+        )
+        target = root / "validation" / ("acceptance-" + document["spec_id"] + ".json")
+        if target.is_symlink():
+            raise ValueError("redirected acceptance path")
+        raw = target.read_bytes() if target.exists() else None
+        content = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
+        unresolved = [
+            key
+            for key, row in document["acceptance"].items()
+            if not row.get("evidence_claims") or not row.get("rationale")
+        ]
+        planning_errors = list(
+            dict.fromkeys(
+                acceptance_selector_gaps(document["acceptance"])
+                + acceptance_plan_completeness(root, path.read_text(encoding="utf-8"))
+            )
+        )
+        return {
+            "verdict": "PASS",
+            "generation_verdict": "PASS",
+            "planning_verdict": "BLOCKED" if planning_errors else "PASS",
+            "planning_errors": planning_errors,
+            "product_code_allowed": False,
+            "acceptance_complete": False,
+            "unresolved_selectors": unresolved,
+            "patch": None
+            if raw is not None and raw.decode("utf-8").replace("\r\n", "\n") == content
+            else {
+                "path": target.relative_to(root).as_posix(),
+                "before_sha256": hashlib.sha256(raw).hexdigest()
+                if raw is not None
+                else None,
+                "content": content,
+            },
+        }
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        return {
+            "verdict": "BLOCKED",
+            "reason": str(error),
+            "product_code_allowed": False,
+        }
+
+
 def acceptance_repair_plan(project_root: Path, spec_path: str) -> dict:
     """Derive an additive mapping only from explicitly declared contract data.
 
@@ -1491,6 +1697,7 @@ def _contract_completeness_gaps(project_root: Path, text: str) -> list[str]:
                 "pending",
             }:
                 gaps.append(key + " has no meaningful " + field + ".")
+    gaps.extend(acceptance_plan_completeness(project_root, text))
     return gaps
 
 
@@ -2446,7 +2653,7 @@ def resolve_working_bundle(
 
 
 @contextmanager
-def project_state_lock(root: Path, key: str, timeout: float = 5.0):
+def project_state_lock(root: Path, key: str, timeout: float = 30.0):
     """Lock a stable inode briefly; the OS releases ownership on process exit."""
     directory = root.resolve() / "spec-governance"
     if directory.is_symlink() or directory.resolve() != directory:
@@ -2472,9 +2679,13 @@ def project_state_lock(root: Path, key: str, timeout: float = 5.0):
 
                     fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
-            except OSError:
+            except OSError as error:
+                if error.errno not in {errno.EACCES, errno.EAGAIN}:
+                    raise
                 if time.monotonic() >= deadline:
-                    raise TimeoutError("shared state is busy; retry after rereading")
+                    raise TimeoutError(
+                        f"shared state remained locked for {timeout:g}s; holder unknown; preserve pending edits and reread before retrying"
+                    )
                 time.sleep(0.01)
         try:
             yield
@@ -2506,6 +2717,7 @@ def start_working_bundle(
     branch: str | None = None,
     preserve_spec_identity: bool = False,
     baseline_contract_hash: str | None = None,
+    baseline_file_hash: str | None = None,
 ) -> dict[str, Any]:
     """Create one authoritative Markdown snapshot and normalized journal epoch."""
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
@@ -2522,56 +2734,69 @@ def start_working_bundle(
         }
     matching = [row for row in discovered if row.get("change_set") == slug]
     if len(matching) == 1:
-        if preserve_spec_identity:
-            ref = matching[0]
-            snapshot_path, journal_path = _working_paths(
-                project_root, ref["working_id"]
-            )
-            previous = snapshot_path.read_text(encoding="utf-8")
-            metadata, errors = _metadata(text)
-            if (
-                errors
-                or ref["status"] != "confirmed"
-                or ref["spec_id"] != metadata.get("spec_id")
-                or _contract_hash(previous) != baseline_contract_hash
-            ):
+        with project_state_lock(project_root, "spec:" + matching[0]["working_id"]):
+            if preserve_spec_identity:
+                ref = _working_reference(
+                    project_root,
+                    *_working_paths(project_root, matching[0]["working_id"]),
+                )
+                snapshot_path, journal_path = _working_paths(
+                    project_root, ref["working_id"]
+                )
+                previous = snapshot_path.read_text(encoding="utf-8")
+                if (
+                    baseline_file_hash is not None
+                    and _sha256_text(previous) != baseline_file_hash
+                ):
+                    return {
+                        "verdict": "BLOCKED",
+                        "reason": "SPEC changed during reopen; reread current file",
+                        "pending_edits_preserved": True,
+                    }
+                metadata, errors = _metadata(text)
+                if (
+                    errors
+                    or ref["status"] != "confirmed"
+                    or ref["spec_id"] != metadata.get("spec_id")
+                    or _contract_hash(previous) != baseline_contract_hash
+                ):
+                    return {
+                        "verdict": "BLOCKED",
+                        "reason": "existing working bundle does not match the reopen baseline",
+                    }
+                rendered = _replace_metadata(
+                    text,
+                    working_id=ref["working_id"],
+                    task_ref=task_ref if task_ref is not None else ref.get("task_ref"),
+                    branch_ref=branch if branch is not None else ref.get("branch_ref"),
+                )
+                errors = _working_structure_errors(rendered)
+                if errors:
+                    return {
+                        "verdict": "BLOCKED",
+                        "reason": "invalid reopened snapshot",
+                        "errors": errors,
+                    }
+                _, continuity = _read_journal(journal_path)
+                _atomic_write(snapshot_path, rendered)
+                _append_journal_event(
+                    journal_path,
+                    event_type="reopen",
+                    working_id=ref["working_id"],
+                    revision=int(metadata["revision"]),
+                    previous_snapshot_hash=_snapshot_hash(previous),
+                    snapshot_hash=_snapshot_hash(rendered),
+                    continuity=continuity,
+                    baseline_contract_hash=baseline_contract_hash,
+                )
                 return {
-                    "verdict": "BLOCKED",
-                    "reason": "existing working bundle does not match the reopen baseline",
+                    "verdict": "PASS",
+                    "working_spec": _working_reference(
+                        project_root, snapshot_path, journal_path
+                    ),
+                    "created": False,
                 }
-            rendered = _replace_metadata(
-                text,
-                working_id=ref["working_id"],
-                task_ref=task_ref if task_ref is not None else ref.get("task_ref"),
-                branch_ref=branch if branch is not None else ref.get("branch_ref"),
-            )
-            errors = _working_structure_errors(rendered)
-            if errors:
-                return {
-                    "verdict": "BLOCKED",
-                    "reason": "invalid reopened snapshot",
-                    "errors": errors,
-                }
-            _, continuity = _read_journal(journal_path)
-            _atomic_write(snapshot_path, rendered)
-            _append_journal_event(
-                journal_path,
-                event_type="reopen",
-                working_id=ref["working_id"],
-                revision=int(metadata["revision"]),
-                previous_snapshot_hash=_snapshot_hash(previous),
-                snapshot_hash=_snapshot_hash(rendered),
-                continuity=continuity,
-                baseline_contract_hash=baseline_contract_hash,
-            )
-            return {
-                "verdict": "PASS",
-                "working_spec": _working_reference(
-                    project_root, snapshot_path, journal_path
-                ),
-                "created": False,
-            }
-        return {"verdict": "PASS", "working_spec": matching[0], "created": False}
+            return {"verdict": "PASS", "working_spec": matching[0], "created": False}
     if len(matching) > 1:
         return {
             "verdict": "BLOCKED",
@@ -2646,6 +2871,64 @@ def start_working_bundle(
     }
 
 
+def _merge_spec_edits(base: str, desired: str, current: str) -> str:
+    """Integrate disjoint line edits; conflicts retain both original inputs."""
+    lines = base.splitlines(keepends=True)
+
+    def edits(value):
+        changed = value.splitlines(keepends=True)
+        return [
+            (a, b, changed[c:d])
+            for op, a, b, c, d in difflib.SequenceMatcher(
+                None, lines, changed, autojunk=False
+            ).get_opcodes()
+            if op != "equal"
+        ]
+
+    ours, theirs = edits(desired), edits(current)
+    combined = list(theirs)
+    for edit in ours:
+        if edit in theirs:
+            continue
+        a, b, _ = edit
+        for c, d, _ in theirs:
+            if (
+                max(a, c) < min(b, d)
+                or (a == b and c <= a <= d)
+                or (c == d and a <= c <= b)
+            ):
+                raise ValueError(
+                    "conflicting SPEC edits; preserve both changes and reconcile the decision"
+                )
+        combined.append(edit)
+    for a, b, replacement in sorted(
+        combined, key=lambda item: (item[0], item[1]), reverse=True
+    ):
+        lines[a:b] = replacement
+    return "".join(lines)
+
+
+def _serialize_spec_update(function):
+    @wraps(function)
+    def update(project_root, working_id, *args, **kwargs):
+        try:
+            resolved = resolve_working_bundle(project_root, reference=working_id)
+            identity = (resolved.get("working_spec") or {}).get(
+                "working_id", working_id
+            )
+            with project_state_lock(project_root, "spec:" + identity):
+                return function(project_root, working_id, *args, **kwargs)
+        except TimeoutError as error:
+            return {
+                "verdict": "BLOCKED",
+                "reason": str(error),
+                "pending_edits_preserved": True,
+            }
+
+    return update
+
+
+@_serialize_spec_update
 def reconcile_working_bundle(
     project_root: Path,
     working_id: str,
@@ -2659,6 +2942,7 @@ def reconcile_working_bundle(
     answer: str | None = None,
     question_update: dict[str, Any] | None = None,
     validation_assessor=None,
+    base_snapshot: str | None = None,
 ) -> dict[str, Any]:
     """Persist a complete next snapshot with optimistic revision/hash checks."""
     if not (
@@ -2677,14 +2961,50 @@ def reconcile_working_bundle(
     metadata, _ = _metadata(current)
     current_hash = _snapshot_hash(current)
     current_revision = int(metadata.get("revision", "0"))
+    if (
+        expected_revision != current_revision or expected_hash != current_hash
+    ) and base_snapshot is not None:
+        if (
+            _snapshot_hash(base_snapshot) != expected_hash
+            or int(_metadata(base_snapshot)[0].get("revision", 0)) != expected_revision
+        ):
+            return {
+                "verdict": "BLOCKED",
+                "reason": "unverified merge baseline",
+                "pending_edits_preserved": True,
+            }
+        if (
+            metadata.get("status") != "working"
+            or question_update is not None
+            or answer is not None
+        ):
+            return {
+                "verdict": "BLOCKED",
+                "reason": "reread current contract/question before merging",
+                "pending_edits_preserved": True,
+            }
+        try:
+            next_snapshot = _merge_spec_edits(base_snapshot, next_snapshot, current)
+        except ValueError as error:
+            return {
+                "verdict": "BLOCKED",
+                "reason": str(error),
+                "pending_edits_preserved": True,
+            }
+        expected_revision, expected_hash = current_revision, current_hash
     if expected_revision != current_revision or expected_hash != current_hash:
         return {
+            "pending_edits_preserved": True,
+            "next_action": "reread-and-integrate",
             "verdict": "BLOCKED",
             "reason": "stale working specification",
             "working_spec": _working_reference(
                 project_root, snapshot_path, journal_path
             ),
         }
+    # The caller owns proposed body edits, never the current audit journal.
+    # Audit-only appends deliberately retain the snapshot hash and revision.
+    next_snapshot = _split_spec_audit(next_snapshot)[0] + _split_spec_audit(current)[1]
     try:
         pending = pending_decision(current)
         next_pending = pending_decision(next_snapshot)
@@ -2967,6 +3287,13 @@ def materialize_spec(
             "errors": assessment["errors"],
             "canonical_spec": None,
         }
+    gaps = acceptance_plan_completeness(project_root, rendered)
+    if gaps:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "acceptance plan incomplete",
+            "errors": gaps,
+        }
     specs_dir = project_root / "specs"
     specs_dir.mkdir(parents=True, exist_ok=True)
     relative = Path("specs") / f"{spec_id}-{slug}.md"
@@ -2990,6 +3317,7 @@ def materialize_spec(
     }
 
 
+@_serialize_spec_update
 def materialize_working_bundle(
     project_root: Path,
     working_id: str,
@@ -3045,6 +3373,13 @@ def materialize_working_bundle(
             "verdict": "BLOCKED",
             "reason": "working specification is not decision-complete",
             "errors": assessment["errors"],
+        }
+    gaps = acceptance_plan_completeness(project_root, rendered)
+    if gaps:
+        return {
+            "verdict": "BLOCKED",
+            "reason": "acceptance plan incomplete",
+            "errors": gaps,
         }
     destination = project_root / "specs" / f"{spec_id}-{slug}.md"
     if existing and not destination.is_file():
@@ -3185,9 +3520,14 @@ def reopen_spec(
         branch=branch,
         preserve_spec_identity=True,
         baseline_contract_hash=baseline_hash,
+        baseline_file_hash=_sha256_text(text) if metadata.get("working_id") else None,
     )
     if result["verdict"] != "PASS":
-        _atomic_write(path, text)
+        if (
+            not metadata.get("working_id")
+            and path.read_text(encoding="utf-8") == reopened
+        ):
+            _atomic_write(path, text)
         return result
     result["canonical_spec"] = {
         "spec_id": metadata["spec_id"],
@@ -3664,6 +4004,7 @@ def main(validation_assessor=None) -> int:
     reconcile_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     reconcile_parser.add_argument("--working-id", required=True)
     reconcile_parser.add_argument("--snapshot", type=Path, required=True)
+    reconcile_parser.add_argument("--base-snapshot", type=Path)
     reconcile_parser.add_argument("--delta", type=Path, required=True)
     reconcile_parser.add_argument("--expected-revision", type=int, required=True)
     reconcile_parser.add_argument("--expected-hash", required=True)
@@ -3832,6 +4173,9 @@ def main(validation_assessor=None) -> int:
             args.working_id,
             args.snapshot.read_text(encoding="utf-8"),
             json.loads(args.delta.read_text(encoding="utf-8")),
+            base_snapshot=args.base_snapshot.read_text(encoding="utf-8")
+            if args.base_snapshot
+            else None,
             expected_revision=args.expected_revision,
             expected_hash=args.expected_hash,
             question_id=args.question_id,

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "d48c46ebb0af4885b34d9e68af644304",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:30:03.780346+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "installed-inventory-and-host-prerequisites",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "inventory-and-host-prerequisites"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "8500f06bd2d6995bb2d6b352a51830494e26afa62c9c3104cad72ba9610e45d3"
+    },
+    "inputs": {
+      "preceding_manifest": "60b32f1565e59ec011ba7bc34da4f2d2ad56a1837107801d3b1193edbcc0f437",
+      "inventory": "140abfd5a746013f8fbf5e10b3c407e1b6d3d8f9fe6d11e9d1e87f1e505b78f1"
+    },
+    "spec": "SPEC-0036"
+  },
+  "status": "completed",
+  "outcome": "BLOCKED",
+  "ended_at": "2026-09-20T05:30:04.050826+00:00",
+  "files": {
+    ".run.json": "dbeb9f5dc6d75cb6e59360da0c7b20db9d221e56229225a89305cf1b1db40ed3",
+    "checks.json": "cefdffd70505d60b8070e48871007f535c9db6b35ca7a3d0c46944d952930715",
+    "linux-probe.bin": "c5dcca5c6915de3ba9ab71e671b5fb1ecb9bc212a99a58a6f9ac5db3ef9c9b38",
+    "linux-probe.txt": "d213e5f5b6673d2fc48b39deea9a795512ca3a88b012157b3417ab4eb64b483f",
+    "report.md": "5119923d5fd5c3fc5f6025330c8476c20477bc5f30ea9af70a44a11bbd8a9d5b"
+  }
+}

@@ -1,0 +1,17 @@
+
+test_explicit_selectors_come_from_spec_and_unknown_ac_is_rejected (test_spec0036_consolidation.ConsolidationTests.test_explicit_selectors_come_from_spec_and_unknown_ac_is_rejected) ... ok
+test_generation_does_not_write_or_infer_missing_selectors (test_spec0036_consolidation.ConsolidationTests.test_generation_does_not_write_or_infer_missing_selectors) ... ok
+test_legacy_and_canonical_references_use_the_same_lock (test_spec0036_consolidation.ConsolidationTests.test_legacy_and_canonical_references_use_the_same_lock) ... ok
+test_lock_timeout_is_bounded_and_preserves_unsaved_edits (test_spec0036_consolidation.ConsolidationTests.test_lock_timeout_is_bounded_and_preserves_unsaved_edits) ... ok
+test_new_questions_require_three_but_legacy_two_remains_readable (test_spec0036_consolidation.ConsolidationTests.test_new_questions_require_three_but_legacy_two_remains_readable) ... ok
+test_noncontention_os_error_does_not_wait_or_claim_another_editor (test_spec0036_consolidation.ConsolidationTests.test_noncontention_os_error_does_not_wait_or_claim_another_editor) ... ok
+test_projection_rebuilds_added_removed_and_changed_criteria (test_spec0036_consolidation.ConsolidationTests.test_projection_rebuilds_added_removed_and_changed_criteria) ... ok
+test_reconcile_preserves_audit_appended_after_caller_snapshot (test_spec0036_consolidation.ConsolidationTests.test_reconcile_preserves_audit_appended_after_caller_snapshot) ... ok
+test_reopen_failure_never_restores_over_concurrent_save (test_spec0036_consolidation.ConsolidationTests.test_reopen_failure_never_restores_over_concurrent_save) ... ok
+test_shared_lock_blocks_other_process_then_releases (test_spec0036_consolidation.ConsolidationTests.test_shared_lock_blocks_other_process_then_releases) ... ok
+test_stale_nonconflicting_edits_merge_and_conflicts_preserve_file (test_spec0036_consolidation.ConsolidationTests.test_stale_nonconflicting_edits_merge_and_conflicts_preserve_file) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.366s
+
+OK

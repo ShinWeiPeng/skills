@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "run_id": "d48c46ebb0af4885b34d9e68af644304",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:30:03.780346+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "installed-inventory-and-host-prerequisites",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "inventory-and-host-prerequisites"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "8500f06bd2d6995bb2d6b352a51830494e26afa62c9c3104cad72ba9610e45d3"
+    },
+    "inputs": {
+      "preceding_manifest": "60b32f1565e59ec011ba7bc34da4f2d2ad56a1837107801d3b1193edbcc0f437",
+      "inventory": "140abfd5a746013f8fbf5e10b3c407e1b6d3d8f9fe6d11e9d1e87f1e505b78f1"
+    },
+    "spec": "SPEC-0036"
+  }
+}

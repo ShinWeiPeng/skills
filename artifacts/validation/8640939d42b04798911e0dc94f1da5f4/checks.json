@@ -1,0 +1,51 @@
+[
+  {
+    "check": "layout",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py",
+      "layout",
+      "--manifest",
+      "architecture/manifest.yaml"
+    ],
+    "exit_code": 0,
+    "verdict": "PASS",
+    "errors": null,
+    "plan_manifest": null
+  },
+  {
+    "check": "planning",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/verification-ladder/scripts/project_validation.py",
+      "--project-root",
+      "C:\\Users\\hugo_peng\\skill\\skills",
+      "--spec",
+      "specs/SPEC-0036-generic-layout-repair.md",
+      "--write-plan"
+    ],
+    "exit_code": 0,
+    "verdict": "PASS",
+    "errors": [],
+    "plan_manifest": "artifacts/validation/79d4009dba04443fbfb90e7d0a0a6a51/manifest.json"
+  },
+  {
+    "check": "acceptance",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/verification-ladder/scripts/project_validation.py",
+      "--project-root",
+      "C:\\Users\\hugo_peng\\skill\\skills",
+      "--spec",
+      "specs/SPEC-0036-generic-layout-repair.md",
+      "--phase",
+      "acceptance"
+    ],
+    "exit_code": 2,
+    "verdict": "BLOCKED",
+    "errors": [
+      "explicit unique evidence_manifests required"
+    ],
+    "plan_manifest": null
+  }
+]

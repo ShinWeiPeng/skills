@@ -149,21 +149,15 @@ def verify_delivery_admission(
             "spec_path": relative,
             "spec_hash": current_hash,
         }
-    if working and working.get("validation_planning", {}).get("verdict") == "BLOCKED":
-        return blocked | {
-            "reason": "acceptance mapping requires reconciliation",
-            "validation_planning": working["validation_planning"],
-        }
-    validation = assess_project_validation(
-        root, relative, phase="enablement", validation_assessor=validation_assessor
-    )
-    if validation["verdict"] != "PASS":
-        return blocked | {
-            "reason": "project validation planning/enablement incomplete",
-            "validation": validation,
-        }
+    # Modification admission checks the current contract and authority. Validation
+    # planning and evidence are checked by their execution/completion operations,
+    # rather than required before the authorized work that produces them.
     return {
-        "validation": validation,
+        "validation": {
+            "verdict": "DEFERRED",
+            "reason": "evaluate planning and evidence at their applicable phase",
+            "acceptance_complete": False,
+        },
         "verdict": "PASS",
         "product_code_allowed": True,
         "spec_path": relative,

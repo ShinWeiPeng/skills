@@ -1,0 +1,8 @@
+{
+  "inventory_file_count": 294,
+  "mismatches": [],
+  "verdict": "PASS",
+  "wsl_exit_code": 1,
+  "wsl_output": "未安裝Windows 子系統 Linux 版。您可以執行 'wsl.exe --install' 進行安裝。\r\r\n如需詳細資訊，請造訪 https://aka.ms/wslinstall\r\r\n",
+  "previous_difference": "Only runtime-generated __pycache__/spec_contract.cpython-312.pyc differed; it is not part of artifact inventory."
+}

@@ -687,6 +687,26 @@ class DiscussionEntryTests(unittest.TestCase):
             for name in ("goal", "scope", "behavior", "exceptions", "acceptance")
         }
         saved = self.save(completeness_review=review)
+        self.assertIsNone(saved["confirmation"])
+        self.assertEqual(
+            "working",
+            self.call("status")["binding"]["status"]
+            if "status" in self.call("status")["binding"]
+            else contract.resolve_working_bundle(
+                self.root, reference=ref["working_id"]
+            )["working_spec"]["status"],
+        )
+        unknown = self.save(
+            completeness_review=review,
+            user_confirmed=True,
+            confirmation_source_ref="unobserved-user",
+        )
+        self.assertIsNone(unknown["confirmation"])
+        saved = self.save(
+            completeness_review=review,
+            user_confirmed=True,
+            confirmation_source_ref="fixture-user-1",
+        )
         self.assertEqual("PASS", saved["confirmation"]["verdict"])
         after = saved["confirmation"]["working_spec"]
         self.assertEqual(ref["snapshot_path"], after["snapshot_path"])

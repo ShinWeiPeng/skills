@@ -1,0 +1,186 @@
+{
+  "verdict": "BLOCKED",
+  "product_code_allowed": false,
+  "spec_discussion_allowed": true,
+  "reason": "compatibility requires diagnosis",
+  "enforcement_scope": "managed-entrypoint-only",
+  "compatibility": {
+    "verdict": "BLOCKED",
+    "product_code_allowed": false,
+    "reused": false,
+    "fingerprint": "ae4a5f02f7853674c135fd5217d4405115ad94da53abb92d308224fa63cb097c",
+    "scan_reason": "changed-or-untrusted-inputs",
+    "runtime": {
+      "version": "0.19.0",
+      "rules_sha256": "3bf672a654cf1573b7e8cc1b04db2c4554005e3c8dd26267e1a1530d4eb1c792",
+      "supported_state_schema": 1
+    },
+    "inventory": [
+      {
+        "kind": "spec",
+        "path": "specs/SPEC-0036-generic-layout-repair.md",
+        "disposition": "reuse",
+        "reason": "matched current specification with continuous history"
+      },
+      {
+        "kind": "authorization",
+        "source_event_id": "01a0bcf0-7c53-71d3-9b9a-79d12d02d4d4",
+        "disposition": "reuse",
+        "reason": "original binding retained; history verified"
+      },
+      {
+        "kind": "validation",
+        "path": "architecture/adoption.yaml",
+        "disposition": "unknown",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      {
+        "kind": "validation",
+        "path": "architecture/manifest.yaml",
+        "disposition": "unknown",
+        "sha256": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0"
+      },
+      {
+        "kind": "validation",
+        "path": "validation/verification-ladder.yaml",
+        "disposition": "unknown",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      {
+        "kind": "validation",
+        "path": "validation/on-device.yaml",
+        "disposition": "unknown",
+        "sha256": null
+      },
+      {
+        "kind": "validation",
+        "path": "validation/layout.yaml",
+        "disposition": "unknown",
+        "sha256": "04a987fc3e13905d3a52b9b2eeab08b79eff4cdc0bf86df826d9f37a455c81a7"
+      },
+      {
+        "kind": "validation",
+        "path": "validation/acceptance-SPEC-0036.json",
+        "disposition": "unknown",
+        "sha256": "af644b0fe2860ff802b445f84004f3908a307b28f8cd21629c3329a3e7cee669"
+      }
+    ],
+    "next_action": "diagnose-compatibility",
+    "validation_assessment": {
+      "verdict": "BLOCKED",
+      "required_gates": [
+        "test-validation-layout",
+        "verification-ladder"
+      ],
+      "required_layers": [],
+      "errors": [
+        "AC-001: evidence claims and applicability rationale required"
+      ],
+      "documents": {
+        "architecture/adoption.yaml": {
+          "state": "present",
+          "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+        },
+        "architecture/manifest.yaml": {
+          "state": "present",
+          "sha256": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0"
+        },
+        "validation/verification-ladder.yaml": {
+          "state": "present",
+          "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+        },
+        "validation/on-device.yaml": {
+          "state": "missing",
+          "sha256": null
+        },
+        "validation/layout.yaml": {
+          "state": "present",
+          "sha256": "04a987fc3e13905d3a52b9b2eeab08b79eff4cdc0bf86df826d9f37a455c81a7"
+        },
+        "validation/acceptance-SPEC-0036.json": {
+          "state": "present",
+          "sha256": "af644b0fe2860ff802b445f84004f3908a307b28f8cd21629c3329a3e7cee669"
+        }
+      },
+      "phase": "planning",
+      "device_actions_authorized": false,
+      "applicability": "not-applicable",
+      "skill": {
+        "version": "0.19.0",
+        "sha256": "db2d305f8a430bc7d50092d31d303b5680a8952a76cfe007350edff10c89b73f"
+      },
+      "capabilities": {
+        "verification-ladder": {
+          "callable": true,
+          "entrypoint": "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\verification-ladder\\scripts\\project_validation.py",
+          "arguments": [
+            "--project-root",
+            "C:\\Users\\hugo_peng\\skill\\skills",
+            "--phase",
+            "planning",
+            "--spec",
+            "specs/SPEC-0036-generic-layout-repair.md"
+          ],
+          "exit_code": 2,
+          "check_verdict": "BLOCKED",
+          "evidence": "validated-cli-result"
+        },
+        "test-validation-layout": {
+          "callable": true,
+          "entrypoint": "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\govern-modular-event-architecture\\scripts\\architecture_cli.py",
+          "arguments": [
+            "layout",
+            "--manifest",
+            "C:\\Users\\hugo_peng\\skill\\skills\\architecture\\manifest.yaml"
+          ],
+          "exit_code": 0,
+          "check_verdict": "PASS",
+          "evidence": "validated-cli-result"
+        }
+      },
+      "diagnoses": [
+        {
+          "category": "investigate",
+          "source": "verification-ladder",
+          "evidence": {
+            "verdict": "BLOCKED",
+            "errors": [
+              "AC-001: evidence claims and applicability rationale required"
+            ]
+          },
+          "affected_scope": [
+            "validation-planning"
+          ],
+          "repair_suggestion": "Inspect the original planning or evidence diagnostics; preserve required validation methods.",
+          "authorization": "reuse-current-scope-or-prepare-reviewable-repair",
+          "recheck_command": [
+            "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+            "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\verification-ladder\\scripts\\project_validation.py",
+            "--project-root",
+            "C:\\Users\\hugo_peng\\skill\\skills",
+            "--phase",
+            "planning",
+            "--spec",
+            "specs/SPEC-0036-generic-layout-repair.md"
+          ],
+          "success_condition": "valid CLI result and passing required check",
+          "resume_target": "planning",
+          "phase": "planning"
+        }
+      ],
+      "layout": {
+        "verdict": "PASS",
+        "diagnostics": [],
+        "coverage": {
+          "layout": "whole-filesystem-declared-scope",
+          "runtime_isolation": "not-proven-by-layout",
+          "dependency_analysis": "outside-layout-scope",
+          "language_analysis": "not-required"
+        },
+        "files": 572
+      }
+    },
+    "preparation_allowed": true,
+    "enforcement_scope": "managed-workflow-only"
+  }
+}

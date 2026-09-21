@@ -25,6 +25,7 @@ from execution_state import (
 )
 from spec_contract import (
     acceptance_repair_plan,
+    acceptance_generation_plan,
     assess_discussion_completion,
     project_state_lock,
     question_surface_policy,
@@ -104,6 +105,13 @@ def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> 
 def _pending_binding(root: Path, request: dict, state: dict) -> dict:
     """Recheck retained authority without requiring the evidence it must produce."""
     pending = state.get("pending_authorizations", {}).get(request["source_event_id"])
+    if pending is None and state["phase"] == "executing":
+        receipt = state.get("receipts", {}).get(request["spec"], state.get("receipt"))
+        if (
+            isinstance(receipt, dict)
+            and receipt.get("source_event_id") == request["source_event_id"]
+        ):
+            pending = receipt
     if not isinstance(pending, dict) or state["phase"] == "suspended":
         raise ValueError("current pending authorization is required for preparation")
     binding = execution_binding(
@@ -815,11 +823,16 @@ def execute_request(
             if compatibility["verdict"] != "PASS" and not (
                 request["operation"]
                 in {
+                    "apply",
+                    "status",
                     "prepare-validation",
                     "repair-acceptance",
                     "recover",
                     "enablement-status",
                 }
+                # Missing planning/evidence is not failed authorization. The
+                # operation still checks the current receipt in _admit; final
+                # completion remains subject to the complete validation gate.
                 and compatibility.get("preparation_allowed") is True
             ):
                 return _blocked("compatibility requires diagnosis") | {
@@ -855,18 +868,24 @@ def _execute_request(
             return _authorization_status(state, request["source_event_id"])
         if operation == "plan-acceptance-repair":
             return acceptance_repair_plan(root, request["spec"])
+        if operation == "generate-acceptance":
+            return acceptance_generation_plan(root, request["spec"])
         if operation == "repair-acceptance":
             return _repair_acceptance(root, request, state, validation_assessor)
         if operation == "prepare-validation":
             _admit(root, request, state, validation_assessor)
-            pending = state["pending_authorizations"][request["source_event_id"]]
+            pending = state.get("pending_authorizations", {}).get(
+                request["source_event_id"]
+            ) or state.get("receipts", {}).get(request["spec"], state.get("receipt"))
             result = _apply(root, request, state, validation_assessor)
             if result["verdict"] != "PASS":
                 return result | {"product_code_allowed": False}
             admission = execute_request(
                 root,
                 {
-                    "operation": "authorize",
+                    "operation": "status"
+                    if state["phase"] == "executing"
+                    else "authorize",
                     "task_ref": request["task_ref"],
                     "spec": request["spec"],
                     "working_reference": request["working_reference"],

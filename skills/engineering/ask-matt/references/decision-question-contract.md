@@ -19,7 +19,7 @@ Before the options, explain:
 - why a decision is needed now;
 - which later behavior or work the answer affects.
 
-When the permitted surface supports choices, offer two or three meaningful, mutually exclusive authored options. When host rules prohibit textual multiple choice in Default, ask one concise open text question without disguised choices. For every
+When the permitted surface supports choices, offer at least three meaningful, mutually exclusive authored options; do not pad the list with duplicate or fictitious alternatives. When host rules prohibit textual multiple choice in Default, ask one concise open text question without disguised choices. For every
 option, explain:
 
 - its concrete observable result;

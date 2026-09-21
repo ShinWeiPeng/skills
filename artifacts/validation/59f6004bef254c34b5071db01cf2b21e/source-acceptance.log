@@ -1,0 +1,44 @@
+{
+  "verdict": "BLOCKED",
+  "required_gates": [
+    "verification-ladder"
+  ],
+  "required_layers": [],
+  "errors": [
+    "AC-001: evidence claims and applicability rationale required"
+  ],
+  "documents": {
+    "architecture/adoption.yaml": {
+      "state": "present",
+      "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+    },
+    "architecture/manifest.yaml": {
+      "state": "present",
+      "sha256": "f57d5438a3ae2898fc81f38f971d5290d70686ebc8559e3f1ac7891db702ecb0"
+    },
+    "validation/verification-ladder.yaml": {
+      "state": "present",
+      "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+    },
+    "validation/on-device.yaml": {
+      "state": "missing",
+      "sha256": null
+    },
+    "validation/layout.yaml": {
+      "state": "present",
+      "sha256": "04a987fc3e13905d3a52b9b2eeab08b79eff4cdc0bf86df826d9f37a455c81a7"
+    },
+    "validation/acceptance-SPEC-0036.json": {
+      "state": "present",
+      "sha256": "af644b0fe2860ff802b445f84004f3908a307b28f8cd21629c3329a3e7cee669"
+    }
+  },
+  "phase": "acceptance",
+  "device_actions_authorized": false,
+  "applicability": "not-applicable",
+  "skill": {
+    "version": "0.19.0",
+    "sha256": "91679c7e14a6889a4dace8787a10aba4e7d41b56c1bb5409e90fe17228b97b8b"
+  }
+}
+

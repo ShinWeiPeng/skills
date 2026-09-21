@@ -16,8 +16,10 @@ Use the spec-governance discussion entry contract at
 goals, constraints, facts, answers and candidate suggestions. A candidate is not an
 adopted requirement or execution grant; rejected/deferred candidates do not block
 the original task. If saving fails, disclose the gap and continue discussion or repair; only dependent product changes wait for synchronization. Pure discussion may finish with a saved working record and no
-formal SPEC. Materialize only a complete adopted change scope, expected behavior,
-decisions and acceptance criteria. Reopen confirmed changes and create successors
+formal SPEC. Materialize only after presenting the complete adopted scope, expected behavior,
+decisions and acceptance criteria and receiving explicit user confirmation. Follow
+spec-governance's consolidated discussion and delivery policy for history,
+resumption, questions, saving and authorization; do not create another gate. Reopen confirmed changes and create successors
 for implemented contracts using the existing lifecycle.
 
 Bundled trusted hooks establish task/turn obligations, inspect covered dependent
@@ -284,8 +286,9 @@ At entry, resume, and explicit skill reload, run the guided router with current 
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
-fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
-missing required capability blocks completion. Do not change project Git policy.
+fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
+Language, dependency and isolation checks are outside layout scope; independently
+required architecture or device checks retain their own completion requirements. Do not change project Git policy.
 
 ## Bounded diagnosis and recovery
 
@@ -339,7 +342,7 @@ control merely on a repairable configuration gap or request the same permission
 again. Preserve required evidence and report only genuine unresolved decisions,
 unavailable external conditions or failures that bounded recovery cannot repair.
 
-The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review confirms an adopted contract in place, without an additional flag. Confirmation does not grant execution authority.
+The workflow remains discussion → specification confirmation → execution authorization → implementation → verification → completion. Save every discussion turn in the same canonical SPEC; an unchanged turn does not increment its revision. A complete sourced review prepares the proposal; the user explicitly confirms the adopted contract in place before execution authorization is considered. Confirmation does not grant execution authority.
 
 
 ## Version compatibility before continuing (SPEC-0035)
@@ -372,3 +375,5 @@ reduce thresholds, select an ambiguous SPEC or approve firmware/device actions.
 If equivalence cannot be established, report the concrete gap and return to
 investigation/discussion. Keep rejection evidence and never overwrite concurrent
 changes, clear receipts, or fabricate a successful validation.
+
+Before handing a newly confirmed plan to delivery, use spec-governance acceptance-plan completeness. Keep draft saving and current authorized repairs available; never confuse generated definitions with planning or acceptance PASS.

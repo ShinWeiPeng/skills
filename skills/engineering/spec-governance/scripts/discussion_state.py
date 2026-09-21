@@ -217,25 +217,35 @@ def _working(root, task, row):
 
 
 def _append(root, working, record):
-    path = root / working["journal_path"]
-    if path.is_symlink() or path.stat().st_nlink != 1:
-        raise ValueError("journal must be an ordinary unshared file")
-    return _append_journal_event(
-        path,
-        event_type="discussion",
-        working_id=working["working_id"],
-        revision=working["revision"],
-        previous_snapshot_hash=working["snapshot_hash"],
-        snapshot_hash=working["snapshot_hash"],
-        continuity="continuous",
-        verdict="PASS",
-        delta={
-            "added_ids": [],
-            "changed_ids": [],
-            "removed_ids": [],
-            "discussion": record,
-        },
-    )
+    with project_state_lock(root, "spec:" + working["working_id"]):
+        latest = resolve_working_bundle(root, reference=working["working_id"])
+        if latest["state"] != "working":
+            raise ValueError("SPEC is unavailable; preserve pending discussion")
+        current = latest["working_spec"]
+        if current["snapshot_hash"] != working["snapshot_hash"]:
+            raise ValueError(
+                "SPEC changed before discussion save; reread and integrate"
+            )
+        working = current
+        path = root / working["journal_path"]
+        if path.is_symlink() or path.stat().st_nlink != 1:
+            raise ValueError("journal must be an ordinary unshared file")
+        return _append_journal_event(
+            path,
+            event_type="discussion",
+            working_id=working["working_id"],
+            revision=working["revision"],
+            previous_snapshot_hash=working["snapshot_hash"],
+            snapshot_hash=working["snapshot_hash"],
+            continuity="continuous",
+            verdict="PASS",
+            delta={
+                "added_ids": [],
+                "changed_ids": [],
+                "removed_ids": [],
+                "discussion": record,
+            },
+        )
 
 
 def _project_mapping_gap(root):
@@ -778,6 +788,8 @@ def _operate(root, state, request):
                 adopted
                 and accepted
                 and reviewed
+                and request.get("confirmation_source_ref") in _sources(row)
+                and request.get("user_confirmed") is True
                 and not _contract_completeness_gaps(
                     root, _replace_metadata(text, status="confirmed")
                 )

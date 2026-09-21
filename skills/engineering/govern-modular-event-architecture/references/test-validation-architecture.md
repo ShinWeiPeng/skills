@@ -6,9 +6,8 @@ Git tracking or ignore policy. Missing adoption is BLOCKED; migration is explici
 ## Fixed roots and ownership
 
 - `tests/modules/<module-id>/` and `tests/flows/<flow-id>/` contain test source.
-- Each target may own private `support/` fixtures, mocks and helpers. Other suites
-  cannot import them. Shared support lives in `tests/support/<capability>/`, has one
-  owner and never imports cases. Resolve target IDs from the architecture manifest.
+- Each target may own private `support/` fixtures, mocks and helpers. Shared support lives in
+  `tests/support/<capability>/` and has one owner. Resolve target IDs from the architecture manifest.
 - `validation/` contains authored plans, scenarios, acceptance mappings and
   `layout.yaml`. Device runner source is test source, not a validation definition.
 - `artifacts/tests/<run-id>/` and `artifacts/validation/<run-id>/` contain generated
@@ -22,19 +21,13 @@ No alternate test root is permitted, including existing projects. Migrate source
 fixtures, runner paths, references and source sets together. Curated fixture data
 must declare provenance; a report-like suffix does not alone determine its role.
 
-## Test contracts
+## Scope of directory governance
 
-Prefer public module contracts. A module's own tests may use a controlled test-only
-hook owned by that module. Never arbitrarily mutate private product state. Flow
-tests use participating module contracts. Test controls and wiring must be absent
-from release composition, supported by capable analyzer/build/runtime evidence.
-
-Each case owns mutable state, setup, reset and cleanup. Shared fixtures are readonly
-by default. External resources declare per-case isolation or serialization and
-cleanup. Validate order independence by rerunning/reordering/concurrent execution
-where applicable. A static directory check cannot prove runtime isolation.
-Development test functions do not require individual production L0-L3 catalogs;
-independently shipped test-platform product code retains normal product governance.
+Layout checks positions, roles, owners, provenance and references. It does not
+inspect imports, dependencies, private-state access, isolation or language ASTs.
+Those are not prerequisites for moving files into the declared directories.
+Independent production architecture rules and required runtime verification keep
+their own scope; a layout PASS is not architecture or hardware acceptance.
 
 ## Policy and gates
 
@@ -47,11 +40,8 @@ provenance and architecture source-set agreement; they cannot hide project sourc
 The public architecture gate inventories filesystem scope, including unchanged,
 ignored and untracked files. Gitignore never suppresses governance. Diagnostics
 include rule, file and expected location. The checker never moves/deletes files.
-Required missing language/build capabilities and unresolved dynamic dependencies
-are BLOCKED. Layout coverage, language dependency coverage and runtime/release
-evidence are reported separately; no blanket PASS for unsupported languages.
-Python dependency assessment uses AST and source-hash-bound reviewed resolutions
-for dynamic loading. C/C++ requires complete AST dependency coverage from its adapter.
+Legacy analyzer/dependency/isolation keys remain readable for migration but are
+not evaluated by layout. Coverage reports those analyses outside its scope.
 
 ## Run lifecycle
 
@@ -67,7 +57,7 @@ hashes. Record SPEC/AC only when applicable. Validate metadata, identity, path
 containment, symlinks/junctions, file set and hashes on read. Hashes prove integrity,
 not authentic execution. Never guess the newest run or use mutable latest identity.
 
-Authored acceptance mappings stay in validation/. Generated plans and evidence
+SPEC-derived acceptance projections stay in validation/. Generated plans and evidence
 belong in the selected run as `plan.snapshot.json` and `evidence.json`. Consumers
 must resolve explicit fixed run references. Acceptance and release additionally
 compare the governed source snapshot, plan/configuration digests, AC coverage and

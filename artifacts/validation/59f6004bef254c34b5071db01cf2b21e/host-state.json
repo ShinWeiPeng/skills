@@ -1,0 +1,32 @@
+{
+  "plugins": {
+    "governed-engineering-skills@personal": {
+      "enabled": false
+    },
+    "governed-engineering-skills@governed-engineering": {
+      "enabled": true
+    },
+    "governed-engineering-skills@governed-engineering-development": {
+      "enabled": true
+    }
+  },
+  "hooks": {
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:pre_tool_use:0:0": {
+      "enabled": false,
+      "trusted_hash": "sha256:d879aedfb25792361bc5dffe311bf7c4f2c853df049bcb36ca04e58fb71de0f8"
+    },
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:session_start:0:0": {
+      "enabled": false,
+      "trusted_hash": "sha256:9e2047d83635f5a875ab39d6a4dceb037c330c86772669add904fcc32a5791c6"
+    },
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:user_prompt_submit:0:0": {
+      "enabled": false,
+      "trusted_hash": "sha256:095ef610132ebcbad97c691f7a40fb114f1fddc8dfb700be0d2df986da49e8b4"
+    },
+    "governed-engineering-skills@governed-engineering-development:hooks/hooks.json:stop:0:0": {
+      "enabled": false,
+      "trusted_hash": "sha256:ba97d673fa0fd8c3b69418aad5246040e276a99e93be76c656b073c9505c4e86"
+    }
+  },
+  "note": "Configuration observation only; not proof of hook firing."
+}

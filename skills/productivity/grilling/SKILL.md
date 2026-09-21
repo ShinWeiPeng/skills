@@ -69,9 +69,10 @@ asking the clarifying question. Preserve its SPEC ID and path. Implemented specs
 never reopen.
 
 Investigate factual blockers first; ask only an unresolved user decision. When an adopted change contract is decision-complete,
-invoke `spec-governance.materialize` immediately without treating that write as
-product execution authorization. Then show the confirmed spec and intended
-non-spec repository diff and wait for the user's exact `開始執行` authorization.
+present the complete proposal and intended non-spec diff once. After explicit user
+confirmation, invoke `spec-governance.materialize`; confirmation is separate from
+the exact `開始執行` execution authorization. Follow spec-governance's consolidated
+discussion and delivery policy for relevant history, resumption and lock recovery.
 
 ## Preserve active discussion through the final reply
 

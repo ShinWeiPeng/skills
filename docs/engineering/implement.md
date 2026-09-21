@@ -21,7 +21,7 @@ and does not claim to intercept arbitrary host tools.
 An authorized task continues through validation preparation, implementation and
 verification. Missing runtime policy, device profile, verification matrix or layout
 definitions can be added under the retained authorization before a receipt exists.
-Declared enablement checks can then produce the evidence needed for admission.
+Declared enablement checks produce evidence for the applicable device operations and final verification.
 Preparation never counts as acceptance, and existing validation values remain
 protected. Recoverable setup gaps do not require repeating the same permission.
 
@@ -101,8 +101,9 @@ Tests now have explicit Module or Flow ownership under `tests/`. Authored valida
 plans stay under `validation/`; each execution keeps its own immutable run under
 `artifacts/`. This keeps specifications readable and prevents later runs from
 replacing the evidence they cite. Whole-project checks include existing files and
-report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
-boundaries; project-specific retention and Git ignore choices remain separate.
+report misplaced files and broken references. Layout does not impose language
+analysis, dependency or isolation proofs; independent architecture and runtime
+verification requirements remain applicable; project-specific retention and Git ignore choices remain separate.
 
 ## Bounded diagnosis and recovery
 
@@ -171,3 +172,20 @@ is preserved and accepted only after its original byte hashes and continuous
 unchanged discussion suffix are proven. Missing history cannot be replaced by a
 matching revision number. Unknown or scope-changing repairs return to discussion;
 format migration never counts as validation success or device authorization.
+
+## Discussion, confirmation and correction
+
+The shared workflow restores the relevant decision history and pending question,
+then presents a complete proposal for explicit user confirmation. A completeness
+check does not confirm it automatically. Decision choices have at least three
+meaningful alternatives; numeric and clear free-text answers are supported.
+
+SPEC saving uses a short shared lock with a 30-second maximum wait and rereads the
+latest version before saving. Any SPEC revision requires fresh execution authority.
+With an unchanged confirmed SPEC, implementation and correction use one managed
+entry. The result a change must produce is checked after that change. Definitions
+are rebuilt from SPEC; missing verification selectors or evidence remain explicit
+and cannot be reported as completed acceptance.
+
+See [spec-governance](https://aihero.dev/skills-spec-governance) for the shared
+responsibility and [implement](https://aihero.dev/skills-implement) for execution.

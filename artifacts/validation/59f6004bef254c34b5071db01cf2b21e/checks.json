@@ -1,0 +1,55 @@
+{
+  "commands": [
+    {
+      "name": "installed-consolidation",
+      "command": [
+        "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+        "-c",
+        "import sys,unittest;from pathlib import Path;sys.path.insert(0,'tests/flows/plugin-integration/plugin');import test_spec_governance as support;support.MODULE_PATH=Path('C:\\\\Users\\\\hugo_peng\\\\.codex\\\\plugins\\\\cache\\\\governed-engineering-development\\\\governed-engineering-skills\\\\0.19.0+codex.local-20260920045258486235\\\\skills\\\\spec-governance\\\\scripts\\\\spec_contract.py');support.SPEC_CONTRACT=support.load_module();import test_spec0036_consolidation as tests;result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromModule(tests));sys.exit(not result.wasSuccessful())"
+      ],
+      "exit_code": 0,
+      "log": "installed-consolidation.log"
+    },
+    {
+      "name": "installed-acceptance",
+      "command": [
+        "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+        "C:\\Users\\hugo_peng\\.codex\\plugins\\cache\\governed-engineering-development\\governed-engineering-skills\\0.19.0+codex.local-20260920045258486235\\skills\\verification-ladder\\scripts\\project_validation.py",
+        "--project-root",
+        "C:\\Users\\hugo_peng\\skill\\skills",
+        "--spec",
+        "specs/SPEC-0036-generic-layout-repair.md",
+        "--phase",
+        "acceptance"
+      ],
+      "exit_code": 2,
+      "log": "installed-acceptance.log"
+    },
+    {
+      "name": "source-acceptance",
+      "command": [
+        "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+        "C:\\Users\\hugo_peng\\skill\\skills\\skills\\engineering\\verification-ladder\\scripts\\project_validation.py",
+        "--project-root",
+        "C:\\Users\\hugo_peng\\skill\\skills",
+        "--spec",
+        "specs/SPEC-0036-generic-layout-repair.md",
+        "--phase",
+        "acceptance"
+      ],
+      "exit_code": 2,
+      "log": "source-acceptance.log"
+    }
+  ],
+  "comparison": {
+    "installed_file_mismatches": [
+      "skills\\spec-governance\\scripts\\__pycache__\\spec_contract.cpython-312.pyc"
+    ],
+    "same_acceptance_verdict": true,
+    "installed_acceptance_verdict": "BLOCKED",
+    "errors": [
+      "AC-001: evidence claims and applicability rationale required"
+    ],
+    "checked_files": 296
+  }
+}

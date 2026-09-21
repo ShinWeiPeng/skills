@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "run_id": "8fcf1a9860c944709b4a17e7b8d2bf0f",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:53:50.813226+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0036-early-acceptance-planning",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:\\Users\\hugo_peng\\skill\\skills\\spec-governance\\verify-spec0036-planning.py"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "57f864d981249605ab15fe7136cd5779f8cefae1f069773846f213e0cd5ecbca"
+    },
+    "inputs": {
+      "spec": "8221598acc9d9830de65a0a0d205407b95e9e7eea62a55cadaf8cf4c4d9d1876"
+    },
+    "spec": "SPEC-0036"
+  },
+  "status": "completed",
+  "outcome": "BLOCKED",
+  "ended_at": "2026-09-20T05:55:14.523594+00:00",
+  "files": {
+    ".run.json": "c21eaaaffb616c63d00752e901c8823bb67dfe439ab27d2bedae1738cbaf6f6a",
+    "acceptance.log": "827e26bd3ae54a399080fa015c9ac3cda440fab9c61bbd7ac8bda5b1c1e139da",
+    "assembly.log": "6515ef9a10c65e4ff0ca57c638eb8bfd46eb0e9d65c45b7a16d869d6b8208c70",
+    "checks.json": "cedec09f43afa75a3e1cac8f94ff051746a8f18753a203f2a5a95e4903329183",
+    "diff.log": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+    "distribution.log": "3d38239dfdba51cf51532c2f01bcfa04bb478014d4e3db827c83cbf53556ac0b",
+    "format.log": "d7623298f0171b3e11cac3fabcd05ebdaadadbff5c6af52cc5b19fca4ad0530d",
+    "layout-regression.log": "5e61022749b718383b0f9240b989361d0e7109d15686d024a8bc5ab22e4bd6c5",
+    "planning.log": "22d05a1844016d552bd52e079acb1a2ee5be883e2aae1c0bc20805278c545613",
+    "plugin-regression.log": "c1dfb54b2aee62b1d0875ef275d754778e47e8b85ea8441a9e75e3646df7c17c",
+    "project-validation.log": "b1bbadda0e18ba698e72156d1e73561a7c1bc63a5bb67668a8a425de9a467438",
+    "report.md": "c25bea361e839a43974d8e4fdc4e6ffe0aa5e21d6d205822468bd49bd84f38f6"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "8fcf1a9860c944709b4a17e7b8d2bf0f",
+  "kind": "validation",
+  "started_at": "2026-09-20T05:53:50.813226+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0036-early-acceptance-planning",
+    "tool": {
+      "name": "python",
+      "version": "3.12.14"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:\\Users\\hugo_peng\\skill\\skills\\spec-governance\\verify-spec0036-planning.py"
+    ],
+    "source": {
+      "revision": "007678b11b2d94c2a205f7fecdacf0b7afaab792",
+      "dirty_sha256": "57f864d981249605ab15fe7136cd5779f8cefae1f069773846f213e0cd5ecbca"
+    },
+    "inputs": {
+      "spec": "8221598acc9d9830de65a0a0d205407b95e9e7eea62a55cadaf8cf4c4d9d1876"
+    },
+    "spec": "SPEC-0036"
+  }
+}

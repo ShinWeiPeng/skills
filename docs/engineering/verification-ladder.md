@@ -51,5 +51,21 @@ Tests now have explicit Module or Flow ownership under `tests/`. Authored valida
 plans stay under `validation/`; each execution keeps its own immutable run under
 `artifacts/`. This keeps specifications readable and prevents later runs from
 replacing the evidence they cite. Whole-project checks include existing files and
-report missing analyzer coverage. Fixture sharing and test-only hooks have explicit
-boundaries; project-specific retention and Git ignore choices remain separate.
+report misplaced files and broken references. Layout does not impose language
+analysis, dependency or isolation proofs; independent architecture and runtime
+verification requirements remain applicable; project-specific retention and Git ignore choices remain separate.
+
+## One source for acceptance
+
+Acceptance definitions and methods are maintained in SPEC. The tool projection is
+rebuildable and checked against that source before selecting verification layers.
+Missing selections remain visible; generating definitions cannot count as passing
+tests or device evidence. Existing legacy mappings remain readable during migration.
+
+## Review the validation plan before confirming
+
+The assistant prepares the readable validation methods and tool selections from
+the same SPEC. Missing selections are listed together before confirmation, while
+drafts can still be saved. A generated mapping is not a complete plan or passing
+test evidence. Explicit user waivers are recorded with their scope and source and
+shown separately from tests that passed; other evidence remains required.

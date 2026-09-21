@@ -84,8 +84,9 @@ Project-bound acceptance consumes the existing runner result plus hashed source 
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
-fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
-missing required capability blocks completion. Do not change project Git policy.
+fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
+Language, dependency and isolation checks are outside layout scope; independently
+required architecture or device checks retain their own completion requirements. Do not change project Git policy.
 
 `--output` identifies the allocated run directory. Declare each scenario's writer,
 target Module/Flow and artifacts/validation root in validation/layout.yaml.

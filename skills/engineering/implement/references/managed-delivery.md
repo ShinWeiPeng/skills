@@ -8,7 +8,7 @@ independent of language, framework, project age, and the words in an example.
 | Input/state | SPEC work | Product work |
 |---|---|---|
 | Factual question | Read existing context; no invented decision | Read only |
-| Requirement, option adoption or changed acceptance | Reconcile before the next decision; materialize when complete | Await exact execution authorization |
+| Requirement, option adoption or changed acceptance | Reconcile before the next decision; present the complete proposal and materialize after user confirmation | Await exact execution authorization |
 | Stop implementation / not yet authorized | Keep saving later discussion decisions | Suspend immediately |
 | Explicit stop all work or stop SPEC writes | Honor that scope; do not continue those writes | Stop as requested |
 | Current confirmed contract plus exact execution instruction | Preserve verified contract | Authorize the managed entrypoint |
@@ -368,3 +368,18 @@ reduce thresholds, select an ambiguous SPEC or approve firmware/device actions.
 If equivalence cannot be established, report the concrete gap and return to
 investigation/discussion. Keep rejection evidence and never overwrite concurrent
 changes, clear receipts, or fabricate a successful validation.
+
+## Common modification entry
+
+Use ordinary `apply` for initial implementation, validation setup, same-scope
+corrections and regenerated acceptance projections. Current SPEC, scope and valid
+authority are checked before each write; the write's intended successful test or
+layout result is not a precondition. Diagnose a failure, repair within that scope,
+recheck and resume the original work. `complete` still requires actual acceptance.
+Legacy preparation/repair operations remain compatibility adapters.
+
+`generate-acceptance` is read-only. It prepares a complete schema-2 replacement
+from the canonical SPEC and reports unresolved selectors separately. Apply its
+patch through the common entry. Generation neither authorizes writes nor proves
+acceptance. Missing devices preserve required layers as unverified; continue
+independent authorized work and never substitute host evidence for HIL.

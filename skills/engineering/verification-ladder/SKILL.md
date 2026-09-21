@@ -181,5 +181,29 @@ Use `scripts/project_validation.py` for project-bound planning, enablement, acce
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
-fixed runs. Run the whole-project layout/dependency gate; unknown ownership or
-missing required capability blocks completion. Do not change project Git policy.
+fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
+Language, dependency and isolation checks are outside layout scope; independently
+required architecture or device checks retain their own completion requirements. Do not change project Git policy.
+
+## SPEC-derived acceptance definitions
+
+Use spec-governance's `generate-acceptance` through the shared managed entry to
+prepare current definitions and validation methods. Schema-2 projections must
+match regeneration from the canonical SPEC exactly, including source revision.
+Read selectors only when declared in SPEC. Missing or ambiguous selection remains
+a planning gap; generation is not evidence and does not waive required layers.
+Keep legacy schema-1 input compatibility. Store execution evidence separately.
+
+## Acceptance planning before confirmation
+
+During specification synthesis, prepare readable methods and their machine-readable
+Acceptance Mapping together from adopted decisions. List all AC selection gaps in
+one review before confirmation; do not ask the user to fill tool fields. Governed
+plans require evidence claims, applicability rationale and applicable scenarios.
+Draft saving and authorized same-scope repairs remain available with incomplete
+plans. Generation PASS means a projection was produced; planning PASS means its
+selections are complete; neither establishes acceptance PASS. Rebuild projections
+from SPEC after revisions and preserve legacy ungoverned host compatibility.
+Record explicit user waivers with their source and exact scope in SPEC, report
+them as user-waived rather than tested PASS, and retain every unwaived obligation.
+Never infer a waiver from unavailable hosts or hardware.

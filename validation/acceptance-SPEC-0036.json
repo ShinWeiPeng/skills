@@ -1,0 +1,360 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0036",
+  "source": {
+    "revision": 63,
+    "definitions_sha256": "78d9b54a2d4b40e70b71ef7dd4a39dbe21fed2d6caaec369195cfc7ade57fb55"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001, REQ-020",
+        "criterion": "流程責任及各舊 SPEC 的保留、取代或修正關係明確，無重複且矛盾的授權規則。",
+        "validation method": "規格責任矩陣與多輪場景檢查。"
+      },
+      "criterion_sha256": "4862a98813a1183646be8b516663374acf4c27953fce8991076e0182aa013695",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "規格責任矩陣與多輪場景檢查。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-006",
+        "criterion": "無論產品准入或驗收是否通過，允許保存合法討論及工作 SPEC；不把保存視為執行授權。",
+        "validation method": "保存、恢復與准入整合案例。"
+      },
+      "criterion_sha256": "82cb9aac2a4ac416b7f6d0aec6534c67f830182ad383eeec51f369fe373e0cf7",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "保存、恢復與准入整合案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-002",
+        "criterion": "合法數字識別碼保持不變，真正電話號碼仍適當遮罩。",
+        "validation method": "SPEC-0021 回歸案例。"
+      },
+      "criterion_sha256": "e748e9b3f10734582dd10367d68e284d855fae05aa9cc3cccdc4175d030cb28b",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "SPEC-0021 回歸案例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-003",
+        "criterion": "目錄檢查不要求 C/C++ 或 JavaScript AST；可回報檔案位置與引用問題。",
+        "validation method": "無語言分析器的可攜混合檔案 fixture。"
+      },
+      "criterion_sha256": "c5a2dc024f3446ab4c099ae5162de4c25b696675cb24f0ccbd89f2d17ba18151",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "無語言分析器的可攜混合檔案 fixture。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-004",
+        "criterion": "適用分層驗證在繼續、短指令及重載後不被遺漏；host 成功不能冒充需要 HIL 的成功。",
+        "validation method": "以 v0.9/v0.10/v0.15 差異設計流程回歸。"
+      },
+      "criterion_sha256": "bc8ef47bd089df11fc1af1d2d8694182b01c4c013d3fd660ca87c505ac1238eb",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "以 v0.9/v0.10/v0.15 差異設計流程回歸。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-006": {
+      "definition": {
+        "id": "AC-006",
+        "requirements": "REQ-005",
+        "criterion": "已明確保留的安裝、格式化及提問行為不回歸。",
+        "validation method": "相關既有契約測試。"
+      },
+      "criterion_sha256": "ab1ef54611fb6bda50a9acee79aa8cc112dd575a12188f6dfecc61bd648a0165",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "相關既有契約測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-007": {
+      "definition": {
+        "id": "AC-007",
+        "requirements": "REQ-007",
+        "criterion": "同範圍已授權修改及驗證後修正均經同一入口；不得要求待修復結果先 PASS，也不得放行未授權或越界修改。",
+        "validation method": "合法修改→驗證失敗→同入口修正→重驗，以及缺授權、範圍變更與裝置權限反例。"
+      },
+      "criterion_sha256": "8891b914373c8bbd12d68c4b555000cf71ca65311ea66c30fa8dec43ad8f34c1",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "合法修改→驗證失敗→同入口修正→重驗，以及缺授權、範圍變更與裝置權限反例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-008": {
+      "definition": {
+        "id": "AC-008",
+        "requirements": "REQ-008",
+        "criterion": "討論前的可見回覆完整涵蓋相關歷史目的、決策、變更、有效結論及未決事項，提供来源并標明未知；無衝突時也呈現，不重問已決事項。",
+        "validation method": "多輪回覆與歷史決策對照，含無衝突、已取代、缺來源及中斷情境。"
+      },
+      "criterion_sha256": "4a07095888cf31ea64f26d70bd19a24906c8947fc7bbb576306c102da25458d5",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "多輪回覆與歷史決策對照，含無衝突、已取代、缺來源及中斷情境。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    },
+    "AC-009": {
+      "definition": {
+        "id": "AC-009",
+        "requirements": "REQ-009",
+        "criterion": "中斷後先呈現摘要並接續原有效問題；改變前提或延後時保存對應狀態，不重問已決議題。",
+        "validation method": "中斷、混合回答、新前提及明示延後的多輪恢復案例。"
+      },
+      "criterion_sha256": "f5ba54ade1c4c7b60c4ad331d0d85a647c6a93d5cbb5189e0d7dbdee37cac13f",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "中斷、混合回答、新前提及明示延後的多輪恢復案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    },
+    "AC-010": {
+      "definition": {
+        "id": "AC-010",
+        "requirements": "REQ-010",
+        "criterion": "真實新增範圍暫停整個變更集；任何 SPEC 修訂後舊授權均不可繼續產品修改，對目前版本取得授權後恢復。未修訂的同範圍修正不重複索權。",
+        "validation method": "新增功能、文字修訂、證據更新、討論追加修訂、未修訂修正及重新授權測試。"
+      },
+      "criterion_sha256": "ff78d9b2352fd5d8bf67cbcc882f28fdbbcbe0eddb951a1ae115d9a4ed24e914",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "新增功能、文字修訂、證據更新、討論追加修訂、未修訂修正及重新授權測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-011": {
+      "definition": {
+        "id": "AC-011",
+        "requirements": "REQ-011",
+        "criterion": "有實質缺口繼續問或查核；完整時助理主動呈現總方案，使用者確認規格不被冒充執行授權。",
+        "validation method": "未決需求、歷史衝突、完整方案、方案採納及執行授權多輪案例。"
+      },
+      "criterion_sha256": "d86c5597f93846f8f02668ed84df8fe144e53f0dac68109704a85d67f61786b2",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "未決需求、歷史衝突、完整方案、方案採納及執行授權多輪案例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-012": {
+      "definition": {
+        "id": "AC-012",
+        "requirements": "REQ-012",
+        "criterion": "編輯鎖占用時最多等待 30 秒，期間釋放就接續；取得後使用最新版整合，不以等待前的舊快照覆寫。逾時、衝突、權限錯誤保留原資料並如實回報；正常保存及異常退出均不遺留永久鎖。",
+        "validation method": "多程序占用、期限邊界、程序中斷、同時/先後更新、衝突、權限拒絕與未知持鎖者測試。"
+      },
+      "criterion_sha256": "8d949a85bd17b6c7dba34e7bad5b686242b1c7a09c904cd50ebe87f9526f4680",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "多程序占用、期限邊界、程序中斷、同時/先後更新、衝突、權限拒絕與未知持鎖者測試。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    },
+    "AC-013": {
+      "definition": {
+        "id": "AC-013",
+        "requirements": "REQ-013",
+        "criterion": "保存故障有限重試且不損壞原資料；失敗時明列未保存範圍並保留討論，恢復後補存；不得偽稱成功或用未保存決策驅動相依修改。",
+        "validation method": "權限拒絕、空間不足、寫入中斷、相同輸入重播與恢復成功測試。"
+      },
+      "criterion_sha256": "f22aebce821b9d2009e3b6fb236a0a152b8b892e2f5b67c621d5aac5cd3dffeb",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "權限拒絕、空間不足、寫入中斷、相同輸入重播與恢復成功測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-014": {
+      "definition": {
+        "id": "AC-014",
+        "requirements": "REQ-014",
+        "criterion": "完整 SPEC 的每項驗收條件有適用層級、理由、情境及門檻，確認後實作與驗證沿用；短指令或重載不丟失計畫，host 結果不冒充必要 HIL。",
+        "validation method": "規格到驗證追溯、重載、部分完成及分層證據反例測試。"
+      },
+      "criterion_sha256": "f57056d1a9a9f17a62b9a595013a42e7fbdae4cdefbf51bcf13db6b55d293e4e",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "規格到驗證追溯、重載、部分完成及分層證據反例測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-015": {
+      "definition": {
+        "id": "AC-015",
+        "requirements": "REQ-015",
+        "criterion": "外部環境缺失時独立且已授權工作可繼續，依賴該環境的驗證及整體完成保持未通過；環境恢復後沿原計畫接續。",
+        "validation method": "無裝置、裝置恢復、独立 host 工作、缺證據完成拒絕與需求变更暫停案例。"
+      },
+      "criterion_sha256": "142e40cd60503df2b5a434850085a86247f108c6bb6a5c18bf0983e53a893715",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "無裝置、裝置恢復、独立 host 工作、缺證據完成拒絕與需求变更暫停案例。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-016": {
+      "definition": {
+        "id": "AC-016",
+        "requirements": "REQ-016",
+        "criterion": "決策選項至少三項，具有實際取捨；數字與清楚自由文字均能對應目前問題版本，含糊回答不自動當選擇。",
+        "validation method": "呈現與保存選項對照、數字/文字等價回答、含糊與過期選項回答案例。"
+      },
+      "criterion_sha256": "eedf2ad689882e3c4c4a32b21ff5d174ec863dbef42998711794475e70113263",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "呈現與保存選項對照、數字/文字等價回答、含糊與過期選項回答案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    },
+    "AC-017": {
+      "definition": {
+        "id": "AC-017",
+        "requirements": "REQ-017",
+        "criterion": "文字、證據、討論及無需求變動的 SPEC 修訂均拒絕舊授權，新的目前版本授權可恢復；討論及保存仍可進行。",
+        "validation method": "共用入口授權版本回歸，覆蓋上述修訂類型及舊授權拒絕。"
+      },
+      "criterion_sha256": "c9ef813acbf784639ddc3b5044beb3025ff00da09933254eecabda28666d2169",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "共用入口授權版本回歸，覆蓋上述修訂類型及舊授權拒絕。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-018": {
+      "definition": {
+        "id": "AC-018",
+        "requirements": "REQ-018",
+        "criterion": "SPEC新增、刪除或變更驗收定義後，產生的對照與目前SPEC一致；缺漏/過期/歧義不被當成有效計畫，派生檔不成为第二個人工需求來源，既有證據不被改寫為通過。",
+        "validation method": "以5項增至8項、刪除、同ID條件變更、過期/缺失檔案及原始證據保留案例驗證。"
+      },
+      "criterion_sha256": "f81721b2434d074df8902ee0acf21a2eb96cbe6799eaf15139bbaf346d78e8b1",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "以5項增至8項、刪除、同ID條件變更、過期/缺失檔案及原始證據保留案例驗證。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-019": {
+      "definition": {
+        "id": "AC-019",
+        "requirements": "REQ-019",
+        "criterion": "三區分類與模組/流程/support配置符合REQ-019；全專案混放/失效引用被指出且含檔案及預期位置；同一完成run不覆寫，遷移保留歷史內容與引用，不自動更動Git政策或刪除資料。",
+        "validation method": "暫存專案正反例、舊布局遷移及run不可覆寫測試。"
+      },
+      "criterion_sha256": "a6cf5ace31146391875b344916e5890cb6c80efcd566716d74137cbead1a8ba9",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "rationale": "暫存專案正反例、舊布局遷移及run不可覆寫測試。；Module Contract 與 SIL 核對主機治理行為。不修改目標處理器、實體裝置或生產排程，PIL/HIL 不適用。"
+    },
+    "AC-020": {
+      "definition": {
+        "id": "AC-020",
+        "requirements": "REQ-020",
+        "criterion": "相容性矩陣覆蓋0031短指令、0032有界恢復/並行、0033驗收修復，以及0034/0035接續；僅對可重現不相容做必要修正，不引入第二套授權狀態。",
+        "validation method": "既有回歸與整合差異案例；逐項記錄保留或必要修正及理由。"
+      },
+      "criterion_sha256": "a8aad0c67f6410750c82f33cc79fd9ae5b04e2bb7353c6b961ff84fd70731817",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "既有回歸與整合差異案例；逐項記錄保留或必要修正及理由。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    },
+    "AC-021": {
+      "definition": {
+        "id": "AC-021",
+        "requirements": "REQ-021",
+        "criterion": "工程任務起始與跨輪均使用同一SPEC，候選與已採納可追溯；無新內容不空增版本，完整前不confirmed，使用者確認後方可confirmed，確認不等於執行授權。",
+        "validation method": "多輪討論/中斷/只讀插問/拒絕候選/確認與執行分離案例。"
+      },
+      "criterion_sha256": "2b4f939373671c47871cd0b775d874eb7a83d120faf30c5d25ab9ab8ca41e262",
+      "evidence_claims": [
+        "host-semantics",
+        "adapter-conformance"
+      ],
+      "contract_dimensions": [
+        "call-order",
+        "external-port"
+      ],
+      "rationale": "多輪討論/中斷/只讀插問/拒絕候選/確認與執行分離案例。；Module Contract 與 SIL 核對主機治理行為。本項另需真實 Codex adapter/多輪事件證據，fixture 不替代宿主。"
+    }
+  }
+}

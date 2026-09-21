@@ -326,6 +326,40 @@ def fail_row(root, row):
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_generated_projection_is_verified_and_preserves_hardware_layers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture(root)
+            path = root / "specs/SPEC-0001-sensor.md"
+            target = root / "validation/acceptance-SPEC-0001.json"
+            selectors = json.loads(target.read_text())["acceptance"]
+            source = (
+                path.read_text(encoding="utf-8")
+                + "\n## Acceptance Mapping\n\n```json\n"
+                + json.dumps(selectors)
+                + "\n```\n"
+            )
+            path.write_text(source, encoding="utf-8")
+            projected = lifecycle.generated_acceptance(source)
+            write(root, "validation/acceptance-SPEC-0001.json", projected)
+            checked = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+            self.assertEqual("PASS", checked["verdict"], checked)
+            self.assertIn("hil", checked["required_layers"])
+            projected["acceptance"]["AC-001"]["evidence_claims"] = ["host-semantics"]
+            write(root, "validation/acceptance-SPEC-0001.json", projected)
+            checked = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+            self.assertEqual("BLOCKED", checked["verdict"], checked)
+            self.assertIn("stale or modified", str(checked))
+            path.write_text(SPEC, encoding="utf-8")
+            write(
+                root,
+                "validation/acceptance-SPEC-0001.json",
+                lifecycle.generated_acceptance(SPEC),
+            )
+            checked = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+            self.assertEqual("BLOCKED", checked["verdict"], checked)
+            self.assertIn("evidence claims", str(checked))
+
     def test_source_change_invalidates_terminal_acceptance(self):
         with tempfile.TemporaryDirectory(dir=TEST_TEMP_ROOT) as directory:
             root = Path(directory)
@@ -707,8 +741,18 @@ class ProjectValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=TEST_TEMP_ROOT) as directory:
             root = Path(directory)
             fixture(root)
+            selectors = json.loads(
+                (root / "validation/acceptance-SPEC-0001.json").read_text()
+            )["acceptance"]
+            confirmed_plan = (
+                SPEC + "\n## Acceptance Mapping\n" + json.dumps(selectors) + "\n"
+            )
             started = lifecycle.start_working_bundle(
-                root, "sensor", SPEC, task_ref="test", preserve_spec_identity=True
+                root,
+                "sensor",
+                confirmed_plan,
+                task_ref="test",
+                preserve_spec_identity=True,
             )
             self.assertEqual(started["verdict"], "PASS", started)
             w = started["working_spec"]

@@ -1,0 +1,122 @@
+[
+  {
+    "name": "assembly",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "scripts/assemble_plugin.py",
+      "assemble",
+      "--marketplace-publication"
+    ],
+    "exit_code": 0,
+    "log": "assembly.log"
+  },
+  {
+    "name": "plugin-regression",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin"
+    ],
+    "exit_code": 0,
+    "log": "plugin-regression.log"
+  },
+  {
+    "name": "project-validation",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain/ladder",
+      "-p",
+      "test_project_validation.py"
+    ],
+    "exit_code": 0,
+    "log": "project-validation.log"
+  },
+  {
+    "name": "layout-regression",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain",
+      "-p",
+      "test_validation_layout.py"
+    ],
+    "exit_code": 0,
+    "log": "layout-regression.log"
+  },
+  {
+    "name": "distribution",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "scripts/validate_distribution.py"
+    ],
+    "exit_code": 0,
+    "log": "distribution.log"
+  },
+  {
+    "name": "format",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "ruff",
+      "format",
+      "--check",
+      "skills/engineering/spec-governance/scripts/spec_contract.py",
+      "skills/engineering/verification-ladder/scripts/project_validation.py",
+      "tests/flows/plugin-integration/plugin/test_spec0036_consolidation.py",
+      "tests/modules/verification_ladder_domain/ladder/test_project_validation.py"
+    ],
+    "exit_code": 0,
+    "log": "format.log"
+  },
+  {
+    "name": "diff",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "diff.log"
+  },
+  {
+    "name": "planning",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/verification-ladder/scripts/project_validation.py",
+      "--project-root",
+      "C:\\Users\\hugo_peng\\skill\\skills",
+      "--spec",
+      "specs/SPEC-0036-generic-layout-repair.md",
+      "--phase",
+      "planning",
+      "--write-plan"
+    ],
+    "exit_code": 0,
+    "log": "planning.log"
+  },
+  {
+    "name": "acceptance",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/verification-ladder/scripts/project_validation.py",
+      "--project-root",
+      "C:\\Users\\hugo_peng\\skill\\skills",
+      "--spec",
+      "specs/SPEC-0036-generic-layout-repair.md",
+      "--phase",
+      "acceptance"
+    ],
+    "exit_code": 2,
+    "log": "acceptance.log"
+  }
+]

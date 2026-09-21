@@ -1,0 +1,123 @@
+[
+  {
+    "check": "plugin-tests",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 50.457,
+    "log": "plugin-tests.log"
+  },
+  {
+    "check": "validation-tests",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain/ladder",
+      "-p",
+      "test_project_validation.py"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 19.4,
+    "log": "validation-tests.log"
+  },
+  {
+    "check": "layout-tests",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain",
+      "-p",
+      "test_validation_layout.py"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.678,
+    "log": "layout-tests.log"
+  },
+  {
+    "check": "distribution",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "scripts/validate_distribution.py"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 9.573,
+    "log": "distribution.log"
+  },
+  {
+    "check": "layout",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py",
+      "layout",
+      "--manifest",
+      "architecture/manifest.yaml"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 39.569,
+    "log": "layout.log"
+  },
+  {
+    "check": "completion",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "skills/engineering/implement/scripts/project_validation_workflow.py",
+      "managed",
+      "--",
+      "--project-root",
+      ".",
+      "--request",
+      "spec-governance/DISCUSSION-REQUEST-spec0036-complete.json"
+    ],
+    "exit_code": 2,
+    "elapsed_seconds": 40.652,
+    "log": "completion.log"
+  },
+  {
+    "check": "format",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "ruff",
+      "format",
+      "--check",
+      "skills/engineering/govern-modular-event-architecture/scripts/validation_layout.py",
+      "skills/engineering/implement/scripts/managed_delivery.py",
+      "skills/engineering/implement/scripts/spec_delivery.py",
+      "skills/engineering/spec-governance/scripts/discussion_state.py",
+      "skills/engineering/spec-governance/scripts/spec_contract.py",
+      "skills/engineering/verification-ladder/scripts/project_validation.py",
+      "tests/flows/plugin-integration/plugin/test_discussion_entry.py",
+      "tests/flows/plugin-integration/plugin/test_managed_delivery.py",
+      "tests/flows/plugin-integration/plugin/test_turn_continuity.py",
+      "tests/modules/governance_workflow_domain/test_validation_layout.py",
+      "tests/modules/verification_ladder_domain/ladder/test_project_validation.py",
+      "tests/flows/plugin-integration/plugin/test_spec0036_consolidation.py"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.162,
+    "log": "format.log"
+  },
+  {
+    "check": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.106,
+    "log": "diff-check.log"
+  }
+]
