@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.19.0",
-  "previous_version": "0.18.0",
+  "current_version": "0.20.0",
+  "previous_version": "0.19.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:87cbf98278bd4833fff3a778687c9d98ab6a27d0a0841a96acd984b3fbfdb1cb",
+  "production_fingerprint": "sha256:86acbf0ec5d17f56898bd722c65774c95ebfaa135af2f301e510b03f831405d7",
   "applied_changesets": [
-    "version-compatibility-inventory"
+    "consolidated-governance-acceptance-planning"
   ]
 }
