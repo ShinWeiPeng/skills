@@ -1,5 +1,17 @@
 # Governed Engineering Skills
 
+## 0.20.0
+
+### Changed
+
+- Consolidate shared specification, authorization, and repair workflows while preserving explicit confirmation and revision-bound authority.
+- Limit layout governance to file placement, ownership, provenance, and references.
+
+### Fixed
+
+- Report incomplete acceptance selections before specification confirmation and distinguish generated definitions, valid plans, and verified evidence.
+- Protect shared specification saves with bounded locking, verified merge baselines, and preserved concurrent discussion history.
+
 ## 0.19.0
 
 ### Added
