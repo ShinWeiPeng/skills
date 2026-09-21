@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0",
+  "current_version": "0.20.0",
+  "previous_version": "0.19.0",
+  "bump": "minor",
+  "production_fingerprint": "sha256:ce0c59350ab651b47ca29eb8ff280211788af5ecba52ccd5d08496f6e611df17",
+  "applied_changesets": [
+    "consolidated-governance-acceptance-planning"
+  ]
+}

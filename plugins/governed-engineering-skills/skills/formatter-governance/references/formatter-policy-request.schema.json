@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "formatter-policy-request.schema.json",
+  "title": "FormatterPolicyRequest",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["command", "implementation", "context", "language"],
+      "properties": {
+        "command": {"const": "select"},
+        "implementation": {"enum": ["absent", "present", "indeterminate"]},
+        "context": {"enum": ["absent", "present", "indeterminate"]},
+        "language": {"type": "string", "minLength": 1},
+        "repository_formatter": {"type": "string", "minLength": 1},
+        "repository_check_argv": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "repository_write_argv": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    {
+      "type": "object",
+      "required": ["command", "project_root", "scaffold_paths"],
+      "properties": {
+        "command": {"const": "preflight"},
+        "project_root": {"type": "string", "minLength": 1},
+        "scaffold_paths": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "allowed_existing": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    {
+      "type": "object",
+      "required": ["command", "operation", "project_kind", "project_root", "selected_formatter", "selection_status", "preflight_status", "formatter_available", "check_status"],
+      "properties": {
+        "command": {"const": "gate"},
+        "operation": {"enum": ["minimal-scaffold", "product-code"]},
+        "project_kind": {"enum": ["greenfield", "existing"]},
+        "project_root": {"type": "string", "minLength": 1},
+        "selected_formatter": {"type": "string", "minLength": 1},
+        "selection_status": {"enum": ["pass", "blocked"]},
+        "preflight_status": {"enum": ["pass", "blocked", "not-applicable"]},
+        "formatter_available": {"type": "boolean"},
+        "check_status": {"enum": ["not-run", "pass", "fail"]},
+        "install_requested": {"type": "boolean"},
+        "install_authorized": {"type": "boolean"}
+      }
+    },
+    {
+      "type": "object",
+      "required": ["command", "project_root", "implementation", "context", "language", "canonical_spec", "spec_verification_status", "confirmation", "formatter_available"],
+      "properties": {
+        "command": {"const": "full-format"},
+        "project_root": {"type": "string", "minLength": 1},
+        "implementation": {"enum": ["absent", "present", "indeterminate"]},
+        "context": {"enum": ["absent", "present", "indeterminate"]},
+        "language": {"type": "string", "minLength": 1},
+        "canonical_spec": {"type": "string", "minLength": 1},
+        "spec_verification_status": {"enum": ["not-run", "pass", "blocked"]},
+        "confirmation": {"enum": ["pending", "yes", "no", "ambiguous"]},
+        "formatter_available": {"type": "boolean"},
+        "repository_formatter": {"type": "string", "minLength": 1},
+        "repository_check_argv": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "repository_write_argv": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "execution_mode": {"enum": ["cli", "ide"]},
+        "pre_write_clean_status": {"enum": ["not-run", "pass", "fail"]},
+        "write_status": {"enum": ["not-run", "pass", "fail"]},
+        "check_status": {"enum": ["not-run", "pass", "fail"]},
+        "install_permission": {"enum": ["not-requested", "missing", "denied", "authorized"]},
+        "install_status": {"enum": ["not-needed", "not-run", "pass", "fail"]}
+      }
+    }
+  ]
+}

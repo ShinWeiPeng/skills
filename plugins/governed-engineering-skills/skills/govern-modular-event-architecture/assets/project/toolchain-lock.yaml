@@ -1,0 +1,24 @@
+schema: governed-libclang-toolchain-lock/2
+libclang_provider:
+  id: espressif-esp-clang-libs
+  version: 20.1.1_20250829
+  binding:
+    package: clang
+    version: 20.1.5
+  target_triple: xtensa-esp32s3-elf
+  cache:
+    policy: immutable-version-directory
+    receipt: receipt.json
+    windows: '%LOCALAPPDATA%\CodexToolchains\espressif\esp-clang-libs\20.1.1_20250829'
+    linux: '${XDG_CACHE_HOME:-$HOME/.cache}/codex-toolchains/espressif/esp-clang-libs/20.1.1_20250829'
+  artifacts:
+    windows-x86_64:
+      url: https://github.com/espressif/llvm-project/releases/download/esp-20.1.1_20250829/libs-clang-esp-20.1.1_20250829-x86_64-w64-mingw32.tar.xz
+      archive_sha256: f4346641a38e6a9adad79c429be506b3df26540c50f39ab49dba9ad2c797a805
+      library_path: esp-clang/bin/libclang.dll
+      library_sha256: 5453a20ca289cb9a0f05b4c98dd36e0c04ac45d423e4ec03f10560ebe33ecb41
+    linux-x86_64:
+      url: https://github.com/espressif/llvm-project/releases/download/esp-20.1.1_20250829/libs-clang-esp-20.1.1_20250829-x86_64-linux-gnu.tar.xz
+      archive_sha256: 0128e2a86b262e3edfce026034ede07e2f45732b10c6cb8ac522c8f4c72befd8
+      library_path: esp-clang/lib/libclang.so.20.1.1
+      library_sha256: 12e2f4e8e3fb62ce00e0cba30ddd9cef84935a899f040beb0c0a226940d73d8b

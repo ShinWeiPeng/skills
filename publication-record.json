@@ -1,0 +1,35 @@
+{
+  "artifact": {
+    "content_fingerprint": "sha256:8a42bdfd24777f526bdc441cf9b0d643d5adf144692ad7be4379d0447b3ac3d5",
+    "inventory": "plugins/governed-engineering-skills/artifact-inventory.json",
+    "name": "governed-engineering-skills",
+    "version": "0.20.0"
+  },
+  "channel": "personal-git-marketplace",
+  "evidence_checklist": [
+    "Codex resolves the expected Plugin name, version, Git reference, and fingerprint",
+    "Codex Desktop or CLI invokes one representative engineering Skill",
+    "Codex Desktop or CLI invokes one representative productivity Skill"
+  ],
+  "git_ref": "marketplace-release",
+  "installation_steps": [
+    "Add https://github.com/ShinWeiPeng/skills.git as a personal Git Marketplace",
+    "Use Git reference marketplace-release",
+    "Use sparse paths .agents/plugins, plugins/governed-engineering-skills",
+    "Install the governed Plugin in Codex Desktop or Codex CLI"
+  ],
+  "marketplace_path": ".agents/plugins/marketplace.json",
+  "repository_url": "https://github.com/ShinWeiPeng/skills.git",
+  "rollback": {
+    "method": "Restore marketplace-release to the previous validated generated commit",
+    "previous_publication_commit": "7c95739e4e83ea20896e4f563d3b195a5c6368fd"
+  },
+  "schema_version": "1.0.0",
+  "source_commit": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+  "source_tag": "governed-engineering-skills@0.20.0",
+  "sparse_paths": [
+    ".agents/plugins",
+    "plugins/governed-engineering-skills"
+  ],
+  "tree_fingerprint": "sha256:a2c37be0b84473ea184c93bf91b82b2b93c6e8735fbc351bea9639e9549f03be"
+}
