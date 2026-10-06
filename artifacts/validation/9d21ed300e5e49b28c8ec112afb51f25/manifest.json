@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "run_id": "9d21ed300e5e49b28c8ec112afb51f25",
+  "kind": "validation",
+  "started_at": "2026-10-02T03:37:24.589387+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "coding-standards-and-delivery-repair",
+    "tool": {
+      "name": "host-validation",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:\\Users\\hugo_peng\\skill\\skills\\spec-governance\\DISCUSSION-REQUEST-final-validation.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "b95762d71015954895b6a7ccd74577adb020d4f09437f3585ecfee38117fd04c"
+    },
+    "inputs": {
+      "architecture": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb"
+    }
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-10-02T03:41:43.716246+00:00",
+  "files": {
+    ".run.json": "b5fc7ba56f1fd2a78a627c3f727796f92c839d3104d48c0df0116adb8623d9c2",
+    "architecture-gate.log": "6e46cef25f638849963030254151ed6ef7fed04de3b6a6bdc3216769cc9fda74",
+    "architecture-tests.log": "61a67d0aa8cd715782c5a07658e0e998bee22064ec47060e6463b84fac4010d9",
+    "delivery.log": "14868b42efe7f25244c20a222ec41ac9a1729180cb227a89774d93c47ff3db1e",
+    "diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "distribution-tests.log": "e218a247908b59074731c8c05f731a5756d9484517c8df2f8406186316b6c77d",
+    "project-validation-tests.log": "9398a391c063bb12ade454a8847d58c9209ae0a92741e05c69124a74e739e4f0",
+    "results.json": "a90c3b53db51393723605ced7f7f1ef027613c844547c53ad75fe9236ab472b9"
+  }
+}

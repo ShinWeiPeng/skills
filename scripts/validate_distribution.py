@@ -109,8 +109,8 @@ def validate(repo_root: Path) -> list[str]:
         errors.append("formal architecture still exists inside the plugin shell")
 
     skills = promoted_skills(repo_root)
-    if len(skills) != 30:
-        errors.append(f"expected 30 promoted skills, found {len(skills)}")
+    if len(skills) != 31:
+        errors.append(f"expected 31 promoted skills, found {len(skills)}")
     for name, root in skills.items():
         if not (root / "agents" / "openai.yaml").is_file():
             errors.append(f"{name}: missing agents/openai.yaml")

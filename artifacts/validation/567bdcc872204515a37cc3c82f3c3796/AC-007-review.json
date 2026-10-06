@@ -1,0 +1,8 @@
+{
+  "ac": "AC-007",
+  "criterion": "主檔可導覽分檔需求、驗收、討論及設計版本；目前、候選、歷史與生成產物位置和責任可區別；引用不重複設計內容，缺檔或錯誤引用能指出。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Compact entries have part/design navigation; missing parts, invalid versions, bad references and unsupported formats report located errors. History overwrite is rejected; candidates are scoped to the selected SPEC.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

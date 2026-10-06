@@ -38,3 +38,7 @@ Keeping it standalone means you can also reach for it directly — as a **refere
 ## Where it fits
 
 `domain-modeling` is a **reach-for-it-anytime standalone** that runs *underneath* other skills as often as at a fixed step. Its closest neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), because a shared language is what lets you name a deep module and its seam precisely; downstream, a settled glossary is exactly what [to-spec](https://aihero.dev/skills-to-spec) synthesises into a spec written in the project's own words. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+
+## Shared coding rules
+
+[Coding standards](https://aihero.dev/skills-coding-standards) maintains the common rule clauses and project applicability. Architecture governance presents module, interface and flow designs before confirmation and compares implementation afterward. Domain modeling retains terminology; both professional skills use the plugin shared ADR format, workflow and checks.

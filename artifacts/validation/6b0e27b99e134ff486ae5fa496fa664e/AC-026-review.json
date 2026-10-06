@@ -1,0 +1,8 @@
+{
+  "ac": "AC-026",
+  "criterion": "公開介面均具九組契約欄位或有理由的不適用標示，可追溯原介面及驗證；同步／非同步、空值／非空、保存／不保存引用等案例可表達。缺少存取期間或並行修改保證不能僅靠 const 宣稱安全，資料流引用與模組介面一致。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Nine interface groups state nullability, retention, access lifetime and synchronization against concurrent modification. Required finding for the counterexample: Const is the only justification while another task can mutate the buffer: API-ACCESS-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

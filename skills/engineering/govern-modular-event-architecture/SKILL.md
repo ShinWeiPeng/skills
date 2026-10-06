@@ -20,17 +20,17 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 ## Load the required references
 
 - Follow the shared Decision Question Contract supplied by `/ask-matt` before asking the user to select any architecture, algorithm, execution, or validation outcome.
-- Read [references/core-standard.md](references/core-standard.md) before defining levels, modules, dependency direction, or migration policy.
-- Read [references/event-contract.md](references/event-contract.md) before defining ports, callbacks, commands, queries, events, ordering, fan-out, or retries.
+- Read [references/architecture-design-workflow.md](references/architecture-design-workflow.md) before defining levels, modules, dependency direction, or migration policy.
+- Read [../coding-standards/rules/data-flow.md](../coding-standards/rules/data-flow.md) before defining ports, callbacks, commands, queries, events, ordering, fan-out, or retries.
 - Read [references/manifest-schema.md](references/manifest-schema.md) before creating or changing `architecture/manifest.yaml` or a baseline.
 - Read [references/description-views.md](references/description-views.md) before defining module descriptions, flows, code links, generated System views, or Parent views.
-- Read [references/adr-policy.md](references/adr-policy.md) before proposing or applying a MUST-rule exception.
-- Read [references/algorithm-design.md](references/algorithm-design.md) before screening product features, selecting or changing an algorithm, defining algorithm acceptance criteria, or inventorying an existing project's algorithms.
+- Read [references/architecture-exception-policy.md](references/architecture-exception-policy.md) before proposing or applying a MUST-rule exception.
+- Read [references/algorithm-design-workflow.md](references/algorithm-design-workflow.md) before screening product features, selecting or changing an algorithm, defining algorithm acceptance criteria, or inventorying an existing project's algorithms.
 - Read [references/c-analyzer.md](references/c-analyzer.md) when C/C++ sources, headers, includes, or framework leakage are in scope.
-- Read [references/runtime-validation.md](references/runtime-validation.md) when physical devices, OS scheduling/resource traces, test-only runtime control, Serial/TCP capture, or high-frequency statistics are in scope.
-- Read [references/execution-efficiency.md](references/execution-efficiency.md) before defining Tasks, Threads, ISR/Event Loop/Worker allocation, Queue capacity, priority, affinity, data layout, cache/branch/SIMD behavior, compiler optimization, or platform performance budgets.
+- Read [references/runtime-checks.md](references/runtime-checks.md) when physical devices, OS scheduling/resource traces, test-only runtime control, Serial/TCP capture, or high-frequency statistics are in scope.
+- Read [references/execution-design-workflow.md](references/execution-design-workflow.md) before defining Tasks, Threads, ISR/Event Loop/Worker allocation, Queue capacity, priority, affinity, data layout, cache/branch/SIMD behavior, compiler optimization, or platform performance budgets.
 - Read [references/realtime-scheduling-analysis.md](references/realtime-scheduling-analysis.md) before defining or changing hard/soft real-time Task count, activation rate, priority, core allocation, Queue/notification timing, synchronization blocking, scheduler method, or deadline/SLO acceptance.
-- Read [references/flow-cost-review.md](references/flow-cost-review.md) before retaining or changing an end-to-end Flow, callback topology, execution context, Queue, data movement, resource model, real-time claim, or maintainability/extensibility recommendation.
+- Read [references/flow-cost-checks.md](references/flow-cost-checks.md) before retaining or changing an end-to-end Flow, callback topology, execution context, Queue, data movement, resource model, real-time claim, or maintainability/extensibility recommendation.
 
 ## Enforce the standard
 
@@ -50,13 +50,7 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 - Never copy, move, redeclare, or hand-edit generated source to satisfy a catalog. Correct the classification, consumer boundary, generator template, or owning adapter instead.
 - Inventory every governed named type before editing code. For each type and field, record its owner, semantic role, declaration, visibility, lifetime, mutability, mutation authority, consumers, and ABI/wire/storage impact.
 - Treat an unresolved Type Ownership Matrix as blocking. Renaming a type, adding a typedef alias, or moving fields does not prove architectural separation.
-- Require one semantic owner per named type. Keep runtime state owner-private. Keep adapter bindings and framework handles in private L3+ types or private L0 composition mappings.
-- Reject L0-L2 public contracts that expose adapter bindings, framework handles, wire representations, or storage representations.
-- Require demand-side ownership of ports at cross-module and external-technology boundaries. Do not force ports around private pure functions.
-- Require parent orchestration for L0-L2 sibling communication. Keep concrete adapters in the composition root.
-- Require a single output port per functional module; place subscriber fan-out outside the module.
-- Require commands to distinguish immediate rejection from accepted work that later succeeds or fails. Permit side-effect-free queries to return synchronously.
-- Keep test and runtime evidence adapters at L3+. Require demand-owned observability/test ports and test-only composition wiring; never ship a test command parser merely to simplify validation.
+- Apply API-COMPLETE-001 from coding-standards: synchronous completion may update state; acceptance of unfinished work requires correlated later completion/failure. Preserve independent observer and error events.
 - Screen every product feature for algorithm impact. Require a complete `ALG-####` record for triggered features and a specific `not applicable` reason for non-triggered features.
 - Keep logical Modules separate from runtime Execution Units. Confirm the platform with a human, classify Flow workloads, and govern the inherited execution-profile rules before claiming execution efficiency.
 - Evaluate every material Flow through functional admission, execution and
@@ -136,7 +130,7 @@ python tools\architecture\architecture_cli.py toolchain verify `
 Python-only projects receive the provider-capable CLI modules but no toolchain
 lock and require no native libclang installation.
 
-New projects use schema `2.2.0`. Schema 2.2.0 retains all 2.1.0 requirements, keeps 2.1.0 input supported, and adds independent diagram-language selection plus locale-keyed module summaries. When `project.diagram_language` is set, every diagram-visible module supplies the exact non-empty locale entry; the renderer never translates or falls back. The manifest is the only editable source for Architecture Description Views and generated scheduling reports; generated Markdown is never edited by hand.
+New projects use schema `2.2.0`. Schema 2.2.0 retains all 2.1.0 requirements, keeps 2.1.0 input supported, and adds independent diagram-language selection plus locale-keyed module summaries. When `project.diagram_language` is set, every diagram-visible module supplies the exact non-empty locale entry; the renderer never translates or falls back. Markdown files under `architecture/designs/` are the maintained design sources. The manifest, Architecture Description Views and scheduling reports are generated from those sources; generated products are never edited by hand.
 
 ## Render description views
 
@@ -178,3 +172,20 @@ and generated evidence in unique immutable artifacts/ runs. specs/ only referenc
 fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
 Language, dependency and isolation checks are outside layout scope; independently
 required architecture or device checks retain their own completion requirements. Do not change project Git policy.
+
+## Shared rules and implementation design
+
+Before any code change invoke [coding-standards](../coding-standards/SKILL.md). Use its applicability/version result throughout design, implementation and review. Present every module and affected data flow using [module-design-format](references/module-design-format.md) and [data-flow-design-format](references/data-flow-design-format.md) before SPEC confirmation. Compare implementation with those designs afterward.
+
+## Maintained architecture sources
+
+Use the shared [document format](../spec-governance/references/document-format.md)
+and update/migration workflows. `design_sources` preserves every catalog and
+extension through Markdown ownership and deterministically generates the manifest.
+Current phase gates reject missing source migration and source/product drift;
+history/legacy reading does not waive current requirements. Candidate feasibility
+does not require implementation/runtime evidence that the authorized work produces.
+
+## OS planning and phase checks
+
+Architecture governance owns platform-design-format.md, execution-design-format.md and os-execution-checks.md in references/. Before SPEC confirmation, present nine applicability decisions and the seven execution design groups, with concrete OS tools and capacity/lifecycle contracts. The pure program requirements belong to coding-standards/rules/os-execution.md. Run validate_os_designs with the actual phase; implementation and target acceptance evidence are required when their phase is reached.

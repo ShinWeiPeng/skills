@@ -1,0 +1,8 @@
+{
+  "ac": "AC-012",
+  "criterion": "依階段拆分的執行單元、通道與模組對應可追溯；合併有分析及明確理由，容量及時序要求不因拆分／合併被略過。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Reviewed stage-based execution selection, explicit merge analysis and independent logical-module mapping; existing supported real-time scheduling study and human selection remain required.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-015",
+  "criterion": "缺漏依可信資料調查補足，未知／衝突留新工作版待決；實質契約改變須確認，歷史不可修改且舊讀取不作當前替代檢查。失敗可查因修復、驗證並完成原工作。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Unknown facts remain decisions; no platform/history/permission is inferred. Historical reads remain traceable but current-dependent writes require current versions. Migration and owner interruption tests recover and finish without overwriting later edits.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

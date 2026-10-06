@@ -1,0 +1,127 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0040",
+  "source": {
+    "revision": 20,
+    "definitions_sha256": "5ef20e07664b8ac9b0a4b843ca746756d9dee463b99869b7fa0c6531fb3148ae"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001, REQ-002",
+        "criterion": "搬移對照無遺漏、無重複條款、引用可解析，強度與語意保持。",
+        "validation method": "條款逐項對照及引用檢查；未執行。"
+      },
+      "criterion_sha256": "8ef58f8214a4366ebd2c6a819463b68fa58aeff721ed8f568e1c2344c4a565d1",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Migration coverage, references and preservation are host artifact contracts; semantic preservation also requires recorded review."
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-003, REQ-004",
+        "criterion": "不同目標可得到不同適用結果；未知資料不被猜測；遷移可重跑且衝突可見，舊入口不再判定。",
+        "validation method": "適用性與遷移契約測試；待具體情境映射。"
+      },
+      "criterion_sha256": "7b0cd1c05865bd3946aff99e73b95980fa127f724e91f8c4e71197596d4878dd",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Profile applicability and deterministic document migration are exercised in isolated host fixtures."
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-005, REQ-006",
+        "criterion": "不因遷移或 Git 乾淨繞過授權；實作與審查一致；安裝包包含新 Skill 及引用。",
+        "validation method": "授權回歸、打包與整合測試；未執行。"
+      },
+      "criterion_sha256": "b5cfe24bf3fb5fe939969c2a4b1f55d40c956dfcfc71f194643fc56bbee46e0e",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Routing, authorization and installed-package loading are host integration contracts."
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-007, REQ-008",
+        "criterion": "已撤回的合併方向不被執行；兩個專業 Skill 保留，現行功能验收依 AC-005。",
+        "validation method": "歷史取代關係與註冊檢查；未執行。"
+      },
+      "criterion_sha256": "fd2a17b44e366919cf8b11609b2c3e642e1e173774306ec3b2a7c38cd883b427",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Superseded by AC-005; retain history and verify that the withdrawn merger is not executed, not that one merged skill exists."
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-008",
+        "criterion": "兩個 Skill 專業職責與入口保留；ADR 共用格式／狀態／生命週期有單一權威來源且引用可解析，沒有平行重複定義；架構例外核准政策仍可檢查，不因一般 ADR 格式而繞過。",
+        "validation method": "職責與引用對照、一般 ADR 與例外 ADR 正反案例及既有功能回歸；待建立。"
+      },
+      "criterion_sha256": "b867281950172abe8a6d57e14b22d3001c69d7942aed4101c7d7e53df678325f",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Separate skill responsibilities and conditional ADR profiles are host document contracts."
+    },
+    "AC-006": {
+      "definition": {
+        "id": "AC-006",
+        "requirements": "REQ-009",
+        "criterion": "共用 ADR 格式、流程、檢查規範分檔且只有一個可編輯權威來源；兩個 Skill 及打包安裝後的引用均可解析到一致版本；缺檔或失效引用可檢出，架構例外核准要求未遺失。",
+        "validation method": "來源／產物引用檢查、安裝布局案例及既有 ADR 例外回歸；待具體映射。"
+      },
+      "criterion_sha256": "749ba441014a8449a0f4e175c327cd891ee3c5becdb93f0b02b09b2f103dd49b",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Source and assembled package references are verified on the host."
+    },
+    "AC-007": {
+      "definition": {
+        "id": "AC-007",
+        "requirements": "REQ-010, REQ-011, REQ-012",
+        "criterion": "檔案職責及位置符合採用配置，rules/ 無階段流程；原條款完整搬移且強度不變，舊混合文件與失效引用清除；來源及安裝產物引用可解析，新增要求可追溯至 SPEC-0041。",
+        "validation method": "文件責任盤點、搬移對照、引用／產物檢查及兩份 SPEC 範圍審查；待具體映射。"
+      },
+      "criterion_sha256": "07408481cfee258c15e6bfc90c10533af8073ae7b512569137b1e82a03a345f1",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Responsibility partition and migration scope are verified by host checks and review."
+    },
+    "AC-008": {
+      "definition": {
+        "id": "AC-008",
+        "requirements": "REQ-013",
+        "criterion": "純程式條款以四欄呈現，檢查方法透過規則 ID 引用且不混入條款；工具或證據位置不被當作程式要求。",
+        "validation method": "格式與規則引用檢查；待映射。"
+      },
+      "criterion_sha256": "9e65d3c30c54646fc7ba0189c5831ce4fad4ca13d3490b8dfde6a0b34203702d",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Rule format and ID links are host artifact contracts."
+    },
+    "AC-009": {
+      "definition": {
+        "id": "AC-009",
+        "requirements": "REQ-014",
+        "criterion": "四份檢查文件依職責分開，使用同一規則 ID 並明示工具覆蓋與限制，既有執行流程引用而不重複定義；ADR 與遷移驗收範圍獨立。",
+        "validation method": "文件與引用檢查及設計／靜態／執行期案例；待映射。"
+      },
+      "criterion_sha256": "d389e561e71197ba5459db10b346371bed979bac314a48b4d6165ee5d527ac38",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Verification coverage declarations and missing-evidence handling are host governance contracts; no target-runtime proof is claimed."
+    }
+  }
+}

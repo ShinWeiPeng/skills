@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from test_turn_continuity import selection, spec
+from document_bundle import read_spec_document, spec_hash
 
 sys.path.insert(
     0,
@@ -437,6 +438,254 @@ class ManagedDeliveryTests(unittest.TestCase):
         self.assertEqual("BLOCKED", changed["verdict"], changed)
         self.assertFalse(changed["reused"])
 
+    def test_shared_acceptance_parser_supports_optional_evidence(self):
+        import spec_contract
+
+        sys.path.insert(
+            0,
+            str(
+                Path(spec_contract.__file__).parents[2] / "verification-ladder/scripts"
+            ),
+        )
+        import project_validation
+
+        original = confirmed_spec()
+        four = (
+            original.replace(" | Evidence |", " |")
+            .replace("|---|---|---|---|---|", "|---|---|---|---|")
+            .replace(" | pending |", " |")
+        )
+        self.assertEqual("PASS", spec_contract.validate_spec_text(four)["verdict"])
+        self.assertEqual("", project_validation.spec_contract(four)[2]["AC-001"][4])
+        for bad in (
+            four.replace("test_retry_limit` |", "test_retry_limit` | extra |"),
+            four.replace("| ID |", "| Wrong |"),
+        ):
+            self.assertEqual(
+                "BLOCKED", spec_contract.validate_spec_text(bad)["verdict"]
+            )
+            with self.assertRaises(ValueError):
+                project_validation.spec_contract(bad)
+
+    def test_empty_acceptance_is_valid_only_during_working_discussion(self):
+        import spec_contract
+
+        text = "\n".join(
+            line
+            for line in confirmed_spec().splitlines()
+            if not line.startswith(("| AC-", "| REQ-", "| DEC-"))
+        )
+        self.assertEqual([], spec_contract.acceptance_rows(text, allow_empty=True))
+        empty_discussion = "## Acceptance Criteria\nNone.\n"
+        self.assertEqual(
+            [], spec_contract.acceptance_rows(empty_discussion, allow_empty=True)
+        )
+        with self.assertRaises(ValueError):
+            spec_contract.acceptance_rows(empty_discussion)
+        with self.assertRaises(ValueError):
+            spec_contract.acceptance_rows(text)
+        working = text.replace("status: confirmed", "status: working")
+        self.assertNotIn(
+            "SPEC has no acceptance criteria",
+            spec_contract.validate_spec_text(working)["errors"],
+        )
+        self.assertIn(
+            "SPEC has no acceptance criteria",
+            spec_contract.validate_spec_text(text)["errors"],
+        )
+
+    def test_file_operations_require_admission_and_preserve_hashes(self):
+        def operate(action, **fields):
+            return execute_request(
+                self.root,
+                self.base | {"operation": "file-operation", "action": action, **fields},
+            )
+
+        self.assertEqual("BLOCKED", operate("mkdir", path="new")["verdict"])
+        self.assertFalse((self.root / "new").exists())
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        self.assertEqual("PASS", operate("mkdir", path="new")["verdict"])
+        digest = hashlib.sha256(self.target.read_bytes()).hexdigest()
+        self.assertEqual(
+            "BLOCKED",
+            operate(
+                "move",
+                path="program.txt",
+                destination="new/p.txt",
+                before_sha256="0" * 64,
+            )["verdict"],
+        )
+        self.assertTrue(self.target.exists())
+        self.assertEqual(
+            "PASS",
+            operate(
+                "move",
+                path="program.txt",
+                destination="new/p.txt",
+                before_sha256=digest,
+            )["verdict"],
+        )
+        self.assertFalse(self.target.exists())
+        self.assertEqual(b"before\n", (self.root / "new/p.txt").read_bytes())
+        self.assertEqual(
+            "PASS", operate("delete", path="new/p.txt", before_sha256=digest)["verdict"]
+        )
+        for path in ("../outside", ".git/config", "specs/forbidden", "missing/child"):
+            self.assertEqual("BLOCKED", operate("mkdir", path=path)["verdict"])
+        self.assertEqual(
+            "BLOCKED", operate("delete", path="new", before_sha256=digest)["verdict"]
+        )
+
+    def test_file_operations_reject_shared_files_and_nonempty_directories(self):
+        import os
+
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        digest = hashlib.sha256(self.target.read_bytes()).hexdigest()
+        alias = self.root / "alias.txt"
+        os.link(self.target, alias)
+        for action in ("move", "delete"):
+            result = execute_request(
+                self.root,
+                self.base
+                | {
+                    "operation": "file-operation",
+                    "action": action,
+                    "path": "program.txt",
+                    "destination": "moved.txt",
+                    "before_sha256": digest,
+                },
+            )
+            self.assertEqual("BLOCKED", result["verdict"])
+            self.assertEqual(b"before\n", alias.read_bytes())
+        folder = self.root / "occupied"
+        folder.mkdir()
+        (folder / "keep.txt").write_text("keep")
+        result = execute_request(
+            self.root,
+            self.base
+            | {
+                "operation": "file-operation",
+                "action": "delete",
+                "path": "occupied",
+                "before_sha256": digest,
+            },
+        )
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual("keep", (folder / "keep.txt").read_text())
+
+    def test_move_never_overwrites_and_suspension_blocks_operations(self):
+        self.assertEqual("PASS", self.authorize()["verdict"])
+        destination = self.root / "keep.txt"
+        destination.write_text("keep")
+        request = self.base | {
+            "operation": "file-operation",
+            "action": "move",
+            "path": "program.txt",
+            "destination": "keep.txt",
+            "before_sha256": hashlib.sha256(self.target.read_bytes()).hexdigest(),
+        }
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        self.assertEqual("keep", destination.read_text())
+        execute_request(self.root, self.base | {"operation": "suspend"})
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(self.root, request | {"destination": "other.txt"})[
+                "verdict"
+            ],
+        )
+        self.assertTrue(self.target.exists())
+
+    def test_evidence_preparation_is_exact_and_does_not_invent_pass(self):
+        import spec_contract
+
+        original = (
+            confirmed_spec(status="working")
+            .replace(" | Evidence |", " |")
+            .replace("|---|---|---|---|---|", "|---|---|---|---|")
+            .replace(" | pending |", " |")
+        )
+        prepared = spec_contract._mapping_preparation_plan(self.root, original)
+        candidate = prepared["candidate"]
+        alternate_heading = original.replace(
+            "## Acceptance Criteria", "##  acceptance criteria"
+        )
+        alternate = spec_contract._mapping_preparation_plan(
+            self.root, alternate_heading
+        )
+        self.assertIn("##  acceptance criteria", alternate["candidate"])
+        self.assertEqual(
+            "", spec_contract.acceptance_rows(alternate["candidate"])[0]["evidence"]
+        )
+        open_rows = (
+            "\n".join(
+                line.rstrip().removesuffix("|") if line.startswith("|") else line
+                for line in original.splitlines()
+            )
+            + "\n"
+        )
+        open_candidate = spec_contract._mapping_preparation_plan(self.root, open_rows)[
+            "candidate"
+        ]
+        self.assertEqual(
+            "", spec_contract.acceptance_rows(open_candidate)[0]["evidence"]
+        )
+        self.assertEqual(2, prepared["rule_version"])
+        self.assertEqual("", spec_contract.acceptance_rows(candidate)[0]["evidence"])
+        self.assertTrue(
+            spec_contract._mapping_candidate_matches(self.root, candidate, candidate)
+        )
+        for bad in (
+            candidate.replace("fourth attempt", "fifth attempt"),
+            candidate.replace("Retries are inconsistent.", "Changed scope."),
+            candidate.replace("test_retry_limit` |  |", "test_retry_limit` | PASS |"),
+        ):
+            self.assertNotEqual(candidate, bad)
+            self.assertFalse(
+                spec_contract._mapping_candidate_matches(self.root, candidate, bad)
+            )
+
+    def test_evidence_preparation_continues_the_original_event(self):
+        text = confirmed_spec(slug="evidence-preparation", status="working")
+        text = (
+            text.replace(" | Evidence |", " |")
+            .replace("|---|---|---|---|---|", "|---|---|---|---|")
+            .replace(" | pending |", " |")
+        )
+        started = spec.start_working_bundle(
+            self.root, "evidence-preparation", text, task_ref="evidence-task"
+        )
+        self.ref = started["working_spec"]
+        self.path = self.ref["snapshot_path"]
+        self.base = {
+            "spec": self.path,
+            "working_reference": self.ref["working_id"],
+            "task_ref": "evidence-task",
+        }
+        first = self.authorize()
+        self.assertEqual("pending", first.get("authorization_status"), first)
+        request = self.base | {
+            "operation": "prepare-validation",
+            "source_event_id": "user-1",
+            "acceptance_mapping": True,
+        }
+        prepared = execute_request(self.root, request)
+        self.assertEqual("PASS", prepared["verdict"], prepared)
+        repeated = execute_request(self.root, request)
+        self.assertEqual("PASS", repeated["verdict"], repeated)
+        ref = spec.resolve_working_bundle(
+            self.root, reference=self.base["working_reference"]
+        )["working_spec"]
+        confirmed = spec.materialize_working_bundle(
+            self.root,
+            ref["working_id"],
+            expected_revision=ref["revision"],
+            expected_hash=ref["snapshot_hash"],
+        )
+        self.assertEqual("PASS", confirmed["verdict"], confirmed)
+        resumed = self.authorize()
+        self.assertEqual("PASS", resumed["verdict"], resumed)
+        self.assertEqual("user-1", resumed["source_event_id"])
+
     def authorize(self, event="user-1", **changes):
         request = (
             self.base
@@ -444,9 +693,7 @@ class ManagedDeliveryTests(unittest.TestCase):
                 "operation": "authorize",
                 "instruction": "開始執行",
                 "source_event_id": event,
-                "expected_hash": hashlib.sha256(
-                    (self.root / self.path).read_bytes()
-                ).hexdigest(),
+                "expected_hash": spec_hash(self.root / self.path),
             }
             | changes
         )
@@ -485,6 +732,711 @@ class ManagedDeliveryTests(unittest.TestCase):
             }
             | updates
         )
+
+    def _pending_mapping_fixture(self, generic=False):
+        import yaml
+
+        selectors = {
+            "AC-001": {
+                "evidence_claims": ["physical-integration"],
+                "contract_dimensions": [],
+                "execution_changes": [],
+                "rationale": "Observe the existing physical contract.",
+                "build_artifact": "build/firmware.elf",
+            }
+        }
+        text = confirmed_spec(slug="mapping-preparation", status="working")
+        text += "\n## Acceptance Mapping\n```json\n" + json.dumps(selectors) + "\n```\n"
+        result = spec.start_working_bundle(
+            self.root, "mapping-preparation", text, task_ref="mapping-task"
+        )
+        self.ref = result["working_spec"]
+        self.path = self.ref["snapshot_path"]
+        self.base = {
+            "spec": self.path,
+            "working_reference": self.ref["working_id"],
+            "task_ref": "mapping-task",
+        }
+        (self.root / "validation").mkdir()
+        matrix = {
+            "layers": {"hil": {}, "module-contract": {}, "adapter-contract": {}},
+            "rules": [
+                {
+                    "id": "physical",
+                    "spec_ids": [self.ref["spec_id"]],
+                    "evidence_claims": ["physical-integration"],
+                    "contract_dimensions": [],
+                    "execution_changes": [],
+                    "layers": ["hil"],
+                    "on_device_scenarios": ["bounded-observation"],
+                }
+            ],
+        }
+        if generic:
+            matrix["rules"][0].pop("spec_ids")
+        (self.root / "validation/verification-ladder.yaml").write_text(
+            yaml.safe_dump(matrix)
+        )
+        (self.root / "validation/on-device.yaml").write_text(
+            "scenarios:\n- id: bounded-observation\n  phase: acceptance\n"
+        )
+        first = self.authorize()
+        self.assertEqual("pending", first.get("authorization_status"), first)
+        request = self.base | {
+            "operation": "prepare-validation",
+            "source_event_id": "user-1",
+            "acceptance_mapping": True,
+        }
+        return request
+
+    def test_continuation_resumes_after_owner_confirmation_interruption(self):
+        from unittest.mock import patch
+        import spec_contract
+
+        self._pending_mapping_fixture()
+        request = self.continuation_request()
+        real = spec_contract.materialize_working_bundle
+
+        def interrupted(*args, **kwargs):
+            result = real(*args, **kwargs)
+            self.assertEqual("PASS", result["verdict"], result)
+            raise OSError("process stopped after owner commit")
+
+        with patch.object(
+            spec_contract, "materialize_working_bundle", side_effect=interrupted
+        ):
+            result = execute_request(
+                self.root, request, validation_assessor=self.continuation_assessor
+            )
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+        resumed = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", resumed["verdict"], resumed)
+        self.assertEqual(b"after\n", self.target.read_bytes())
+
+    def test_continuation_resumes_after_product_commit_without_duplicate_write(self):
+        from unittest.mock import patch
+        import managed_delivery
+
+        self._pending_mapping_fixture()
+        request = self.continuation_request()
+        real = managed_delivery._apply
+
+        def interrupted(*args, **kwargs):
+            result = real(*args, **kwargs)
+            if args[1].get("patch", {}).get("path") == "program.txt":
+                raise OSError("process stopped after product commit")
+            return result
+
+        with patch.object(managed_delivery, "_apply", side_effect=interrupted):
+            result = execute_request(
+                self.root, request, validation_assessor=self.continuation_assessor
+            )
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual(b"after\n", self.target.read_bytes())
+        resumed = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", resumed["verdict"], resumed)
+        self.assertTrue(resumed["continuation_replayed"])
+
+    def test_continuation_does_not_overwrite_concurrent_target(self):
+        self._pending_mapping_fixture()
+        request = self.continuation_request()
+        self.target.write_bytes(b"someone else\n")
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertEqual("implementation-blocked", result["reason_code"])
+        self.assertEqual(b"someone else\n", self.target.read_bytes())
+
+    def test_continuation_spec0068_legacy_record_shape_has_explicit_limit(self):
+        # Sanitized shape read from SPEC-0068's real 2026-09-24 pending record.
+        # Values are fixture-local; absence of baseline/document is the incident.
+        self._pending_mapping_fixture()
+        from execution_state import read_execution_state, write_execution_state
+
+        state = read_execution_state(self.root, self.base["task_ref"])
+        old = state["pending_authorizations"]["user-1"]
+        legacy = {
+            key: old[key]
+            for key in (
+                "binding",
+                "instruction",
+                "source_event_id",
+                "preparation_contract_hash",
+            )
+        }
+        state["pending_authorizations"]["user-1"] = legacy
+        for row in state["authorization_history"]:
+            if row.get("source_event_id") == "user-1":
+                row["application"] = legacy.copy()
+        write_execution_state(self.root, self.base["task_ref"], state)
+        result = execute_request(
+            self.root,
+            self.continuation_request(),
+            validation_assessor=self.continuation_assessor,
+        )
+        self.assertEqual("legacy-baseline-missing", result["reason_code"], result)
+        after = read_execution_state(self.root, self.base["task_ref"])
+        self.assertEqual(legacy, after["pending_authorizations"]["user-1"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_continuation_runs_additive_definition_preparation(self):
+        self._pending_mapping_fixture()
+        path = self.root / "validation/on-device.yaml"
+        original = path.read_bytes()
+        request = self.continuation_request() | {
+            "preparation_patches": [
+                {
+                    "path": "validation/on-device.yaml",
+                    "before_sha256": hashlib.sha256(original).hexdigest(),
+                    "content": original.decode()
+                    + "- id: independent-check\n  phase: acceptance\n",
+                }
+            ]
+        }
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual(b"after\n", self.target.read_bytes())
+
+    def test_continuation_malformed_history_reports_controlled_blocker(self):
+        self._pending_mapping_fixture()
+        from execution_state import read_execution_state, write_execution_state
+
+        state = read_execution_state(self.root, self.base["task_ref"])
+        state["pending_authorizations"]["user-1"].pop("preparation_validation_baseline")
+        state["authorization_history"] = [
+            {"source_event_id": "user-1", "status": "pending", "application": None}
+        ]
+        write_execution_state(self.root, self.base["task_ref"], state)
+        result = execute_request(
+            self.root,
+            self.continuation_request(),
+            validation_assessor=self.continuation_assessor,
+        )
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn("invalid grant-bound history", result["reason"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_continuation_reports_binding_and_trust_on_both_outcomes(self):
+        # A fully selected host contract, with no validation directory yet.
+        text = confirmed_spec(slug="host-continuation", status="working")
+        text += (
+            "\n## Acceptance Mapping\n```json\n"
+            + json.dumps(
+                {
+                    "AC-001": {
+                        "evidence_claims": ["host-semantics"],
+                        "rationale": "Host contract test.",
+                    }
+                }
+            )
+            + "\n```\n"
+        )
+        ref = spec.start_working_bundle(
+            self.root, "host-continuation", text, task_ref="task-A"
+        )["working_spec"]
+        ref = spec.materialize_working_bundle(
+            self.root,
+            ref["working_id"],
+            expected_revision=ref["revision"],
+            expected_hash=ref["snapshot_hash"],
+        )["working_spec"]
+        self.path = ref["snapshot_path"]
+        self.base = {
+            "spec": self.path,
+            "working_reference": ref["working_id"],
+            "task_ref": "task-A",
+        }
+        request = self.continuation_request()
+        blocked = lambda *args, **kwargs: {
+            "verdict": "BLOCKED",
+            "errors": ["required tool missing"],
+        }
+        result = execute_request(self.root, request, validation_assessor=blocked)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertEqual("valid", result["authorization_status"])
+        for field in (
+            "bound_hash",
+            "bound_revision",
+            "reason_code",
+            "next_action",
+            "evidence_trust",
+        ):
+            self.assertIsNotNone(result[field])
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual(
+            "caller-attested-not-host-authenticated", result["evidence_trust"]
+        )
+        self.assertEqual("implementation-entered", result["reason_code"])
+
+    def test_continuation_malformed_patch_is_rejected_before_authorization(self):
+        from execution_state import read_execution_state
+
+        for bad in (None, 42, {"content": 42}):
+            request = self.continuation_request()
+            request["continuation"]["patch"] = bad
+            result = execute_request(
+                self.root, request, validation_assessor=self.continuation_assessor
+            )
+            self.assertEqual("BLOCKED", result["verdict"], result)
+            self.assertEqual(
+                [],
+                read_execution_state(self.root, self.base["task_ref"])[
+                    "used_event_ids"
+                ],
+            )
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_continuation_does_not_ignore_missing_claims_with_pass_assessor(self):
+        result = execute_request(
+            self.root,
+            self.continuation_request(),
+            validation_assessor=self.continuation_assessor,
+        )
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn("evidence_claims", result["reason"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def continuation_request(self):
+        return self.base | {
+            "operation": "continue-execution",
+            "source_event_id": "user-1",
+            "instruction": "開始執行",
+            "expected_hash": hashlib.sha256(
+                (self.root / self.path).read_bytes()
+            ).hexdigest(),
+            "continuation": {
+                "operation": "apply",
+                "patch": {
+                    "path": "program.txt",
+                    "before_sha256": hashlib.sha256(b"before\n").hexdigest(),
+                    "content": "after\n",
+                },
+            },
+        }
+
+    @staticmethod
+    def continuation_assessor(*args, **kwargs):
+        return {"verdict": "PASS", "required_gates": [], "errors": []}
+
+    def test_continuation_one_grant_repairs_confirms_and_applies(self):
+        self._pending_mapping_fixture()
+        request = self.continuation_request()
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertTrue(result["continuation_executed"])
+        self.assertEqual("user-1", result["source_event_id"])
+        self.assertEqual(b"after\n", self.target.read_bytes())
+        self.assertTrue(
+            (
+                self.root / ("validation/acceptance-" + self.ref["spec_id"] + ".json")
+            ).is_file()
+        )
+        from execution_state import read_execution_state
+
+        state = read_execution_state(self.root, self.base["task_ref"])
+        self.assertEqual(["user-1"], state["used_event_ids"])
+        replay = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", replay["verdict"], replay)
+        self.assertTrue(replay["continuation_replayed"])
+
+    def test_continuation_migrates_missing_fields_from_bound_history(self):
+        self._pending_mapping_fixture()
+        from execution_state import read_execution_state, write_execution_state
+
+        state = read_execution_state(self.root, self.base["task_ref"])
+        application = state["pending_authorizations"]["user-1"]
+        application.pop("preparation_validation_baseline")
+        application.pop("preparation_document_hex")
+        original = json.loads(json.dumps(application))
+        write_execution_state(self.root, self.base["task_ref"], state)
+        result = execute_request(
+            self.root,
+            self.continuation_request(),
+            validation_assessor=self.continuation_assessor,
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        state = read_execution_state(self.root, self.base["task_ref"])
+        migration = next(
+            row
+            for row in state["authorization_history"]
+            if row["status"] == "legacy-migrated"
+        )
+        self.assertEqual(original, migration["original_application"])
+
+    def test_continuation_missing_history_is_specific_and_bounded(self):
+        self._pending_mapping_fixture()
+        from execution_state import read_execution_state, write_execution_state
+
+        state = read_execution_state(self.root, self.base["task_ref"])
+        state["pending_authorizations"]["user-1"].pop("preparation_validation_baseline")
+        state["authorization_history"] = []
+        write_execution_state(self.root, self.base["task_ref"], state)
+        request = self.continuation_request()
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertEqual("legacy-baseline-missing", result["reason_code"])
+        replay = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertTrue(replay["unchanged_blocker"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_continuation_new_event_does_not_require_old_baseline(self):
+        self._pending_mapping_fixture()
+        from execution_state import read_execution_state, write_execution_state
+
+        state = read_execution_state(self.root, self.base["task_ref"])
+        state["pending_authorizations"]["user-1"].pop("preparation_validation_baseline")
+        state["authorization_history"] = []
+        write_execution_state(self.root, self.base["task_ref"], state)
+        request = self.continuation_request() | {
+            "source_event_id": "actual-new-user-event"
+        }
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        state = read_execution_state(self.root, self.base["task_ref"])
+        self.assertEqual(
+            "actual-new-user-event",
+            state["superseded_authorizations"]["user-1"]["superseded_by"],
+        )
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(
+                self.root,
+                self.continuation_request(),
+                validation_assessor=self.continuation_assessor,
+            )["verdict"],
+        )
+
+    def test_continuation_retains_other_gate_and_rechecks_changed_inputs(self):
+        self._pending_mapping_fixture()
+        request = self.continuation_request()
+        blocked = lambda *args, **kwargs: {
+            "verdict": "BLOCKED",
+            "errors": ["required tool missing"],
+        }
+        # Owner confirmation itself uses the real assessor, so no false PASS is possible.
+        result = execute_request(self.root, request, validation_assessor=blocked)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertFalse(result["continuation_executed"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_continuation_rejects_changed_contract_and_revocation(self):
+        self._pending_mapping_fixture()
+        request = self.continuation_request()
+        path = self.root / self.path
+        original = path.read_text(encoding="utf-8")
+        path.write_text(
+            original.replace("## Problem", "## Altered Problem"), encoding="utf-8"
+        )
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(
+                self.root, request, validation_assessor=self.continuation_assessor
+            )["verdict"],
+        )
+        path.write_text(original, encoding="utf-8")
+        execute_request(self.root, self.base | {"operation": "suspend"})
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(
+                self.root, request, validation_assessor=self.continuation_assessor
+            )["verdict"],
+        )
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_continuation_does_not_accept_quoted_authorization(self):
+        request = self.continuation_request() | {"instruction": "他說「開始執行」"}
+        result = execute_request(
+            self.root, request, validation_assessor=self.continuation_assessor
+        )
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_pending_mapping_preparation_continues_original_event(self):
+        request = self._pending_mapping_fixture()
+        prepared = execute_request(self.root, request)
+        self.assertEqual("PASS", prepared["verdict"], prepared)
+        self.assertFalse(prepared["product_code_allowed"])
+        repeated = execute_request(self.root, request)
+        self.assertEqual("PASS", repeated["verdict"], repeated)
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+        ref = spec.resolve_working_bundle(
+            self.root, reference=self.base["working_reference"]
+        )["working_spec"]
+        confirmed = spec.materialize_working_bundle(
+            self.root,
+            ref["working_id"],
+            expected_revision=ref["revision"],
+            expected_hash=ref["snapshot_hash"],
+        )
+        self.assertEqual("PASS", confirmed["verdict"], confirmed)
+        resumed = self.authorize()
+        self.assertEqual("PASS", resumed["verdict"], resumed)
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_mapping_preparation_rejects_ambiguous_scenarios(self):
+        request = self._pending_mapping_fixture()
+        path = self.root / "validation/verification-ladder.yaml"
+        import yaml
+
+        matrix = yaml.safe_load(path.read_text())
+        matrix["rules"][0]["on_device_scenarios"].append("another")
+        path.write_text(yaml.safe_dump(matrix))
+        before = (self.root / self.path).read_bytes()
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertTrue(
+            "ambiguous" in result["reason"]
+            or "changed since authorization" in result["reason"]
+        )
+        self.assertEqual(before, (self.root / self.path).read_bytes())
+
+    def test_mapping_proof_rejects_changed_contract_and_definitions(self):
+        request = self._pending_mapping_fixture()
+        self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        current = spec.resolve_working_bundle(
+            self.root, reference=self.base["working_reference"]
+        )["working_spec"]
+        body = (self.root / self.path).read_text(encoding="utf-8")
+        changed = body.replace(
+            "Use one bounded retry policy.", "Use unlimited retries."
+        )
+        result = spec.reconcile_working_bundle(
+            self.root,
+            current["working_id"],
+            changed,
+            {},
+            expected_revision=current["revision"],
+            expected_hash=current["snapshot_hash"],
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual("BLOCKED", self.authorize()["verdict"])
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_mapping_preparation_revocation_preserves_spec(self):
+        request = self._pending_mapping_fixture()
+        execute_request(self.root, self.base | {"operation": "suspend"})
+        before = (self.root / self.path).read_bytes()
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertEqual(before, (self.root / self.path).read_bytes())
+
+    def test_mapping_preparation_resumes_reserved_proof_after_owner_failure(self):
+        from unittest.mock import patch
+        import spec_contract
+
+        request = self._pending_mapping_fixture()
+        before = (self.root / self.path).read_bytes()
+        with patch.object(
+            spec_contract, "reconcile_working_bundle", side_effect=OSError("disk full")
+        ):
+            failed = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", failed["verdict"], failed)
+        self.assertEqual(before, (self.root / self.path).read_bytes())
+        self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        self.assertEqual("BLOCKED", self.patch()["verdict"])
+
+    def test_legacy_mapping_recovery_requires_original_bytes(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        request = self._pending_mapping_fixture()
+        original = (self.root / self.path).read_bytes()
+        state = read_execution_state(self.root, self.base["task_ref"])
+        state["pending_authorizations"]["user-1"].pop("preparation_document_hex")
+        write_execution_state(self.root, self.base["task_ref"], state)
+        import spec_contract
+
+        planned = spec_contract._mapping_preparation_plan(self.root, original.decode())
+        result = spec.reconcile_working_bundle(
+            self.root,
+            self.ref["working_id"],
+            planned["candidate"],
+            {},
+            expected_revision=self.ref["revision"],
+            expected_hash=self.ref["snapshot_hash"],
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        bad = execute_request(
+            self.root, request | {"original_document_hex": b"tampered".hex()}
+        )
+        self.assertEqual("BLOCKED", bad["verdict"], bad)
+        recovered = execute_request(
+            self.root, request | {"original_document_hex": original.hex()}
+        )
+        self.assertEqual("PASS", recovered["verdict"], recovered)
+        self.assertTrue(recovered["recovered"])
+        self.assertEqual(
+            original.hex(),
+            read_execution_state(self.root, self.base["task_ref"])[
+                "pending_authorizations"
+            ]["user-1"]["preparation_proof"]["original_document_hex"],
+        )
+
+    def test_mapping_plan_reports_missing_selectors_before_confirmation(self):
+        request = self._pending_mapping_fixture()
+        context = spec.assess_turn_context(
+            self.root,
+            reference=self.base["working_reference"],
+            task_ref=self.base["task_ref"],
+        )
+        self.assertTrue(
+            any("scenario_layers" in e for e in context["acceptance_plan_errors"])
+        )
+        result = spec.materialize_working_bundle(
+            self.root,
+            self.ref["working_id"],
+            expected_revision=self.ref["revision"],
+            expected_hash=self.ref["snapshot_hash"],
+        )
+        self.assertEqual("BLOCKED", result["verdict"])
+        self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        context = spec.assess_turn_context(
+            self.root,
+            reference=self.base["working_reference"],
+            task_ref=self.base["task_ref"],
+        )
+        self.assertEqual([], context["acceptance_plan_errors"])
+
+    def test_mapping_proof_rejects_definition_drift(self):
+        request = self._pending_mapping_fixture()
+        self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        p = self.root / "validation/on-device.yaml"
+        p.write_text(p.read_text() + "# changed after proof\n")
+        self.assertEqual("BLOCKED", self.authorize()["verdict"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_mapping_preparation_preserves_concurrent_spec_edit(self):
+        from unittest.mock import patch
+        import spec_contract
+
+        request = self._pending_mapping_fixture()
+        resolve = spec_contract.resolve_working_bundle
+        changed = False
+
+        def concurrent(*args, **kwargs):
+            nonlocal changed
+            result = resolve(*args, **kwargs)
+            if not changed:
+                changed = True
+                ref = result["working_spec"]
+                body = (self.root / self.path).read_text(encoding="utf-8")
+                update = spec.reconcile_working_bundle(
+                    self.root,
+                    ref["working_id"],
+                    body.replace(
+                        "Use one bounded retry policy.", "Concurrent user decision."
+                    ),
+                    {},
+                    expected_revision=ref["revision"],
+                    expected_hash=ref["snapshot_hash"],
+                )
+                self.assertEqual("PASS", update["verdict"], update)
+                result = resolve(*args, **kwargs)
+            return result
+
+        with patch.object(
+            spec_contract, "resolve_working_bundle", side_effect=concurrent
+        ):
+            result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn(
+            "Concurrent user decision.",
+            (self.root / self.path).read_text(encoding="utf-8"),
+        )
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_mapping_recovery_rejects_wrong_identity_and_history(self):
+        request = self._pending_mapping_fixture()
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(self.root, request | {"source_event_id": "other"})[
+                "verdict"
+            ],
+        )
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(self.root, request | {"task_ref": "other"})["verdict"],
+        )
+        self.assertEqual("PASS", execute_request(self.root, request)["verdict"])
+        p = self.root / self.path
+        p.write_text(
+            p.read_text(encoding="utf-8").replace(
+                '"event_type":"reconcile"', '"event_type":"reopen"'
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual("BLOCKED", self.authorize()["verdict"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_mapping_preparation_rejects_rule_substitution_before_first_proof(self):
+        request = self._pending_mapping_fixture()
+        for relative in (
+            "validation/verification-ladder.yaml",
+            "validation/on-device.yaml",
+        ):
+            p = self.root / relative
+            p.write_text(
+                p.read_text().replace("bounded-observation", "substituted-scenario")
+            )
+        before = (self.root / self.path).read_bytes()
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn("changed since authorization", result["reason"])
+        self.assertEqual(before, (self.root / self.path).read_bytes())
+
+    def test_mapping_preparation_malformed_yaml_returns_blocked(self):
+        request = self._pending_mapping_fixture()
+        (self.root / "validation/on-device.yaml").write_text("scenarios: [unterminated")
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn("invalid preparation YAML", result["reason"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
+
+    def test_legacy_mapping_without_definition_history_is_not_guessed(self):
+        from execution_state import read_execution_state, write_execution_state
+
+        request = self._pending_mapping_fixture()
+        state = read_execution_state(self.root, self.base["task_ref"])
+        state["pending_authorizations"]["user-1"].pop("preparation_validation_baseline")
+        write_execution_state(self.root, self.base["task_ref"], state)
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn("original validation definitions unavailable", result["reason"])
+
+    def test_mapping_preparation_rejects_new_scope_on_existing_rule(self):
+        import yaml
+
+        request = self._pending_mapping_fixture(generic=True)
+        p = self.root / "validation/verification-ladder.yaml"
+        matrix = yaml.safe_load(p.read_text())
+        matrix["rules"][0]["spec_ids"] = ["SPEC-9999"]
+        p.write_text(yaml.safe_dump(matrix))
+        result = execute_request(self.root, request)
+        self.assertEqual("BLOCKED", result["verdict"], result)
+        self.assertIn("changed since authorization", result["reason"])
+        self.assertEqual(b"before\n", self.target.read_bytes())
 
     def test_common_entry_does_not_require_its_future_validation_results(self):
         (self.root / "validation").mkdir()
@@ -525,6 +1477,91 @@ class ManagedDeliveryTests(unittest.TestCase):
             }
             | changes
         )
+
+    def working_preparation(self):
+        result = spec.start_working_bundle(
+            self.root,
+            "validation-bootstrap",
+            confirmed_spec(slug="validation-bootstrap", status="working"),
+            task_ref="task-B",
+        )
+        self.ref = result["working_spec"]
+        self.path = self.ref["snapshot_path"]
+        self.base = {
+            "spec": self.path,
+            "working_reference": self.ref["working_id"],
+            "task_ref": "task-B",
+        }
+        return execute_request(
+            self.root,
+            self.base
+            | {
+                "operation": "authorize",
+                "instruction": "開始執行",
+                "source_event_id": "user-1",
+                "expected_hash": spec_hash(self.root / self.path),
+            },
+        )
+
+    def test_working_spec_preparation_retains_authority_without_product_permission(
+        self,
+    ):
+        first = self.working_preparation()
+        self.assertEqual("pending", first.get("authorization_status"), first)
+        self.assertFalse(first["product_code_allowed"])
+        (self.root / "validation").mkdir()
+        result = execute_request(
+            self.root,
+            self.preparation(
+                "validation/verification-ladder.yaml",
+                "schema_version: '1.0'\nrules: []\n",
+            ),
+        )
+        self.assertTrue(result.get("preparation_applied"), result)
+        self.assertFalse(result["product_code_allowed"])
+        denied = execute_request(self.root, self.preparation("program.txt", "changed"))
+        self.assertEqual("BLOCKED", denied["verdict"], denied)
+        self.assertEqual(b"before\n", self.target.read_bytes())
+        denied = execute_request(self.root, self.base | {"operation": "status"})
+        self.assertFalse(denied["product_code_allowed"], denied)
+
+    def test_working_spec_unchanged_confirmation_reuses_original_event(self):
+        first = self.working_preparation()
+        self.assertEqual("pending", first.get("authorization_status"), first)
+        result = spec.materialize_working_bundle(
+            self.root,
+            self.ref["working_id"],
+            expected_revision=self.ref["revision"],
+            expected_hash=self.ref["snapshot_hash"],
+        )
+        self.assertEqual("PASS", result["verdict"], result)
+        authorized = execute_request(
+            self.root,
+            self.base
+            | {
+                "operation": "authorize",
+                "instruction": "開始執行",
+                "source_event_id": "user-1",
+                "expected_hash": first["pending_authorization"]["binding"]["spec_hash"],
+            },
+        )
+        self.assertTrue(authorized.get("product_code_allowed"), authorized)
+
+    def test_working_spec_preparation_rejects_revocation_and_wrong_event(self):
+        self.working_preparation()
+        (self.root / "validation").mkdir()
+        request = self.preparation(
+            "validation/layout.yaml", "schema_version: 1\nentries: []\n"
+        )
+        self.assertEqual(
+            "BLOCKED",
+            execute_request(self.root, request | {"source_event_id": "wrong"})[
+                "verdict"
+            ],
+        )
+        execute_request(self.root, {"operation": "suspend", "task_ref": "task-B"})
+        self.assertEqual("BLOCKED", execute_request(self.root, request)["verdict"])
+        self.assertFalse((self.root / "validation/layout.yaml").exists())
 
     def test_preparation_enables_implementation_then_requires_acceptance_evidence(self):
         (self.root / "validation").mkdir()
@@ -595,9 +1632,7 @@ class ManagedDeliveryTests(unittest.TestCase):
                 "operation": "authorize",
                 "instruction": "開始執行",
                 "source_event_id": "user-1",
-                "expected_hash": hashlib.sha256(
-                    (self.root / self.path).read_bytes()
-                ).hexdigest(),
+                "expected_hash": spec_hash(self.root / self.path),
             },
             validation_assessor=assessor,
         )
@@ -1565,7 +2600,7 @@ class ManagedDeliveryTests(unittest.TestCase):
                 self.assertEqual("BLOCKED", self.patch()["verdict"])
                 w = result["working_spec"]
                 if kind != "no-semantic-delta":
-                    text = (self.root / w["snapshot_path"]).read_text(encoding="utf-8")
+                    text = read_spec_document(self.root / w["snapshot_path"])
                     text += (
                         "\n"
                         + (

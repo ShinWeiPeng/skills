@@ -1,0 +1,8 @@
+{
+  "ac": "AC-001",
+  "criterion": "示範不同平台與路徑的配置策略，不將 MCU 等同禁 heap 或 PC 等同無限制。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A PC deadline path uses a preallocated pool; an MCU best-effort initialization path uses its budgeted heap. Required finding for the counterexample: Selecting by PC/MCU label alone misses MEM-ALLOC-001 applicability.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

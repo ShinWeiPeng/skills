@@ -27,6 +27,9 @@ from governance_adoption import (
 )
 from validation_layout import assess_layout
 from python_analyzer import analyze_python
+from design_sources import check_sources
+from design_contract import validate_designs
+from coding_rule_contract import validate_rule_binding
 from libclang_toolchain_adapter import EspressifLibclangToolchainAdapter
 from libclang_toolchain_contract import ToolchainProviderError
 
@@ -78,7 +81,17 @@ def run_gate(
             check_docs=phase != "design",
         )
     ]
+    diagnostics.extend(check_sources(project_root, manifest))
     analyzers: dict[str, Any] = {}
+    from os_design_contract import validate_os_designs
+    from design_sources import source_versions
+
+    versions = {}
+    if not check_sources(project_root, manifest):
+        versions = source_versions(project_root)
+    diagnostics.extend(validate_os_designs(manifest, phase, versions))
+    diagnostics.extend(validate_designs(manifest))
+    diagnostics.extend(validate_rule_binding(manifest))
     adoption = _load_optional(adoption_path) if phase != "design" else None
     if phase != "design":
         diagnostics.extend(validate_adoption(manifest, adoption))
@@ -251,7 +264,7 @@ def _render_command(args: argparse.Namespace) -> int:
             for item in evidence["diagnostics"]
             if item.get("disposition") == "active"
             and item.get("severity") == "MUST"
-            and not str(item.get("rule_id", "")).startswith("DOC")
+            and item.get("rule_id") not in {"DOC001", "DOC002"}
         ]
         if blockers:
             summary = "; ".join(
@@ -313,9 +326,62 @@ def _sync_command(args: argparse.Namespace) -> int:
         return 2
 
 
+def _source_command(args):
+    from design_sources import generate_manifest, migration_plan, check_sources
+
+    root = args.manifest.resolve().parent.parent
+    try:
+        current = load_yaml(args.manifest)
+        if args.action == "migration-plan":
+            files = migration_plan(root, args.manifest)
+            print(
+                json.dumps(
+                    {"verdict": "PASS", "files": files, "product_code_allowed": False},
+                    ensure_ascii=False,
+                )
+            )
+            return 0
+        projected, owners = generate_manifest(root)
+        errors = check_sources(root, current) if args.action == "check" else []
+        print(
+            json.dumps(
+                {
+                    "verdict": "FAIL" if errors else "PASS",
+                    "diagnostics": errors,
+                    "manifest": projected,
+                    "owners": owners,
+                    "product_code_allowed": False,
+                },
+                ensure_ascii=False,
+            )
+        )
+        return 1 if errors else 0
+    except (OSError, ValueError) as error:
+        print(
+            json.dumps(
+                {
+                    "verdict": "BLOCKED",
+                    "reason": str(error),
+                    "product_code_allowed": False,
+                }
+            )
+        )
+        return 2
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    sources = commands.add_parser(
+        "sources", help="read current sources or prepare a complete migration plan"
+    )
+    sources.add_argument(
+        "--manifest", type=Path, default=Path("architecture/manifest.yaml")
+    )
+    sources.add_argument(
+        "--action", choices=("check", "generate", "migration-plan"), required=True
+    )
+    sources.set_defaults(handler=_source_command)
     synchronize = commands.add_parser(
         "sync-tools", help="refresh generator-owned architecture tooling"
     )

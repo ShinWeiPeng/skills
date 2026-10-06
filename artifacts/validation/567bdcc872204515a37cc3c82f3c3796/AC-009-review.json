@@ -1,0 +1,8 @@
+{
+  "ac": "AC-009",
+  "criterion": "無執行授權仍可正常保存本次分檔草案並檢查；正式設計、程式及其他需授權操作不因此開放；草案紀錄不虛報實作或實機驗證。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Candidate staging and owner recovery grant no product-code permission. Confirmation binds the authored candidate collection marker; tampering fails admission. Formal design and product updates remain under the managed execution entry.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

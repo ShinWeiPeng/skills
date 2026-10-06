@@ -15,6 +15,8 @@ Reachable only when you type them (Claude Code: `disable-model-invocation: true`
 
 ## Model-invoked
 
+- [coding-standards](./coding-standards/SKILL.md) — Shared coding rules with project-specific applicability and design checks.
+
 Model- or user-reachable (rich trigger phrasing so the model can reach for them).
 
 - **[ask-matt](./ask-matt/SKILL.md)** — Automatically route software-engineering requests to the appropriate governed workflow.

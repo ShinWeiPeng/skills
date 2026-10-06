@@ -1,0 +1,8 @@
+{
+  "ac": "AC-001",
+  "criterion": "四/五欄解析結果一致且非法表被 owner 與 planner 同時拒絕",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Shared owner/planner four/five-column parser tests pass. Malformed headers/rows fail. Empty/None initial working drafts are allowed; confirmed specs and validation planning still require criteria.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

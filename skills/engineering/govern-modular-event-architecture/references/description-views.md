@@ -1,6 +1,6 @@
 # Architecture Description Views
 
-Description Views make a valid architecture understandable without adding runtime structs, ABI, ROM, or RAM cost. The manifest is the only editable source; the renderer produces deterministic checked-in Markdown.
+Description Views make a valid architecture understandable without adding runtime structs, ABI, ROM, or RAM cost. Maintained Markdown designs generate the manifest; the renderer produces deterministic checked-in views from that generated manifest.
 
 ## Information model
 

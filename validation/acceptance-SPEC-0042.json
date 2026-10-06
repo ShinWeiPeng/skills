@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0042",
+  "source": {
+    "revision": 2,
+    "definitions_sha256": "39cb8148f0509131447e2382db6133b78353b1e8e7524b1b93ed1a2622ef9abc"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001",
+        "criterion": "四/五欄解析結果一致且非法表被 owner 與 planner 同時拒絕",
+        "validation method": "Host parser positive/negative fixtures"
+      },
+      "criterion_sha256": "240c200aa071a28a954a1d9aee9b7669c1f4ce3e9a20d113c428473427d72a9d",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Shared host parser contract."
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-002",
+        "criterion": "空 Evidence 準備保留原事件，修改 criterion/evidence/其他章節及不連續歷史拒絕",
+        "validation method": "Host preparation and tampering tests"
+      },
+      "criterion_sha256": "53266fd3b9f34037be5b264e07dfbc437acab9fee655904612e7a684f86f5c9c",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Host receipt and owner transition with negative tampering cases."
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-003",
+        "criterion": "建立/搬移/刪除成功與越界、stale hash、覆蓋、連結、無授權均有正反案",
+        "validation method": "Host temporary filesystem integration"
+      },
+      "criterion_sha256": "c2b8dad9bed3a69657c787c342b3214f57487a074c9726a3768372f2f8141651",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Bounded host filesystem operations in isolated temporary projects."
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-004",
+        "criterion": "原行為回歸與 source/package 一致，未覆寫不相關工作",
+        "validation method": "Integration suite and diff review"
+      },
+      "criterion_sha256": "c506f13a5956627e903ba34aaa1ead131451b8f255c48b4887781e1e2773bf0e",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Host integration, packaging and preservation checks."
+    }
+  }
+}

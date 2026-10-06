@@ -1,0 +1,101 @@
+## Acceptance Criteria
+| ID | Requirements | Criterion | Validation Method | Evidence |
+|---|---|---|---|---|
+| AC-003 | REQ-003 | 可由主檔找到各設計；不同設計分檔维护，引用可解析且不產生同一設計的平行可編輯副本。 | 文件組織與引用正反案例；格式、版本與遷移驗收待確認。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-003-review.json |
+| AC-004 | REQ-004 | 多份 SPEC 可引用同一設計；新候選不改變既有確認版本，舊 SPEC 仍可追溯當時設計；同一目前設計不出現多份平行可編輯來源。 | 跨 SPEC 引用、候選修改及歷史追溯正反案例；版本機制待定。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-004-review.json |
+| AC-005 | REQ-005 | 僅受影響設計建立候選；基準一致可依授權更新，基準已改變時保留資料並指出差異；舊／新 SPEC 分別可解析其確認版本，歷史版本不被修改。 | 候選建立、基準競爭及歷史引用正反案例；原子更新與失敗恢復方式待定。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-005-review.json |
+| AC-006 | REQ-006 | 修改來源設計可一致產生 manifest 與圖表；來源缺欄、引用錯誤或产物過期能指出，不能靠手改产物掩蓋；既有資料遷移保留語意及可追溯性。 | Markdown 解析正反案例、確定性生成、漂移檢查及來源遷移回歸；具體格式待定。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-006-review.json |
+| AC-007 | REQ-007 | 主檔可導覽分檔需求、驗收、討論及設計版本；目前、候選、歷史與生成產物位置和責任可區別；引用不重複設計內容，缺檔或錯誤引用能指出。 | 目錄與引用正反案例、歷史不可修改及生成產物一致性檢查；遷移策略待定。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-007-review.json |
+| AC-008 | REQ-008 | 確認與授權可追溯相同文件集合及版本；相關設計被改動時不得沿用舊確認，無關檔變更不阻擋；討論追加或相同內容重生成不產生重複授權要求。 | 集合／依賴雜湊比對、實質變更與非語意變更及重放正反案例；可證明範圍待具體化。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-008-review.json |
+| AC-009 | REQ-009 | 無執行授權仍可正常保存本次分檔草案並檢查；正式設計、程式及其他需授權操作不因此開放；草案紀錄不虛報實作或實機驗證。 | 草案保存／檢查正案、越界寫入與錯誤 PASS 反案；驗證暫存路径及引用限制。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-009-review.json |
+| AC-010 | REQ-010 | 尚無程式的設計草案可依設計條件檢查，不被實作證據缺失誤擋；必要可行性分析不能跳過；實作偏差及欠缺驗收證據分別被指出。缺資料不阻擋無相依工作，同範圍修復不重複授權，實質契約變更不得沿用舊授權。 | 設計／實作／驗收分階段正反案例、相依阻擋與修復／變更授權回歸。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-010-review.json |
+| AC-011 | REQ-011 | 格式規範明定各領域欄位的承載位置，扁平表格與指定 YAML 區塊可一致解析及生成產物；重複來源、漏欄位、錯誤型別／單位／版本引用及未定義格式能指明位置且不假設成功。 | Markdown 表格／指定 YAML 區塊解析正反案例，涵蓋巢狀與條件式資料、欄位雙重維護、格式版本不支援及錯誤定位；確定性生成與來源／產物一致性回歸。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-011-review.json |
+| AC-012 | REQ-012 | 更新成功呈現完整一致版本；寫入／生成失敗、中斷或基準競爭時保留資料與進度，未完成集合不冒充有效版本；恢復不覆寫後來修改。 | 分階段失敗注入、重啟續作、版本競爭及來源／產物一致性測試；檢查完整生效與未完成狀態的讀取限制。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-012-review.json |
+| AC-013 | REQ-013 | 失敗案例以原因解除、修復驗證通過及原工作完成為成功条件；只保存狀態、繼續其他工作或開放重試入口不算合格。可修復的格式／引用／生成／工具及循環閘門錯誤能沿用授權修復；重試不重複副作用、不覆寫其他修改，完整生效仍通過全套驗證。真正需外部資訊／決策時有調查依據、具體需求及續作紀錄。 | 故障注入與治理死鎖回歸：檢查失敗後查因／修復／驗證／完成原工作的完整路徑、生成或局部寫入中斷後恢復、授權延續、無進展時方法調整、外部依賴解除後續作；不能以可繼續標記代替成功結果。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-013-review.json |
+| AC-014 | REQ-014 | 用到的舊 SPEC 及必要設計依賴可轉換新格式，ID／語意／來源／回答／證據狀態與引用可追溯；Markdown 成為目前來源，生成 manifest 一致。可證明純格式遷移沿用原授權，未知歷史不被偽造，無關歷史不被改寫。 | 舊單檔 SPEC／manifest 遷移正反案例、欄位與語意對照、引用完整性、可信原事件授權延續及重複遷移回歸。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-014-review.json |
+| AC-015 | REQ-015 | 缺漏依可信資料調查補足，未知／衝突留新工作版待決；實質契約改變須確認，歷史不可修改且舊讀取不作當前替代檢查。失敗可查因修復、驗證並完成原工作。 | 缺資料／相矛盾資料／需求變更、歷史快照不可變、當前新機制與歷史讀取隔離、遷移中斷／重試及完成原工作正反案例。 | PASS: artifacts/validation/567bdcc872204515a37cc3c82f3c3796/AC-015-review.json |
+
+## Acceptance Mapping
+```json
+{
+  "AC-003": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-004": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-005": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-006": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-007": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-008": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-009": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-010": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-011": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-012": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-013": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-014": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  },
+  "AC-015": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+  }
+}
+```
+

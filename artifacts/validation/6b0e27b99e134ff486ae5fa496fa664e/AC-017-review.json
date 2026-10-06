@@ -1,0 +1,8 @@
+{
+  "ac": "AC-017",
+  "criterion": "設定驗證失敗時符合保留原狀契約；部分傳送失敗時完成層級、已完成範圍、剩餘處置及事件符合設計表，且不虛報撤回已產生效果。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: An invalid setting leaves the old value; a partly completed write reports the completed range and remaining bytes. Required finding for the counterexample: Reporting full rollback after external bytes were sent violates ERR-RESULT-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

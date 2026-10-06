@@ -16,6 +16,8 @@ SPEC_SCRIPTS_ROOT = SKILLS_ROOT / "spec-governance" / "scripts"
 if str(SPEC_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPEC_SCRIPTS_ROOT))
 
+from document_bundle import read_spec_document, read_spec_bytes, spec_hash
+
 from discussion_state import discussion_request, resolve_discussion_project
 from execution_state import assess_execution_compatibility
 from spec_contract import (
@@ -73,6 +75,7 @@ def verify_delivery_admission(
     task_ref: str | None = None,
     validation_assessor=None,
     authorization_only: bool = False,
+    preparation_only: bool = False,
 ) -> dict[str, Any]:
     """Check current canonical content, pending work and the final human instruction."""
     blocked = {"verdict": "BLOCKED", "product_code_allowed": False}
@@ -106,11 +109,14 @@ def verify_delivery_admission(
         return blocked | {
             "reason": "explicit execution authorization required for this specification"
         }
-    current_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    current_hash = spec_hash(path)
     if current_hash != expected_hash:
         return blocked | {"reason": "verified specification hash is stale"}
     context = assess_delivery_spec_context(root, relative)
-    if context["state"] != "confirmed" or context.get("selected_path") != relative:
+    preparing = authorization_only and preparation_only
+    if not preparing and (
+        context["state"] != "confirmed" or context.get("selected_path") != relative
+    ):
         return blocked | {"reason": context["reason"]}
     turn = assess_delivery_turn_context(
         root, reference=working_reference, task_ref=task_ref
@@ -123,10 +129,11 @@ def verify_delivery_admission(
     working = turn.get("working_spec")
     if working and working.get("continuity") != "continuous":
         return blocked | {"reason": "working specification audit continuity is invalid"}
-    canonical = validate_spec_text(path.read_text(encoding="utf-8"))["canonical_spec"]
+    canonical = validate_spec_text(read_spec_document(path))["canonical_spec"]
     if working and (
         working["spec_id"] != canonical["spec_id"]
-        or working["status"] != "confirmed"
+        or working["status"]
+        not in ({"working", "confirmed"} if preparing else {"confirmed"})
         or working["revision"] != canonical["revision"]
         or f"{working['spec_id']}-{working['change_set']}.md" != path.name
         or turn.get("canonical_matches") is not True
@@ -134,6 +141,24 @@ def verify_delivery_admission(
         return blocked | {
             "reason": "working and canonical specification identity/status mismatch"
         }
+    if preparing:
+        if not working or working["status"] != canonical["status"]:
+            return blocked | {
+                "reason": "preparation requires a matched working specification"
+            }
+        # Working status alone is not evidence that the adopted contract is complete.
+        candidate = read_spec_document(path).replace(
+            "status: working", "status: confirmed", 1
+        )
+        checked = validate_spec_text(
+            candidate,
+            known_spec_ids={p.name[:9] for p in (root / "specs").glob("SPEC-*.md")},
+        )
+        if checked["verdict"] != "PASS":
+            return blocked | {
+                "reason": "preparation requires a decision-complete contract",
+                "errors": checked["errors"],
+            }
     dependencies = check_spec_dependencies(root, path)
     if dependencies:
         return blocked | {
@@ -217,7 +242,7 @@ def _assess_loaded_compatibility(
     signature = hashlib.sha256()
     for path in sorted(paths):
         signature.update(path.relative_to(SKILLS_ROOT).as_posix().encode())
-        signature.update(hashlib.sha256(path.read_bytes()).digest())
+        signature.update(hashlib.sha256(read_spec_bytes(path)).digest())
     manifests = [
         SKILLS_ROOT.parent / ".codex-plugin/plugin.json",
         SKILLS_ROOT.parent.parent
@@ -226,7 +251,7 @@ def _assess_loaded_compatibility(
     version = "unknown"
     for manifest in manifests:
         if manifest.is_file():
-            raw = manifest.read_bytes()
+            raw = read_spec_bytes(manifest)
             signature.update(raw)
             version = json.loads(raw).get("version", "unknown")
             break

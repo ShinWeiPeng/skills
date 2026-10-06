@@ -8,7 +8,8 @@
 - Flow IDs: `governed-change-set-lifecycle`
 - Related ADRs: none
 - Source paths:
-  - `skills/engineering/govern-modular-event-architecture/references/flow-cost-review.md`
+  - `skills/engineering/govern-modular-event-architecture/references/flow-cost-checks.md`
+  - `skills/engineering/govern-modular-event-architecture/references/flow-review-format.md`
   - `skills/engineering/improve-codebase-architecture/SKILL.md`
   - `skills/engineering/clarify-improvement-proposals/SKILL.md`
 - Test and benchmark paths:

@@ -20,16 +20,22 @@ from discussion_state import discussion_request
 from execution_state import (
     execution_binding,
     execution_binding_matches,
+    preparation_binding_matches,
+    preparation_contract_hash,
     read_execution_state,
     write_execution_state,
 )
 from spec_contract import (
+    _validation_preparation_baseline,
+    _validate_preparation_baseline,
     acceptance_repair_plan,
     acceptance_generation_plan,
     assess_discussion_completion,
     project_state_lock,
     question_surface_policy,
 )
+from document_bundle import read_spec_document, read_spec_bytes, spec_hash
+
 from spec_delivery import (
     assess_delivery_compatibility,
     assess_project_validation,
@@ -102,6 +108,151 @@ def _admit(root: Path, request: dict, state: dict, validation_assessor=None) -> 
     return binding
 
 
+def _retained_document_authority(root, request, binding):
+    """Recheck the original grant locally; do not run external acceptance under a document lock."""
+    state = read_execution_state(root, request["task_ref"])
+    receipt = state.get("receipts", {}).get(request["spec"], state.get("receipt"))
+    if (
+        state.get("phase") != "executing"
+        or not isinstance(receipt, dict)
+        or not execution_binding_matches(root, receipt.get("binding"), binding)
+    ):
+        raise ValueError("document authority was revoked or changed")
+    if (
+        binding.get("spec_path") != request["spec"]
+        or binding.get("task_ref") != request["task_ref"]
+        or binding.get("working_id") != request["working_reference"]
+    ):
+        raise ValueError("document recovery scope differs from the original grant")
+    current = execution_binding(
+        root, request["spec"], request["working_reference"], request["task_ref"]
+    )
+    if not execution_binding_matches(root, binding, current):
+        raise ValueError("confirmed document collection changed")
+
+
+def _prepare_mapping(root, request, state, validation_assessor):
+    """Stage auditable proof before owner mutation; retry safely after interruption."""
+    from spec_contract import (
+        _mapping_preparation_plan,
+        _split_spec_audit,
+        _replace_metadata,
+        _snapshot_hash,
+        reconcile_working_bundle,
+        resolve_working_bundle,
+    )
+    from execution_state import _preparation_proof_matches
+
+    event = request["source_event_id"]
+    application = state.get("pending_authorizations", {}).get(event)
+    if state["phase"] == "suspended" or not isinstance(application, dict):
+        raise ValueError(
+            "mapping preparation requires an unrevoked pending authorization"
+        )
+    current = execution_binding(
+        root, request["spec"], request["working_reference"], request["task_ref"]
+    )
+    original_hex = application.get("preparation_document_hex") or request.get(
+        "original_document_hex"
+    )
+    if application.get("preparation_proof"):
+        original_hex = application["preparation_proof"]["original_document_hex"]
+    if not isinstance(original_hex, str):
+        raise ValueError(
+            "preparation recovery requires original document bytes matching the retained grant"
+        )
+    original_bytes = bytes.fromhex(original_hex)
+    original = original_bytes.decode("utf-8")
+    old = application["binding"]
+    digest = hashlib.sha256(original_bytes).hexdigest()
+    if (
+        digest != old["spec_hash"]
+        or digest != old["journal_hash"]
+        or _snapshot_hash(original) != old["snapshot_hash"]
+    ):
+        raise ValueError("original preparation document does not match retained hashes")
+    _validate_preparation_baseline(
+        root, application.get("preparation_validation_baseline")
+    )
+    planned = _mapping_preparation_plan(root, original)
+    retained_proof = application.get("preparation_proof")
+    if retained_proof and retained_proof.get("inputs") != planned["inputs"]:
+        raise ValueError(
+            "validation definitions changed after preparation proof; preserve original proof"
+        )
+    proof = {k: planned[k] for k in ("inputs", "additions", "rule_version")}
+    proof["original_document_hex"] = original_hex
+    unchanged = execution_binding_matches(root, old, current)
+    proof["candidate"] = (
+        planned["candidate"]
+        if unchanged
+        else _replace_metadata(
+            _split_spec_audit(read_spec_document(root / request["spec"]))[0],
+            status="working",
+        )
+    )
+    proposed = application | {"preparation_proof": proof}
+    if not unchanged and not _preparation_proof_matches(root, proposed, current):
+        raise ValueError(
+            "preparation recovery differs from the exact derived mapping transition or journal"
+        )
+    if not unchanged and application.get("preparation_proof") == proof:
+        return {
+            "verdict": "PASS",
+            "product_code_allowed": False,
+            "replayed": True,
+            "next_action": "confirm-and-retry-original-event",
+        }
+    # Preserve the source binding. Reserving the proof does not issue a receipt.
+    state["pending_authorizations"][event] = proposed
+    _retain_history(
+        state,
+        "authorization_history",
+        event,
+        {"status": "preparation-proof", "application": proposed},
+    )
+    write_execution_state(root, request["task_ref"], state)
+    if unchanged:
+        ref = resolve_working_bundle(root, reference=request["working_reference"])[
+            "working_spec"
+        ]
+        if ref["snapshot_hash"] != current["snapshot_hash"]:
+            raise ValueError("SPEC changed concurrently before owner preparation")
+        # The owner uses its shared SPEC lock and optimistic snapshot check.
+        result = reconcile_working_bundle(
+            root,
+            ref["working_id"],
+            planned["candidate"],
+            {},
+            expected_revision=ref["revision"],
+            expected_hash=ref["snapshot_hash"],
+            validation_assessor=validation_assessor,
+        )
+        if result["verdict"] != "PASS":
+            return result | {"product_code_allowed": False}
+    latest = read_execution_state(root, request["task_ref"])
+    retained = latest.get("pending_authorizations", {}).get(event)
+    actual = execution_binding(
+        root, request["spec"], request["working_reference"], request["task_ref"]
+    )
+    if (
+        latest["phase"] == "suspended"
+        or retained != proposed
+        or not _preparation_proof_matches(root, proposed, actual)
+    ):
+        raise ValueError(
+            "preparation changed concurrently; original authority remains unextended"
+        )
+    return {
+        "verdict": "PASS",
+        "product_code_allowed": False,
+        "preparation_applied": unchanged,
+        "recovered": not unchanged,
+        "additions": planned["additions"],
+        "next_action": "confirm-and-retry-original-event",
+    }
+
+
 def _pending_binding(root: Path, request: dict, state: dict) -> dict:
     """Recheck retained authority without requiring the evidence it must produce."""
     pending = state.get("pending_authorizations", {}).get(request["source_event_id"])
@@ -117,7 +268,7 @@ def _pending_binding(root: Path, request: dict, state: dict) -> dict:
     binding = execution_binding(
         root, request["spec"], request["working_reference"], request["task_ref"]
     )
-    if not execution_binding_matches(root, pending["binding"], binding):
+    if not preparation_binding_matches(root, pending, binding):
         raise ValueError("preparation authorization is stale or scope differs")
     authority = verify_delivery_admission(
         root,
@@ -127,6 +278,7 @@ def _pending_binding(root: Path, request: dict, state: dict) -> dict:
         working_reference=request["working_reference"],
         task_ref=request["task_ref"],
         authorization_only=True,
+        preparation_only=request.get("operation") == "prepare-validation",
     )
     if not authority.get("authorization_valid"):
         raise ValueError(authority.get("reason", "preparation authorization denied"))
@@ -202,7 +354,7 @@ def _admit_preparation(root: Path, request: dict, state: dict) -> dict:
     return binding
 
 
-def _target(root: Path, relative: str) -> Path:
+def _target(root: Path, relative: str, *, directory: bool = False) -> Path:
     if (
         not isinstance(relative, str)
         or not relative
@@ -231,18 +383,86 @@ def _target(root: Path, relative: str) -> Path:
         if parent == root:
             break
         if parent.is_symlink() or (
-            hasattr(parent, "is_junction") and parent.is_junction()
+            parent.exists() and getattr(parent.lstat(), "st_file_attributes", 0) & 1024
         ):
             raise ValueError("redirected targets are not supported")
     if not target.resolve().is_relative_to(root) or not target.parent.is_dir():
         raise ValueError("target parent must already exist within project")
-    if target.exists() and (not target.is_file() or target.stat().st_nlink != 1):
+    if directory:
+        if target.exists() and not target.is_dir():
+            raise ValueError("directory target is occupied by a file")
+    elif target.exists() and (not target.is_file() or target.stat().st_nlink != 1):
         raise ValueError("target must be an ordinary unshared file")
     return target
 
 
+def _file_operation(root: Path, request: dict, validation_assessor=None) -> dict:
+    """One bounded filesystem operation, under the same admission and commit lock."""
+    action = request.get("action")
+    if action not in {"mkdir", "move", "delete"}:
+        raise ValueError("unsupported file operation")
+    from document_updates import document_lock
+    from document_bundle import assert_current_designs
+
+    with project_state_lock(root, "product-commit"):
+        _admit(
+            root,
+            request,
+            read_execution_state(root, request["task_ref"]),
+            validation_assessor,
+        )
+        binding = execution_binding(
+            root, request["spec"], request["working_reference"], request["task_ref"]
+        )
+        with document_lock(root):
+            _retained_document_authority(root, request, binding)
+            assert_current_designs(root, root / request["spec"])
+            source = _target(root, request["path"], directory=action == "mkdir")
+            if action == "mkdir":
+                existed = source.exists()
+                source.mkdir(exist_ok=True)  # Parent must exist; never recursive.
+                return {
+                    "verdict": "PASS",
+                    "operation": action,
+                    "path": request["path"],
+                    "changed": not existed,
+                }
+            expected = request.get("before_sha256")
+            if (
+                not isinstance(expected, str)
+                or not re.fullmatch(r"[0-9a-f]{64}", expected)
+                or not source.is_file()
+                or _current_hash(source) != expected
+            ):
+                raise ValueError("source hash differs from reviewed file operation")
+            if action == "move":
+                destination = _target(root, request["destination"])
+                if destination.exists():
+                    raise ValueError("move destination must not exist")
+                # link is create-only on Windows and POSIX: an external destination
+                # appearing after the check is never overwritten. If unlink fails,
+                # both names remain and the error is explicit; never delete either
+                # name speculatively during recovery.
+                os.link(source, destination)
+                try:
+                    source.unlink()
+                except OSError as error:
+                    raise ValueError(
+                        "move incomplete; both names retained for recovery"
+                    ) from error
+            else:
+                source.unlink()  # One reviewed ordinary file, never recursive.
+            return {
+                "verdict": "PASS",
+                "operation": action,
+                "path": request["path"],
+                "before_sha256": expected,
+                "changed": True,
+            }
+
+
 def _current_hash(path: Path) -> str | None:
-    return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+    return hashlib.sha256(read_spec_bytes(path)).hexdigest() if path.exists() else None
 
 
 def _merge_patch(base: str, desired: str, current: str) -> str:
@@ -310,6 +530,58 @@ def _apply(
         or hashlib.sha256(base.encode()).hexdigest() != patch["before_sha256"]
     ):
         raise ValueError("before_content must match the reviewed base hash")
+    # Migrate only after patch shape/target validation and an existing execution grant.
+    _target(root, patch["path"])
+    from legacy_document_migration import migrate_spec
+    from document_bundle import MARKER
+
+    current_state = read_execution_state(root, request["task_ref"])
+    canonical = root / request["spec"]
+    if current_state.get(
+        "phase"
+    ) == "executing" and not canonical.read_bytes().startswith(MARKER.encode()):
+        reviewed = _admit(root, request, current_state, validation_assessor)
+        migrate_spec(
+            root,
+            request["spec"],
+            binding=reviewed,
+            authorize=lambda b: _retained_document_authority(root, request, b),
+        )
+    if (root / "architecture/manifest.yaml").is_file() and not (
+        root / "architecture/designs/index.yaml"
+    ).is_file():
+        from importlib import import_module
+
+        architecture_owner = (
+            Path(__file__).resolve().parents[2]
+            / "govern-modular-event-architecture/scripts"
+        )
+        if architecture_owner.is_dir():
+            sys.path.insert(0, str(architecture_owner))
+        updates = import_module("architecture_document_update")
+        retained = _admit(
+            root,
+            request,
+            read_execution_state(root, request["task_ref"]),
+            validation_assessor,
+        )
+        operation = (
+            "migrate-dependent-design-"
+            + hashlib.sha256(request["spec"].encode()).hexdigest()[:24]
+        )
+        authority = lambda b: _retained_document_authority(root, request, b)
+        updates.prepare_design_update(
+            root,
+            operation,
+            {},
+            binding=retained,
+            confirmed_refs=[],
+            authorize=authority,
+            migration=True,
+        )
+        updates.resume_design_update(
+            root, operation, binding=retained, authorize=authority, migration=True
+        )
     for retry in range(3):
         _admit(
             root,
@@ -318,7 +590,7 @@ def _apply(
             validation_assessor,
         )
         target = _target(root, patch["path"])
-        raw = target.read_bytes() if target.exists() else None
+        raw = read_spec_bytes(target) if target.exists() else None
         before = hashlib.sha256(raw).hexdigest() if raw is not None else None
         content = patch["content"]
         if before != patch["before_sha256"]:
@@ -388,8 +660,13 @@ def _apply(
                     != binding
                 ):
                     raise ValueError("authorization changed during admission")
-                os.replace(temporary, target)
-                temporary = None
+                from document_updates import document_lock
+                from document_bundle import assert_current_designs
+
+                with document_lock(root):
+                    assert_current_designs(root, root / request["spec"])
+                    os.replace(temporary, target)
+                    temporary = None
             return {
                 "verdict": "PASS",
                 "product_code_allowed": True,
@@ -504,7 +781,7 @@ def _recover(
         path = (root / relative).resolve()
         if not path.is_relative_to(root) or not path.is_file():
             raise ValueError("recovery input must be an existing project file")
-        inputs[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+        inputs[relative] = hashlib.sha256(read_spec_bytes(path)).hexdigest()
     fingerprint = hashlib.sha256(
         json.dumps(
             {
@@ -797,6 +1074,444 @@ def _repair_acceptance(root, request, state, validation_assessor):
     return checked | {"repair_applied": True, "repair_replayed": replayed}
 
 
+def _migrate_preparation_history(root, request):
+    """Recover only grant-bound bytes already present in the append-only history."""
+    task, event = request["task_ref"], request["source_event_id"]
+    state = read_execution_state(root, task)
+    application = state.get("pending_authorizations", {}).get(event)
+    if not application or state["phase"] == "suspended":
+        raise ValueError("unrevoked pending authorization required for migration")
+    keys = ("preparation_document_hex", "preparation_validation_baseline")
+    missing = [key for key in keys if key not in application]
+    if not missing:
+        return
+    candidates = []
+    for index, row in enumerate(state.get("authorization_history", [])):
+        previous = row.get("application", {})
+        if not isinstance(previous, dict):
+            raise ValueError(
+                "invalid grant-bound history application; preserve for investigation"
+            )
+        if (
+            row.get("source_event_id") != event
+            or row.get("status")
+            not in {"pending", "preparation-proof", "legacy-migrated"}
+            or previous.get("binding") != application["binding"]
+            or previous.get("instruction") != application["instruction"]
+            or previous.get("source_event_id") != event
+            or any(key not in previous for key in keys)
+        ):
+            continue
+        data = bytes.fromhex(previous["preparation_document_hex"])
+        digest = hashlib.sha256(data).hexdigest()
+        if (
+            digest != application["binding"]["spec_hash"]
+            or digest != application["binding"]["journal_hash"]
+        ):
+            continue
+        _validate_preparation_baseline(
+            root, previous["preparation_validation_baseline"]
+        )
+        candidates.append((index, {key: previous[key] for key in keys}))
+    if not candidates:
+        raise ValueError(
+            "legacy-baseline-missing: no grant-bound original document and validation definitions in history"
+        )
+    if len({json.dumps(value, sort_keys=True) for _, value in candidates}) != 1:
+        raise ValueError("legacy-history-ambiguous: grant-bound snapshots disagree")
+    index, recovered = candidates[0]
+    if any(key in application and application[key] != recovered[key] for key in keys):
+        raise ValueError("legacy-history-conflict: retained bytes differ from history")
+    migrated = application | recovered
+    state["pending_authorizations"][event] = migrated
+    _retain_history(
+        state,
+        "authorization_history",
+        event,
+        {
+            "status": "legacy-migrated",
+            "migration_version": 1,
+            "source_history_index": index,
+            "original_application": application,
+            "application": migrated,
+        },
+    )
+    write_execution_state(root, task, state)
+
+
+def _continuation_checkpoint(root, task, key, value):
+    state = read_execution_state(root, task)
+    if state["phase"] == "suspended":
+        raise ValueError("execution suspended during continuation")
+    if state.get("continuations", {}).get(key) != value:
+        state.setdefault("continuations", {})[key] = value
+        write_execution_state(root, task, state)
+
+
+def _continue_execution(root, request, validation_assessor, candidate_validator):
+    """Run finite preparation stages and the reviewed continuation under one grant."""
+    from spec_contract import (
+        acceptance_plan_completeness,
+        materialize_working_bundle,
+        resolve_working_bundle,
+    )
+
+    root = root.resolve()
+    event = request["source_event_id"]
+    task = request["task_ref"]
+    base = {key: request[key] for key in ("task_ref", "spec", "working_reference")}
+    continuation = request.get("continuation", {"operation": "status"})
+    if (
+        not isinstance(continuation, dict)
+        or continuation.get("operation") not in {"status", "apply"}
+        or set(continuation)
+        != (
+            {"operation", "patch"}
+            if continuation.get("operation") == "apply"
+            else {"operation"}
+        )
+    ):
+        raise ValueError("continuation must be a reviewed apply or status operation")
+    if continuation["operation"] == "apply":
+        patch = continuation.get("patch")
+        if (
+            not isinstance(patch, dict)
+            or set(patch) != {"path", "before_sha256", "content"}
+            or not isinstance(patch["path"], str)
+            or not isinstance(patch["content"], str)
+            or len(patch["content"].encode()) > 1048576
+            or (
+                patch["before_sha256"] is not None
+                and (
+                    not isinstance(patch["before_sha256"], str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", patch["before_sha256"])
+                )
+            )
+        ):
+            raise ValueError(
+                "continuation requires a bounded reviewed UTF-8 patch and base hash"
+            )
+    preparations = request.get("preparation_patches", [])
+    if (
+        not isinstance(preparations, list)
+        or len(preparations) > 4
+        or any(not isinstance(p, dict) for p in preparations)
+    ):
+        raise ValueError("at most four reviewed preparation patches are allowed")
+    key = hashlib.sha256(
+        json.dumps([event, base, continuation, preparations], sort_keys=True).encode()
+    ).hexdigest()
+    stage = "authorization"
+    admitted = False
+    authority_valid = False
+    current = None
+    fingerprint = None
+
+    def invoke(operation, **fields):
+        return execute_request(
+            root,
+            base | {"operation": operation} | fields,
+            validation_assessor=validation_assessor,
+            candidate_validator=candidate_validator,
+        )
+
+    def require(result):
+        if result.get("verdict") != "PASS":
+            raise ValueError(
+                result.get("reason")
+                or "; ".join(result.get("errors", []))
+                or str(result)
+            )
+        return result
+
+    try:
+        state = read_execution_state(root, task)
+        if event in state.get("superseded_authorizations", {}):
+            raise ValueError("authorization superseded; use its recorded successor")
+        current = execution_binding(
+            root, request["spec"], request["working_reference"], task
+        )
+        retained = state.get("pending_authorizations", {}).get(event)
+        if retained and (
+            request.get("instruction") != retained["instruction"]
+            or request.get("expected_hash")
+            not in {retained["binding"]["spec_hash"], current["spec_hash"]}
+        ):
+            raise ValueError(
+                "instruction or reviewed hash differs from retained authorization"
+            )
+        authorization = {
+            k: request[k] for k in ("instruction", "source_event_id", "expected_hash")
+        }
+        fulfilled = state.get("fulfilled_authorizations", {}).get(event)
+        if fulfilled and authorization["expected_hash"] == fulfilled.get(
+            "preparation_source_binding", {}
+        ).get("spec_hash"):
+            authorization["expected_hash"] = fulfilled["binding"]["spec_hash"]
+        receipt = state.get("receipts", {}).get(request["spec"], state.get("receipt"))
+        if (
+            isinstance(receipt, dict)
+            and receipt.get("source_event_id") == event
+            and not fulfilled
+        ):
+            if receipt["instruction"] != request["instruction"] or request[
+                "expected_hash"
+            ] not in {receipt["binding"]["spec_hash"], current["spec_hash"]}:
+                raise ValueError("continuation differs from retained execution receipt")
+            initial = invoke("status")
+        else:
+            initial = invoke("authorize", **authorization)
+        state = read_execution_state(root, task)
+        application = state.get("pending_authorizations", {}).get(event)
+        authority_valid = (
+            initial.get("verdict") == "PASS"
+            or initial.get("authorization_status") == "pending"
+        )
+        if initial.get("verdict") != "PASS" and not application:
+            require(initial)
+        if state["phase"] == "suspended":
+            raise ValueError("execution is suspended")
+        if preparations:
+            stage = "definition-preparation"
+            for patch in preparations:
+                # Even a replay may not widen preparation to a product path.
+                if patch.get("path") not in {
+                    "architecture/adoption.yaml",
+                    "validation/verification-ladder.yaml",
+                    "validation/on-device.yaml",
+                    "validation/layout.yaml",
+                }:
+                    raise ValueError(
+                        "preparation target is outside the reviewed definitions"
+                    )
+                if not isinstance(patch.get("content"), str):
+                    raise ValueError("preparation content must be text")
+                if (
+                    _current_hash(_target(root, patch["path"]))
+                    == hashlib.sha256(patch["content"].encode()).hexdigest()
+                ):
+                    continue
+                require(
+                    invoke("prepare-validation", source_event_id=event, patch=patch)
+                )
+            state = read_execution_state(root, task)
+            application = state.get("pending_authorizations", {}).get(event)
+            current = execution_binding(
+                root, request["spec"], request["working_reference"], task
+            )
+        # Scope and identity are checked before any preparation mutation.
+        if application:
+            previous = application["binding"]
+            if any(
+                previous[k] != current[k]
+                for k in ("project_root", "task_ref", "spec_path", "working_id")
+            ):
+                raise ValueError("pending authorization belongs to another contract")
+            stage = "preparation"
+            fingerprint = hashlib.sha256(
+                json.dumps(
+                    {
+                        "binding": current,
+                        "definitions": _validation_preparation_baseline(root),
+                        "history": state.get("authorization_history", []),
+                        "runtime": _current_hash(Path(__file__)),
+                    },
+                    sort_keys=True,
+                ).encode()
+            ).hexdigest()
+            prior = state.get("continuations", {}).get(key, {})
+            if prior.get("blocked_fingerprint") == fingerprint:
+                return prior["result"] | {"unchanged_blocker": True}
+            _migrate_preparation_history(root, request)
+            state = read_execution_state(root, task)
+            application = state["pending_authorizations"][event]
+            gaps = acceptance_plan_completeness(
+                root, read_spec_document(root / request["spec"])
+            )
+            if (
+                gaps
+                or application.get("preparation_proof")
+                or not preparation_binding_matches(root, application, current)
+            ):
+                require(
+                    invoke(
+                        "prepare-validation",
+                        source_event_id=event,
+                        acceptance_mapping=True,
+                    )
+                )
+            stage = "confirmation"
+            ref = resolve_working_bundle(root, reference=request["working_reference"])[
+                "working_spec"
+            ]
+            if ref["status"] == "working":
+                require(
+                    materialize_working_bundle(
+                        root,
+                        ref["working_id"],
+                        expected_revision=ref["revision"],
+                        expected_hash=ref["snapshot_hash"],
+                        validation_assessor=validation_assessor,
+                    )
+                )
+            stage = "admission"
+            require(
+                invoke(
+                    "authorize",
+                    instruction=request["instruction"],
+                    source_event_id=event,
+                    expected_hash=application["binding"]["spec_hash"],
+                )
+            )
+        else:
+            require(initial)
+        admitted = True
+        # A fresh event supersedes only the same working scope, after admission.
+        state = read_execution_state(root, task)
+        changed = False
+        for old_event, old in list(state.get("pending_authorizations", {}).items()):
+            if old_event != event and all(
+                old["binding"][k] == current[k]
+                for k in ("project_root", "task_ref", "spec_path", "working_id")
+            ):
+                record = {"superseded_by": event, "application": old}
+                state.setdefault("superseded_authorizations", {})[old_event] = record
+                _retain_history(
+                    state,
+                    "authorization_history",
+                    old_event,
+                    record | {"status": "superseded"},
+                )
+                del state["pending_authorizations"][old_event]
+                changed = True
+        if changed:
+            write_execution_state(root, task, state)
+        stage = "acceptance-projection"
+        plan = require(invoke("generate-acceptance"))
+        if plan.get("planning_verdict") != "PASS":
+            raise ValueError(
+                "; ".join(plan.get("planning_errors", []))
+                or "acceptance selectors remain unresolved"
+            )
+        patch = plan["patch"]
+        if patch is not None:
+            directory = root / "validation"
+            with project_state_lock(root, "product-commit"):
+                _admit(
+                    root,
+                    base | {"operation": "status"},
+                    read_execution_state(root, task),
+                    validation_assessor,
+                )
+                if (
+                    directory.is_symlink()
+                    or directory.resolve().parent != root
+                    or (directory.exists() and not directory.is_dir())
+                ):
+                    raise ValueError(
+                        "validation directory must be local and unredirected"
+                    )
+                directory.mkdir(exist_ok=True)
+        if (
+            patch is not None
+            and _current_hash(_target(root, patch["path"]))
+            != hashlib.sha256(patch["content"].encode()).hexdigest()
+        ):
+            require(invoke("apply", patch=patch))
+        stage = "planning"
+        require(
+            assess_project_validation(
+                root,
+                request["spec"],
+                phase="planning",
+                validation_assessor=validation_assessor,
+            )
+        )
+        stage = "implementation"
+        require(invoke("status"))
+        state = read_execution_state(root, task)
+        prior = state.get("continuations", {}).get(key, {})
+        replayed = False
+        if continuation["operation"] == "apply":
+            patch = continuation["patch"]
+            after = hashlib.sha256(patch["content"].encode()).hexdigest()
+            replayed = (
+                prior.get("after_sha256") == after
+                and _current_hash(_target(root, patch["path"])) == after
+            )
+            if not replayed:
+                _continuation_checkpoint(
+                    root,
+                    task,
+                    key,
+                    {"stage": "implementation-started", "after_sha256": after},
+                )
+                require(invoke("apply", patch=patch))
+        result = {
+            "verdict": "PASS",
+            "authorization_status": "valid",
+            "admission_status": "PASS",
+            "phase": "executing",
+            "source_event_id": event,
+            "product_code_allowed": True,
+            "continuation_executed": continuation["operation"] == "apply",
+            "continuation_replayed": replayed,
+            "acceptance_complete": False,
+            "device_actions_authorized": False,
+            "reason_code": "implementation-entered",
+            "next_action": "continue-implementation-and-verification",
+            "evidence_trust": "caller-attested-not-host-authenticated",
+        }
+        binding = execution_binding(
+            root, request["spec"], request["working_reference"], task
+        )
+        from spec_contract import _metadata
+
+        metadata, _ = _metadata(read_spec_document(root / request["spec"]))
+        result.update(
+            bound_hash=binding["spec_hash"], bound_revision=int(metadata["revision"])
+        )
+        checkpoint = {"stage": "implementation-entered", "result": result}
+        if continuation["operation"] == "apply":
+            checkpoint["after_sha256"] = after
+        _continuation_checkpoint(root, task, key, checkpoint)
+        return result
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        reason = str(error)
+        result = _blocked(reason) | {
+            "reason_code": "legacy-baseline-missing"
+            if reason.startswith("legacy-baseline-missing")
+            else stage + "-blocked",
+            "authorization_status": "valid"
+            if admitted or authority_valid
+            else "unverified",
+            "admission_status": "BLOCKED",
+            "bound_hash": current.get("spec_hash") if current else None,
+            "bound_revision": None,
+            "evidence_trust": "caller-attested-not-host-authenticated",
+            "source_event_id": event,
+            "continuation_executed": False,
+            "stage": stage,
+            "next_action": "investigate-reported-cause",
+            "device_actions_authorized": False,
+        }
+        try:
+            from spec_contract import _metadata
+
+            metadata, _ = _metadata(read_spec_document(root / request["spec"]))
+            result["bound_revision"] = int(metadata["revision"])
+            result["bound_hash"] = _current_hash(root / request["spec"])
+        except (ValueError, KeyError, OSError):
+            pass
+        if stage == "preparation" and fingerprint:
+            # Only unchanged deterministic preparation failures are cached. External
+            # planning/tool availability is always assessed again on the next call.
+            _continuation_checkpoint(
+                root, task, key, {"blocked_fingerprint": fingerprint, "result": result}
+            )
+        return result
+
+
 def execute_request(
     root: Path, request: dict, validation_assessor=None, candidate_validator=None
 ) -> dict:
@@ -805,6 +1520,7 @@ def execute_request(
     try:
         if isinstance(request, dict) and request.get("operation") in {
             "apply",
+            "file-operation",
             "prepare-validation",
             "repair-acceptance",
             "recover",
@@ -833,7 +1549,13 @@ def execute_request(
                 # Missing planning/evidence is not failed authorization. The
                 # operation still checks the current receipt in _admit; final
                 # completion remains subject to the complete validation gate.
-                and compatibility.get("preparation_allowed") is True
+                and (
+                    compatibility.get("preparation_allowed") is True
+                    or (
+                        request["operation"] == "prepare-validation"
+                        and request.get("acceptance_mapping") is True
+                    )
+                )
             ):
                 return _blocked("compatibility requires diagnosis") | {
                     "compatibility": compatibility,
@@ -855,6 +1577,223 @@ def _execute_request(
         task = request["task_ref"]
         state = read_execution_state(root, task)
         operation = request["operation"]
+        if operation == "continue-execution":
+            return _continue_execution(
+                root, request, validation_assessor, candidate_validator
+            )
+        if operation == "migrate-documents":
+            from legacy_document_migration import migrate_spec
+
+            binding = _admit(root, request, state, validation_assessor)
+            result = migrate_spec(
+                root,
+                request["spec"],
+                binding=binding,
+                authorize=lambda reviewed: _retained_document_authority(
+                    root, request, reviewed
+                ),
+            )
+            return {
+                "verdict": "PASS",
+                "migration": result,
+                "product_code_allowed": False,
+            }
+        if operation == "resume-documents":
+            from legacy_document_migration import resume_migration
+
+            receipt = state.get("receipts", {}).get(
+                request["spec"], state.get("receipt")
+            )
+            if state["phase"] != "executing" or not isinstance(receipt, dict):
+                raise ValueError(
+                    "document recovery requires retained unrevoked authorization"
+                )
+            binding = receipt["binding"]
+            if (
+                binding["task_ref"] != task
+                or binding["spec_path"] != request["spec"]
+                or binding["working_id"] != request["working_reference"]
+            ):
+                raise ValueError("document recovery scope differs")
+
+            def retained(reviewed):
+                current = read_execution_state(root, task)
+                actual = current.get("receipts", {}).get(
+                    request["spec"], current.get("receipt")
+                )
+                if (
+                    current["phase"] != "executing"
+                    or actual != receipt
+                    or reviewed != binding
+                ):
+                    raise ValueError("document recovery authorization changed")
+
+            result = resume_migration(
+                root, request["operation_id"], binding=binding, authorize=retained
+            )
+            _admit(root, request, read_execution_state(root, task), validation_assessor)
+            return {
+                "verdict": "PASS",
+                "update_status": result["status"],
+                "product_code_allowed": False,
+            }
+        if operation == "extend-confirmed-scope":
+            # A bare execution instruction inherits the already presented complete scope.
+            # This is caller-attested context; it never invents another user event.
+            current = _admit(root, request, state, validation_assessor)
+            original = state.get("receipts", {}).get(
+                request["spec"], state.get("receipt")
+            )
+            if original.get("source_event_id") != request.get("source_event_id"):
+                raise ValueError(
+                    "scope continuation requires the original execution event"
+                )
+            observation = request.get("scope_context")
+            members = request.get("scope")
+            if (
+                not isinstance(observation, dict)
+                or set(observation) != {"source_ref", "text", "spec_ids"}
+                or not observation["source_ref"]
+                or not observation["text"]
+            ):
+                raise ValueError("reviewed execution context is required")
+            if not isinstance(members, list) or not 1 <= len(members) <= 8:
+                raise ValueError("expected bounded reviewed scope")
+            ids = [Path(item["spec"]).name[:9] for item in members]
+            if (
+                len(set(ids)) != len(ids)
+                or set(ids) != set(observation["spec_ids"])
+                or current["spec_path"] not in {item["spec"] for item in members}
+                or any(identity not in observation["text"] for identity in ids)
+            ):
+                raise ValueError("scope differs from reviewed execution context")
+            receipts = {}
+            for item in members:
+                scoped = execution_binding(
+                    root, item["spec"], item["working_reference"], task
+                )
+                check = verify_delivery_admission(
+                    root,
+                    item["spec"],
+                    expected_hash=item["expected_hash"],
+                    authorization=original["instruction"],
+                    working_reference=item["working_reference"],
+                    task_ref=task,
+                    validation_assessor=validation_assessor,
+                )
+                if (
+                    check.get("product_code_allowed") is not True
+                    or scoped["spec_hash"] != item["expected_hash"]
+                ):
+                    raise ValueError("reviewed scope binding is stale or inadmissible")
+                receipts[item["spec"]] = {
+                    "binding": scoped,
+                    "instruction": original["instruction"],
+                    "source_event_id": original["source_event_id"],
+                }
+            state["receipts"] = receipts
+            state.setdefault("scope_observations", {})[original["source_event_id"]] = (
+                observation
+            )
+            write_execution_state(root, task, state)
+            return {
+                "verdict": "PASS",
+                "product_code_allowed": True,
+                "scope": ids,
+                "source_event_id": original["source_event_id"],
+                "evidence_trust": "caller-attested-not-host-authenticated",
+            }
+        if operation in {
+            "update-documents",
+            "resume-design-documents",
+            "migrate-design-documents",
+        }:
+            import sys
+
+            architecture_owner = (
+                Path(__file__).resolve().parents[2]
+                / "govern-modular-event-architecture/scripts"
+            )
+            sys.path.insert(0, str(architecture_owner))
+            from architecture_document_update import (
+                prepare_design_update,
+                resume_design_update,
+            )
+            from document_bundle import strict_yaml, MARKER
+
+            def authority(binding):
+                fresh = read_execution_state(root, task)
+                receipt = fresh.get("receipts", {}).get(
+                    request["spec"], fresh.get("receipt")
+                )
+                if (
+                    fresh.get("phase") != "executing"
+                    or not receipt
+                    or not execution_binding_matches(
+                        root, receipt.get("binding"), binding
+                    )
+                ):
+                    raise ValueError(
+                        "original document authority was revoked or changed"
+                    )
+                from document_updates import recovery_originals
+
+                with recovery_originals(root, request["operation_id"]):
+                    current = execution_binding(
+                        root, request["spec"], request["working_reference"], task
+                    )
+                if not execution_binding_matches(root, binding, current):
+                    raise ValueError("confirmed collection changed")
+
+            if operation == "resume-design-documents":
+                from document_updates import safe_path
+
+                plan = json.loads(
+                    safe_path(
+                        root,
+                        "spec-governance/document-updates/"
+                        + request["operation_id"]
+                        + ".json",
+                    ).read_text(encoding="utf-8")
+                )
+                binding = plan["binding"]
+                authority(binding)
+                migration = "architecture/designs/migration-proof.json" in plan["files"]
+            else:
+                binding = _admit(root, request, state, validation_assessor)
+                migration = operation == "migrate-design-documents"
+                canonical = root / request["spec"]
+                refs = []
+                if canonical.read_bytes().startswith(MARKER.encode()):
+                    refs = strict_yaml(
+                        (
+                            canonical.parent / canonical.name[:9] / "references.yaml"
+                        ).read_text(encoding="utf-8"),
+                        str(canonical),
+                    )["designs"]
+                # Preparation checks the live retained grant; reserved pre-images are used only during recovery.
+                prepare_design_update(
+                    root,
+                    request["operation_id"],
+                    request.get("sources", {}),
+                    binding=binding,
+                    confirmed_refs=refs,
+                    authorize=lambda b: _retained_document_authority(root, request, b),
+                    migration=migration,
+                )
+            result = resume_design_update(
+                root,
+                request["operation_id"],
+                binding=binding,
+                authorize=authority,
+                migration=migration,
+            )
+            return {
+                "verdict": "PASS",
+                "update_status": result["status"],
+                "product_code_allowed": False,
+                "scope": "same-confirmed-document-collection",
+            }
         if operation == "compatibility":
             return assess_delivery_compatibility(
                 root,
@@ -870,8 +1809,15 @@ def _execute_request(
             return acceptance_repair_plan(root, request["spec"])
         if operation == "generate-acceptance":
             return acceptance_generation_plan(root, request["spec"])
+        if operation == "file-operation":
+            return _file_operation(root, request, validation_assessor)
         if operation == "repair-acceptance":
             return _repair_acceptance(root, request, state, validation_assessor)
+        if (
+            operation == "prepare-validation"
+            and request.get("acceptance_mapping") is True
+        ):
+            return _prepare_mapping(root, request, state, validation_assessor)
         if operation == "prepare-validation":
             _admit(root, request, state, validation_assessor)
             pending = state.get("pending_authorizations", {}).get(
@@ -959,6 +1905,8 @@ def _execute_request(
             event = request["source_event_id"]
             if not isinstance(event, str) or not event.strip() or len(event) > 256:
                 raise ValueError("source event ID is required")
+            if event in state.get("superseded_authorizations", {}):
+                raise ValueError("authorization superseded; use its recorded successor")
             pending = state.get("pending_authorizations", {}).get(event)
             fulfilled = state.get("fulfilled_authorizations", {}).get(event)
             if (
@@ -980,8 +1928,12 @@ def _execute_request(
                 if (
                     retained.get("instruction") != request["instruction"]
                     or retained.get("source_event_id") != event
-                    or not execution_binding_matches(
-                        root, retained.get("binding"), binding
+                    or not (
+                        preparation_binding_matches(root, retained, binding)
+                        if pending is not None
+                        else execution_binding_matches(
+                            root, retained.get("binding"), binding
+                        )
                     )
                 ):
                     raise ValueError("retained authorization is stale or scope differs")
@@ -998,6 +1950,7 @@ def _execute_request(
                 task_ref=task,
                 validation_assessor=validation_assessor,
                 authorization_only=True,
+                preparation_only=True,
             )
             if not authority.get("authorization_valid"):
                 raise ValueError(authority.get("reason", "authorization denied"))
@@ -1005,7 +1958,16 @@ def _execute_request(
                 "binding": binding,
                 "instruction": request["instruction"],
                 "source_event_id": event,
+                "preparation_contract_hash": preparation_contract_hash(
+                    root, request["spec"]
+                ),
             }
+            application["preparation_document_hex"] = read_spec_bytes(
+                root / request["spec"]
+            ).hex()
+            application["preparation_validation_baseline"] = (
+                _validation_preparation_baseline(root)
+            )
             if retained is not None:
                 application = retained
             if fulfilled is not None:
@@ -1120,7 +2082,14 @@ def _execute_request(
             if pending is None:
                 state["used_event_ids"].append(event)
             if pending is not None:
-                state.setdefault("fulfilled_authorizations", {})[event] = application
+                fulfilled_application = application | {"binding": binding}
+                if application["binding"] != binding:
+                    fulfilled_application["preparation_source_binding"] = application[
+                        "binding"
+                    ]
+                state.setdefault("fulfilled_authorizations", {})[event] = (
+                    fulfilled_application
+                )
                 _retain_history(
                     state,
                     "authorization_history",
@@ -1610,13 +2579,11 @@ def main(validation_assessor=None) -> int:
         if bool(args.request) == bool(args.audit_trace):
             raise ValueError("supply exactly one request or audit trace")
         if args.audit_trace:
-            result = audit_trace(
-                json.loads(args.audit_trace.read_text(encoding="utf-8"))
-            )
+            result = audit_trace(json.loads(read_spec_document(args.audit_trace)))
         else:
             result = execute_request(
                 args.project_root,
-                json.loads(args.request.read_text(encoding="utf-8")),
+                json.loads(read_spec_document(args.request)),
                 validation_assessor=validation_assessor,
             )
     except (OSError, ValueError, TypeError) as exc:

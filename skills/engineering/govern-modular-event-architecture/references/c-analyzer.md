@@ -29,7 +29,7 @@ establish an ownership PASS.
 - `architecture/manifest.yaml`
 - project-local `.c`, `.h`, `.cc`, `.cpp`, `.hpp`, and `.hh` files under declared module paths
 - complete `compile_commands.json`, target triple, and every governed translation unit
-- pinned `libclang==18.1.1`
+- project toolchain-lock provider with `clang==20.1.5` Python bindings and the pinned official native library
 - required schema 2.1.0/2.2.0 `source_sets`, `types`, `state_objects`, `type_exclusions`, `boundary_mappings`, `c_analyzer.ast`, and `c_analyzer.functional_boundary`
 - optional manifest `c_analyzer.forbidden_public_includes`, `forbidden_public_symbols`, and `forbidden_source_symbols`
 

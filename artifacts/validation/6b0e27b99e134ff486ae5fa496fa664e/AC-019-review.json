@@ -1,0 +1,8 @@
+{
+  "ac": "AC-019",
+  "criterion": "不可暫停來源有明確耗盡與缺口／停止處置；即時控制的聚合選擇符合期限；硬體必要 bank 有理由、容量、複製與所有權設計，並驗證使用中緩衝不被覆寫。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: An unpausable source declares overflow behavior; an immediate control path avoids batching that misses its deadline; DMA banks retain ownership until completion. Required finding for the counterexample: Treating hardware banks as proof of backpressure or overwriting an active DMA buffer violates FLOW-SOURCE-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

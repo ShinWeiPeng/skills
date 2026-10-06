@@ -1,0 +1,8 @@
+{
+  "ac": "AC-012",
+  "criterion": "更新成功呈現完整一致版本；寫入／生成失敗、中斷或基準競爭時保留資料與進度，未完成集合不冒充有效版本；恢復不覆寫後來修改。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Fault tests cover partial writes, actual effects before progress recording, restart, competing hashes, immutable history and bounded attempts. Effective status requires whole-result validation; parent/audit-child linkage resumes both transitions through the original entry.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

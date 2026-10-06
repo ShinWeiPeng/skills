@@ -170,7 +170,7 @@ actual PASS evidence for every AC and a passing code-review Spec axis with no mi
 incorrect, or scope-creep behavior.
 
 A confirmed unimplemented spec reopens in place before a possible contract-changing
-question. Every SPEC revision invalidates earlier execution authorization,
+question. Every SPEC revision outside the verified SPEC-0038 preparation transition below invalidates earlier execution authorization,
 including editorial changes, evidence-only updates and reconfirmation with no
 actual contract delta. The normalized contract hash may describe semantic changes
 but never retains or restores permission. After persisting and verifying the
@@ -392,7 +392,7 @@ to choose a topic again. If new premises invalidate it, save its revised status.
 
 A genuine scope change pauses the entire affected change set. Preserve its work,
 reconcile the complete proposal, obtain confirmation and fresh authorization.
-Independent tasks remain independent. Any SPEC revision invalidates old authority;
+Independent tasks remain independent. Except for the verified SPEC-0038 preparation transition below, any SPEC revision invalidates old authority;
 an unchanged-contract audit append is not a revision. The common modification
 entry checks current SPEC, authorization and scope. Verification failures are
 repaired through that same entry while its authorization remains valid.
@@ -415,6 +415,13 @@ repair operations remain readable for compatibility, not the new authoring flow.
 
 ## Acceptance planning before confirmation
 
+Use the owner's `acceptance_rows` parser for both SPEC checks and execution
+planning. ID, Requirements, Criterion and Validation Method are required; Evidence
+is optional until implementation and absence means unverified, never PASS. Reject
+malformed/duplicate rows and unknown headers consistently. The controlled
+preparation proof additionally permits adding an absent Evidence column with empty
+cells (SPEC-0042); it does not permit arbitrary editorial revision to retain authority.
+
 During specification synthesis, prepare readable methods and their machine-readable
 Acceptance Mapping together from adopted decisions. List all AC selection gaps in
 one review before confirmation; do not ask the user to fill tool fields. Governed
@@ -426,3 +433,88 @@ from SPEC after revisions and preserve legacy ungoverned host compatibility.
 Record explicit user waivers with their source and exact scope in SPEC, report
 them as user-waived rather than tested PASS, and retain every unwaived obligation.
 Never infer a waiver from unavailable hosts or hardware.
+
+
+## Verified preparation continuation (SPEC-0038)
+
+Complete AC prose and machine-readable selectors together before presenting a
+decision-complete proposal. Reloaded discussion context reports every selector gap;
+confirmation checks the plan again. Saving drafts remains available.
+
+The sole revision exception is a retained, unrevoked pending grant whose missing
+scenario selectors are uniquely determined by explicit SPEC-scoped project rules.
+Use managed prepare-validation with acceptance_mapping: true. The SPEC owner
+derives the additions; delivery reserves original bytes, input hashes and a
+versioned transition proof before reconciliation. Verify the entire document and
+ordered journal, then confirm and retry the original event through full admission.
+A preparation PASS never grants product or device authority or acceptance PASS.
+
+Capture original validation definitions with the pending grant. Existing rules,
+scenarios and layers remain exactly equal; only independent definitions may be added.
+Legacy recovery requires grant-bound validation history and original_document_hex
+matching both retained file hashes. Missing original definitions stay unverified.
+Unprovable history, ambiguous scenarios, modified existing values, definition drift,
+reopen, revocation and unrelated identities remain denied with their cause. Preserve
+old receipts and source events. Generic reconcile and same-ID contract changes are
+not covered by this exception. Missing claims, rationale or build selections still
+require an evidenced specification decision; do not guess them.
+
+## Automatic preparation and execution continuation (SPEC-0039)
+
+Use managed `continue-execution` as the parent entry after explicit execution
+authorization and on same-scope retries. Supply the actual `source_event_id`,
+original `instruction`, reviewed `expected_hash`, and the usual task/SPEC/working
+references. The parent retains the same event while deriving missing AC scenario
+selectors, saving transition evidence, confirming through the SPEC owner,
+retrying full admission, generating the acceptance projection and checking planning.
+Do not stop at a child `next_action`, or ask again merely because preparation
+changed a file. Hashes still protect concurrency and integrity; the owner-derived
+transition proves the allowed scope.
+
+Optional `preparation_patches` holds at most four reviewed additive definition
+patches handled by existing `prepare-validation`. Never invent ambiguous scenario,
+claim, rationale, threshold or build selections. Optional `continuation` is exactly
+`{"operation":"status"}` (default) or `{"operation":"apply","patch":{...}}`.
+The latter runs the reviewed managed replacement after readiness checks. A status
+continuation means implementation is admitted, not that code was written: resume
+the implementation workflow in the same turn, then test, repair within scope,
+review and call `complete` with actual acceptance evidence. Build, device and
+release actions retain their own operation-specific requirements.
+
+The parent saves product continuation checkpoints and rechecks receipts/target
+hashes on replay. Owner transition journals and grant history are preparation
+checkpoints. Identical deterministic preparation blockers are returned without
+repeating effects; changed real inputs permit re-evaluation. External planning
+conditions are rechecked instead of cached as permanent failures. Concurrent or
+revoked state never authorizes a blind retry.
+
+Legacy migration searches persisted authorization history for matching original
+event, binding and instruction, verifies original document hashes and validates
+the saved definition baseline, then appends a versioned migration record retaining
+the old application. This is caller-attested local evidence, not host-authenticated
+approval. It cannot reconstruct never-recorded data: report `legacy-baseline-missing`
+with the missing evidence, preserve the original record and investigate. If a real
+new user authorization already exists, bind that event to the current reviewed
+specification without requiring the missing old baseline; never manufacture one
+from a reload, quotation or automatic retry. Superseded events cannot regain authority.
+
+Report authorization validity, admission, source event, bound revision/hash,
+reason, next action and source trust separately. Preparation/admission success
+does not imply acceptance success. Ask only when a genuine user decision or missing
+authority remains, not to compensate for a recoverable preparation gap.
+
+## Shared document collections (SPEC-0044)
+
+Use the SPEC owner's [document governance](references/document-governance.md),
+[format contract](references/document-format.md), [update/recovery workflow](references/document-update-workflow.md)
+and [migration workflow](references/document-migration-workflow.md). Read the complete
+projection through `document_bundle`, including fixed design references. Current
+designs are maintained in Markdown; manifests/views are generated from those sources.
+Design, implementation and acceptance checks have distinct evidence requirements.
+Migrate the selected legacy SPEC/dependencies through the managed owner entry,
+preserving its source event and semantic proof; recover partial updates from the
+reserved originals. Solve failures and verify the original work before completion.
+
+## Design candidate staging
+
+Use the SPEC owner document_candidates.py JSON entry to save affected candidates before confirmation. Each immutable candidate path includes its content hash. The owner advances the working revision and embeds a derived collection digest in the authored Solution; confirmation and execution therefore bind every fixed reference, including a changed source index. Formal current designs and generated products still require the execution grant. Architecture-owned update/resume entries check the confirmed collection, versions and all resulting views.

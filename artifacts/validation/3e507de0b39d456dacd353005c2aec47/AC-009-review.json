@@ -1,0 +1,8 @@
+{
+  "ac": "AC-009",
+  "criterion": "對應驗收由 SPEC-0044 的 AC-009 負責。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Delegation to SPEC-0044 AC-009 and corresponding responsibility was reviewed; its actual host acceptance and evidence are recorded separately.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

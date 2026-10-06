@@ -51,3 +51,7 @@ replacing the evidence they cite. Whole-project checks include existing files an
 report misplaced files and broken references. Layout does not impose language
 analysis, dependency or isolation proofs; independent architecture and runtime
 verification requirements remain applicable; project-specific retention and Git ignore choices remain separate.
+
+## Shared coding rules
+
+[Coding standards](https://aihero.dev/skills-coding-standards) maintains the common rule clauses and project applicability. Architecture governance presents module, interface and flow designs before confirmation and compares implementation afterward. Domain modeling retains terminology; both professional skills use the plugin shared ADR format, workflow and checks.

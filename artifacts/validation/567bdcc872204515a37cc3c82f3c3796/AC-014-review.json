@@ -1,0 +1,8 @@
+{
+  "ac": "AC-014",
+  "criterion": "用到的舊 SPEC 及必要設計依賴可轉換新格式，ID／語意／來源／回答／證據狀態與引用可追溯；Markdown 成為目前來源，生成 manifest 一致。可證明純格式遷移沿用原授權，未知歷史不被偽造，無關歷史不被改寫。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Selected legacy SPEC and required manifest migrate automatically with raw-byte/projection proofs, IDs, answers, evidence and original authorization preserved. Dependencies are validated against the repository SPEC inventory; unrelated history is retained.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

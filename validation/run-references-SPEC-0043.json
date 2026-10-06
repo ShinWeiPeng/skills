@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "plan_manifest": "artifacts/validation/a31c718feb0c432a8ca761f47fef7ce5/manifest.json",
+  "evidence_manifests": [
+    "artifacts/validation/52d03be5a8354d0f81d3462982a9a6fe/manifest.json"
+  ]
+}

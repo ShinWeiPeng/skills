@@ -1,0 +1,8 @@
+{
+  "ac": "AC-009",
+  "criterion": "四份檢查文件依職責分開，使用同一規則 ID 並明示工具覆蓋與限制，既有執行流程引用而不重複定義；ADR 與遷移驗收範圍獨立。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed separate design/static/runtime checks and verification map. Static schema/architecture success explicitly does not prove fragmentation, real-time or target performance claims.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

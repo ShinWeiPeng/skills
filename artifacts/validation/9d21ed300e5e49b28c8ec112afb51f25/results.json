@@ -1,0 +1,90 @@
+[
+  {
+    "name": "delivery",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "test_managed_delivery",
+      "test_spec_governance",
+      "test_flow_cost_governance"
+    ],
+    "cwd": "C:\\Users\\hugo_peng\\skill\\skills",
+    "exit_code": 0
+  },
+  {
+    "name": "architecture-tests",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/governance_workflow_domain/architecture",
+      "-p",
+      "test_*.py"
+    ],
+    "cwd": "C:\\Users\\hugo_peng\\skill\\skills",
+    "exit_code": 0
+  },
+  {
+    "name": "project-validation-tests",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/modules/verification_ladder_domain/ladder",
+      "-p",
+      "test_project_validation.py"
+    ],
+    "cwd": "C:\\Users\\hugo_peng\\skill\\skills",
+    "exit_code": 0
+  },
+  {
+    "name": "distribution-tests",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/distribution",
+      "-p",
+      "test_shared_skill_distribution.py"
+    ],
+    "cwd": "C:\\Users\\hugo_peng\\skill\\skills\\.tmp\\coding-rules-rehearsal-507c37e4d3914f16829fce08d8b810fb",
+    "exit_code": 0
+  },
+  {
+    "name": "architecture-gate",
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "tools/architecture/architecture_cli.py",
+      "gate",
+      "--phase",
+      "development",
+      "--manifest",
+      "architecture/manifest.yaml",
+      "--adoption",
+      "architecture/adoption.yaml",
+      "--baseline",
+      "architecture/baseline.yaml",
+      "--format",
+      "text"
+    ],
+    "cwd": "C:\\Users\\hugo_peng\\skill\\skills",
+    "exit_code": 0
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "cwd": "C:\\Users\\hugo_peng\\skill\\skills",
+    "exit_code": 0
+  }
+]

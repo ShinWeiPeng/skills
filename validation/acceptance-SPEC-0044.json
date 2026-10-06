@@ -1,0 +1,179 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0044",
+  "source": {
+    "revision": 12,
+    "definitions_sha256": "5a7799a997dfc3fd78eaf20feeb5eae0e6ceec207856b3251edc328d3223e3d7"
+  },
+  "acceptance": {
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-003",
+        "criterion": "可由主檔找到各設計；不同設計分檔维护，引用可解析且不產生同一設計的平行可編輯副本。",
+        "validation method": "文件組織與引用正反案例；格式、版本與遷移驗收待確認。"
+      },
+      "criterion_sha256": "f635a0a3cda7a4d53a36527a9e713226c18085f3e5991780ff71102e947b854a",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-004",
+        "criterion": "多份 SPEC 可引用同一設計；新候選不改變既有確認版本，舊 SPEC 仍可追溯當時設計；同一目前設計不出現多份平行可編輯來源。",
+        "validation method": "跨 SPEC 引用、候選修改及歷史追溯正反案例；版本機制待定。"
+      },
+      "criterion_sha256": "50c20ca64540edecadb9ee695da35655e170aab9a23f31b9a0b295cca2f6fafe",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-005",
+        "criterion": "僅受影響設計建立候選；基準一致可依授權更新，基準已改變時保留資料並指出差異；舊／新 SPEC 分別可解析其確認版本，歷史版本不被修改。",
+        "validation method": "候選建立、基準競爭及歷史引用正反案例；原子更新與失敗恢復方式待定。"
+      },
+      "criterion_sha256": "1b8fc980e6897c134c05007bb809ee3508b92972ef1a6dd6a954827c6936fe25",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-006": {
+      "definition": {
+        "id": "AC-006",
+        "requirements": "REQ-006",
+        "criterion": "修改來源設計可一致產生 manifest 與圖表；來源缺欄、引用錯誤或产物過期能指出，不能靠手改产物掩蓋；既有資料遷移保留語意及可追溯性。",
+        "validation method": "Markdown 解析正反案例、確定性生成、漂移檢查及來源遷移回歸；具體格式待定。"
+      },
+      "criterion_sha256": "9b596e765a59a4ea8fc9df03a702d8222a4ea313c87ff03f496099599ac72036",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-007": {
+      "definition": {
+        "id": "AC-007",
+        "requirements": "REQ-007",
+        "criterion": "主檔可導覽分檔需求、驗收、討論及設計版本；目前、候選、歷史與生成產物位置和責任可區別；引用不重複設計內容，缺檔或錯誤引用能指出。",
+        "validation method": "目錄與引用正反案例、歷史不可修改及生成產物一致性檢查；遷移策略待定。"
+      },
+      "criterion_sha256": "07694f22e36444080e358cb315b0fdcd8d3fd1f6c00766071596e426cb776866",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-008": {
+      "definition": {
+        "id": "AC-008",
+        "requirements": "REQ-008",
+        "criterion": "確認與授權可追溯相同文件集合及版本；相關設計被改動時不得沿用舊確認，無關檔變更不阻擋；討論追加或相同內容重生成不產生重複授權要求。",
+        "validation method": "集合／依賴雜湊比對、實質變更與非語意變更及重放正反案例；可證明範圍待具體化。"
+      },
+      "criterion_sha256": "1237abe5a94ec7b052cc5441bd0273960422496c810ab6d2ced6b5094a157b2a",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-009": {
+      "definition": {
+        "id": "AC-009",
+        "requirements": "REQ-009",
+        "criterion": "無執行授權仍可正常保存本次分檔草案並檢查；正式設計、程式及其他需授權操作不因此開放；草案紀錄不虛報實作或實機驗證。",
+        "validation method": "草案保存／檢查正案、越界寫入與錯誤 PASS 反案；驗證暫存路径及引用限制。"
+      },
+      "criterion_sha256": "37efe18609515f105a8507614d58f0a7ad5ea7a0c1641515934f7c287ea9c06c",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-010": {
+      "definition": {
+        "id": "AC-010",
+        "requirements": "REQ-010",
+        "criterion": "尚無程式的設計草案可依設計條件檢查，不被實作證據缺失誤擋；必要可行性分析不能跳過；實作偏差及欠缺驗收證據分別被指出。缺資料不阻擋無相依工作，同範圍修復不重複授權，實質契約變更不得沿用舊授權。",
+        "validation method": "設計／實作／驗收分階段正反案例、相依阻擋與修復／變更授權回歸。"
+      },
+      "criterion_sha256": "27b4790d5de950445b018150c77b0d10015c2293d33c741ddc86549a2aeca3d6",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-011": {
+      "definition": {
+        "id": "AC-011",
+        "requirements": "REQ-011",
+        "criterion": "格式規範明定各領域欄位的承載位置，扁平表格與指定 YAML 區塊可一致解析及生成產物；重複來源、漏欄位、錯誤型別／單位／版本引用及未定義格式能指明位置且不假設成功。",
+        "validation method": "Markdown 表格／指定 YAML 區塊解析正反案例，涵蓋巢狀與條件式資料、欄位雙重維護、格式版本不支援及錯誤定位；確定性生成與來源／產物一致性回歸。"
+      },
+      "criterion_sha256": "31dd1226da87bbed38bc79fbd974c46bb45afccf0aed7f2032ccba77fd98d813",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-012": {
+      "definition": {
+        "id": "AC-012",
+        "requirements": "REQ-012",
+        "criterion": "更新成功呈現完整一致版本；寫入／生成失敗、中斷或基準競爭時保留資料與進度，未完成集合不冒充有效版本；恢復不覆寫後來修改。",
+        "validation method": "分階段失敗注入、重啟續作、版本競爭及來源／產物一致性測試；檢查完整生效與未完成狀態的讀取限制。"
+      },
+      "criterion_sha256": "9cf6779cbc07f8ecf70331fbc6cb23342b55c1f231d4f480ae6614b111d237e9",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-013": {
+      "definition": {
+        "id": "AC-013",
+        "requirements": "REQ-013",
+        "criterion": "失敗案例以原因解除、修復驗證通過及原工作完成為成功条件；只保存狀態、繼續其他工作或開放重試入口不算合格。可修復的格式／引用／生成／工具及循環閘門錯誤能沿用授權修復；重試不重複副作用、不覆寫其他修改，完整生效仍通過全套驗證。真正需外部資訊／決策時有調查依據、具體需求及續作紀錄。",
+        "validation method": "故障注入與治理死鎖回歸：檢查失敗後查因／修復／驗證／完成原工作的完整路徑、生成或局部寫入中斷後恢復、授權延續、無進展時方法調整、外部依賴解除後續作；不能以可繼續標記代替成功結果。"
+      },
+      "criterion_sha256": "2d369ad867c3db9f0de5b5189ed9fe2be01c674fc950b47eaa519833c3720394",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-014": {
+      "definition": {
+        "id": "AC-014",
+        "requirements": "REQ-014",
+        "criterion": "用到的舊 SPEC 及必要設計依賴可轉換新格式，ID／語意／來源／回答／證據狀態與引用可追溯；Markdown 成為目前來源，生成 manifest 一致。可證明純格式遷移沿用原授權，未知歷史不被偽造，無關歷史不被改寫。",
+        "validation method": "舊單檔 SPEC／manifest 遷移正反案例、欄位與語意對照、引用完整性、可信原事件授權延續及重複遷移回歸。"
+      },
+      "criterion_sha256": "f8c9ee4f7e4e7c3fe1bf98f344f96b958816871e342fed2a3ddb009c199cec5c",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-015": {
+      "definition": {
+        "id": "AC-015",
+        "requirements": "REQ-015",
+        "criterion": "缺漏依可信資料調查補足，未知／衝突留新工作版待決；實質契約改變須確認，歷史不可修改且舊讀取不作當前替代檢查。失敗可查因修復、驗證並完成原工作。",
+        "validation method": "缺資料／相矛盾資料／需求變更、歷史快照不可變、當前新機制與歷史讀取隔離、遷移中斷／重試及完成原工作正反案例。"
+      },
+      "criterion_sha256": "1a07113c0fbfbb4db5a0855ebfab654ac670ff3aeab692d616d40e0db1ddba79",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    }
+  }
+}

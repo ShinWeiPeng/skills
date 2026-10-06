@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 import json
 import tempfile
 import unittest
@@ -21,6 +22,7 @@ MODULE_PATH = (
 
 
 def load_module():
+    sys.path.insert(0, str(MODULE_PATH.parent))
     spec = importlib.util.spec_from_file_location("spec_contract", MODULE_PATH)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

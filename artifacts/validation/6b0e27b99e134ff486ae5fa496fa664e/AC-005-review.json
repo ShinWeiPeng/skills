@@ -1,0 +1,8 @@
+{
+  "ac": "AC-005",
+  "criterion": "驗證邊界拒絕可產生含來源與原因的事件，後續處理可接收；事件出口滿載或自身失敗需有可驗證處置。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Invalid configuration preserves the previous setting and reports source, operation and reason through the abnormal-event contract. Required finding for the counterexample: Returning an error without the required abnormal-event outlet violates ERR-PROTECT-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

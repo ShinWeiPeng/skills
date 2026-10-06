@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "run_id": "dda8af27815c4a03b180686de410b4d3",
+  "kind": "validation",
+  "started_at": "2026-10-02T11:37:29.706807+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "os-and-shared-document-governance",
+    "tool": {
+      "name": "host-validation",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:\\Users\\hugo_peng\\skill\\skills\\spec-governance\\FINAL-0043-0044-validation.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "7183d28fdefe535d4826a286247a7c87cd27551760c53d98fb6bda0fb18af2e1"
+    },
+    "inputs": {
+      "architecture": "840784ebba1f1ee49515ffeecaf3fe08d5b2dacb7bbcf1d79a56196922cb6717"
+    }
+  }
+}

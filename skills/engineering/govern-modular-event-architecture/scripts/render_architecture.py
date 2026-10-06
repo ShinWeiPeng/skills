@@ -1341,6 +1341,13 @@ def render_documents(manifest: dict[str, Any]) -> dict[Path, str]:
             documents[Path("generated") / f"realtime-study-{_file_name(study_id)}"] = (
                 "\n".join(_realtime_study_view(manifest, study))
             )
+    from design_contract import render_designs
+
+    implementation_design = render_designs(manifest)
+    if implementation_design is not None:
+        documents[Path("generated/implementation-design.md")] = (
+            GENERATED_MARKER + "\n" + implementation_design
+        )
     return {path: text.rstrip() + "\n" for path, text in documents.items()}
 
 

@@ -125,3 +125,63 @@ same-scope verification repairs use the same current authorization. Missing
 results to be produced do not prohibit their implementation; final acceptance
 still requires the confirmed layers and evidence. Read `generate-acceptance`
 output before applying its derived patch and preserve unresolved planning gaps.
+
+## Automatic preparation and execution continuation (SPEC-0039)
+
+Use managed `continue-execution` as the parent entry after explicit execution
+authorization and on same-scope retries. Supply the actual `source_event_id`,
+original `instruction`, reviewed `expected_hash`, and the usual task/SPEC/working
+references. The parent retains the same event while deriving missing AC scenario
+selectors, saving transition evidence, confirming through the SPEC owner,
+retrying full admission, generating the acceptance projection and checking planning.
+Do not stop at a child `next_action`, or ask again merely because preparation
+changed a file. Hashes still protect concurrency and integrity; the owner-derived
+transition proves the allowed scope.
+
+Optional `preparation_patches` holds at most four reviewed additive definition
+patches handled by existing `prepare-validation`. Never invent ambiguous scenario,
+claim, rationale, threshold or build selections. Optional `continuation` is exactly
+`{"operation":"status"}` (default) or `{"operation":"apply","patch":{...}}`.
+The latter runs the reviewed managed replacement after readiness checks. A status
+continuation means implementation is admitted, not that code was written: resume
+the implementation workflow in the same turn, then test, repair within scope,
+review and call `complete` with actual acceptance evidence. Build, device and
+release actions retain their own operation-specific requirements.
+
+The parent saves product continuation checkpoints and rechecks receipts/target
+hashes on replay. Owner transition journals and grant history are preparation
+checkpoints. Identical deterministic preparation blockers are returned without
+repeating effects; changed real inputs permit re-evaluation. External planning
+conditions are rechecked instead of cached as permanent failures. Concurrent or
+revoked state never authorizes a blind retry.
+
+Legacy migration searches persisted authorization history for matching original
+event, binding and instruction, verifies original document hashes and validates
+the saved definition baseline, then appends a versioned migration record retaining
+the old application. This is caller-attested local evidence, not host-authenticated
+approval. It cannot reconstruct never-recorded data: report `legacy-baseline-missing`
+with the missing evidence, preserve the original record and investigate. If a real
+new user authorization already exists, bind that event to the current reviewed
+specification without requiring the missing old baseline; never manufacture one
+from a reload, quotation or automatic retry. Superseded events cannot regain authority.
+
+Report authorization validity, admission, source event, bound revision/hash,
+reason, next action and source trust separately. Preparation/admission success
+does not imply acceptance success. Ask only when a genuine user decision or missing
+authority remains, not to compensate for a recoverable preparation gap.
+
+## Shared coding rule source
+
+Before designing or changing code, and during review, load [coding-standards](../coding-standards/SKILL.md). Use the same catalog version and project applicability result throughout. Architecture governance owns the module/interface/flow design records; present concrete implementation choices before SPEC confirmation and compare real code afterward. Do not copy rule definitions into this Skill.
+
+## Shared document collections (SPEC-0044)
+
+Use the SPEC owner's [document governance](../spec-governance/references/document-governance.md),
+[format contract](../spec-governance/references/document-format.md), [update/recovery workflow](../spec-governance/references/document-update-workflow.md)
+and [migration workflow](../spec-governance/references/document-migration-workflow.md). Read the complete
+projection through `document_bundle`, including fixed design references. Current
+designs are maintained in Markdown; manifests/views are generated from those sources.
+Design, implementation and acceptance checks have distinct evidence requirements.
+Migrate the selected legacy SPEC/dependencies through the managed owner entry,
+preserving its source event and semantic proof; recover partial updates from the
+reserved originals. Solve failures and verify the original work before completion.

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0042-coding-standards-delivery-repair.md",
+    "spec_id": "SPEC-0042",
+    "revision": 2,
+    "spec_sha256": "b17a4558df3d40738dc32912d97fe9da16136045a1107415e563b1dce5ba3426",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "14a073456ca85116c4c905bd54e99a55ea634fd8c2a2ce5931702a7a2fe63045"
+      },
+      "validation/acceptance-SPEC-0042.json": {
+        "state": "present",
+        "sha256": "a286e002062170ab7cebb0dfe1ebc746e65ac1bb2cd6c08347932f1f033fc0b7"
+      }
+    },
+    "skill": {
+      "version": "0.20.0",
+      "sha256": "5e4f782b1f1253e3085f1a54af7852f81f137718be9d6206fc2bbbaeec606649"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001",
+        "四/五欄解析結果一致且非法表被 owner 與 planner 同時拒絕",
+        "Host parser positive/negative fixtures"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Shared host parser contract."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002",
+        "空 Evidence 準備保留原事件，修改 criterion/evidence/其他章節及不連續歷史拒絕",
+        "Host preparation and tampering tests"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host receipt and owner transition with negative tampering cases."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-003",
+        "建立/搬移/刪除成功與越界、stale hash、覆蓋、連結、無授權均有正反案",
+        "Host temporary filesystem integration"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Bounded host filesystem operations in isolated temporary projects."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-004",
+        "原行為回歸與 source/package 一致，未覆寫不相關工作",
+        "Integration suite and diff review"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host integration, packaging and preservation checks."
+    }
+  }
+}

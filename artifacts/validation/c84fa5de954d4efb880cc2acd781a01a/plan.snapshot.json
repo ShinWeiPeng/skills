@@ -1,0 +1,667 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0041-memory-coding-rules.md",
+    "spec_id": "SPEC-0041",
+    "revision": 36,
+    "spec_sha256": "0937fc06b54fc34ebf33f8481ebddc7888cee8729e35f26ffc37e494dcf20ab7",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "14a073456ca85116c4c905bd54e99a55ea634fd8c2a2ce5931702a7a2fe63045"
+      },
+      "validation/acceptance-SPEC-0041.json": {
+        "state": "present",
+        "sha256": "a890908c086db34bbd9874d8a8fc3fc2e2b45e30e5afe5e59e8b9217813e41cc"
+      }
+    },
+    "skill": {
+      "version": "0.20.0",
+      "sha256": "5e4f782b1f1253e3085f1a54af7852f81f137718be9d6206fc2bbbaeec606649"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-002",
+        "示範不同平台與路徑的配置策略，不將 MCU 等同禁 heap 或 PC 等同無限制。",
+        "規則審查及適用性案例；待建立。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-003",
+        "耗盡案例有明確行為，禁止回退違反路徑配置／等待限制。",
+        "正反案例及適用檢查；待建立。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-004, REQ-005",
+        "借用、轉移、共享、取消與非同步逾時案例符合生命週期；不將 shared lifetime 當作寫入權限。",
+        "規則審查及對應案例；待建立。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-006",
+        "涵蓋大小溢位、來源有效長度不足、目的容量不足、靜態保證成立及保證失效重驗；未知情況不得視為安全。",
+        "正反案例與契約檢查；待建立。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-007",
+        "驗證邊界拒絕可產生含來源與原因的事件，後續處理可接收；事件出口滿載或自身失敗需有可驗證處置。",
+        "模組／父層事件契約與故障注入案例；依 REQ-009 至 REQ-012 的政策；未執行。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-008",
+        "驗證慢速接收、暫時拒絕、部分完成、滿載、停止／斷線時資料順序、所有權、容量上限及可觀測性；不得以任意加 bank 遮蔽積壓。",
+        "資料流契約測試與目標平台所需執行證據；門檻由專案決定。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-007": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-007",
+        "REQ-009",
+        "異常消費者延遲或事件送出失敗時，必要保護仍完成；非法操作不繼續，原路徑不依賴 log／復原完成。",
+        "事件消費延遲及送出失敗注入；即時路徑依專案驗證時間與阻塞限制。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-008": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-008",
+        "REQ-010",
+        "首次異常立即提交；重複異常累計且依期限通知；每次必要保護不被聚合省略。",
+        "首次／重複事件及時間邊界案例，驗證次數與保護呼叫；期限依專案提供。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-009": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-009",
+        "REQ-011",
+        "滿載加入新事件後仍不超出容量、最舊待送事件被移除、保留順序與覆寫數可驗證；必要保護仍完成，消費者持有資料不被覆寫。",
+        "小容量佇列、連續滿載與生產／消費交接案例；並行方式依專案提供。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-010": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-010",
+        "REQ-012",
+        "覆寫故障事件後，查詢仍反映持續故障；唯有擁有者依恢復條件更新才解除；重複故障不造成無界狀態增長，復原流程責任不與模組狀態混淆。",
+        "故障／事件覆寫／查詢／恢復的狀態轉移與所有權測試；依專案契約建立。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-011": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-011",
+        "REQ-013",
+        "高流量達門檻觸發送出，低流量未滿但達等待期限仍觸發；背壓時不誤報已交付；Stop 的剩餘批次依專案契約處理。",
+        "可控時間與下游拒收的資料流契約案例；門檻、期限與 Stop 政策由專案提供。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-012": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-012",
+        "REQ-014",
+        "Stop 拒絕新資料、期限內排空；下游停滯時依期限回報未完成並安全取消；不釋放仍持有的記憶體。",
+        "可控時鐘、部分傳送、永久拒收及引用延遲釋放的契約案例，期限由專案提供。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-013": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-013",
+        "REQ-015",
+        "至少涵蓋多命令來源的排序、公平性、回應關聯與滿載，以及 IMU 多輸出之慢消費者、共享生命週期與分支容量；比較具體候選方法，不因拓撲直接要求聚合，不默認所有分支一起阻塞。",
+        "設計案例與适用性正反測試；具體驗收映射待補全。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-014": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-014",
+        "REQ-016, REQ-017, REQ-018",
+        "多來源可追溯且 sequence 與實際接收順序符合契約；多輸出依相同資料頻率與分支政策驗證共享生命週期，不要求相同 baudrate。",
+        "多生產者交錯、慢分支、生命週期及頻率契約案例；未執行。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-015": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-015",
+        "REQ-018, REQ-019, REQ-020",
+        "相同資料頻率不被誤寫為相同實體速率；模組與受影響資料流有設計表、可見呈現紀錄、互相引用及程式對照；刻意遺漏方法或增加未宣告複製／緩衝時能指出缺口，不宣稱已完成設計或一致實作。",
+        "模組覆蓋、文件引用、呈現流程與實作偏差的正反案例；完整映射待補。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-016": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-016",
+        "REQ-021",
+        "模擬慢分支耗盡時依已呈現的用途契約跳過或停止，其他分支持續；缺口／未完成量及異常可觀測，容量不超限，仍被使用的共享資料不被覆寫或提前回收。",
+        "分支停滯、容量邊界及引用延遲釋放案例；依專案政策映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-017": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-017",
+        "REQ-022",
+        "設定驗證失敗時符合保留原狀契約；部分傳送失敗時完成層級、已完成範圍、剩餘處置及事件符合設計表，且不虛報撤回已產生效果。",
+        "設定非法值與部分完成後故障注入案例，核對狀態、進度、所有權及異常事件；依專案建立驗收映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-018": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-018",
+        "REQ-023",
+        "必須執行的復原通知在消費前被覆寫後，未完成狀態仍可被負責單元依契約期限發現並重新觸發；不能因通知遺失誤報完成，不能無界增加狀態或工作。",
+        "事件覆寫與復原消費延遲注入，核對狀態擁有者、重新觸發與期限；具體映射由專案定義。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-019": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-019",
+        "REQ-024",
+        "不可暫停來源有明確耗盡與缺口／停止處置；即時控制的聚合選擇符合期限；硬體必要 bank 有理由、容量、複製與所有權設計，並驗證使用中緩衝不被覆寫。",
+        "三類正反設計案例及適用性檢查；具體硬體與時序證據依專案契約提供。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-020": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-020",
+        "REQ-001, REQ-025",
+        "每項新增條款標明強度與適用條件；必要要求不被降為建議，可選方法不豁免 MUST；不採 SHOULD 有理由；程式規則與階段流程各在其文件，既有強度及例外政策未變。",
+        "逐條對照已採用決策、條款分類及適用性正反案例；完整驗收映射於正式確認前補全。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-021": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-021",
+        "REQ-026",
+        "設計表明列模組責任、共同契約與內部可變部分；故意讓呼叫端按私有演算法分支或讀取私有狀態時能指出違規；宣稱可替換的實作通過共同契約案例，未知或缺少證據不得宣稱符合。",
+        "模組設計正反案例、依賴及呼叫點審查、參數化共同契約測試；對應文件與工具映射待整理。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-022": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-022",
+        "REQ-027",
+        "十二組欄位及適用子表可呈現，已有資料以 ID 引用且不存在平行手寫來源；修改來源後可重新產生一致文件。未知／不適用／計畫／實作／驗證狀態可區別，刻意製造設計與程式差異不能僅因文件完整而通過。",
+        "schema／引用及生成一致性檢查、適用性正反案例與設計實作偏差審查；具體映射待整理。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-023": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-023",
+        "REQ-028",
+        "同步狀態更新操作在返回前達成契約所定完成狀態並提供有效結果；未完成工作只回報接受且可關聯後續完成／失敗；測試不得把接受誤當完成或把模組完成誤當傳輸完成。必要保護、異常事件及訂閱通知仍依各自契約驗證。",
+        "同步完成、同步失敗／部分完成、非同步接受後失敗及資料交接案例；更新對應文件、schema、檢查器及測試的適用映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-024": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-024",
+        "REQ-029",
+        "八組欄位與步驟子表可呈現且引用一致，區分同步結果、非同步接受、傳輸及遠端完成，無關項目可明示不適用，不暴露私有算法。",
+        "格式／引用及同步非同步資料交接正反案例。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-025": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-025",
+        "REQ-030",
+        "介面文件明示權限、保存引用與生命週期，無四引數或固定 byte 數的全域硬門檻；同概念分組有語意理由，受限路徑記錄目標 ABI、編譯檢視及必要量測，缺乏證據不宣稱較快或無堆疊成本。",
+        "值副本、含指標結構、同步借用、非同步持有及不同 ABI 案例的設計／程式審查，成本證據依路徑映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    },
+    "AC-026": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-026",
+        "REQ-031",
+        "公開介面均具九組契約欄位或有理由的不適用標示，可追溯原介面及驗證；同步／非同步、空值／非空、保存／不保存引用等案例可表達。缺少存取期間或並行修改保證不能僅靠 const 宣稱安全，資料流引用與模組介面一致。",
+        "子表 schema／引用正反案例及介面契約審查；檢查不存在範例值被默認為全域要求。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host fixtures and recorded design/source review verify the corresponding governance contract; target resource, timing and device claims require separate project evidence."
+    }
+  }
+}

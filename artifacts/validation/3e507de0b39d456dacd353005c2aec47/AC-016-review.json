@@ -1,0 +1,8 @@
+{
+  "ac": "AC-016",
+  "criterion": "各實際 OS 資源及同時使用的總預算可追溯；未知與實測區分，建立失敗／耗盡有處置與異常；取消／重啟不累積資源，共享資料在用期間不被回收；沒有無界擴容或未確認的配置回退。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "OS-RES-001 and resource tables distinguish typed project budgets, basis/measurement and actual simultaneous demand including OS overhead. Creation failure, exhaustion, cancellation/restart and live shared references retain defined handling.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-016",
+  "criterion": "模擬慢分支耗盡時依已呈現的用途契約跳過或停止，其他分支持續；缺口／未完成量及異常可觀測，容量不超限，仍被使用的共享資料不被覆寫或提前回收。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A display skips according to its declared freshness policy; a recorder stops its own branch according to its completeness policy. Both report gaps and release safely. Required finding for the counterexample: A stalled recorder blocks healthy outputs, or a shared block is recycled while retained: FLOW-FANOUT-006/FLOW-SHARE-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

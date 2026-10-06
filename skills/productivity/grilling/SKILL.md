@@ -95,3 +95,19 @@ turn with a clickable canonical SPEC ID/title link, actual revision and lifecycl
 status, a short change summary and the current execution authorization state.
 A failed save must be described as failed; never claim that an unpersisted change
 was saved. Link the same canonical file through reopening and confirmation.
+
+## Shared document collections (SPEC-0044)
+
+Use the SPEC owner's [document governance](../../engineering/spec-governance/references/document-governance.md),
+[format contract](../../engineering/spec-governance/references/document-format.md), [update/recovery workflow](../../engineering/spec-governance/references/document-update-workflow.md)
+and [migration workflow](../../engineering/spec-governance/references/document-migration-workflow.md). Read the complete
+projection through `document_bundle`, including fixed design references. Current
+designs are maintained in Markdown; manifests/views are generated from those sources.
+Design, implementation and acceptance checks have distinct evidence requirements.
+Migrate the selected legacy SPEC/dependencies through the managed owner entry,
+preserving its source event and semantic proof; recover partial updates from the
+reserved originals. Solve failures and verify the original work before completion.
+
+## Design candidate staging
+
+Use the SPEC owner document_candidates.py JSON entry to save affected candidates before confirmation. Each immutable candidate path includes its content hash. The owner advances the working revision and embeds a derived collection digest in the authored Solution; confirmation and execution therefore bind every fixed reference, including a changed source index. Formal current designs and generated products still require the execution grant. Architecture-owned update/resume entries check the confirmed collection, versions and all resulting views.

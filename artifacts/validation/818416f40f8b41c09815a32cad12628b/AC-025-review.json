@@ -1,0 +1,8 @@
+{
+  "ac": "AC-025",
+  "criterion": "介面文件明示權限、保存引用與生命週期，無四引數或固定 byte 數的全域硬門檻；同概念分組有語意理由，受限路徑記錄目標 ABI、編譯檢視及必要量測，缺乏證據不宣稱較快或無堆疊成本。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A small value containing a pointer documents the pointed-to storage lifetime; async retention explicitly extends that lifetime. ABI-sensitive costs use the selected compiler/target. Required finding for the counterexample: A shallow struct copy is treated as a deep copy, or four parameters/fixed bytes are assumed universally free: API-ACCESS-001/design failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

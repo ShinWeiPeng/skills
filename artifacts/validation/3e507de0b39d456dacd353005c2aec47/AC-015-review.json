@@ -1,0 +1,8 @@
+{
+  "ac": "AC-015",
+  "criterion": "所有權與共享保護可追溯；持有引用期間不被覆寫／回收，鎖等待與通道交互不造成互等，取消與失敗安全收尾；不符 ISR／時序限制的操作被指出，未因通道或 const 宣稱資料已安全。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Reviewed OS-SYNC-001 access, lifetime/reclamation, bounded lock scope, lock/channel deadlock avoidance, priority inversion and cancellation rules. Presence of fields or const/channel transfer does not prove concurrency safety.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

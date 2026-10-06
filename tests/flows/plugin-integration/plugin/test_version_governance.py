@@ -183,28 +183,52 @@ class RepositoryPolicyTests(unittest.TestCase):
             binary_crlf_fingerprint, MODULE.production_fingerprint(root)
         )
 
+    def _tracked_source_fixture(self):
+        fixture_root = REPOSITORY_ROOT / "build/test-git"
+        fixture_root.mkdir(parents=True, exist_ok=True)
+        directory = tempfile.TemporaryDirectory(dir=fixture_root)
+        self.addCleanup(directory.cleanup)
+        repository = Path(directory.name).resolve()
+        plugin = repository / "plugins/governed-engineering-skills"
+        source = plugin / "scripts/validate_integration.py"
+        source.parent.mkdir(parents=True)
+        source.write_bytes(
+            (PLUGIN_ROOT / "scripts/validate_integration.py").read_bytes()
+        )
+        skill = repository / "skills/engineering/sample/SKILL.md"
+        skill.parent.mkdir(parents=True)
+        skill.write_text("sample source\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "init", "--quiet"], cwd=repository, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "add", "plugins", "skills"],
+            cwd=repository,
+            check=True,
+            capture_output=True,
+        )
+        for field, value in [("PLUGIN_ROOT", plugin), ("REPOSITORY_ROOT", repository)]:
+            patch = mock.patch.object(MODULE, field, value)
+            patch.start()
+            self.addCleanup(patch.stop)
+        return plugin, source
+
     def test_source_fingerprint_ignores_workspace_only_artifacts(self) -> None:
-        untracked = PLUGIN_ROOT / "untracked-fingerprint-probe.txt"
-        ignored = PLUGIN_ROOT / "build" / "fingerprint-probe" / "generated.txt"
-        self.addCleanup(untracked.unlink, missing_ok=True)
-        self.addCleanup(shutil.rmtree, ignored.parents[0], True)
-        baseline = MODULE.production_fingerprint(PLUGIN_ROOT)
-
-        untracked.write_text("must not affect release identity\n", encoding="utf-8")
+        plugin, _ = self._tracked_source_fixture()
+        baseline = MODULE.production_fingerprint(plugin)
+        (plugin / "untracked-fingerprint-probe.txt").write_text(
+            "workspace only", encoding="utf-8"
+        )
+        ignored = plugin / "build/fingerprint-probe/generated.txt"
         ignored.parent.mkdir(parents=True)
-        ignored.write_text("must not affect release identity\n", encoding="utf-8")
-
-        self.assertEqual(baseline, MODULE.production_fingerprint(PLUGIN_ROOT))
+        ignored.write_text("generated", encoding="utf-8")
+        self.assertEqual(baseline, MODULE.production_fingerprint(plugin))
 
     def test_source_fingerprint_changes_for_tracked_production_bytes(self) -> None:
-        source = PLUGIN_ROOT / "scripts" / "validate_integration.py"
-        original = source.read_bytes()
-        baseline = MODULE.production_fingerprint(PLUGIN_ROOT)
-        try:
-            source.write_bytes(original + b"\n# tracked production probe\n")
-            self.assertNotEqual(baseline, MODULE.production_fingerprint(PLUGIN_ROOT))
-        finally:
-            source.write_bytes(original)
+        plugin, source = self._tracked_source_fixture()
+        baseline = MODULE.production_fingerprint(plugin)
+        source.write_bytes(source.read_bytes() + b"\n# tracked production probe\n")
+        self.assertNotEqual(baseline, MODULE.production_fingerprint(plugin))
 
     def test_assembly_inventory_rejects_a_missing_tracked_source(self) -> None:
         completed = subprocess.CompletedProcess(

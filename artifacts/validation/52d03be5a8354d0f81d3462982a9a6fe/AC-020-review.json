@@ -1,0 +1,8 @@
+{
+  "ac": "AC-020",
+  "criterion": "平台與執行設計可表達已採用欄位及其適用性；執行設計引用平台、模組及資料流版本，沒有重複手填的來源欄位。未知、不適用、估算及量測可區分，數值單位與依據可追溯。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Platform Facts, Execution Units and Resource Inventory tables round-trip with designated nested YAML. Tests reject duplicate sources, unknown/wrong versions, invalid quantities and missing basis; all design IDs and versions share the document owner.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

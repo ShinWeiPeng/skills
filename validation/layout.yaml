@@ -63,11 +63,13 @@ entries:
   - architecture/decisions/ADR-0013-continuous-stable-plugin-versioning.md
   - architecture/decisions/ADR-0014-personal-git-marketplace-publication.md
   - architecture/decisions/ADR-0015-test-validation-layout.md
+  - artifacts/spec0038-install.log
   - distribution/README.md
   - docs/engineering/ask-matt.md
   - docs/engineering/clarify-improvement-proposals.md
   - docs/engineering/code-review.md
   - docs/engineering/codebase-design.md
+  - docs/engineering/coding-standards.md
   - docs/engineering/diagnosing-bugs.md
   - docs/engineering/domain-modeling.md
   - docs/engineering/engineering-risk-routing.md
@@ -97,6 +99,10 @@ entries:
   - plugins/governed-engineering-skills/AGENTS.md
   - plugins/governed-engineering-skills/CHANGELOG.md
   - plugins/governed-engineering-skills/docs/versioning.md
+  - plugins/governed-engineering-skills/references/adr/checks.md
+  - plugins/governed-engineering-skills/references/adr/format.md
+  - plugins/governed-engineering-skills/references/adr/workflow.md
+  - plugins/governed-engineering-skills/references/document-ownership.md
   - skills/deprecated/README.md
   - skills/deprecated/design-an-interface/SKILL.md
   - skills/deprecated/qa/SKILL.md
@@ -110,9 +116,26 @@ entries:
   - skills/engineering/codebase-design/DEEPENING.md
   - skills/engineering/codebase-design/DESIGN-IT-TWICE.md
   - skills/engineering/codebase-design/SKILL.md
+  - skills/engineering/coding-standards/SKILL.md
+  - skills/engineering/coding-standards/agents/openai.yaml
+  - skills/engineering/coding-standards/references/applicability.md
+  - skills/engineering/coding-standards/references/catalog.json
+  - skills/engineering/coding-standards/references/migration-map.md
+  - skills/engineering/coding-standards/references/rule-versioning.md
+  - skills/engineering/coding-standards/references/verification/design-checks.md
+  - skills/engineering/coding-standards/references/verification/rule-verification-map.md
+  - skills/engineering/coding-standards/references/verification/runtime-checks.md
+  - skills/engineering/coding-standards/references/verification/scenario-review.md
+  - skills/engineering/coding-standards/references/verification/static-checks.md
+  - skills/engineering/coding-standards/rules/boundary-validation.md
+  - skills/engineering/coding-standards/rules/data-flow.md
+  - skills/engineering/coding-standards/rules/error-handling.md
+  - skills/engineering/coding-standards/rules/execution-and-platform.md
+  - skills/engineering/coding-standards/rules/memory-management.md
+  - skills/engineering/coding-standards/rules/module-boundaries.md
+  - skills/engineering/coding-standards/rules/type-and-state-ownership.md
   - skills/engineering/diagnosing-bugs/SKILL.md
   - skills/engineering/diagnosing-bugs/references/debug-model-packet.md
-  - skills/engineering/domain-modeling/ADR-FORMAT.md
   - skills/engineering/domain-modeling/CONTEXT-FORMAT.md
   - skills/engineering/domain-modeling/SKILL.md
   - skills/engineering/engineering-risk-routing/SKILL.md
@@ -135,17 +158,22 @@ entries:
   - skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0007-pinned-espressif-libclang-provider.md
   - skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0008-validate-without-materializing-archive-links.md
   - skills/engineering/govern-modular-event-architecture/architecture/design/libclang-toolchain-provider.md
-  - skills/engineering/govern-modular-event-architecture/references/adr-policy.md
-  - skills/engineering/govern-modular-event-architecture/references/algorithm-design.md
+  - skills/engineering/govern-modular-event-architecture/references/algorithm-design-workflow.md
+  - skills/engineering/govern-modular-event-architecture/references/algorithm-record-format.md
+  - skills/engineering/govern-modular-event-architecture/references/architecture-check-workflow.md
+  - skills/engineering/govern-modular-event-architecture/references/architecture-design-workflow.md
+  - skills/engineering/govern-modular-event-architecture/references/architecture-exception-policy.md
   - skills/engineering/govern-modular-event-architecture/references/c-analyzer.md
-  - skills/engineering/govern-modular-event-architecture/references/core-standard.md
+  - skills/engineering/govern-modular-event-architecture/references/data-flow-design-format.md
   - skills/engineering/govern-modular-event-architecture/references/description-views.md
-  - skills/engineering/govern-modular-event-architecture/references/event-contract.md
-  - skills/engineering/govern-modular-event-architecture/references/execution-efficiency.md
-  - skills/engineering/govern-modular-event-architecture/references/flow-cost-review.md
+  - skills/engineering/govern-modular-event-architecture/references/event-port-example.md
+  - skills/engineering/govern-modular-event-architecture/references/execution-design-workflow.md
+  - skills/engineering/govern-modular-event-architecture/references/flow-cost-checks.md
+  - skills/engineering/govern-modular-event-architecture/references/flow-review-format.md
   - skills/engineering/govern-modular-event-architecture/references/manifest-schema.md
+  - skills/engineering/govern-modular-event-architecture/references/module-design-format.md
   - skills/engineering/govern-modular-event-architecture/references/realtime-scheduling-analysis.md
-  - skills/engineering/govern-modular-event-architecture/references/runtime-validation.md
+  - skills/engineering/govern-modular-event-architecture/references/runtime-checks.md
   - skills/engineering/govern-modular-event-architecture/references/test-validation-architecture.md
   - skills/engineering/govern-modular-event-architecture/requirements-architecture.txt
   - skills/engineering/grill-with-docs/SKILL.md
@@ -217,6 +245,14 @@ entries:
   - skills/productivity/teach/SKILL.md
   - skills/productivity/writing-great-skills/GLOSSARY.md
   - skills/productivity/writing-great-skills/SKILL.md
+  - skills/engineering/coding-standards/rules/os-execution.md
+  - skills/engineering/govern-modular-event-architecture/references/execution-design-format.md
+  - skills/engineering/govern-modular-event-architecture/references/os-execution-checks.md
+  - skills/engineering/govern-modular-event-architecture/references/platform-design-format.md
+  - skills/engineering/spec-governance/references/document-format.md
+  - skills/engineering/spec-governance/references/document-governance.md
+  - skills/engineering/spec-governance/references/document-migration-workflow.md
+  - skills/engineering/spec-governance/references/document-update-workflow.md
   role: documentation
 - include:
   - tests/flows/plugin-integration/support/installer/fake-artifact-access.ps1
@@ -303,6 +339,8 @@ entries:
   - tools/architecture/source_sets.py
   - tools/architecture/state_catalog.py
   - tools/architecture/type_catalog.py
+  - tools/architecture/design_contract.py
+  - tools/architecture/coding_rule_contract.py
   role: generated
   provenance: Canonical architecture tooling bootstrap/render mirror
 - include:
@@ -434,6 +472,17 @@ entries:
   - skills/engineering/verification-ladder/scripts/project_validation.py
   - skills/engineering/verification-ladder/scripts/run_storage.py
   - skills/engineering/verification-ladder/scripts/verification_ladder.py
+  - skills/engineering/govern-modular-event-architecture/scripts/design_contract.py
+  - skills/engineering/govern-modular-event-architecture/scripts/coding_rule_contract.py
+  - skills/engineering/govern-modular-event-architecture/scripts/architecture_document_update.py
+  - skills/engineering/govern-modular-event-architecture/scripts/design_sources.py
+  - skills/engineering/govern-modular-event-architecture/scripts/os_design_contract.py
+  - skills/engineering/spec-governance/scripts/design_table_format.py
+  - skills/engineering/spec-governance/scripts/document_bundle.py
+  - skills/engineering/spec-governance/scripts/document_candidates.py
+  - skills/engineering/spec-governance/scripts/document_updates.py
+  - skills/engineering/spec-governance/scripts/legacy_document_migration.py
+  - skills/engineering/spec-governance/scripts/state_lock.py
   role: production
 - include:
   - specs/SPEC-0001-docs-only-routing-precedence.md
@@ -470,6 +519,11 @@ entries:
   - specs/SPEC-0032-recoverable-spec-sync.md
   - specs/SPEC-0033-preauthorization-acceptance-repair.md
   - specs/SPEC-0034-continuous-validation-preparation.md
+  - specs/SPEC-0040-coding-standards-migration.md
+  - specs/SPEC-0041-memory-coding-rules.md
+  - specs/SPEC-0042-coding-standards-delivery-repair.md
+  - specs/SPEC-0043-os-execution-planning.md
+  - specs/SPEC-0044-shared-document-governance.md
   role: specification
 - include:
   - skills/engineering/govern-modular-event-architecture/assets/project/ADR-0001-modular-event-architecture.md.tmpl
@@ -494,6 +548,7 @@ entries:
   - tests/modules/governance_workflow_domain/explanation/test_skill_contract.py
   - tests/modules/governance_workflow_domain/proposals/test_validation_workflow.py
   - tests/modules/governance_workflow_domain/test_validation_layout.py
+  - tests/modules/governance_workflow_domain/architecture/test_design_contract.py
   role: test
   owner: governance_workflow_domain
 - include:
@@ -508,6 +563,8 @@ entries:
   - tests/flows/plugin-integration/plugin/test_managed_delivery.py
   - tests/flows/plugin-integration/plugin/test_routing.py
   - tests/flows/plugin-integration/plugin/test_spec_governance.py
+  - tests/flows/plugin-integration/plugin/test_document_governance.py
+  - tests/flows/plugin-integration/plugin/test_os_execution_governance.py
   - tests/flows/plugin-integration/plugin/test_turn_continuity.py
   - tests/flows/plugin-integration/plugin/test_discussion_entry.py
   - tests/flows/plugin-integration/plugin/test_spec0036_consolidation.py
@@ -556,6 +613,16 @@ entries:
   - validation/layout.yaml
   - validation/run-references-SPEC-0028.json
   - validation/verification-ladder.yaml
+  - validation/acceptance-SPEC-0040.json
+  - validation/acceptance-SPEC-0041.json
+  - validation/acceptance-SPEC-0042.json
+  - validation/acceptance-SPEC-0043.json
+  - validation/acceptance-SPEC-0044.json
+  - validation/run-references-SPEC-0040.json
+  - validation/run-references-SPEC-0041.json
+  - validation/run-references-SPEC-0042.json
+  - validation/run-references-SPEC-0043.json
+  - validation/run-references-SPEC-0044.json
   role: validation-definition
 - include:
   - tests/modules/governance_workflow_domain/support/fanout_reference.py
@@ -612,6 +679,41 @@ entries:
 - include:
   - validation/run-references-SPEC-0035.json
   role: validation-definition
+- include:
+  - specs/SPEC-0037-working-spec-validation-preparation.md
+  - specs/SPEC-0038-validation-preparation-authorization-continuity.md
+  - specs/SPEC-0039-authorization-event-routing-and-legacy-migration.md
+  role: specification
+- include:
+  - validation/acceptance-SPEC-0038.json
+  - validation/run-references-SPEC-0038.json
+  - validation/acceptance-SPEC-0039.json
+  - validation/run-references-SPEC-0039.json
+  role: validation-definition
+- include:
+  - specs/SPEC-[0-9][0-9][0-9][0-9]/**
+  role: specification
+  provenance: SPEC-owner requirements, acceptance, discussion, fixed references and
+    affected candidates
+- include:
+  - architecture/designs/**
+  role: documentation
+  provenance: Maintained architecture Markdown records and SPEC-owner source index
+- include:
+  - architecture/history/**
+  role: documentation
+  provenance: Immutable prior source snapshots; not fresh acceptance evidence
+- include:
+  - tools/architecture/document_bundle.py
+  - tools/architecture/document_updates.py
+  - tools/architecture/design_table_format.py
+  - tools/architecture/state_lock.py
+  - tools/architecture/design_sources.py
+  - tools/architecture/os_design_contract.py
+  - tools/architecture/architecture_document_update.py
+  role: generated
+  provenance: Architecture bootstrap copies from the SPEC and architecture source
+    owners
 required_analyzers:
 - python
 external_modules:
@@ -637,7 +739,7 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py:
-    sha256: cfe795c007f12725a5aa43ae11313e81a72921677609da796664d7c1a547e531
+    sha256: 861e721203940dc5ea9292bd4d167d87a9ee9c676eea56ddac4a20943bb4257b
     targets:
     - scripts/assemble_plugin.py
     - scripts/validate_distribution.py

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-003",
+  "criterion": "可由主檔找到各設計；不同設計分檔维护，引用可解析且不產生同一設計的平行可編輯副本。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Canonical entry plus requirements/acceptance/discussion/references preserve the shared owner projection. Generated navigation links every part. Actual migration, reconciliation, confirmation, authorization and completion keep split sources.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-014",
+  "criterion": "多來源可追溯且 sequence 與實際接收順序符合契約；多輸出依相同資料頻率與分支政策驗證共享生命週期，不要求相同 baudrate。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: One mutex protects sequence assignment and ordered admission; the record includes source/correlation. IMU outputs use the same data frequency with different physical rates. Required finding for the counterexample: A assigns sequence 1, unlocks, B enqueues 2 before A enqueues 1 despite an ordered contract; or equal baudrate is substituted for equal frequency.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

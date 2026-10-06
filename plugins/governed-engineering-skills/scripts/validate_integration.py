@@ -31,6 +31,7 @@ EXPECTED_SKILLS = {
     "research",
     "domain-modeling",
     "codebase-design",
+    "coding-standards",
     "code-review",
     "resolving-merge-conflicts",
     "grill-me",

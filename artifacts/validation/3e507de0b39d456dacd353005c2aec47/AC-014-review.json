@@ -1,0 +1,8 @@
+{
+  "ac": "AC-014",
+  "criterion": "各資料／命令／事件／通知通道可表達容量、排序、交付及完成語意；受影響資料的所有權可追溯。滿載、合併及部分處理案例不能誤報完成，故障通知覆寫不清除持續狀態；缺少契約被指出。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Per-channel inventory records ordering, delivery/completion, full/timeout/Stop and value/reference holding contracts. Existing finite event overwrite and persistent module-fault policies remain applicable; semantic review is explicit.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

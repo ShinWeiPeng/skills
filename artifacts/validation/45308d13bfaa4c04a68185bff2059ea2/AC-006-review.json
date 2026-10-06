@@ -1,0 +1,8 @@
+{
+  "ac": "AC-006",
+  "criterion": "修改來源設計可一致產生 manifest 與圖表；來源缺欄、引用錯誤或产物過期能指出，不能靠手改产物掩蓋；既有資料遷移保留語意及可追溯性。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Manifest and description views are deterministic products of Markdown sources. Duplicate field owners and manual drift are rejected, including public render admission. Actual repository source migration and whole generated-tool checks pass.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

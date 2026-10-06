@@ -1,0 +1,8 @@
+{
+  "ac": "AC-007",
+  "criterion": "異常消費者延遲或事件送出失敗時，必要保護仍完成；非法操作不繼續，原路徑不依賴 log／復原完成。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Protection executes before attempting event submission; delayed log consumption changes no safety action. Required finding for the counterexample: Blocking protection until logging completes violates ERR-PROTECT-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

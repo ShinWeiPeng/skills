@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "run_id": "9db7882061184940914b09e07790e46a",
+  "kind": "validation",
+  "started_at": "2026-10-02T03:42:29.272299+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "coding-governance-host-acceptance",
+    "tool": {
+      "name": "reviewed-host-acceptance",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "spec-governance/DISCUSSION-REQUEST-record-acceptance.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "b95762d71015954895b6a7ccd74577adb020d4f09437f3585ecfee38117fd04c"
+    },
+    "inputs": {
+      "plan": "7c40d73826a7b654a8b21d5424274c5a2d5c84f7012922aa3ba9726e1566878d",
+      "architecture/adoption.yaml": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88",
+      "architecture/manifest.yaml": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb",
+      "validation/verification-ladder.yaml": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9",
+      "validation/layout.yaml": "14a073456ca85116c4c905bd54e99a55ea634fd8c2a2ce5931702a7a2fe63045",
+      "validation/acceptance-SPEC-0040.json": "a7d4369ab80e75b7f0e601afd45d5314478651e69be7ddbfa5192e36955dc9a7"
+    },
+    "spec": "SPEC-0040",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005",
+      "AC-006",
+      "AC-007",
+      "AC-008",
+      "AC-009"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-10-02T03:42:29.591034+00:00",
+  "files": {
+    ".run.json": "5e2ed5aad2b652b15920646c9604010603ac43977abd43d37b28dd0c931ac986",
+    "AC-001-review.json": "e8abb03ef7ef302d3911a9d6ea27493e4c6207ba29fca8f538ba2ff7e79ed067",
+    "AC-002-review.json": "c5124b0ae2f305b4bf620697b6a8c6dc0c9d72b00e6122672f3dadc205d5465e",
+    "AC-003-review.json": "c6a4f0d4ae69d21ef2b065dc1a5db7cbfa45571d0dcb49b5ebcf9274f208c4a6",
+    "AC-004-review.json": "96099346dc9f839791c54acf26b1e8c22d674342fd98cd3f81ee9c653b5008fa",
+    "AC-005-review.json": "fc20f056270d005d89f0c5d55a2dcd4dd39d03876bfb22fa1519e990f31bd161",
+    "AC-006-review.json": "88d38ff04420899003953f2589dfbad454ea06db9cb66fbd05ba07f19f94e155",
+    "AC-007-review.json": "6b7e82f555bb75b87f9268da568b70a1f39bb56cf361a697bf2efcfb17fac8a9",
+    "AC-008-review.json": "411fd14dfee5d7d083cb0c766dd61c688dbb38a929edfab5a0dc98bacbb2fd51",
+    "AC-009-review.json": "2dd86b177c96dcfb74286497bd69c56ce90bec47ae05b4d15740a9363e4834ff",
+    "architecture-gate.log": "6e46cef25f638849963030254151ed6ef7fed04de3b6a6bdc3216769cc9fda74",
+    "architecture-tests.log": "61a67d0aa8cd715782c5a07658e0e998bee22064ec47060e6463b84fac4010d9",
+    "delivery.log": "14868b42efe7f25244c20a222ec41ac9a1729180cb227a89774d93c47ff3db1e",
+    "diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "distribution-tests.log": "e218a247908b59074731c8c05f731a5756d9484517c8df2f8406186316b6c77d",
+    "evidence.json": "c8016d72e2d42c66370cc0d15a2a38a904c3cbbb25ea1d8b9b863c93d8483854",
+    "project-validation-tests.log": "9398a391c063bb12ade454a8847d58c9209ae0a92741e05c69124a74e739e4f0",
+    "test-provenance.json": "41c390e70927fc7e6d027f14f5af8dd87efb3d376104090af09eb2201a28f466"
+  }
+}

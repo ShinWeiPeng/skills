@@ -1,0 +1,8 @@
+{
+  "ac": "AC-020",
+  "criterion": "每項新增條款標明強度與適用條件；必要要求不被降為建議，可選方法不豁免 MUST；不採 SHOULD 有理由；程式規則與階段流程各在其文件，既有強度及例外政策未變。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Each rule retains its ID, strength, condition and requirement; SHOULD deviation is explained. Required finding for the counterexample: Treating an optional method as permission to waive a MUST, or adding agent steps to rule rows, fails review.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

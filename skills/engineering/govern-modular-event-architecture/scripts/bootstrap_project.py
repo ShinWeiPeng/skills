@@ -40,6 +40,24 @@ def _governance_files(
     project_root: Path, *, include_c_toolchain: bool, test_owner: str
 ) -> dict[Path, str | Path]:
     files: dict[Path, str | Path] = {
+        project_root / "tools/architecture/architecture_document_update.py": SKILL_ROOT
+        / "scripts/architecture_document_update.py",
+        project_root / "tools/architecture/os_design_contract.py": SKILL_ROOT
+        / "scripts/os_design_contract.py",
+        project_root / "tools/architecture/design_table_format.py": SKILL_ROOT.parent
+        / "spec-governance/scripts/design_table_format.py",
+        project_root / "tools/architecture/state_lock.py": SKILL_ROOT.parent
+        / "spec-governance/scripts/state_lock.py",
+        project_root / "tools/architecture/design_sources.py": SKILL_ROOT
+        / "scripts/design_sources.py",
+        project_root / "tools/architecture/document_bundle.py": SKILL_ROOT.parent
+        / "spec-governance/scripts/document_bundle.py",
+        project_root / "tools/architecture/document_updates.py": SKILL_ROOT.parent
+        / "spec-governance/scripts/document_updates.py",
+        project_root / "tools/architecture/design_contract.py": SKILL_ROOT
+        / "scripts/design_contract.py",
+        project_root / "tools/architecture/coding_rule_contract.py": SKILL_ROOT
+        / "scripts/coding_rule_contract.py",
         project_root / "tools/architecture/validation_layout.py": SKILL_ROOT
         / "scripts/validation_layout.py",
         project_root / "tools/architecture/run_storage.py": SKILL_ROOT.parent
@@ -230,6 +248,13 @@ def bootstrap(project_root: Path, spec_path: Path) -> list[Path]:
         yaml.safe_dump(spec, sort_keys=False, allow_unicode=True), encoding="utf-8"
     )
     written.append(manifest_path)
+    from design_sources import source_documents
+
+    for relative, source in source_documents(spec).items():
+        destination = project_root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(source, encoding="utf-8", newline="\n")
+        written.append(destination)
     written.extend(write_documents(spec, manifest_path))
     adoption_path.write_text(
         yaml.safe_dump(adoption, sort_keys=False, allow_unicode=True),

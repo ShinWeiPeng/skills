@@ -1,0 +1,8 @@
+{
+  "ac": "AC-024",
+  "criterion": "八組欄位與步驟子表可呈現且引用一致，區分同步結果、非同步接受、傳輸及遠端完成，無關項目可明示不適用，不暴露私有算法。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Eight flow groups reference interface contracts and step-level completion semantics; unrelated fields carry explicit reasons. Required finding for the counterexample: Exposing private algorithm steps as fabricated end-to-end flows or inconsistent completion references fails review.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

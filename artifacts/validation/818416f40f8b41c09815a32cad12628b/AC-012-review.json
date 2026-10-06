@@ -1,0 +1,8 @@
+{
+  "ac": "AC-012",
+  "criterion": "Stop 拒絕新資料、期限內排空；下游停滯時依期限回報未完成並安全取消；不釋放仍持有的記憶體。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Stop refuses new data, drains until its deadline, reports remaining work and safely cancels/releases holds. Required finding for the counterexample: Deadline expiry alone frees an outstanding consumer reference: FLOW-STOP-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

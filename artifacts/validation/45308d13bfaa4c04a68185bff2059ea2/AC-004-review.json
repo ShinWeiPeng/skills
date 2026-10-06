@@ -1,0 +1,8 @@
+{
+  "ac": "AC-004",
+  "criterion": "多份 SPEC 可引用同一設計；新候選不改變既有確認版本，舊 SPEC 仍可追溯當時設計；同一目前設計不出現多份平行可編輯來源。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Current Markdown design sources preserve stable identity/version and every manifest catalog/extension. Candidate, current, immutable history and generated outputs have separate locations and responsibilities.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

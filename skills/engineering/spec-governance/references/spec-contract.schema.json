@@ -29,17 +29,48 @@
           "type": "string",
           "pattern": "^spec-governance/WORKING-SPEC-[^/]+\\.journal\\.jsonl$"
         },
-        "revision": {"type": "integer", "minimum": 1},
-        "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "continuity": {"type": "string", "enum": ["continuous", "unavailable"]},
-        "status": {"type": "string", "enum": ["working", "confirmed"]},
-        "spec_id": {"type": "string", "pattern": "^SPEC-[0-9]{4}$"},
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "snapshot_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "continuity": {
+          "type": "string",
+          "enum": [
+            "continuous",
+            "unavailable"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "working",
+            "confirmed"
+          ]
+        },
+        "spec_id": {
+          "type": "string",
+          "pattern": "^SPEC-[0-9]{4}$"
+        },
         "change_set": {
           "type": "string",
           "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
         },
-        "task_ref": {"type": ["string", "null"]},
-        "branch_ref": {"type": ["string", "null"]}
+        "task_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "branch_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
       "additionalProperties": false
     },
@@ -55,83 +86,302 @@
         "resulting_impact"
       ],
       "properties": {
-        "discussion_id": {"type": "string", "pattern": "^DISC-[0-9]{3}$"},
-        "situation": {"type": "string", "minLength": 1},
-        "question": {"type": "string", "minLength": 1},
-        "options_and_tradeoffs": {"type": "string", "minLength": 1},
-        "user_answer": {"type": "string", "minLength": 1},
-        "explicit_rationale": {"type": "string", "minLength": 1},
+        "discussion_id": {
+          "type": "string",
+          "pattern": "^DISC-[0-9]{3}$"
+        },
+        "situation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "options_and_tradeoffs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_answer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "explicit_rationale": {
+          "type": "string",
+          "minLength": 1
+        },
         "resulting_impact": {
           "type": "array",
-          "items": {"type": "string", "pattern": "^(REQ|DEC|AC)-[0-9]{3}$"}
+          "items": {
+            "type": "string",
+            "pattern": "^(REQ|DEC|AC)-[0-9]{3}$"
+          }
         }
       },
       "additionalProperties": false
     },
     "CanonicalSpecReference": {
       "type": "object",
-      "required": ["spec_id", "path", "revision", "status"],
+      "required": [
+        "spec_id",
+        "path",
+        "revision",
+        "status"
+      ],
       "properties": {
-        "spec_id": {"type": "string", "pattern": "^SPEC-[0-9]{4}$"},
-        "path": {"type": "string", "pattern": "^specs/SPEC-[0-9]{4}-[a-z0-9-]+\\.md$"},
-        "revision": {"type": "integer", "minimum": 1},
+        "spec_id": {
+          "type": "string",
+          "pattern": "^SPEC-[0-9]{4}$"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^specs/SPEC-[0-9]{4}-[a-z0-9-]+\\.md$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
         "status": {
           "type": "string",
-          "enum": ["working", "confirmed", "implemented"]
+          "enum": [
+            "working",
+            "confirmed",
+            "implemented"
+          ]
         }
       },
       "additionalProperties": false
     },
     "SpecConsistencyAssessment": {
       "type": "object",
-      "required": ["verdict", "delta", "relationships", "conflicts", "open_decisions"],
+      "required": [
+        "verdict",
+        "delta",
+        "relationships",
+        "conflicts",
+        "open_decisions"
+      ],
       "properties": {
-        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "BLOCKED"
+          ]
+        },
         "delta": {
           "type": "object",
-          "required": ["added_ids", "changed_ids", "removed_ids"],
+          "required": [
+            "added_ids",
+            "changed_ids",
+            "removed_ids"
+          ],
           "properties": {
-            "added_ids": {"type": "array", "items": {"type": "string"}},
-            "changed_ids": {"type": "array", "items": {"type": "string"}},
-            "removed_ids": {"type": "array", "items": {"type": "string"}}
+            "added_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "changed_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "removed_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           },
           "additionalProperties": false
         },
-        "relationships": {"type": "array"},
-        "conflicts": {"type": "array"},
-        "open_decisions": {"type": "array", "items": {"type": "string"}}
+        "relationships": {
+          "type": "array"
+        },
+        "conflicts": {
+          "type": "array"
+        },
+        "open_decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
       "additionalProperties": true
     },
     "CommitPreparationResult": {
       "type": "object",
-      "required": ["verdict"],
+      "required": [
+        "verdict"
+      ],
       "properties": {
-        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
-        "disposition": {
-          "type": ["string", "null"],
-          "enum": ["delete", "keep-local", "archive", null]
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "BLOCKED"
+          ]
         },
-        "bundles": {"type": "array", "items": {"type": "string"}},
-        "tracked_paths": {"type": "array", "items": {"type": "string"}},
-        "staged_paths": {"type": "array", "items": {"type": "string"}},
-        "action_performed": {"type": "boolean"},
-        "reason": {"type": "string"},
+        "disposition": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "delete",
+            "keep-local",
+            "archive",
+            null
+          ]
+        },
+        "bundles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tracked_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "staged_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action_performed": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
         "options": {
           "type": "array",
-          "items": {"type": "string", "enum": ["delete", "keep-local", "archive"]}
+          "items": {
+            "type": "string",
+            "enum": [
+              "delete",
+              "keep-local",
+              "archive"
+            ]
+          }
         }
       },
       "additionalProperties": true
     },
     "SpecTraceabilityAssessment": {
       "type": "object",
-      "required": ["verdict", "uncovered_requirements", "uncovered_acceptance", "scope_creep"],
+      "required": [
+        "verdict",
+        "uncovered_requirements",
+        "uncovered_acceptance",
+        "scope_creep"
+      ],
       "properties": {
-        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
-        "uncovered_requirements": {"type": "array", "items": {"type": "string"}},
-        "uncovered_acceptance": {"type": "array", "items": {"type": "string"}},
-        "scope_creep": {"type": "array", "items": {"type": "string"}}
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "BLOCKED"
+          ]
+        },
+        "uncovered_requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uncovered_acceptance": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_creep": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "DocumentReference": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DocumentBundle": {
+      "type": "object",
+      "required": [
+        "format_version",
+        "canonical",
+        "sections",
+        "designs"
+      ],
+      "properties": {
+        "format_version": {
+          "const": 1
+        },
+        "canonical": {
+          "type": "string",
+          "pattern": "^specs/SPEC-[0-9]{4}-.+\\.md$"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "section",
+              "path"
+            ],
+            "properties": {
+              "section": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "designs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentReference"
+          }
+        }
       },
       "additionalProperties": false
     }

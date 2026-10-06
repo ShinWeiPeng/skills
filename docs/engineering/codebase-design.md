@@ -35,3 +35,7 @@ The point of keeping it standalone is that you can also reach for it on its own 
 ## Where it fits
 
 `codebase-design` is a **reach-for-it-anytime standalone** — the shared vocabulary layer under the engineering skills. Its closest neighbour is [domain-modeling](https://aihero.dev/skills-domain-modeling), the parallel vocabulary skill for the problem domain rather than the module structure. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+
+## Shared coding rules
+
+[Coding standards](https://aihero.dev/skills-coding-standards) maintains the common rule clauses and project applicability. Architecture governance presents module, interface and flow designs before confirmation and compares implementation afterward. Domain modeling retains terminology; both professional skills use the plugin shared ADR format, workflow and checks.

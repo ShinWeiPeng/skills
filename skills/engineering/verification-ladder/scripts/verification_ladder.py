@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -261,6 +262,7 @@ def validate_matrix(
     allowed_rule_fields = {
         "id",
         "architecture_refs",
+        "spec_ids",
         "contract_dimensions",
         "execution_changes",
         "evidence_claims",
@@ -277,6 +279,16 @@ def validate_matrix(
             f"unknown {path} field {field!r}"
             for field in sorted(set(rule) - allowed_rule_fields)
         )
+        if "spec_ids" in rule:
+            scopes = _list_of_strings(rule["spec_ids"], f"{path}.spec_ids", errors)
+            if (
+                not scopes
+                or len(scopes) != len(set(scopes))
+                or any(
+                    re.fullmatch(r"SPEC-[0-9]{4}", scope) is None for scope in scopes
+                )
+            ):
+                errors.append(f"{path}.spec_ids requires nonempty canonical SPEC IDs")
         rule_id = rule.get("id")
         if not isinstance(rule_id, str) or not rule_id:
             errors.append(f"{path}.id is required")
@@ -403,8 +415,18 @@ def _requested(args: argparse.Namespace) -> dict[str, set[str]]:
     }
 
 
-def plan(matrix: dict[str, Any], requested: dict[str, set[str]]) -> dict[str, Any]:
+def plan(
+    matrix: dict[str, Any], requested: dict[str, set[str]], *, spec_id=None
+) -> dict[str, Any]:
     problems: list[str] = []
+    scoped = any("spec_ids" in rule for rule in matrix["rules"])
+    if scoped and (
+        not isinstance(spec_id, str) or re.fullmatch(r"SPEC-[0-9]{4}", spec_id) is None
+    ):
+        return {
+            "status": "BLOCKED",
+            "errors": ["scoped rules require a canonical spec_id"],
+        }
     all_requested: set[str] = set()
     for field, values in requested.items():
         unknown = values - TAXONOMY[field]
@@ -413,6 +435,22 @@ def plan(matrix: dict[str, Any], requested: dict[str, set[str]]) -> dict[str, An
     activated: list[dict[str, Any]] = []
     mapped: set[str] = set()
     for rule in matrix["rules"]:
+        if "spec_ids" in rule:
+            scopes = rule["spec_ids"]
+            if (
+                not isinstance(scopes, list)
+                or not scopes
+                or any(
+                    not isinstance(value, str)
+                    or re.fullmatch(r"SPEC-[0-9]{4}", value) is None
+                    for value in scopes
+                )
+                or len(scopes) != len(set(scopes))
+            ):
+                problems.append("invalid rule spec_ids")
+                continue
+            if spec_id not in scopes:
+                continue
         matches = {
             value
             for field, values in requested.items()
@@ -473,6 +511,7 @@ def _parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--matrix", required=True, type=Path)
         command_parser.add_argument("--architecture", required=True, type=Path)
         command_parser.add_argument("--on-device", type=Path)
+    plan_parser.add_argument("--spec-id")
     plan_parser.add_argument("--contract-dimension", action="append", default=[])
     plan_parser.add_argument("--execution-change", action="append", default=[])
     plan_parser.add_argument("--evidence-claim", action="append", default=[])
@@ -506,7 +545,7 @@ def main() -> int:
             "layer_contract_count": len(matrix["layers"]),
         }
     else:
-        result = plan(matrix, _requested(args))
+        result = plan(matrix, _requested(args), spec_id=args.spec_id)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["status"] == "PASS" else 2
 

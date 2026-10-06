@@ -46,8 +46,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
-- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`main`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (cli)
-- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`assess_project`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (function)
+- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
+- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`plan`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`validate_matrix`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`validate_paths`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`assess_evidence`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)
 
 ## Port Contracts
 

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-006",
+  "criterion": "驗證慢速接收、暫時拒絕、部分完成、滿載、停止／斷線時資料順序、所有權、容量上限及可觀測性；不得以任意加 bank 遮蔽積壓。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A partial send keeps its offset and holds unsent storage within the capacity bound. Required finding for the counterexample: Allocating another bank on each refusal hides backlog: FLOW-BOUND-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

@@ -51,3 +51,15 @@ replacing the evidence they cite. Whole-project checks include existing files an
 report misplaced files and broken references. Directory checks do not require
 language analysis, dependency or isolation proofs; independent product architecture
 checks retain their own requirements; project-specific retention and Git ignore choices remain separate.
+
+## Shared coding rules
+
+[Coding standards](https://aihero.dev/skills-coding-standards) maintains the common rule clauses and project applicability. Architecture governance presents module, interface and flow designs before confirmation and compares implementation afterward. Domain modeling retains terminology; both professional skills use the plugin shared ADR format, workflow and checks.
+
+## Maintained designs
+
+Module, interface, flow, platform and execution designs have separate Markdown sources. Catalog documents preserve remaining fields and extensions. The manifest and diagrams are generated; phase gates report source drift before accepting the implementation.
+
+## OS planning and phase checks
+
+Architecture governance owns platform-design-format.md, execution-design-format.md and os-execution-checks.md in references/. Before SPEC confirmation, present nine applicability decisions and the seven execution design groups, with concrete OS tools and capacity/lifecycle contracts. The pure program requirements belong to coding-standards/rules/os-execution.md. Run validate_os_designs with the actual phase; implementation and target acceptance evidence are required when their phase is reached.

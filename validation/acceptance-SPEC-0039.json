@@ -1,0 +1,75 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0039",
+  "source": {
+    "revision": 2,
+    "definitions_sha256": "64d899668a7dccf62dc138b220fab1d66e57c798432212276b5b0ff7ff8d6fea"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001, REQ-002",
+        "criterion": "一次授權下，父流程自動完成缺失情境對照修復、owner 確認及完整 admission，抵達隔離 fixture 的原實作接續入口；原事件 ID 不變且沒有第二次授權請求。",
+        "validation method": "Host caller-to-managed end-to-end integration"
+      },
+      "criterion_sha256": "b38d9f34ba85230417e1c0a48bc118d7889387bd7fff806c1750d3815e9768ab",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Caller routing and event identity are host contracts."
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-003, REQ-006",
+        "criterion": "中斷重入不重複套用；並行修改不覆寫；相同輸入無進展時有限退出；其他 SPEC 授權隔離。",
+        "validation method": "Host state transition and fault injection"
+      },
+      "criterion_sha256": "d4d02db3420ec2a86c2714c1e2f855375ec547ce77913a8e13071362e8cc366c",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Atomic state transitions and recovery run on the host."
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-004, REQ-005",
+        "criterion": "可驗證歷史可遷移；缺失、錯誤雜湊、改門檻、跨身份、撤銷和未知差異拒絕；原紀錄不變。",
+        "validation method": "Host migration positive/negative fixtures"
+      },
+      "criterion_sha256": "968182f22eb0ed61518b2cc86b75491a1e26fea1db588a096f66169bdd15e095",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Migration verifies historical host records."
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-006",
+        "criterion": "新授權有效但其他 gate 未通過時仍禁止產品操作，輸出能分辨授權與准入原因。",
+        "validation method": "Host managed admission integration"
+      },
+      "criterion_sha256": "34a7bcfd8b2976814a844241901120ad22410449c141f8ea09ba5e6ffbb603a1",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Authorization and admission are independent host decisions."
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-001, REQ-004, REQ-005",
+        "criterion": "SPEC-0068 歷史隔離 fixture 覆蓋可信歷史恢復、資料不足明確回報、已有較新真實授權不依赖舊快照三條路；引用或重載不建立授權；不修改實際韌體專案。",
+        "validation method": "Isolated historical-case regression"
+      },
+      "criterion_sha256": "380131d703ecf7ac8db7825a600217283a278a77038e322f5122dbc275fe9511",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "Historical data is replayed in an isolated host fixture, with no device claim."
+    }
+  }
+}

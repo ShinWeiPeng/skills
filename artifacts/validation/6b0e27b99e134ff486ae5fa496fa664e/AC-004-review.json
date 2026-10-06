@@ -1,0 +1,8 @@
+{
+  "ac": "AC-004",
+  "criterion": "涵蓋大小溢位、來源有效長度不足、目的容量不足、靜態保證成立及保證失效重驗；未知情況不得視為安全。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Check multiplication before allocation, then verify valid source length and destination capacity. A static bound may discharge that exact check. Required finding for the counterexample: Checking only the wrapped result, or using a check after another writer changed the length, violates BND-CHECK-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

@@ -109,7 +109,7 @@ safety or other quality risks, or needs fallback behavior, treat the feature as
 algorithm-bearing.
 
 For an architecture proposal, invoke `$govern-modular-event-architecture` and
-read its `references/algorithm-design.md`. Record the screening conclusion for
+read its `references/algorithm-design-workflow.md`. Record the screening conclusion for
 every feature. A triggered feature requires a proposed Algorithm Design Record
 owned by its implementing L1 or L2 module. A non-triggered feature requires a
 specific `not applicable` reason.

@@ -1,5 +1,11 @@
 Availability:
 
+SPEC and execution planning share one acceptance-table parser. Evidence may be
+absent while planning; that means unverified. A controlled preparation step can
+add an empty Evidence column without a second authorization, while preserving
+the original event, exact source document, validation definitions and audit chain.
+Changes to requirements, thresholds or existing evidence do not qualify.
+
 Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/spec-governance)
@@ -17,6 +23,12 @@ changes are paused. This shared plugin workflow does not require project reminde
 and does not claim to intercept arbitrary host tools.
 
 ## What it does
+
+A complete working specification may retain an existing execution instruction
+while missing validation rules are prepared. Only additive validation definitions
+are writable in this state. Confirmation of the unchanged contract can resume the
+original instruction; product changes still require confirmation and normal
+admission. Changed requirements and revoked authorization cannot use this path.
 
 `spec-governance` owns one canonical change-set specification from the first durable decision through verified implementation. Writing or confirming a specification does not itself authorize product execution.
 
@@ -54,7 +66,7 @@ concise open text question. Already-active Plan may use a permitted menu after
 shared question-policy preflight. Questions have no response deadline. Neither a timeout nor selecting an option grants
 execution permission. Higher-priority host interaction rules still apply.
 
-Every SPEC revision, including editorial changes and reconfirmation with no
+Except for the verified SPEC-0038 preparation transition below, every SPEC revision, including editorial changes and reconfirmation with no
 semantic change, requires a fresh `開始執行` covering that revision. Discussion
 continues to update SPEC while product work waits. Final evidence updates also
 end the previous permission; subsequent product work needs fresh authorization.
@@ -180,7 +192,7 @@ check does not confirm it automatically. Decision choices have at least three
 meaningful alternatives; numeric and clear free-text answers are supported.
 
 SPEC saving uses a short shared lock with a 30-second maximum wait and rereads the
-latest version before saving. Any SPEC revision requires fresh execution authority.
+latest version before saving. A SPEC revision requires fresh execution authority unless the verified SPEC-0038 preparation exception below applies.
 With an unchanged confirmed SPEC, implementation and correction use one managed
 entry. The result a change must produce is checked after that change. Definitions
 are rebuilt from SPEC; missing verification selectors or evidence remain explicit
@@ -196,3 +208,84 @@ the same SPEC. Missing selections are listed together before confirmation, while
 drafts can still be saved. A generated mapping is not a complete plan or passing
 test evidence. Explicit user waivers are recorded with their scope and source and
 shown separately from tests that passed; other evidence remains required.
+
+
+## Verified preparation continuation (SPEC-0038)
+
+Complete AC prose and machine-readable selectors together before presenting a
+decision-complete proposal. Reloaded discussion context reports every selector gap;
+confirmation checks the plan again. Saving drafts remains available.
+
+The sole revision exception is a retained, unrevoked pending grant whose missing
+scenario selectors are uniquely determined by explicit SPEC-scoped project rules.
+Use managed prepare-validation with acceptance_mapping: true. The SPEC owner
+derives the additions; delivery reserves original bytes, input hashes and a
+versioned transition proof before reconciliation. Verify the entire document and
+ordered journal, then confirm and retry the original event through full admission.
+A preparation PASS never grants product or device authority or acceptance PASS.
+
+Capture original validation definitions with the pending grant. Existing rules,
+scenarios and layers remain exactly equal; only independent definitions may be added.
+Legacy recovery requires grant-bound validation history and original_document_hex
+matching both retained file hashes. Missing original definitions stay unverified.
+Unprovable history, ambiguous scenarios, modified existing values, definition drift,
+reopen, revocation and unrelated identities remain denied with their cause. Preserve
+old receipts and source events. Generic reconcile and same-ID contract changes are
+not covered by this exception. Missing claims, rationale or build selections still
+require an evidenced specification decision; do not guess them.
+
+## Automatic preparation and execution continuation (SPEC-0039)
+
+Use managed `continue-execution` as the parent entry after explicit execution
+authorization and on same-scope retries. Supply the actual `source_event_id`,
+original `instruction`, reviewed `expected_hash`, and the usual task/SPEC/working
+references. The parent retains the same event while deriving missing AC scenario
+selectors, saving transition evidence, confirming through the SPEC owner,
+retrying full admission, generating the acceptance projection and checking planning.
+Do not stop at a child `next_action`, or ask again merely because preparation
+changed a file. Hashes still protect concurrency and integrity; the owner-derived
+transition proves the allowed scope.
+
+Optional `preparation_patches` holds at most four reviewed additive definition
+patches handled by existing `prepare-validation`. Never invent ambiguous scenario,
+claim, rationale, threshold or build selections. Optional `continuation` is exactly
+`{"operation":"status"}` (default) or `{"operation":"apply","patch":{...}}`.
+The latter runs the reviewed managed replacement after readiness checks. A status
+continuation means implementation is admitted, not that code was written: resume
+the implementation workflow in the same turn, then test, repair within scope,
+review and call `complete` with actual acceptance evidence. Build, device and
+release actions retain their own operation-specific requirements.
+
+The parent saves product continuation checkpoints and rechecks receipts/target
+hashes on replay. Owner transition journals and grant history are preparation
+checkpoints. Identical deterministic preparation blockers are returned without
+repeating effects; changed real inputs permit re-evaluation. External planning
+conditions are rechecked instead of cached as permanent failures. Concurrent or
+revoked state never authorizes a blind retry.
+
+Legacy migration searches persisted authorization history for matching original
+event, binding and instruction, verifies original document hashes and validates
+the saved definition baseline, then appends a versioned migration record retaining
+the old application. This is caller-attested local evidence, not host-authenticated
+approval. It cannot reconstruct never-recorded data: report `legacy-baseline-missing`
+with the missing evidence, preserve the original record and investigate. If a real
+new user authorization already exists, bind that event to the current reviewed
+specification without requiring the missing old baseline; never manufacture one
+from a reload, quotation or automatic retry. Superseded events cannot regain authority.
+
+Report authorization validity, admission, source event, bound revision/hash,
+reason, next action and source trust separately. Preparation/admission success
+does not imply acceptance success. Ask only when a genuine user decision or missing
+authority remains, not to compensate for a recoverable preparation gap.
+
+## Maintained document collections
+
+Each design has one maintained Markdown source. The compact SPEC entry points to
+requirements, acceptance, discussion and fixed design versions. The SPEC owner
+checks the full collection and preserves confirmed history. Interrupted updates
+retain original bytes and current authority so the cause can be repaired and the
+original update completed without overwriting later edits.
+
+## Design candidate staging
+
+Use the SPEC owner document_candidates.py JSON entry to save affected candidates before confirmation. Each immutable candidate path includes its content hash. The owner advances the working revision and embeds a derived collection digest in the authored Solution; confirmation and execution therefore bind every fixed reference, including a changed source index. Formal current designs and generated products still require the execution grant. Architecture-owned update/resume entries check the confirmed collection, versions and all resulting views.

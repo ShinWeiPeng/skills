@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0038-validation-preparation-authorization-continuity.md",
+    "spec_id": "SPEC-0038",
+    "revision": 2,
+    "spec_sha256": "fcd92b634840139d6fe1164787b5b8bd9b1628d10ea7a7c07cb90efb79daa1fc",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "a7e8d64769de9ea625f9d156bc43b42ce2c4c9050628f4fd5ff25eda4ad52cba"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "3a5194beb0a450740ac3056803d311d83f978ffc2911442a3df6b58f7eeb0d29"
+      },
+      "validation/acceptance-SPEC-0038.json": {
+        "state": "present",
+        "sha256": "d4fd4547b8ae3a535ae8f800f091cb2c0f08f4f1a60f23e60d5020a346b94bf3"
+      }
+    },
+    "skill": {
+      "version": "0.20.0",
+      "sha256": "819c201bf9f777256cdaea92a2594eaffe96039944f89661939e70633131d5ee"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001",
+        "新方案缺少適用情境、claims 或 rationale 時，方案完整性及確認入口均列出缺項；草稿保存成功；完整計畫不被誤報驗收通過。",
+        "Host completeness and materialization integration tests"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Completeness and confirmation decisions are host CLI contracts."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-002, REQ-003, REQ-004, REQ-005",
+        "重現 SPEC-0068 revision 2 pending → 補 AC-003 對照 → reconcile → confirmed → admission，沿用同一來源事件；準備期間產品寫入仍拒絕。",
+        "Host managed delivery integration regression"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Replay the firmware incident as isolated host state fixtures; no device claim."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-004, REQ-005",
+        "保持 ID 不變而修改需求、驗收內容、门檻、既有對照；或一般 reopen、撤銷、跨身份、損壞歷史、未知差異時，均拒絕沿用授權且產品檔案不變。",
+        "Host table-driven negative integration tests"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Negative authorization boundaries are host state-machine behavior."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-003, REQ-006",
+        "並行變更、中斷與同一請求重放不覆寫變更、不重複套用、不增加權限；恢復只能使用驗證完整的轉換。",
+        "Host concurrency and fault-injection integration tests"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Host locking, interrupted saves and idempotency require deterministic fault injection."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-007, REQ-008",
+        "舊授權案例在歷史與雜湊可重建時通過；缺證據時指出具體缺項且保存原紀錄。",
+        "Host legacy-state recovery fixtures"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Legacy recovery verifies document hashes and journal continuity on the host."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-008",
+        "原有授權、撤銷與管理入口回歸通過；技能、流程及 docs 對允許的例外描述一致；組裝外掛與 distribution validation 通過。",
+        "Existing regression suite, documentation review and distribution validation"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Regression and assembled distribution checks do not claim desktop hook firing or physical validation."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-002",
+  "criterion": "九項無遺漏；適用項有方法及理由，不適用項有原因；單執行緒、RTOS 及硬即時案例依條件展開，未知資訊不被當作不適用或已驗證。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Nine applicability categories and seven groups have explicit applicable/not-applicable/unknown decisions and reasons. OS fixtures cover valid design, bare-metal non-applicability, unknown rejection and real-time phase obligations.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

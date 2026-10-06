@@ -13,6 +13,10 @@ import re
 import sys
 from pathlib import Path
 
+_SPEC_OWNER = Path(__file__).resolve().parents[2] / "spec-governance/scripts"
+sys.path.insert(0, str(_SPEC_OWNER))
+from document_bundle import read_spec_document, read_spec_bytes, spec_hash
+
 import yaml
 from run_storage import allocate_run, finalize_run, validate_run, source_snapshot
 from verification_ladder import (
@@ -74,7 +78,7 @@ def read_document(root, relative, records, required=False):
         return {}
     if not path.is_file() or path.stat().st_size > MAX_BYTES:
         raise ValueError(f"invalid or oversized document: {relative}")
-    raw = path.read_bytes()
+    raw = read_spec_bytes(path)
     records[relative] = {"state": "present", "sha256": hashlib.sha256(raw).hexdigest()}
     try:
         data = (
@@ -92,21 +96,26 @@ def read_document(root, relative, records, required=False):
 
 
 def spec_contract(text):
+    # The SPEC owner defines the table; do not maintain a second positional parser.
+    owner = Path(__file__).resolve().parents[2] / "spec-governance/scripts"
+    if str(owner) not in sys.path:
+        sys.path.insert(0, str(owner))
+    from spec_contract import acceptance_rows
+
     identity = re.search(r"(?m)^spec_id:\s*(SPEC-\d{4})\s*$", text)
     revision = re.search(r"(?m)^revision:\s*(\d+)\s*$", text)
     if not identity or not revision:
         raise ValueError("invalid SPEC identity/revision")
-    section = re.search(r"(?ms)^## Acceptance Criteria\s*\n(.*?)(?=^## |\Z)", text)
-    rows = {}
-    if section:
-        for line in section.group(1).splitlines():
-            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-            if cells and re.fullmatch(r"AC-\d+", cells[0]):
-                if len(cells) != 5 or cells[0] in rows:
-                    raise ValueError("malformed or duplicate acceptance row")
-                rows[cells[0]] = cells
-    if not rows:
-        raise ValueError("SPEC has no acceptance criteria")
+    rows = {
+        row["id"]: [
+            row["id"],
+            row["requirements"],
+            row["criterion"],
+            row["validation method"],
+            row.get("evidence", ""),
+        ]
+        for row in acceptance_rows(text)
+    }
     return identity.group(1), int(revision.group(1)), rows
 
 
@@ -134,7 +143,7 @@ def skill_identity():
         )
     )
     hashes = {
-        str(p.relative_to(skills)): hashlib.sha256(p.read_bytes()).hexdigest()
+        str(p.relative_to(skills)): hashlib.sha256(read_spec_bytes(p)).hexdigest()
         for p in files
     }
     version = "source-checkout"
@@ -145,7 +154,7 @@ def skill_identity():
     ]
     for candidate in candidates:
         if candidate.is_file():
-            version = json.loads(candidate.read_text(encoding="utf-8"))["version"]
+            version = json.loads(read_spec_document(candidate))["version"]
             break
     return {"version": version, "sha256": digest(hashes)}
 
@@ -225,7 +234,7 @@ def _assess(root, spec, phase, candidate_text, result):
     path = project_path(root, spec)
     if path.parent != root / "specs" or path.stat().st_size > MAX_BYTES:
         raise ValueError("expected canonical SPEC directly under specs/")
-    raw = path.read_bytes()
+    raw = read_spec_bytes(path)
     text = raw.decode("utf-8-sig").replace("\r\n", "\n")
     spec_id, revision, rows = spec_contract(text)
     if not path.name.startswith(spec_id + "-"):
@@ -281,7 +290,7 @@ def _assess(root, spec, phase, candidate_text, result):
         sys.path.insert(0, str(governance))
     from spec_contract import acceptance_selector_gaps
 
-    selection_errors = acceptance_selector_gaps(mapping["acceptance"], matrix)
+    selection_errors = acceptance_selector_gaps(mapping["acceptance"], matrix, spec_id)
     if selection_errors:
         raise ValueError("; ".join(selection_errors))
     plans = {}
@@ -323,7 +332,7 @@ def _assess(root, spec, phase, candidate_text, result):
             raise ValueError(
                 f"{ac}: evidence claims and applicability rationale required"
             )
-        selected = plan(matrix, requested)
+        selected = plan(matrix, requested, spec_id=spec_id)
         if selected["status"] != "PASS":
             raise ValueError(f"{ac}: " + "; ".join(selected["errors"]))
         layers = selected["required_layers"]

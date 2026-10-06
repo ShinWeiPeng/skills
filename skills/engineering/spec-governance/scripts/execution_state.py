@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
+from document_bundle import (
+    read_spec_document,
+    read_spec_bytes,
+    spec_hash,
+    design_binding,
+)
 
 from spec_contract import (
     _atomic_write,
@@ -44,16 +51,23 @@ def execution_binding(
         "project_root": str(root),
         "task_ref": task_ref,
         "spec_path": canonical.relative_to(root).as_posix(),
-        "spec_hash": hashlib.sha256(canonical.read_bytes()).hexdigest(),
+        "spec_hash": spec_hash(canonical),
+        "design_set_hash": design_binding(canonical),
         "working_id": working["working_id"],
         "snapshot_hash": working["snapshot_hash"],
-        "journal_hash": hashlib.sha256(journal.read_bytes()).hexdigest(),
+        "journal_hash": hashlib.sha256(read_spec_bytes(journal)).hexdigest(),
         "journal_tip": events[-1]["event_hash"] if journal == canonical else None,
     }
 
 
 def execution_binding_matches(root: Path, previous: dict, current: dict) -> bool:
     """Accept only unchanged bindings or a verified discussion-only extension."""
+    if (
+        isinstance(previous, dict)
+        and "design_set_hash" not in previous
+        and current.get("design_set_hash") is None
+    ):
+        previous = previous | {"design_set_hash": None}
     if previous == current:
         return True
     if isinstance(previous, dict) and "journal_tip" not in previous:
@@ -93,6 +107,153 @@ def execution_binding_matches(root: Path, previous: dict, current: dict) -> bool
     )
 
 
+def preparation_contract_hash(root: Path, spec_path: str) -> str:
+    """Bind pending preparation to all authored content except lifecycle status."""
+    body, _ = _split_spec_audit(read_spec_document(root / spec_path))
+    body = re.sub(
+        r"(?m)^status: (working|confirmed)$", "status: preparation", body, count=1
+    )
+    designs = design_binding(root / spec_path)
+    if designs is not None:
+        body += "\nfixed-designs:" + designs
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+
+def _preparation_proof_matches(root: Path, application: dict, current: dict) -> bool:
+    """Verify original bytes and the exact owner-derived transition, never ID deltas."""
+    from spec_contract import (
+        _mapping_preparation_plan,
+        _validate_preparation_baseline,
+        _mapping_candidate_matches,
+        _snapshot_hash,
+        _replace_metadata,
+    )
+
+    proof = application.get("preparation_proof")
+    if not isinstance(proof, dict) or proof.get("rule_version") not in {1, 2}:
+        return False
+    previous = application.get("binding", {})
+    try:
+        data = bytes.fromhex(proof["original_document_hex"])
+        original = data.decode("utf-8")
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != previous["spec_hash"] or digest != previous["journal_hash"]:
+            return False
+        if _snapshot_hash(original) != previous["snapshot_hash"]:
+            return False
+        variable = {"spec_hash", "journal_hash", "journal_tip", "snapshot_hash"}
+        if {k: v for k, v in previous.items() if k not in variable} != {
+            k: v for k, v in current.items() if k not in variable
+        }:
+            return False
+        _validate_preparation_baseline(
+            root, application.get("preparation_validation_baseline")
+        )
+        planned = _mapping_preparation_plan(root, original)
+        if any(
+            proof.get(k) != planned[k] for k in ("inputs", "additions", "rule_version")
+        ):
+            return False
+        candidate = proof.get("candidate")
+        if not isinstance(candidate, str) or not _mapping_candidate_matches(
+            root, planned["candidate"], candidate
+        ):
+            return False
+        working_hash = _snapshot_hash(candidate)
+        confirmed_hash = _snapshot_hash(
+            _replace_metadata(candidate, status="confirmed")
+        )
+        events, continuity = _read_journal(root / current["spec_path"])
+        if (
+            continuity != "continuous"
+            or events[-1]["event_hash"] != current["journal_tip"]
+        ):
+            return False
+        anchors = [
+            i
+            for i, e in enumerate(events)
+            if e["event_hash"] == previous["journal_tip"]
+        ]
+        if len(anchors) != 1:
+            return False
+        suffix = events[anchors[0] + 1 :]
+        snapshot = previous["snapshot_hash"]
+        reconciled = confirmed = False
+        for event in suffix:
+            permitted_ids = (
+                {key.split(".")[0] for key in planned["additions"]}
+                if proof["rule_version"] == 2
+                else set()
+            )
+            if (
+                event.get("working_id") != current["working_id"]
+                or set(event.get("affected_ids", [])) - permitted_ids
+                or event.get("conflicts")
+                or event.get("open_decisions")
+            ):
+                return False
+            if event.get("previous_snapshot_hash") != snapshot:
+                return False
+            kind = event.get("event_type")
+            if kind == "reconcile" and not reconciled and not confirmed:
+                reconciled = True
+                snapshot = working_hash
+            elif kind == "materialize" and reconciled and not confirmed:
+                confirmed = True
+                snapshot = confirmed_hash
+            elif kind != "discussion":
+                return False
+            if event.get("snapshot_hash") != snapshot:
+                return False
+        return reconciled and snapshot == current["snapshot_hash"]
+    except (ValueError, TypeError, KeyError, OSError):
+        return False
+
+
+def preparation_binding_matches(root: Path, application: dict, current: dict) -> bool:
+    """Permit only a pending grant's unchanged, audited confirmation transition."""
+    if _preparation_proof_matches(root, application, current):
+        return True
+    previous = application.get("binding")
+    if execution_binding_matches(root, previous, current):
+        return True
+    if not isinstance(previous, dict) or not previous.get("journal_tip"):
+        return False
+    variable = {"spec_hash", "journal_hash", "journal_tip", "snapshot_hash"}
+    if {k: v for k, v in previous.items() if k not in variable} != {
+        k: v for k, v in current.items() if k not in variable
+    }:
+        return False
+    if application.get("preparation_contract_hash") != preparation_contract_hash(
+        root, current["spec_path"]
+    ):
+        return False
+    events, continuity = _read_journal(root / current["spec_path"])
+    anchors = [
+        i
+        for i, event in enumerate(events)
+        if event["event_hash"] == previous["journal_tip"]
+    ]
+    if (
+        continuity != "continuous"
+        or len(anchors) != 1
+        or events[-1]["event_hash"] != current["journal_tip"]
+    ):
+        return False
+    suffix = events[anchors[0] + 1 :]
+    return (
+        bool(suffix)
+        and sum(e.get("event_type") == "materialize" for e in suffix) == 1
+        and all(
+            e.get("event_type") in {"discussion", "materialize"}
+            and not e.get("affected_ids")
+            and not e.get("conflicts")
+            and not e.get("open_decisions")
+            for e in suffix
+        )
+    )
+
+
 def _state_path(root: Path, task_ref: str) -> Path:
     if not isinstance(task_ref, str) or not task_ref.strip():
         raise ValueError("task reference is required")
@@ -117,7 +278,7 @@ def read_execution_state(root: Path, task_ref: str) -> dict:
             "used_event_ids": [],
             "receipt": None,
         }
-    raw = path.read_bytes()
+    raw = read_spec_bytes(path)
     value = json.loads(raw.decode("utf-8"))
     if (
         not isinstance(value, dict)
@@ -135,6 +296,8 @@ def read_execution_state(root: Path, task_ref: str) -> dict:
         "fulfilled_authorizations",
         "acceptance_repairs",
         "acceptance_drafts",
+        "continuations",
+        "superseded_authorizations",
     ):
         if field in value and (
             not isinstance(value[field], dict)
@@ -161,7 +324,7 @@ def write_execution_state(root: Path, task_ref: str, value: dict) -> None:
     path = _state_path(root, task_ref)
     with project_state_lock(root, "execution:" + task_ref):
         actual = (
-            hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+            hashlib.sha256(read_spec_bytes(path)).hexdigest() if path.exists() else None
         )
         if value.get("_loaded_sha256") != actual:
             raise ValueError("execution state changed; reread and retry")
@@ -174,7 +337,7 @@ def write_execution_state(root: Path, task_ref: str, value: dict) -> None:
             + "\n"
         )
         _atomic_write(path, text)
-        value["_loaded_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        value["_loaded_sha256"] = hashlib.sha256(read_spec_bytes(path)).hexdigest()
 
 
 def _legacy_binding_tip(root: Path, previous: dict, current: dict) -> str | None:
@@ -192,7 +355,7 @@ def _legacy_binding_tip(root: Path, previous: dict, current: dict) -> str | None
     events, continuity = _read_journal(path)
     if continuity != "continuous" or not events:
         return None
-    body, _ = _split_spec_audit(path.read_text(encoding="utf-8"))
+    body, _ = _split_spec_audit(read_spec_document(path))
     history, serialized = [], []
     # Incremental prefix serialization is bounded by the existing journal size.
     # Hash equality proves the old byte representation, not merely a revision.
@@ -262,7 +425,9 @@ def assess_execution_compatibility(
             if path.is_symlink() or path.resolve().is_relative_to(root) is False:
                 raise ValueError("validation input must not be redirected")
             validation[relative] = (
-                hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+                hashlib.sha256(read_spec_bytes(path)).hexdigest()
+                if path.exists()
+                else None
             )
         authority = {
             k: state.get(k)
@@ -358,8 +523,11 @@ def assess_execution_compatibility(
                 raise TypeError("authorization binding must be an object")
             if binding.get("spec_path") != spec_path:
                 continue
-            matched = state["phase"] != "suspended" and execution_binding_matches(
-                root, binding, current
+            is_pending = receipt in state.get("pending_authorizations", {}).values()
+            matched = state["phase"] != "suspended" and (
+                preparation_binding_matches(root, receipt, current)
+                if is_pending
+                else execution_binding_matches(root, binding, current)
             )
             usable_authorization = usable_authorization or matched
             legacy = "journal_tip" not in binding

@@ -174,6 +174,8 @@ Skills I use daily for code work.
 
 **Model-invoked**
 
+- [coding-standards](./skills/engineering/coding-standards/SKILL.md) — Shared coding rules with project-specific applicability and design checks.
+
 - **[ask-matt](./skills/engineering/ask-matt/SKILL.md)** — Automatically route software-engineering requests to the appropriate governed workflow.
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Interview engineering work when durable project context exists but implementation is absent.
 - **[clarify-improvement-proposals](./skills/engineering/clarify-improvement-proposals/SKILL.md)** — Resolve ambiguities and compare proposal tradeoffs before recommending a change.

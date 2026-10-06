@@ -1,0 +1,8 @@
+{
+  "ac": "AC-004",
+  "criterion": "原行為回歸與 source/package 一致，未覆寫不相關工作",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Host governance, architecture, project-validation and distribution regressions pass; generated tooling and assembly verified, original Git index preserved.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

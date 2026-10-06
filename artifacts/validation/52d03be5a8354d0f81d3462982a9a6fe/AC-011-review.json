@@ -1,0 +1,8 @@
+{
+  "ac": "AC-011",
+  "criterion": "固定與可變條件有對應檢查時機；能力不足、錯誤呼叫環境或不符合等待限制時，不繼續受影響操作且異常可觀測；合法條件可執行，不能臨時替換未確認方法或沿用範例門檻。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Reviewed OS-CAP-001 fixed and runtime conditions, initialization/use rejection and abnormal-event requirements. Platform call-limits, capabilities and declared waits are explicit; structural validation does not claim runtime enforcement.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

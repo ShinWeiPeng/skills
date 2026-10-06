@@ -1,0 +1,8 @@
+{
+  "ac": "AC-006",
+  "criterion": "共用 ADR 格式、流程、檢查規範分檔且只有一個可編輯權威來源；兩個 Skill 及打包安裝後的引用均可解析到一致版本；缺檔或失效引用可檢出，架構例外核准要求未遺失。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Shared ADR format/workflow/checks reside in the plugin shared layer. Source and assembled references resolve; package inventory and missing-file/drift tests pass.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

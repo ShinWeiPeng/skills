@@ -1,0 +1,44 @@
+format_version: 1
+canonical: specs/SPEC-0043-os-execution-planning.md
+sections:
+- section: Problem
+  path: specs/SPEC-0043-os-execution-planning.md
+- section: Solution
+  path: specs/SPEC-0043-os-execution-planning.md
+- section: User Stories
+  path: specs/SPEC-0043/requirements.md
+- section: Requirements
+  path: specs/SPEC-0043/requirements.md
+- section: Decisions
+  path: specs/SPEC-0043/discussion.md
+- section: Discussion Context
+  path: specs/SPEC-0043/discussion.md
+- section: Acceptance Criteria
+  path: specs/SPEC-0043/acceptance.md
+- section: Implementation Plan
+  path: specs/SPEC-0043/discussion.md
+- section: Acceptance Mapping
+  path: specs/SPEC-0043/acceptance.md
+- section: Relationships
+  path: specs/SPEC-0043-os-execution-planning.md
+- section: Out of Scope
+  path: specs/SPEC-0043-os-execution-planning.md
+- section: Open Decisions
+  path: specs/SPEC-0043/discussion.md
+- section: Routing/Gates
+  path: specs/SPEC-0043-os-execution-planning.md
+- section: Question Record
+  path: specs/SPEC-0043/discussion.md
+- section: Revision History
+  path: specs/SPEC-0043/discussion.md
+- section: Current Specification
+  path: specs/SPEC-0043-os-execution-planning.md
+- section: Decision History
+  path: specs/SPEC-0043/discussion.md
+- section: Pending Discussion
+  path: specs/SPEC-0043/discussion.md
+- section: Completeness Gaps
+  path: specs/SPEC-0043/discussion.md
+- section: Discussion History
+  path: specs/SPEC-0043/discussion.md
+designs: []

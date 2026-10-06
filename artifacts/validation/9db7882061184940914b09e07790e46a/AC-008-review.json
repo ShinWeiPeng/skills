@@ -1,0 +1,8 @@
+{
+  "ac": "AC-008",
+  "criterion": "純程式條款以四欄呈現，檢查方法透過規則 ID 引用且不混入條款；工具或證據位置不被當作程式要求。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed four-column topic rules and stable rule IDs; catalog validation checks IDs and digest. Verification procedures remain outside rule rows.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

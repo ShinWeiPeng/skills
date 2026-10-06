@@ -1,0 +1,8 @@
+{
+  "ac": "AC-019",
+  "criterion": "OS 檢查映射可追溯規則、設計版本及 AC，區別三階段與判定方式；必要設計分析不延後至驗收，主機模擬不冒充目標證據，缺失正確阻擋相依工作且未完成整體验收不得標完成。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "OS checks map design, implementation and acceptance separately. Tests require phase evidence without premature runtime results at design time. Runtime failures route through diagnosing-bugs and selected verification-ladder/on-device evidence; human collaboration remains supported.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

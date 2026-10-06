@@ -13,11 +13,11 @@ flowchart TD
 
 | ID | Level | Role | Parent | Implementation Status | Purpose |
 |---|---|---|---|---|---|
-| `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. |
+| `architecture_governance_cli` | L0 | composition | `-` | implemented | Compose the governance engine and pinned native provider behind the single public architecture CLI. Compose design sources and durable architecture document updates through the specification document owner. |
 
 ### `architecture_governance_cli`
 
-- **Purpose:** Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- **Purpose:** Compose the governance engine and pinned native provider behind the single public architecture CLI. Compose design sources and durable architecture document updates through the specification document owner.
 - **Parent:** `-`
 - **Implementation Status:** `implemented`
 - **Input Ports:** None

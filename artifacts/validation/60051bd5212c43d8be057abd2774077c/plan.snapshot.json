@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0040-coding-standards-migration.md",
+    "spec_id": "SPEC-0040",
+    "revision": 20,
+    "spec_sha256": "f33d3a40874852af7197890915c625b7f7299a35be41f3bcb565fb94f2ec19a7",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "14a073456ca85116c4c905bd54e99a55ea634fd8c2a2ce5931702a7a2fe63045"
+      },
+      "validation/acceptance-SPEC-0040.json": {
+        "state": "present",
+        "sha256": "272d8f02605719c50e1d28cc6a83e3f25e27e44321dccea5c835fe020a43076d"
+      }
+    },
+    "skill": {
+      "version": "0.20.0",
+      "sha256": "5e4f782b1f1253e3085f1a54af7852f81f137718be9d6206fc2bbbaeec606649"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001, REQ-002",
+        "搬移對照無遺漏、無重複條款、引用可解析，強度與語意保持。",
+        "條款逐項對照及引用檢查；未執行。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Migration coverage, references and preservation are host artifact contracts; semantic preservation also requires recorded review."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-003, REQ-004",
+        "不同目標可得到不同適用結果；未知資料不被猜測；遷移可重跑且衝突可見，舊入口不再判定。",
+        "適用性與遷移契約測試；待具體情境映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Profile applicability and deterministic document migration are exercised in isolated host fixtures."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-005, REQ-006",
+        "不因遷移或 Git 乾淨繞過授權；實作與審查一致；安裝包包含新 Skill 及引用。",
+        "授權回歸、打包與整合測試；未執行。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Routing, authorization and installed-package loading are host integration contracts."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-007, REQ-008",
+        "已撤回的合併方向不被執行；兩個專業 Skill 保留，現行功能验收依 AC-005。",
+        "歷史取代關係與註冊檢查；未執行。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Superseded by AC-005; retain history and verify that the withdrawn merger is not executed, not that one merged skill exists."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-008",
+        "兩個 Skill 專業職責與入口保留；ADR 共用格式／狀態／生命週期有單一權威來源且引用可解析，沒有平行重複定義；架構例外核准政策仍可檢查，不因一般 ADR 格式而繞過。",
+        "職責與引用對照、一般 ADR 與例外 ADR 正反案例及既有功能回歸；待建立。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Separate skill responsibilities and conditional ADR profiles are host document contracts."
+    },
+    "AC-006": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-006",
+        "REQ-009",
+        "共用 ADR 格式、流程、檢查規範分檔且只有一個可編輯權威來源；兩個 Skill 及打包安裝後的引用均可解析到一致版本；缺檔或失效引用可檢出，架構例外核准要求未遺失。",
+        "來源／產物引用檢查、安裝布局案例及既有 ADR 例外回歸；待具體映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Source and assembled package references are verified on the host."
+    },
+    "AC-007": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-007",
+        "REQ-010, REQ-011, REQ-012",
+        "檔案職責及位置符合採用配置，rules/ 無階段流程；原條款完整搬移且強度不變，舊混合文件與失效引用清除；來源及安裝產物引用可解析，新增要求可追溯至 SPEC-0041。",
+        "文件責任盤點、搬移對照、引用／產物檢查及兩份 SPEC 範圍審查；待具體映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Responsibility partition and migration scope are verified by host checks and review."
+    },
+    "AC-008": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-008",
+        "REQ-013",
+        "純程式條款以四欄呈現，檢查方法透過規則 ID 引用且不混入條款；工具或證據位置不被當作程式要求。",
+        "格式與規則引用檢查；待映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Rule format and ID links are host artifact contracts."
+    },
+    "AC-009": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-009",
+        "REQ-014",
+        "四份檢查文件依職責分開，使用同一規則 ID 並明示工具覆蓋與限制，既有執行流程引用而不重複定義；ADR 與遷移驗收範圍獨立。",
+        "文件與引用檢查及設計／靜態／執行期案例；待映射。"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Verification coverage declarations and missing-evidence handling are host governance contracts; no target-runtime proof is claimed."
+    }
+  }
+}

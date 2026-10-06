@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "run_id": "3397213936814752abd879d77e000ad7",
+  "kind": "tests",
+  "started_at": "2026-09-24T06:38:22.770687+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0039-plugin-regression",
+    "tool": {
+      "name": "unittest",
+      "version": "3.12"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests/flows/plugin-integration/plugin",
+      "-p",
+      "test_*.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "fa9562188862089a143f2501a3fca07f126f6aebfbc543709545f6ebc163971f"
+    },
+    "inputs": {}
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-24T06:39:34.588864+00:00",
+  "files": {
+    ".run.json": "ee5fe50f2b501a56ec3e79de56d295eea522945a7c97ad31d58f7088b5ec885c",
+    "reports/command.log": "ff8fc00b415901ca92cfcfa8eebb4ec9db5af4d8ac70a57d4f88380127125e54"
+  }
+}

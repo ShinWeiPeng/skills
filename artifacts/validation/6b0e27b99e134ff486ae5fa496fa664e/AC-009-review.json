@@ -1,0 +1,8 @@
+{
+  "ac": "AC-009",
+  "criterion": "滿載加入新事件後仍不超出容量、最舊待送事件被移除、保留順序與覆寫數可驗證；必要保護仍完成，消費者持有資料不被覆寫。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: With queue capacity 2, pending events A/B then C retain B/C and increment overwrite count. A borrowed event uses separate owned storage. Required finding for the counterexample: Overwriting the consumer's borrowed bytes violates ERR-QUEUE-001 and MEM-LIFE-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-017",
+  "criterion": "Task 觸發與優先權等參數有推導依據；端到端等待及開銷被納入，平均值不能掩蓋期限違反；候選／分析與實際排程器一致，硬違約與未定義軟容忍不被視為合格；未知或缺少量測不冒充最壞界限。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Per-unit schedule rows have separate frequency/burst, execution/wait/deadline quantities and basis. Tests reject missing coverage, bad units and invalid endpoints; policy preserves conservative supported scheduler analysis and target evidence.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

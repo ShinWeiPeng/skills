@@ -1,0 +1,8 @@
+{
+  "ac": "AC-008",
+  "criterion": "確認與授權可追溯相同文件集合及版本；相關設計被改動時不得沿用舊確認，無關檔變更不阻擋；討論追加或相同內容重生成不產生重複授權要求。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Original task/event receipts remain valid across proven format migration and verified discussion-only extensions. Changed parts/design collections invalidate execution; historical reads do not authorize current apply/mkdir/move/delete. Unrelated files do not change the bound collection.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

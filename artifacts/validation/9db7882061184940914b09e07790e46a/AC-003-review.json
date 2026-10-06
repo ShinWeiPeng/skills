@@ -1,0 +1,8 @@
+{
+  "ac": "AC-003",
+  "criterion": "不因遷移或 Git 乾淨繞過授權；實作與審查一致；安裝包包含新 Skill 及引用。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Authorization/admission regressions pass; code and review use the same catalog. Isolated candidate assembly includes the new Skill. Original index and unrelated work were preserved.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

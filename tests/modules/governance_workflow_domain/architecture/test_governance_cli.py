@@ -85,6 +85,12 @@ class GovernanceCliTests(unittest.TestCase):
             manifest_path.write_text(
                 yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
             )
+            from design_sources import source_documents
+
+            for relative, text in source_documents(manifest).items():
+                source = root / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_text(text, encoding="utf-8")
             code, evidence = run_gate(
                 phase="design",
                 manifest_path=manifest_path,

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-011",
+  "criterion": "格式規範明定各領域欄位的承載位置，扁平表格與指定 YAML 區塊可一致解析及生成產物；重複來源、漏欄位、錯誤型別／單位／版本引用及未定義格式能指明位置且不假設成功。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Fixed tables and designated YAML retain one field owner. Typed scalar, duplicate YAML, unsupported format, unit/basis and reference cases fail. All catalogs and extension fields round-trip, rather than silently dropping unlisted data.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-005",
+  "criterion": "兩個 Skill 專業職責與入口保留；ADR 共用格式／狀態／生命週期有單一權威來源且引用可解析，沒有平行重複定義；架構例外核准政策仍可檢查，不因一般 ADR 格式而繞過。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed general versus architecture ADR profiles: ordinary decisions use concise fields, architecture exceptions retain exact rule/location approval and baseline requirements.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

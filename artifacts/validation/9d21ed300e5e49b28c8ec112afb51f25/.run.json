@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "run_id": "9d21ed300e5e49b28c8ec112afb51f25",
+  "kind": "validation",
+  "started_at": "2026-10-02T03:37:24.589387+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "coding-standards-and-delivery-repair",
+    "tool": {
+      "name": "host-validation",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "C:\\Users\\hugo_peng\\skill\\skills\\spec-governance\\DISCUSSION-REQUEST-final-validation.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "b95762d71015954895b6a7ccd74577adb020d4f09437f3585ecfee38117fd04c"
+    },
+    "inputs": {
+      "architecture": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb"
+    }
+  }
+}

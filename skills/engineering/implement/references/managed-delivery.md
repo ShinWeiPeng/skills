@@ -32,6 +32,21 @@ or parallel batch. A rejected gate ends the dependent sequence.
 
 ## Managed file replacement
 
+The same admission supports `operation: file-operation` with one of:
+
+- `action: mkdir`, `path`: create one directory beneath an existing project
+  directory. An existing ordinary directory is a no-op; no recursive creation.
+- `action: move`, `path`, `destination`, `before_sha256`: move one reviewed
+  ordinary file to a nonexistent destination with an existing parent.
+- `action: delete`, `path`, `before_sha256`: remove exactly one reviewed ordinary
+  file. Directory and recursive deletion are unsupported.
+
+All requests include the same task, SPEC and working reference as `apply`, recheck
+authorization under the product commit lock, and reject governance paths, redirects,
+shared files, stale hashes and overwrites. A move uses create-only linking then
+unlinking: an interrupted unlink retains both names and reports incomplete recovery;
+never blindly delete either copy. These operations do not change Git state.
+
 Invoke `python scripts/managed_delivery.py --project-root <root> --request <json>`.
 Request files are local governance evidence, stored under `spec-governance/`.
 Every request names `task_ref`. Authorization, status and apply also name the
@@ -306,6 +321,14 @@ history and drafts while revoking authority.
 
 ## Continue preparation through implementation and validation
 
+A decision-complete, continuously audited working SPEC can retain an execution
+instruction before confirmation. This grants only additive `prepare-validation`
+access, never product edits or device actions. Once validation rules are present,
+confirm the same SPEC and retry the original event. The pending application may
+cross exactly one unchanged-content `materialize` event (plus discussion events);
+unverified reconcile, reopen, content changes, mismatched identity and revocation still deny
+reuse. Normal product admission continues to require a confirmed SPEC.
+
 A retained current authorization also admits `prepare-validation` for additive
 definitions in `architecture/adoption.yaml`, `validation/verification-ladder.yaml`,
 `validation/on-device.yaml` and `validation/layout.yaml`. Supply the same `task_ref`,
@@ -383,3 +406,82 @@ from the canonical SPEC and reports unresolved selectors separately. Apply its
 patch through the common entry. Generation neither authorizes writes nor proves
 acceptance. Missing devices preserve required layers as unverified; continue
 independent authorized work and never substitute host evidence for HIL.
+
+
+## Verified preparation continuation (SPEC-0038)
+
+SPEC-0042 extends the existing owner-derived preparation proof to one additional
+deterministic transformation: add an absent optional Evidence column with empty
+unverified cells, preserving every other authored cell and section. The common
+SPEC parser accepts four and five columns, so this normalization is optional,
+not a requirement to repeatedly revise specifications. Use the same pending
+grant, `prepare-validation` with `acceptance_mapping: true`, exact original bytes,
+validation baseline and journal proof. Existing evidence, requirements, thresholds,
+or unrelated editorial edits never qualify. Incomplete scenario selections retain
+their existing preparation path and cannot be hidden by adding Evidence cells.
+
+Complete AC prose and machine-readable selectors together before presenting a
+decision-complete proposal. Reloaded discussion context reports every selector gap;
+confirmation checks the plan again. Saving drafts remains available.
+
+The sole revision exception is a retained, unrevoked pending grant whose missing
+scenario selectors are uniquely determined by explicit SPEC-scoped project rules.
+Use managed prepare-validation with acceptance_mapping: true. The SPEC owner
+derives the additions; delivery reserves original bytes, input hashes and a
+versioned transition proof before reconciliation. Verify the entire document and
+ordered journal, then confirm and retry the original event through full admission.
+A preparation PASS never grants product or device authority or acceptance PASS.
+
+Capture original validation definitions with the pending grant. Existing rules,
+scenarios and layers remain exactly equal; only independent definitions may be added.
+Legacy recovery requires grant-bound validation history and original_document_hex
+matching both retained file hashes. Missing original definitions stay unverified.
+Unprovable history, ambiguous scenarios, modified existing values, definition drift,
+reopen, revocation and unrelated identities remain denied with their cause. Preserve
+old receipts and source events. Generic reconcile and same-ID contract changes are
+not covered by this exception. Missing claims, rationale or build selections still
+require an evidenced specification decision; do not guess them.
+
+## Automatic preparation and execution continuation (SPEC-0039)
+
+Use managed `continue-execution` as the parent entry after explicit execution
+authorization and on same-scope retries. Supply the actual `source_event_id`,
+original `instruction`, reviewed `expected_hash`, and the usual task/SPEC/working
+references. The parent retains the same event while deriving missing AC scenario
+selectors, saving transition evidence, confirming through the SPEC owner,
+retrying full admission, generating the acceptance projection and checking planning.
+Do not stop at a child `next_action`, or ask again merely because preparation
+changed a file. Hashes still protect concurrency and integrity; the owner-derived
+transition proves the allowed scope.
+
+Optional `preparation_patches` holds at most four reviewed additive definition
+patches handled by existing `prepare-validation`. Never invent ambiguous scenario,
+claim, rationale, threshold or build selections. Optional `continuation` is exactly
+`{"operation":"status"}` (default) or `{"operation":"apply","patch":{...}}`.
+The latter runs the reviewed managed replacement after readiness checks. A status
+continuation means implementation is admitted, not that code was written: resume
+the implementation workflow in the same turn, then test, repair within scope,
+review and call `complete` with actual acceptance evidence. Build, device and
+release actions retain their own operation-specific requirements.
+
+The parent saves product continuation checkpoints and rechecks receipts/target
+hashes on replay. Owner transition journals and grant history are preparation
+checkpoints. Identical deterministic preparation blockers are returned without
+repeating effects; changed real inputs permit re-evaluation. External planning
+conditions are rechecked instead of cached as permanent failures. Concurrent or
+revoked state never authorizes a blind retry.
+
+Legacy migration searches persisted authorization history for matching original
+event, binding and instruction, verifies original document hashes and validates
+the saved definition baseline, then appends a versioned migration record retaining
+the old application. This is caller-attested local evidence, not host-authenticated
+approval. It cannot reconstruct never-recorded data: report `legacy-baseline-missing`
+with the missing evidence, preserve the original record and investigate. If a real
+new user authorization already exists, bind that event to the current reviewed
+specification without requiring the missing old baseline; never manufacture one
+from a reload, quotation or automatic retry. Superseded events cannot regain authority.
+
+Report authorization validity, admission, source event, bound revision/hash,
+reason, next action and source trust separately. Preparation/admission success
+does not imply acceptance success. Ask only when a genuine user decision or missing
+authority remains, not to compensate for a recoverable preparation gap.

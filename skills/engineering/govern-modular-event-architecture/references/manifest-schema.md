@@ -431,3 +431,7 @@ reported as a complete governance PASS.
 ## Inherited requirements
 
 The sections above use the current 2.2.0 shape. All rules through 2.1.0 remain blocking. Version 2.2.0 adds localized diagram summaries and function-first navigation without removing inherited governance; exact 2.1.0 remains supported.
+
+## Implementation design extension
+
+`implementation_design.version: 1` adds ID-keyed `modules`, `interfaces`, and `flows` records without duplicating existing catalogs. Use [module-design-format](module-design-format.md) and [data-flow-design-format](data-flow-design-format.md). The architecture CLI validates group shape, coverage and catalog references and renders a deterministic projection. Legacy absence remains readable, but coding-standards adoption requires migration before claiming design compliance.

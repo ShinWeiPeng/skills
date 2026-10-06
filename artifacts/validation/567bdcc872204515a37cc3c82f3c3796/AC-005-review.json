@@ -1,0 +1,8 @@
+{
+  "ac": "AC-005",
+  "criterion": "僅受影響設計建立候選；基準一致可依授權更新，基準已改變時保留資料並指出差異；舊／新 SPEC 分別可解析其確認版本，歷史版本不被修改。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Staged BASE records retain exact preparation bytes. Same-version competing bytes, removal changes and historical mismatch reject writes before effects; confirmed membership deltas preserve unrelated additions, while ordering conflicts explicitly reject and retain differences.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

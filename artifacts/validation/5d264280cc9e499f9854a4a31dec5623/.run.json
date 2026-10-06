@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "5d264280cc9e499f9854a4a31dec5623",
+  "kind": "validation",
+  "started_at": "2026-10-02T03:42:43.346051+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "coding-governance-host-acceptance",
+    "tool": {
+      "name": "reviewed-host-acceptance",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "spec-governance/DISCUSSION-REQUEST-record-acceptance.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "0c8d42ae2a925c64de825ef2cc108834f23ac6074f95b66e04690a93f23771c1"
+    },
+    "inputs": {
+      "plan": "dd4a96f115c3f9410a928578a9562771f82dba0c81a750fe02ce10f2d0b82e39",
+      "architecture/adoption.yaml": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88",
+      "architecture/manifest.yaml": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb",
+      "validation/verification-ladder.yaml": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9",
+      "validation/layout.yaml": "14a073456ca85116c4c905bd54e99a55ea634fd8c2a2ce5931702a7a2fe63045",
+      "validation/acceptance-SPEC-0042.json": "dec625d686a1529e9a5ef955ad8fb8380af8648abb912860af7b50e8483a875f"
+    },
+    "spec": "SPEC-0042",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004"
+    ]
+  }
+}

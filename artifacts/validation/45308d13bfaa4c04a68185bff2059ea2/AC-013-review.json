@@ -1,0 +1,8 @@
+{
+  "ac": "AC-013",
+  "criterion": "失敗案例以原因解除、修復驗證通過及原工作完成為成功条件；只保存狀態、繼續其他工作或開放重試入口不算合格。可修復的格式／引用／生成／工具及循環閘門錯誤能沿用授權修復；重試不重複副作用、不覆寫其他修改，完整生效仍通過全套驗證。真正需外部資訊／決策時有調查依據、具體需求及續作紀錄。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Actual end-to-end tests complete the original owner transition, audit repair, confirmation, design update, product application and safe replay. External validation runs outside the document lock; repeated spec lock was removed. Independent reviews confirmed the repairs.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

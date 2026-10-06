@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "0a663aaf341d412abe360fa739b53206",
+  "kind": "validation",
+  "started_at": "2026-10-02T03:42:59.489010+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "coding-governance-host-acceptance",
+    "tool": {
+      "name": "reviewed-host-acceptance",
+      "version": "1"
+    },
+    "command": [
+      "C:\\Users\\hugo_peng\\skill\\skills\\.codex-arch-deps\\venv\\Scripts\\python.exe",
+      "spec-governance/DISCUSSION-REQUEST-record-acceptance.py"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "7e20345499f339d9bf0775ad7940d6466f90323408164fcf965ca6011903b518"
+    },
+    "inputs": {
+      "plan": "db2690159f9e682e839ea10a082e820f226c34def4a25ab34ff4ed435cc40dce",
+      "architecture/adoption.yaml": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88",
+      "architecture/manifest.yaml": "2089d2f4f82f52384c49340be846769a50ac9666fa85231ebcbd8abd5c65ccfb",
+      "validation/verification-ladder.yaml": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9",
+      "validation/layout.yaml": "14a073456ca85116c4c905bd54e99a55ea634fd8c2a2ce5931702a7a2fe63045",
+      "validation/acceptance-SPEC-0042.json": "a286e002062170ab7cebb0dfe1ebc746e65ac1bb2cd6c08347932f1f033fc0b7"
+    },
+    "spec": "SPEC-0042",
+    "acceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004"
+    ]
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-10-02T03:42:59.735732+00:00",
+  "files": {
+    ".run.json": "85ecf3837358e89f45c7e69de7de9ed06e40e0d4e398d133e254e4c5fb81388a",
+    "AC-001-review.json": "821114f8d2bc6727f48a6f73efafceb3095469add2d591c335d59d51567ed881",
+    "AC-002-review.json": "1cdeef23190873b8c539c527166d4e8752c8fd7730390a1b1e3143c506871a92",
+    "AC-003-review.json": "58b1da948155792e915ce423ae04c37afa6af0d2978338782a05c1ad27c4098b",
+    "AC-004-review.json": "793d2dde493f089364a33edd154059eb1ddc05ef5b415d6be31063efb49b92d8",
+    "architecture-gate.log": "6e46cef25f638849963030254151ed6ef7fed04de3b6a6bdc3216769cc9fda74",
+    "architecture-tests.log": "61a67d0aa8cd715782c5a07658e0e998bee22064ec47060e6463b84fac4010d9",
+    "delivery.log": "14868b42efe7f25244c20a222ec41ac9a1729180cb227a89774d93c47ff3db1e",
+    "diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "distribution-tests.log": "e218a247908b59074731c8c05f731a5756d9484517c8df2f8406186316b6c77d",
+    "evidence.json": "7791fe4362f16e8113193b10543a69a03578e8d2818f71eaa92d43ebe99a42c8",
+    "project-validation-tests.log": "9398a391c063bb12ade454a8847d58c9209ae0a92741e05c69124a74e739e4f0",
+    "test-provenance.json": "30e32eb7edbe1250300dbbda575c0c784fa4be9accf56a715cb1e36c41adf763"
+  }
+}

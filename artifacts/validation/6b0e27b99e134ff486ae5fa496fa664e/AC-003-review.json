@@ -1,0 +1,8 @@
+{
+  "ac": "AC-003",
+  "criterion": "借用、轉移、共享、取消與非同步逾時案例符合生命週期；不將 shared lifetime 當作寫入權限。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: Cancellation stops new work but keeps the shared block until the last reader releases it. Required finding for the counterexample: Timeout frees a still-borrowed block: MEM-LIFE-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

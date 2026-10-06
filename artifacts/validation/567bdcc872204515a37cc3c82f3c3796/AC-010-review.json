@@ -1,0 +1,8 @@
+{
+  "ac": "AC-010",
+  "criterion": "尚無程式的設計草案可依設計條件檢查，不被實作證據缺失誤擋；必要可行性分析不能跳過；實作偏差及欠缺驗收證據分別被指出。缺資料不阻擋無相依工作，同範圍修復不重複授權，實質契約變更不得沿用舊授權。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Domain/OS checks distinguish design feasibility, implementation conformance and actual acceptance. Recovery rechecks retained authority without requiring the failed global acceptance gate; no new authorization is manufactured.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

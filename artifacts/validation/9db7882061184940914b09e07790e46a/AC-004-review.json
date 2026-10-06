@@ -1,0 +1,8 @@
+{
+  "ac": "AC-004",
+  "criterion": "已撤回的合併方向不被執行；兩個專業 Skill 保留，現行功能验收依 AC-005。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Historical supersession retained; domain-modeling and architecture remain separate professional entries.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

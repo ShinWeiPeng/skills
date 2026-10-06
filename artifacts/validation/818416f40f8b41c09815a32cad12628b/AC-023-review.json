@@ -1,0 +1,8 @@
+{
+  "ac": "AC-023",
+  "criterion": "同步狀態更新操作在返回前達成契約所定完成狀態並提供有效結果；未完成工作只回報接受且可關聯後續完成／失敗；測試不得把接受誤當完成或把模組完成誤當傳輸完成。必要保護、異常事件及訂閱通知仍依各自契約驗證。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A synchronous setting update returns its completed result. An asynchronous submit returns acceptance plus correlation and later completion/failure. Required finding for the counterexample: Accepted work is reported as finished, or local write completion as remote processing: API-COMPLETE-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

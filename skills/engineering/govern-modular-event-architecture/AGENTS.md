@@ -8,7 +8,7 @@ Before changing architecture, named types, runtime state, modules, dependencies,
 4. Preserve every schema 1.0 through 2.1.0 requirement under schema 2.2.0, while retaining exact 2.1.0 compatibility.
 5. Do not mark an ADR accepted without explicit user approval.
 6. Update governance files, source, and tests together.
-7. Treat `architecture/manifest.yaml` as the only editable description source. Do not hand-edit generated Architecture Description Views.
+7. Maintain architecture data in `architecture/designs/` Markdown sources. Generate `architecture/manifest.yaml` and Architecture Description Views through the shared source owner; migrate a legacy manifest before current work. Do not hand-edit generated products.
 8. Use schema 2.2.0 for new projects (2.1.0 remains supported) and describe logical source sets, composition roots, modules, ports, events, named types and references, state objects, boundary mappings, source paths, symbols, L0/L1 flows, workloads, execution profiles/units/channels, workload-driven real-time scheduling studies, data access, microarchitecture, validation profiles, assurance scope, and any exact localized diagram summaries. Then run `python tools\architecture\architecture_cli.py render`.
 9. For C/C++, require pinned libclang, a complete compilation database and target, all governed translation units, and AST PASS. Lexical scanning alone is not PASS.
 10. Run every gate through the single `architecture_cli.py`; legacy checker, renderer, bootstrap, and analyzer scripts are internal and cannot be invoked directly.

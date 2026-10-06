@@ -1,0 +1,8 @@
+{
+  "ac": "AC-021",
+  "criterion": "七組 OS 規則 ID 唯一、強度為 MUST且有適用條件；條文涵蓋前述完整要求，不混入工作流程或重複 OS 隔離條款。未知、不適用與專案數值依據正確處理。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "Catalog version 2 contains seven unique OS MUST IDs. Four-column pure rules were reviewed against REQ-011..018, without duplicating OS isolation or adopting global numeric thresholds. Catalog digests, rule binding and scenario tests pass.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

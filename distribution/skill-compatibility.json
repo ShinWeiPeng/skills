@@ -2,6 +2,7 @@
   "schema_version": "1.1.0",
   "supported_surfaces": ["codex-desktop", "codex-cli"],
   "skills": {
+    "coding-standards": {"classification": "codex-compatible", "reason": "Applies one shared rule catalog with project-specific design, applicability and evidence checks.", "host_dependencies": ["repository filesystem", "architecture governance"]},
     "ask-matt": {"classification": "codex-compatible", "reason": "Automatically routes repository engineering work through Codex governance capabilities.", "host_dependencies": ["repository inspection", "Codex engineering router"]},
     "clarify-improvement-proposals": {"classification": "codex-compatible", "reason": "Its governed proposal gate depends on repository evidence and Codex architecture routing.", "host_dependencies": ["repository inspection", "architecture governance"]},
     "code-review": {"classification": "codex-compatible", "reason": "The review contract requires Git evidence and parallel review sub-agents.", "host_dependencies": ["Git repository", "parallel sub-agents"]},

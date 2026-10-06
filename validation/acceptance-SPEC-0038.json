@@ -1,0 +1,112 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0038",
+  "source": {
+    "revision": 2,
+    "definitions_sha256": "66947fb2e67176c851099f3284bfb5928b714d33dfbc4b9fdb1dd337be8d2475"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001",
+        "criterion": "新方案缺少適用情境、claims 或 rationale 時，方案完整性及確認入口均列出缺項；草稿保存成功；完整計畫不被誤報驗收通過。",
+        "validation method": "Host completeness and materialization integration tests"
+      },
+      "criterion_sha256": "ab39410bef1135f8928733b7471773112ce145cba6dbd770c9d220e72c5b5297",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Completeness and confirmation decisions are host CLI contracts."
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-002, REQ-003, REQ-004, REQ-005",
+        "criterion": "重現 SPEC-0068 revision 2 pending → 補 AC-003 對照 → reconcile → confirmed → admission，沿用同一來源事件；準備期間產品寫入仍拒絕。",
+        "validation method": "Host managed delivery integration regression"
+      },
+      "criterion_sha256": "465fbb6df8a8ac0a0380deb7dc3c58a997ea88c44085c454a7b8e6aacc124676",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Replay the firmware incident as isolated host state fixtures; no device claim."
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-004, REQ-005",
+        "criterion": "保持 ID 不變而修改需求、驗收內容、门檻、既有對照；或一般 reopen、撤銷、跨身份、損壞歷史、未知差異時，均拒絕沿用授權且產品檔案不變。",
+        "validation method": "Host table-driven negative integration tests"
+      },
+      "criterion_sha256": "1921c6a69bb4b63cdb6380ea49513af3b934f5c4f0a253af1b991d1c95bb6392",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Negative authorization boundaries are host state-machine behavior."
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-003, REQ-006",
+        "criterion": "並行變更、中斷與同一請求重放不覆寫變更、不重複套用、不增加權限；恢復只能使用驗證完整的轉換。",
+        "validation method": "Host concurrency and fault-injection integration tests"
+      },
+      "criterion_sha256": "499d438f7170f6121ce021ab2b7dd969d83deb9c64601dabc7bd8567b6559eb8",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Host locking, interrupted saves and idempotency require deterministic fault injection."
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-007, REQ-008",
+        "criterion": "舊授權案例在歷史與雜湊可重建時通過；缺證據時指出具體缺項且保存原紀錄。",
+        "validation method": "Host legacy-state recovery fixtures"
+      },
+      "criterion_sha256": "93af9887daf0760faa8946028704d351189377b558b94d119eae4f7250b0c546",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Legacy recovery verifies document hashes and journal continuity on the host."
+    },
+    "AC-006": {
+      "definition": {
+        "id": "AC-006",
+        "requirements": "REQ-008",
+        "criterion": "原有授權、撤銷與管理入口回歸通過；技能、流程及 docs 對允許的例外描述一致；組裝外掛與 distribution validation 通過。",
+        "validation method": "Existing regression suite, documentation review and distribution validation"
+      },
+      "criterion_sha256": "24a6d757175ffb222b6f9a229ae91470f15ea42b8cbc1042b1a343f637ab05ef",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "input-output-units"
+      ],
+      "execution_changes": [],
+      "rationale": "Regression and assembled distribution checks do not claim desktop hook firing or physical validation."
+    }
+  }
+}

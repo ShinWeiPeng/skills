@@ -1,0 +1,283 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0043",
+  "source": {
+    "revision": 48,
+    "definitions_sha256": "48d6ca19e63ccec13bcdbe9fce8b08c153f913082904ea9f24ede3330071392d"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001",
+        "criterion": "既定 OS 沿用；未定案時提出比較並確認；無多 OS 需求時不強制多平台實作。",
+        "validation method": "三類設計正反案例審查；具體檢查映射待討論。"
+      },
+      "criterion_sha256": "d16b08b5ca53f4930dd73d027e723e11df47aabd592e29f9446bd4fbefa6d28a",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-002",
+        "criterion": "九項無遺漏；適用項有方法及理由，不適用項有原因；單執行緒、RTOS 及硬即時案例依條件展開，未知資訊不被當作不適用或已驗證。",
+        "validation method": "三類設計正反案例、欄位及既有排程規範對照；詳細驗證映射待補。"
+      },
+      "criterion_sha256": "b72871ac2c15cd9c88dabeae7971adebfe00a40ba1c55ce993f73d4cf727fdd2",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-003",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-003 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "c594b696bad81168cc5a27991421030daa6271b6095b5825466143ef929f0b99",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-004",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-004 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "9189086fe9845c713fa25ee9065b32348d86d71df86fec544f24054321dd62bf",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-005",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-005 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "edfa31a4a2b1f63f661a9b14dfcce207740c30df4c7a09a3c5606adea7bc5b95",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-006": {
+      "definition": {
+        "id": "AC-006",
+        "requirements": "REQ-006",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-006 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "ba3b8c7cb75f1d084acc222f82ff384234dd5ee1d3ce8ac233f4c37cd16bae97",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-007": {
+      "definition": {
+        "id": "AC-007",
+        "requirements": "REQ-007",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-007 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "6de0d2ac17dbcfb79eb69b6b52cd0873b1cf90ebc07b4bb73377ab3f3f40e7ba",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-008": {
+      "definition": {
+        "id": "AC-008",
+        "requirements": "REQ-008",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-008 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "b522d6cc354bc863095ca5a6cb5c8a5890d632d5d537875474c8331815b3314b",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-009": {
+      "definition": {
+        "id": "AC-009",
+        "requirements": "REQ-009",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-009 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "69a72fa90a038725bf2173249683c0d9a8c030744c3c1a3250c20bc3b569d792",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-010": {
+      "definition": {
+        "id": "AC-010",
+        "requirements": "REQ-010",
+        "criterion": "對應驗收由 SPEC-0044 的 AC-010 負責。",
+        "validation method": "核對分工引用；具體驗收見該 SPEC。"
+      },
+      "criterion_sha256": "323c5d661ac473dcd0b40d05d8f8d2c958a1f6070655c0959f1284af7aac32e9",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-011": {
+      "definition": {
+        "id": "AC-011",
+        "requirements": "REQ-011",
+        "criterion": "固定與可變條件有對應檢查時機；能力不足、錯誤呼叫環境或不符合等待限制時，不繼續受影響操作且異常可觀測；合法條件可執行，不能臨時替換未確認方法或沿用範例門檻。",
+        "validation method": "能力／環境／等待條件設計正反案例、初始化或使用前拒絕與異常契約檢查；工具證據映射待補。"
+      },
+      "criterion_sha256": "ea2b24da4506b385257cc2919b000e7ef54385b06e9815513ac0c33e0263fd09",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-012": {
+      "definition": {
+        "id": "AC-012",
+        "requirements": "REQ-012",
+        "criterion": "依階段拆分的執行單元、通道與模組對應可追溯；合併有分析及明確理由，容量及時序要求不因拆分／合併被略過。",
+        "validation method": "階段管線與合併設計正反案例、排程及交接成本審查；目標證據依專案。"
+      },
+      "criterion_sha256": "9c05f585240a6bec7baba3b8aa262f1b88768f1c127fca3ff29686e97e5a38df",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-013": {
+      "definition": {
+        "id": "AC-013",
+        "requirements": "REQ-013",
+        "criterion": "Task 間資料、事件及訊息通道均可指出 OS 工具與公開契約；越界私有狀態／未宣告全域交接可被指出；OS 相依 API 不外洩至功能契約，工具選擇不省略容量與持有規則。",
+        "validation method": "通道盤點、工具能力、資料流／port／所有權及 source review 正反案例。"
+      },
+      "criterion_sha256": "a768ef92f35b411cc24bec2d6bf35f81cfd1e8e307d371d1cab504c9b5785075",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-014": {
+      "definition": {
+        "id": "AC-014",
+        "requirements": "REQ-014",
+        "criterion": "各資料／命令／事件／通知通道可表達容量、排序、交付及完成語意；受影響資料的所有權可追溯。滿載、合併及部分處理案例不能誤報完成，故障通知覆寫不清除持續狀態；缺少契約被指出。",
+        "validation method": "通道四類設計與容量／合併／逾時／停止／生命週期正反案例，核對已採用資料流與異常規則。"
+      },
+      "criterion_sha256": "0fd88f695d2fb4cdaa6e502d5f4b9e88f1674504a5de19df8e902275bbe672aa",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-015": {
+      "definition": {
+        "id": "AC-015",
+        "requirements": "REQ-015",
+        "criterion": "所有權與共享保護可追溯；持有引用期間不被覆寫／回收，鎖等待與通道交互不造成互等，取消與失敗安全收尾；不符 ISR／時序限制的操作被指出，未因通道或 const 宣稱資料已安全。",
+        "validation method": "共享引用、鎖／通道互等、優先權反轉及失敗／逾時／取消正反設計案例；目標時序證據依專案。"
+      },
+      "criterion_sha256": "fce135257d7d3ba8254f1e8c3482085d09521a03e2c9dcaedc362450cf57cd89",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-016": {
+      "definition": {
+        "id": "AC-016",
+        "requirements": "REQ-016",
+        "criterion": "各實際 OS 資源及同時使用的總預算可追溯；未知與實測區分，建立失敗／耗盡有處置與異常；取消／重啟不累積資源，共享資料在用期間不被回收；沒有無界擴容或未確認的配置回退。",
+        "validation method": "資源表、容量／建立失敗、共享持有與反覆取消／重啟正反案例；實測證據依專案。"
+      },
+      "criterion_sha256": "ebe47f92089763abb721fb09806335e16e812145e6629bbe5cf8ebd85e06f6ee",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-017": {
+      "definition": {
+        "id": "AC-017",
+        "requirements": "REQ-017",
+        "criterion": "Task 觸發與優先權等參數有推導依據；端到端等待及開銷被納入，平均值不能掩蓋期限違反；候選／分析與實際排程器一致，硬違約與未定義軟容忍不被視為合格；未知或缺少量測不冒充最壞界限。",
+        "validation method": "端到端管線、尖峰／慢消費者、分析模型錯配及設計預算／實測區別正反案例；目標時序證據依專案。"
+      },
+      "criterion_sha256": "2de6eebda27399f434dc62a1f336067530673b72a400d64d16a24094fcd6da57",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-018": {
+      "definition": {
+        "id": "AC-018",
+        "requirements": "REQ-018",
+        "criterion": "設計交代生命週期擁有者、狀態、順序與就緒／完成語意；實作符合契約，部分初始化失敗、停止逾時及重啟情境不產生使用已釋放資源、舊訊息誤用或資源累積。",
+        "validation method": "設計與實作對照；適用的失敗注入、停止／重啟測試及必要目標環境證據；未知證據保持待驗證。"
+      },
+      "criterion_sha256": "249419949781d082e9187e5c19b94f321dafa25446eec810a749b85ddbd6a6eb",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-019": {
+      "definition": {
+        "id": "AC-019",
+        "requirements": "REQ-019",
+        "criterion": "OS 檢查映射可追溯規則、設計版本及 AC，區別三階段與判定方式；必要設計分析不延後至驗收，主機模擬不冒充目標證據，缺失正確阻擋相依工作且未完成整體验收不得標完成。",
+        "validation method": "審查 OS 檢查映射與正反案例，涵蓋欄位缺失、實作偏離、測試失敗、目標證據不足與不相依工作可繼續；實際工具及證據入口列於最終驗收計畫。"
+      },
+      "criterion_sha256": "0e56cdfbb102a7b5e8afa2c77ce631ef00afb2874c719d411b135c97ba8dd556",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-020": {
+      "definition": {
+        "id": "AC-020",
+        "requirements": "REQ-020",
+        "criterion": "平台與執行設計可表達已採用欄位及其適用性；執行設計引用平台、模組及資料流版本，沒有重複手填的來源欄位。未知、不適用、估算及量測可區分，數值單位與依據可追溯。",
+        "validation method": "欄位格式及引用正反案例，涵蓋裸機不適用 OS 項目、RTOS／一般 OS 的實際能力、版本不符、漏欄位、未知冒充不適用及數值缺依據；通用解析與版本檢查由 SPEC-0044 提供。"
+      },
+      "criterion_sha256": "d6620790659bed257827cc3398b90de734e29c4a98014e88c00ffb4e959d1893",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    },
+    "AC-021": {
+      "definition": {
+        "id": "AC-021",
+        "requirements": "REQ-021",
+        "criterion": "七組 OS 規則 ID 唯一、強度為 MUST且有適用條件；條文涵蓋前述完整要求，不混入工作流程或重複 OS 隔離條款。未知、不適用與專案數值依據正確處理。",
+        "validation method": "對照 REQ-011 至 REQ-018 的完整搬移映射、規則四欄格式檢查、ID 重複檢查及適用／不適用／未知正反案例；各規則實際驗證依 REQ-019 映射。"
+      },
+      "criterion_sha256": "275b24df4570d74d47be30f4bb17eaade66723c40d0d7d46c3aaeabe5cbe9157",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "rationale": "本次修改主機上的治理規則、文件／來源／版本及執行入口；依 Implementation Plan 對應 AC 正反案例驗證。專案必要的 OS 目標證據義務仍保留，主機 fixture 不代替產品實機證據。"
+    }
+  }
+}

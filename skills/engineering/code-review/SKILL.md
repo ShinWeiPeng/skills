@@ -115,3 +115,7 @@ and generated evidence in unique immutable artifacts/ runs. specs/ only referenc
 fixed runs. Run the whole-project layout gate for positions, roles, owners and references.
 Language, dependency and isolation checks are outside layout scope; independently
 required architecture or device checks retain their own completion requirements. Do not change project Git policy.
+
+## Shared coding rule source
+
+Before designing or changing code, and during review, load [coding-standards](../coding-standards/SKILL.md). Use the same catalog version and project applicability result throughout. Architecture governance owns the module/interface/flow design records; present concrete implementation choices before SPEC confirmation and compare real code afterward. Do not copy rule definitions into this Skill.

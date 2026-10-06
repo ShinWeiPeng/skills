@@ -19,6 +19,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from functools import wraps
 from pathlib import Path
+from document_bundle import read_spec_document, read_spec_bytes, spec_hash
 from typing import Any
 
 
@@ -30,9 +31,7 @@ def check_spec_dependencies(root: Path, path: Path, visiting=None) -> list[str]:
         return [identity + ": dependency cycle"]
     visiting.add(identity)
     errors = []
-    for row in _table(
-        _sections(path.read_text(encoding="utf-8")).get("relationships", "")
-    ):
+    for row in _table(_sections(read_spec_document(path)).get("relationships", "")):
         if _field(row, "Relation") != "depends_on":
             continue
         target = _field(row, "Target")
@@ -46,7 +45,7 @@ def check_spec_dependencies(root: Path, path: Path, visiting=None) -> list[str]:
             errors.append(target + ": missing or ambiguous prerequisite")
             continue
         checked = validate_spec_text(
-            matches[0].read_text(encoding="utf-8"),
+            read_spec_document(matches[0]),
             known_spec_ids=_repository_spec_ids(root),
         )
         if (
@@ -397,7 +396,7 @@ def update_question(
     ref = resolved["working_spec"]
     if ref["status"] != "working":
         return {"verdict": "BLOCKED", "reason": "reopen before revising a question"}
-    current = (project_root / ref["snapshot_path"]).read_text(encoding="utf-8")
+    current = read_spec_document(project_root / ref["snapshot_path"])
     try:
         rendered = _question_update_snapshot(current, request, expected_revision)
     except (ValueError, TypeError, KeyError) as error:
@@ -507,7 +506,7 @@ def assess_turn_context(
     working = resolved["working_spec"]
     if task_ref and working.get("task_ref") != task_ref:
         return {"state": "invalid", "reason": "working specification task mismatch"}
-    text = (project_root / working["snapshot_path"]).read_text(encoding="utf-8")
+    text = read_spec_document(project_root / working["snapshot_path"])
     try:
         question = pending_decision(text)
         question_record = _question_record(text)
@@ -520,13 +519,12 @@ def assess_turn_context(
         project_root / "specs" / f"{working['spec_id']}-{working['change_set']}.md"
     )
     canonical_matches = (
-        _contract_hash(text)
-        == _contract_hash(canonical_path.read_text(encoding="utf-8"))
+        _contract_hash(text) == _contract_hash(read_spec_document(canonical_path))
         if canonical_path.is_file()
         else None
     )
     canonical_metadata = (
-        _metadata(canonical_path.read_text(encoding="utf-8"))[0]
+        _metadata(read_spec_document(canonical_path))[0]
         if canonical_path.is_file()
         else {}
     )
@@ -547,6 +545,7 @@ def assess_turn_context(
         }
         if canonical_path.is_file()
         else None,
+        "acceptance_plan_errors": acceptance_plan_completeness(project_root, text),
         "canonical_revision": canonical_metadata.get("revision"),
         "canonical_status": canonical_metadata.get("status"),
         "project_root": str(project_root.resolve()),
@@ -806,6 +805,12 @@ def assess_discussion_completion(
         return result | {"next_action": "present-pending-question"}
     if context.get("open_decisions"):
         return result | {"next_action": "ask-next-decision"}
+    if context.get("acceptance_plan_errors"):
+        return result | {
+            "next_action": "complete-acceptance-plan",
+            "reason": "complete machine-readable selections before presenting a decision-complete proposal",
+            "errors": context["acceptance_plan_errors"],
+        }
     if (
         working.get("status") != "confirmed"
         or context.get("canonical_status") != "confirmed"
@@ -889,9 +894,9 @@ def finish_discussion_turn(
                 and not any(
                     key.startswith("REQ-")
                     for key in _snapshot_rows(
-                        (
+                        read_spec_document(
                             project_root / context["working_spec"]["snapshot_path"]
-                        ).read_text(encoding="utf-8")
+                        )
                     )
                 )
                 and not context.get("open_decisions")
@@ -942,7 +947,7 @@ def record_question(
             "verdict": "BLOCKED",
             "reason": "reopen the specification before a new question",
         }
-    text = (project_root / ref["snapshot_path"]).read_text(encoding="utf-8")
+    text = read_spec_document(project_root / ref["snapshot_path"])
     try:
         if pending_decision(text):
             return {
@@ -998,6 +1003,50 @@ def _field(row: dict[str, str], name: str) -> str:
     return ""
 
 
+def acceptance_rows(text: str, *, allow_empty: bool = False) -> list[dict[str, str]]:
+    """Parse the shared AC table contract; absent evidence never implies PASS."""
+    headings = re.findall(r"(?m)^##\s+(.+?)\s*$", text)
+    if sum(name.strip().casefold() == "acceptance criteria" for name in headings) != 1:
+        raise ValueError("expected exactly one acceptance criteria section")
+    section = _sections(text).get("acceptance criteria", "")
+    lines = [
+        line.strip() for line in section.splitlines() if line.strip().startswith("|")
+    ]
+    if allow_empty and not lines and section.strip().casefold() in {"", "none."}:
+        return []
+    if len(lines) < 2:
+        raise ValueError("SPEC has no acceptance criteria")
+    cells = lambda line: [cell.strip() for cell in line.strip("|").split("|")]
+    headers = [cell.casefold() for cell in cells(lines[0])]
+    required = {"id", "requirements", "criterion", "validation method"}
+    if (
+        len(set(headers)) != len(headers)
+        or not required <= set(headers)
+        or set(headers) - required - {"evidence"}
+    ):
+        raise ValueError("invalid acceptance headers")
+    if len(cells(lines[1])) != len(headers) or not all(
+        re.fullmatch(r":?-{3,}:?", cell) for cell in cells(lines[1])
+    ):
+        raise ValueError("invalid acceptance separator")
+    result, seen = [], set()
+    for line in lines[2:]:
+        values = cells(line)
+        if len(values) != len(headers):
+            raise ValueError("malformed acceptance row")
+        row = dict(zip(headers, values))
+        identity = row["id"]
+        if not re.fullmatch(r"AC-\d{3}", identity) or identity in seen:
+            raise ValueError("invalid or duplicate acceptance ID")
+        if any(not row[field] for field in required):
+            raise ValueError("empty required acceptance field")
+        seen.add(identity)
+        result.append(row)
+    if not result and not allow_empty:
+        raise ValueError("SPEC has no acceptance criteria")
+    return result
+
+
 def _open_decisions_are_empty(value: str) -> bool:
     normalized = re.sub(r"[\s.*_-]+", "", value).casefold()
     return normalized in {"none", "noopen decisions", "無", "無未決事項"}
@@ -1037,7 +1086,11 @@ def validate_spec_text(
 
     requirements = _table(sections.get("requirements", ""))
     decisions = _table(sections.get("decisions", ""))
-    acceptance = _table(sections.get("acceptance criteria", ""))
+    try:
+        acceptance = acceptance_rows(text, allow_empty=status == "working")
+    except ValueError as error:
+        errors.append(str(error))
+        acceptance = []
     relationships = _table(sections.get("relationships", ""))
     rows_by_kind = {
         "REQ": requirements,
@@ -1329,7 +1382,7 @@ def _acceptance_planning(
             "saved_specification_independent": True,
         }
     try:
-        document = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        document = json.loads(read_spec_document(path)) if path.exists() else {}
         if not isinstance(document, dict):
             raise ValueError("acceptance document must be an object")
         mapping = document.get("acceptance", {})
@@ -1413,7 +1466,7 @@ def generated_acceptance(text: str, *, known_spec_ids=None) -> dict:
     }
 
 
-def acceptance_selector_gaps(acceptance: dict, matrix=None) -> list[str]:
+def acceptance_selector_gaps(acceptance: dict, matrix=None, spec_id=None) -> list[str]:
     """Report every AC selection gap without treating a projection as evidence."""
     ladder = Path(__file__).resolve().parents[2] / "verification-ladder" / "scripts"
     if str(ladder) not in sys.path:
@@ -1450,7 +1503,7 @@ def acceptance_selector_gaps(acceptance: dict, matrix=None) -> list[str]:
             if selected_layers & {"pil", "hil", "system-soak"}:
                 gaps.append(f"{ac}: device selections require a verification matrix")
         if matrix is not None and not invalid:
-            selected = plan(matrix, requested)
+            selected = plan(matrix, requested, spec_id=spec_id)
             if selected["status"] != "PASS":
                 gaps.extend(f"{ac}: {error}" for error in selected["errors"])
                 continue
@@ -1478,6 +1531,283 @@ def acceptance_selector_gaps(acceptance: dict, matrix=None) -> list[str]:
     return gaps
 
 
+def _validation_preparation_baseline(root: Path) -> dict:
+    """Capture definition bytes at the grant, including explicit absence."""
+    result = {}
+    for relative in (
+        "validation/verification-ladder.yaml",
+        "validation/on-device.yaml",
+    ):
+        path = root / relative
+        if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
+            raise ValueError("preparation definition must not be redirected")
+        result[relative] = read_spec_bytes(path).hex() if path.is_file() else None
+    return result
+
+
+def _validate_preparation_baseline(root: Path, baseline: dict) -> None:
+    """Accept only additive definitions since authorization; never weaken old values."""
+    import yaml
+
+    paths = {"validation/verification-ladder.yaml", "validation/on-device.yaml"}
+    if not isinstance(baseline, dict) or set(baseline) != paths:
+        raise ValueError(
+            "original validation definitions unavailable; recover their grant-bound history"
+        )
+
+    def preserved(before, after):
+        if not isinstance(before, dict) or not isinstance(after, dict):
+            return type(before) is type(after) and before == after
+        if (
+            set(after)
+            - set(before)
+            - {"rules", "scenarios", "layers", "on_device_profile"}
+        ):
+            return False
+        if (
+            "on_device_profile" not in before
+            and "on_device_profile" in after
+            and after["on_device_profile"] != "validation/on-device.yaml"
+        ):
+            return False
+        for key, value in before.items():
+            if key not in after:
+                return False
+            if key in {"rules", "scenarios"}:
+                if (
+                    not isinstance(value, list)
+                    or not isinstance(after[key], list)
+                    or _normalized_json(after[key][: len(value)])
+                    != _normalized_json(value)
+                    or len(after[key]) < len(value)
+                ):
+                    return False
+            elif key == "layers":
+                if (
+                    not isinstance(value, dict)
+                    or not isinstance(after[key], dict)
+                    or any(
+                        k not in after[key]
+                        or _normalized_json(after[key][k]) != _normalized_json(v)
+                        for k, v in value.items()
+                    )
+                ):
+                    return False
+            elif type(value) is not type(after[key]) or _normalized_json(
+                value
+            ) != _normalized_json(after[key]):
+                return False
+        return True
+
+    current = _validation_preparation_baseline(root)
+    try:
+        for path, original in baseline.items():
+            if original is None:
+                continue
+            if not isinstance(original, str) or current[path] is None:
+                raise ValueError(f"{path}: original definition missing")
+            before = yaml.safe_load(bytes.fromhex(original).decode("utf-8"))
+            after = yaml.safe_load(bytes.fromhex(current[path]).decode("utf-8"))
+            if not preserved(before, after):
+                raise ValueError(
+                    f"{path}: existing validation values changed since authorization"
+                )
+    except yaml.YAMLError as error:
+        raise ValueError("invalid preparation YAML") from error
+
+
+def _mapping_candidate_matches(root: Path, expected: str, actual: str) -> bool:
+    """Allow JSON serialization differences only inside the derived mapping block."""
+    pattern = r"(?ms)^## Acceptance Mapping\s*\n(.*?)(?=^## |\Z)"
+
+    def canonical(text):
+        body = _split_spec_audit(text)[0]
+        matches = list(re.finditer(pattern, body))
+        if not matches:
+            return body.strip()
+        if len(matches) != 1:
+            raise ValueError("ambiguous mapping section")
+        match = matches[0]
+        raw = match.group(1).strip()
+        if not raw.startswith("```json\n") or not raw.endswith("```"):
+            raise ValueError("mapping is not a JSON block")
+        value = json.loads(raw[8:-3])
+        block = "## Acceptance Mapping\n" + _normalized_json(value) + "\n\n"
+        return (body[: match.start()] + block + body[match.end() :]).strip()
+
+    try:
+        return canonical(expected) == canonical(actual)
+    except (ValueError, TypeError):
+        return False
+
+
+def _mapping_preparation_plan(root: Path, original: str) -> dict:
+    """Derive bounded preparation only; never equate arbitrary revised contracts."""
+    import yaml
+
+    # A missing optional evidence column is presentation-only. Preserve every
+    # original cell and all other authored text, adding empty (unverified) cells.
+    metadata, errors = _metadata(original)
+    if errors or metadata.get("status") not in {"working", "confirmed"}:
+        raise ValueError("preparation requires an unimplemented SPEC")
+    rows = acceptance_rows(original)
+    if all("evidence" not in row for row in rows) and not acceptance_plan_completeness(
+        root, original
+    ):
+        body = _split_spec_audit(original)[0]
+        match = re.search(
+            r"(?msi)^##[ \t]+Acceptance Criteria[ \t]*\r?\n(.*?)(?=^##[ \t]+|\Z)", body
+        )
+        if match is None:
+            raise ValueError("acceptance criteria section cannot be prepared")
+        section = match.group(0)
+        lines = section.splitlines(keepends=True)
+        table_index = 0
+        for index, line in enumerate(lines):
+            if line.strip().startswith("|"):
+                ending = "\n" if line.endswith("\n") else ""
+                suffix = (
+                    " Evidence |"
+                    if table_index == 0
+                    else "---|"
+                    if table_index == 1
+                    else "  |"
+                )
+                prefix = line.rstrip("\r\n")
+                if not prefix.rstrip().endswith("|"):
+                    prefix = prefix.rstrip() + " |"
+                lines[index] = prefix + suffix + ending
+                table_index += 1
+        candidate = body[: match.start()] + "".join(lines) + body[match.end() :]
+        candidate = _replace_metadata(
+            candidate, revision=int(metadata["revision"]) + 1, status="working"
+        )
+        candidate = _refresh_discussion_views(candidate, root)
+        return {
+            "candidate": candidate,
+            "inputs": {},
+            "additions": {row["id"] + ".evidence": "" for row in rows},
+            "rule_version": 2,
+        }
+
+    ladder = Path(__file__).resolve().parents[2] / "verification-ladder/scripts"
+    if str(ladder) not in sys.path:
+        sys.path.insert(0, str(ladder))
+    from verification_ladder import TAXONOMY, plan
+
+    metadata, errors = _metadata(original)
+    if errors or metadata.get("status") != "working":
+        raise ValueError("mapping preparation requires the original working SPEC")
+    paths = ["validation/verification-ladder.yaml", "validation/on-device.yaml"]
+    documents, hashes = {}, {}
+    for relative in paths:
+        path = root / relative
+        if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
+            raise ValueError("preparation definition must not be redirected")
+        data = read_spec_bytes(path)
+        try:
+            documents[relative] = yaml.safe_load(data)
+        except yaml.YAMLError as error:
+            raise ValueError("invalid preparation YAML") from error
+        hashes[relative] = hashlib.sha256(data).hexdigest()
+    matrix = documents[paths[0]]
+    profile = documents[paths[1]]
+    if not isinstance(matrix, dict) or not isinstance(profile, dict):
+        raise ValueError("invalid preparation definitions")
+    if not isinstance(matrix.get("rules"), list) or not isinstance(
+        matrix.get("layers"), dict
+    ):
+        raise ValueError("invalid preparation matrix shape")
+    for row in matrix["rules"]:
+        if (
+            not isinstance(row, dict)
+            or not isinstance(row.get("id"), str)
+            or any(
+                not isinstance(row.get(k), list)
+                or any(not isinstance(v, str) for v in row[k])
+                for k in (*TAXONOMY, "layers", "on_device_scenarios")
+            )
+        ):
+            raise ValueError("invalid preparation rule shape")
+    scenarios = profile.get("scenarios", [])
+    if not isinstance(scenarios, list):
+        raise ValueError("invalid preparation scenario list")
+    ids = [row.get("id") for row in scenarios if isinstance(row, dict)]
+    if (
+        any(not isinstance(s, str) or not s for s in ids)
+        or len(ids) != len(scenarios)
+        or len(set(ids)) != len(ids)
+    ):
+        raise ValueError("ambiguous scenario identities")
+    generated = generated_acceptance(
+        original, known_spec_ids=_repository_spec_ids(root)
+    )
+    body = _split_spec_audit(original)[0]
+    pattern = r"(?ms)^## Acceptance Mapping\s*\n(.*?)(?=^## |\Z)"
+    sections = list(re.finditer(pattern, body))
+    if len(sections) != 1:
+        raise ValueError("exactly one Acceptance Mapping is required")
+    raw = sections[0].group(1).strip()
+    if not (raw.startswith("```json\n") and raw.endswith("```")):
+        raise ValueError("Acceptance Mapping must be a JSON block")
+    selectors = json.loads(raw[8:-3])
+    additions = {}
+    for ac, row in generated["acceptance"].items():
+        requested = {field: set(row.get(field, [])) for field in TAXONOMY}
+        selected = plan(matrix, requested, spec_id=metadata["spec_id"])
+        if selected["status"] != "PASS":
+            raise ValueError(f"{ac}: unresolved project rules: {selected['errors']}")
+        required = set(selected["required_layers"]) & {"pil", "hil", "system-soak"}
+        existing = row.get("scenario_layers", {})
+        if not isinstance(existing, dict) or set(existing) - required:
+            raise ValueError(f"{ac}: existing scenario selectors cannot be changed")
+        for layer in sorted(required - set(existing)):
+            rules = [
+                r
+                for r in matrix["rules"]
+                if r["id"] in selected["activated_rules"] and layer in r["layers"]
+            ]
+            # Only an explicit rule for this SPEC can justify an automatic choice.
+            if not rules or any(
+                metadata["spec_id"] not in r.get("spec_ids", []) for r in rules
+            ):
+                raise ValueError(
+                    f"{ac}/{layer}: explicit SPEC-scoped scenario rule required"
+                )
+            candidates = {s for r in rules for s in r.get("on_device_scenarios", [])}
+            if len(candidates) != 1 or not candidates <= set(ids):
+                raise ValueError(
+                    f"{ac}/{layer}: scenario selection is missing or ambiguous"
+                )
+            scenario = next(iter(candidates))
+            definition = next(s for s in scenarios if s["id"] == scenario)
+            if definition.get("phase") != "acceptance":
+                raise ValueError(f"{ac}/{layer}: acceptance scenario required")
+            selectors[ac].setdefault("scenario_layers", {})[layer] = [scenario]
+            additions[f"{ac}.scenario_layers.{layer}"] = [scenario]
+    if not additions:
+        raise ValueError("no uniquely derivable missing scenario selectors")
+    replacement = (
+        "## Acceptance Mapping\n```json\n"
+        + json.dumps(selectors, ensure_ascii=False, indent=2)
+        + "\n```\n\n"
+    )
+    candidate = body[: sections[0].start()] + replacement + body[sections[0].end() :]
+    candidate = _replace_metadata(
+        candidate, revision=int(metadata["revision"]) + 1, status="working"
+    )
+    candidate = _refresh_discussion_views(candidate, root)
+    gaps = acceptance_plan_completeness(root, candidate)
+    if gaps:
+        raise ValueError("mapping preparation remains incomplete: " + "; ".join(gaps))
+    return {
+        "candidate": candidate,
+        "inputs": hashes,
+        "additions": additions,
+        "rule_version": 1,
+    }
+
+
 def acceptance_plan_completeness(project_root: Path, text: str) -> list[str]:
     """Read canonical selections before confirmation; preserve legacy host drafts."""
     matrix_path = project_root / "validation/verification-ladder.yaml"
@@ -1494,14 +1824,16 @@ def acceptance_plan_completeness(project_root: Path, text: str) -> list[str]:
         )
         matrix = None
         if matrix_path.is_file():
-            matrix = yaml.safe_load(matrix_path.read_text(encoding="utf-8"))
+            matrix = yaml.safe_load(read_spec_document(matrix_path))
             if (
                 not isinstance(matrix, dict)
                 or not isinstance(matrix.get("layers"), dict)
                 or not isinstance(matrix.get("rules"), list)
             ):
                 return ["Acceptance planning: invalid verification matrix"]
-        return acceptance_selector_gaps(document["acceptance"], matrix)
+        return acceptance_selector_gaps(
+            document["acceptance"], matrix, document["spec_id"]
+        )
     except (ValueError, TypeError, KeyError, OSError, yaml.YAMLError) as error:
         return ["Acceptance planning: " + str(error)]
 
@@ -1514,12 +1846,12 @@ def acceptance_generation_plan(project_root: Path, spec_path: str) -> dict:
         return {"verdict": "BLOCKED", "reason": "canonical specification required"}
     try:
         document = generated_acceptance(
-            path.read_text(encoding="utf-8"), known_spec_ids=_repository_spec_ids(root)
+            read_spec_document(path), known_spec_ids=_repository_spec_ids(root)
         )
         target = root / "validation" / ("acceptance-" + document["spec_id"] + ".json")
         if target.is_symlink():
             raise ValueError("redirected acceptance path")
-        raw = target.read_bytes() if target.exists() else None
+        raw = read_spec_bytes(target) if target.exists() else None
         content = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
         unresolved = [
             key
@@ -1527,10 +1859,10 @@ def acceptance_generation_plan(project_root: Path, spec_path: str) -> dict:
             if not row.get("evidence_claims") or not row.get("rationale")
         ]
         planning_errors = list(
-            dict.fromkeys(
-                acceptance_selector_gaps(document["acceptance"])
-                + acceptance_plan_completeness(root, path.read_text(encoding="utf-8"))
-            )
+            dict.fromkeys(acceptance_plan_completeness(root, read_spec_document(path)))
+        )
+        planning_errors.extend(
+            f"{ac}: evidence_claims and rationale required" for ac in unresolved
         )
         return {
             "verdict": "PASS",
@@ -1573,10 +1905,35 @@ def acceptance_repair_plan(project_root: Path, spec_path: str) -> dict:
     }
     if path.parent != root / "specs" or not path.is_file():
         return blocked | {"reason": "canonical specification required"}
-    text = path.read_text(encoding="utf-8")
+    text = read_spec_document(path)
     checked = validate_spec_text(text)
     if checked["verdict"] != "PASS":
         return blocked | {"reason": "invalid canonical specification"}
+    # Schema 2 is a generated projection, never an editable legacy mapping.
+    # Compare it with the canonical source before offering any repair.
+    identity = checked["canonical_spec"]["spec_id"]
+    projection = root / "validation" / f"acceptance-{identity}.json"
+    if projection.exists():
+        try:
+            if projection.is_symlink():
+                raise ValueError("redirected acceptance path")
+            current = json.loads(read_spec_document(projection))
+            if isinstance(current, dict) and current.get("schema_version") == 2:
+                if type(current["schema_version"]) is not int:
+                    return blocked | {"reason": "schema_version must be an integer"}
+                expected = generated_acceptance(
+                    text, known_spec_ids=_repository_spec_ids(root)
+                )
+                if current != expected:
+                    return blocked | {
+                        "reason": "generated acceptance projection is stale or modified; regenerate from SPEC"
+                    }
+                return acceptance_generation_plan(root, spec_path) | {
+                    "draft_required": False,
+                    "missing": [],
+                }
+        except (OSError, ValueError, TypeError, KeyError) as error:
+            return blocked | {"reason": str(error)}
     planning = _acceptance_planning(root, text)
     if planning.get("errors") or any(
         planning.get(k) for k in ("stale", "removed", "changed")
@@ -1600,7 +1957,7 @@ def acceptance_repair_plan(project_root: Path, spec_path: str) -> dict:
     identity = checked["canonical_spec"]["spec_id"]
     relative = f"validation/acceptance-{identity}.json"
     target = root / relative
-    raw = target.read_bytes() if target.exists() else None
+    raw = read_spec_bytes(target) if target.exists() else None
     document = (
         json.loads(raw.decode("utf-8"))
         if raw is not None
@@ -1747,12 +2104,21 @@ def _atomic_write(path: Path, text: str, *, preserve_audit: bool = True) -> None
         and path.is_file()
         and "<!-- spec-audit:start -->" not in text
     ):
-        existing = path.read_text(encoding="utf-8")
+        existing = read_spec_document(path)
         if "\n<!-- spec-audit:start -->" in existing:
             text += (
                 "\n<!-- spec-audit:start -->"
                 + existing.split("\n<!-- spec-audit:start -->", 1)[1]
             )
+    if (
+        path.suffix == ".md"
+        and path.is_file()
+        and path.read_bytes().startswith(b"<!-- document-bundle:1 -->")
+    ):
+        from legacy_document_migration import write_spec_document
+
+        write_spec_document(path, text)
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
     try:
@@ -2016,7 +2382,7 @@ def _confirmed_decision_replacement_errors(
 def _working_paths(project_root: Path, working_id: str) -> tuple[Path, Path]:
     matches = []
     for path in (project_root / "specs").glob("SPEC-*.md"):
-        metadata, _ = _metadata(path.read_text(encoding="utf-8"))
+        metadata, _ = _metadata(read_spec_document(path))
         if metadata.get("working_id") == working_id:
             matches.append(path)
     if len(matches) > 1:
@@ -2046,7 +2412,7 @@ def _read_journal(path: Path) -> tuple[list[dict[str, Any]], str]:
     events: list[dict[str, Any]] = []
     previous_hash: str | None = None
     try:
-        raw = path.read_text(encoding="utf-8")
+        raw = read_spec_document(path)
         if path.suffix == ".md":
             if "\n<!-- spec-audit:start -->" not in raw:
                 return [], "unavailable"
@@ -2128,7 +2494,7 @@ def _append_journal_event(
     event["event_hash"] = _journal_event_hash(event)
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.suffix == ".md":
-        body = _split_spec_audit(path.read_text(encoding="utf-8"))[0]
+        body = _split_spec_audit(read_spec_document(path))[0]
         history = []
         for item in events + [event]:
             discussion = item.get("delta", {}).get("discussion", {})
@@ -2189,7 +2555,7 @@ def _working_reference(
     snapshot_path: Path,
     journal_path: Path,
 ) -> dict[str, Any]:
-    text = snapshot_path.read_text(encoding="utf-8")
+    text = read_spec_document(snapshot_path)
     metadata, _ = _metadata(text)
     events, continuity = _read_journal(journal_path)
     snapshot_hash = _snapshot_hash(text)
@@ -2205,9 +2571,7 @@ def _working_reference(
         pending_changes.update(event.get("delta", {}).get("acceptance_changes", []))
     mapping_path = project_root / planning.get("path", "validation/missing.json")
     try:
-        mapping = json.loads(mapping_path.read_text(encoding="utf-8")).get(
-            "acceptance", {}
-        )
+        mapping = json.loads(read_spec_document(mapping_path)).get("acceptance", {})
     except (OSError, ValueError, TypeError, AttributeError):
         mapping = {}
     pending_changes = {
@@ -2262,11 +2626,11 @@ def _migrate_legacy_bundle(
     if not LEGACY_WORKING_ID_RE.fullmatch(legacy_id):
         return failure("legacy working ID is invalid")
     legacy_journal = legacy_snapshot.with_name(LEGACY_WORKING_JOURNAL)
-    source_snapshot_bytes = legacy_snapshot.read_bytes()
+    source_snapshot_bytes = read_spec_bytes(legacy_snapshot)
     source_journal_bytes = (
-        legacy_journal.read_bytes() if legacy_journal.is_file() else None
+        read_spec_bytes(legacy_journal) if legacy_journal.is_file() else None
     )
-    source_text = legacy_snapshot.read_text(encoding="utf-8")
+    source_text = read_spec_document(legacy_snapshot)
     metadata, metadata_errors = _metadata(source_text)
     if metadata_errors or metadata.get("working_id") != legacy_id:
         return failure(
@@ -2322,7 +2686,7 @@ def _migrate_legacy_bundle(
         temporary_journal.write_text(journal_text, encoding="utf-8", newline="\n")
         migrated_events, migrated_continuity = _read_journal(temporary_journal)
         if (
-            _working_structure_errors(temporary_snapshot.read_text(encoding="utf-8"))
+            _working_structure_errors(read_spec_document(temporary_snapshot))
             or (rewritten_events and migrated_continuity != "continuous")
             or (
                 migrated_events
@@ -2337,7 +2701,7 @@ def _migrate_legacy_bundle(
             destination_journal.unlink(missing_ok=True)
             raise
         if _working_structure_errors(
-            destination_snapshot.read_text(encoding="utf-8")
+            read_spec_document(destination_snapshot)
         ) or _read_journal(destination_journal)[1] != (
             "continuous" if rewritten_events else "unavailable"
         ):
@@ -2386,7 +2750,7 @@ def _migrate_flat_bundle(
                 raise ValueError(
                     "legacy snapshot and journal must both be ordinary files"
                 )
-        text = snapshot.read_text(encoding="utf-8")
+        text = read_spec_document(snapshot)
         errors = _working_structure_errors(text)
         ref = _working_reference(project_root, snapshot, journal)
         if (
@@ -2408,7 +2772,7 @@ def _migrate_flat_bundle(
         if destination.exists():
             if destination.is_symlink() or destination.stat().st_nlink != 1:
                 raise ValueError("canonical destination is redirected or shared")
-            original = destination.read_text(encoding="utf-8")
+            original = read_spec_document(destination)
             metadata, _ = _metadata(original)
             if (
                 metadata.get("status") == "implemented"
@@ -2426,7 +2790,7 @@ def _migrate_flat_bundle(
                 or path.is_symlink()
             ):
                 raise ValueError("legacy note must stay inside the project")
-            content = path.read_text(encoding="utf-8")
+            content = read_spec_document(path)
             if _redact_sensitive_content(content) != content:
                 raise ValueError("redact sensitive legacy notes before migration")
             legacy_notes.append(
@@ -2496,7 +2860,7 @@ def _working_candidates(project_root: Path) -> list[dict[str, Any]]:
     candidates: list[dict[str, Any]] = []
     canonical_ids = set()
     for path in sorted((project_root / "specs").glob("SPEC-*.md")):
-        text = path.read_text(encoding="utf-8")
+        text = read_spec_document(path)
         metadata, _ = _metadata(text)
         if not metadata.get("working_id") or metadata.get("status") == "implemented":
             continue
@@ -2529,7 +2893,7 @@ def _working_candidates(project_root: Path) -> list[dict[str, Any]]:
     for snapshot in sorted(root.glob(f"WORKING-SPEC-*{WORKING_SNAPSHOT_SUFFIX}")):
         if snapshot.name.endswith(WORKING_JOURNAL_SUFFIX):
             continue
-        snapshot_text = snapshot.read_text(encoding="utf-8")
+        snapshot_text = read_spec_document(snapshot)
         errors = _working_structure_errors(snapshot_text)
         metadata, _ = _metadata(snapshot_text)
         expected_id = snapshot.name[: -len(WORKING_SNAPSHOT_SUFFIX)]
@@ -2652,49 +3016,7 @@ def resolve_working_bundle(
     return result("absent", [], "no working specification exists")
 
 
-@contextmanager
-def project_state_lock(root: Path, key: str, timeout: float = 30.0):
-    """Lock a stable inode briefly; the OS releases ownership on process exit."""
-    directory = root.resolve() / "spec-governance"
-    if directory.is_symlink() or directory.resolve() != directory:
-        raise ValueError("governance directory must not be redirected")
-    directory.mkdir(parents=True, exist_ok=True)
-    path = directory / (".state-" + hashlib.sha256(key.encode()).hexdigest() + ".lock")
-    if path.is_symlink():
-        raise ValueError("state lock must not be redirected")
-    with path.open("a+b") as stream:
-        if path.stat().st_size == 0:
-            stream.write(b"0")
-            stream.flush()
-        deadline = time.monotonic() + timeout
-        while True:
-            try:
-                stream.seek(0)
-                if os.name == "nt":
-                    import msvcrt
-
-                    msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-
-                    fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError as error:
-                if error.errno not in {errno.EACCES, errno.EAGAIN}:
-                    raise
-                if time.monotonic() >= deadline:
-                    raise TimeoutError(
-                        f"shared state remained locked for {timeout:g}s; holder unknown; preserve pending edits and reread before retrying"
-                    )
-                time.sleep(0.01)
-        try:
-            yield
-        finally:
-            stream.seek(0)
-            if os.name == "nt":
-                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
-            else:
-                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+from state_lock import project_state_lock
 
 
 def _serialize_spec_creation(function):
@@ -2743,7 +3065,7 @@ def start_working_bundle(
                 snapshot_path, journal_path = _working_paths(
                     project_root, ref["working_id"]
                 )
-                previous = snapshot_path.read_text(encoding="utf-8")
+                previous = read_spec_document(snapshot_path)
                 if (
                     baseline_file_hash is not None
                     and _sha256_text(previous) != baseline_file_hash
@@ -2957,7 +3279,7 @@ def reconcile_working_bundle(
     working_id = reference["working_id"]
     snapshot_path = project_root / reference["snapshot_path"]
     journal_path = project_root / reference["journal_path"]
-    current = snapshot_path.read_text(encoding="utf-8")
+    current = read_spec_document(snapshot_path)
     metadata, _ = _metadata(current)
     current_hash = _snapshot_hash(current)
     current_revision = int(metadata.get("revision", "0"))
@@ -3172,7 +3494,7 @@ def _next_spec_id(project_root: Path) -> str:
 def _repository_spec_inventory(project_root: Path) -> dict[str, list[Path]]:
     result: dict[str, list[Path]] = {}
     for path in (project_root / "specs").glob("SPEC-[0-9][0-9][0-9][0-9]-*.md"):
-        metadata, _ = _metadata(path.read_text(encoding="utf-8"))
+        metadata, _ = _metadata(read_spec_document(path))
         if SPEC_ID_RE.fullmatch(metadata.get("spec_id", "")):
             result.setdefault(metadata["spec_id"], []).append(path)
     return result
@@ -3339,7 +3661,7 @@ def materialize_working_bundle(
     working_id = reference["working_id"]
     snapshot_path = project_root / reference["snapshot_path"]
     journal_path = project_root / reference["journal_path"]
-    current = snapshot_path.read_text(encoding="utf-8")
+    current = read_spec_document(snapshot_path)
     metadata, _ = _metadata(current)
     current_hash = _snapshot_hash(current)
     current_revision = int(metadata.get("revision", "0"))
@@ -3388,7 +3710,7 @@ def materialize_working_bundle(
             "reason": "reopened canonical specification path is missing",
         }
     if existing:
-        existing_metadata, _ = _metadata(destination.read_text(encoding="utf-8"))
+        existing_metadata, _ = _metadata(read_spec_document(destination))
         if existing_metadata.get("status") == "implemented":
             return {
                 "verdict": "BLOCKED",
@@ -3475,7 +3797,7 @@ def reopen_spec(
             "verdict": "BLOCKED",
             "reason": "canonical specification must be directly under specs/",
         }
-    text = path.read_text(encoding="utf-8")
+    text = read_spec_document(path)
     metadata, errors = _metadata(text)
     if errors:
         return {
@@ -3523,10 +3845,7 @@ def reopen_spec(
         baseline_file_hash=_sha256_text(text) if metadata.get("working_id") else None,
     )
     if result["verdict"] != "PASS":
-        if (
-            not metadata.get("working_id")
-            and path.read_text(encoding="utf-8") == reopened
-        ):
+        if not metadata.get("working_id") and read_spec_document(path) == reopened:
             _atomic_write(path, text)
         return result
     result["canonical_spec"] = {
@@ -3636,7 +3955,7 @@ def publish_tracker_snapshot(
     publisher: Callable[[Path, str], Any],
 ) -> dict[str, Any]:
     """Publish a snapshot without deleting or rewriting local canonical state."""
-    snapshot = spec_path.read_text(encoding="utf-8")
+    snapshot = read_spec_document(spec_path)
     try:
         receipt = publisher(spec_path, snapshot)
     except Exception as error:  # external adapter boundary
@@ -3655,7 +3974,7 @@ def _candidate_record(
     known_spec_ids: set[str],
 ) -> dict[str, Any]:
     relative = path.relative_to(project_root).as_posix()
-    text = path.read_text(encoding="utf-8")
+    text = read_spec_document(path)
     assessment = validate_spec_text(
         text,
         known_spec_ids=known_spec_ids,
@@ -3820,7 +4139,7 @@ def verify_spec_path(
             },
         }
     project_root = spec_path.parent.parent
-    text = spec_path.read_text(encoding="utf-8")
+    text = read_spec_document(spec_path)
     result = verify_spec(
         text,
         known_spec_ids=_repository_spec_ids(project_root),
@@ -3853,7 +4172,7 @@ def mark_spec_implemented(
             "verdict": "BLOCKED",
             "reason": "canonical spec must be directly under specs/",
         }
-    text = spec_path.read_text(encoding="utf-8")
+    text = read_spec_document(spec_path)
     project_root = spec_path.parent.parent
     known_spec_ids = _repository_spec_ids(project_root)
     current = validate_spec_text(text, known_spec_ids=known_spec_ids)
@@ -3962,7 +4281,7 @@ def mark_spec_implemented(
             "reason": "acceptance evidence is insufficient",
             "validation": evidence,
         }
-    spec_path.write_text(rendered, encoding="utf-8", newline="\n")
+    _atomic_write(spec_path, rendered)
     final["canonical_spec"]["path"] = (Path("specs") / spec_path.name).as_posix()
     return final
 
@@ -4077,7 +4396,7 @@ def main(validation_assessor=None) -> int:
                     args.project_root, reference=args.reference, task_ref=args.task_ref
                 )
                 result = question_surface_policy(
-                    json.loads(args.host.read_text(encoding="utf-8")),
+                    json.loads(read_spec_document(args.host)),
                     args.surface,
                     context.get("question_record", {}).get("failed_surfaces", {}),
                 )
@@ -4092,7 +4411,7 @@ def main(validation_assessor=None) -> int:
                 result = update_question(
                     args.project_root,
                     args.working_id,
-                    json.loads(args.request.read_text(encoding="utf-8")),
+                    json.loads(read_spec_document(args.request)),
                     expected_revision=args.expected_revision,
                     expected_hash=args.expected_hash,
                     validation_assessor=validation_assessor,
@@ -4107,7 +4426,7 @@ def main(validation_assessor=None) -> int:
                 args.project_root,
                 reference=args.reference,
                 task_ref=args.task_ref,
-                observation=json.loads(args.observation.read_text(encoding="utf-8")),
+                observation=json.loads(read_spec_document(args.observation)),
             )
         except (OSError, ValueError, TypeError) as error:
             result = {
@@ -4126,7 +4445,7 @@ def main(validation_assessor=None) -> int:
             else args.spec.parent
         )
         result = validate_spec_text(
-            args.spec.read_text(encoding="utf-8"),
+            read_spec_document(args.spec),
             known_spec_ids=_repository_spec_ids(project_root),
         )
         _apply_identity_errors(
@@ -4134,7 +4453,7 @@ def main(validation_assessor=None) -> int:
             _canonical_identity_errors(
                 project_root,
                 args.spec,
-                args.spec.read_text(encoding="utf-8"),
+                read_spec_document(args.spec),
             ),
         )
         result["canonical_spec"]["path"] = (
@@ -4153,7 +4472,7 @@ def main(validation_assessor=None) -> int:
         result = start_working_bundle(
             args.project_root,
             args.slug,
-            args.snapshot.read_text(encoding="utf-8"),
+            read_spec_document(args.snapshot),
             working_id=args.working_id,
             task_ref=args.task_ref,
             branch=args.branch,
@@ -4171,9 +4490,9 @@ def main(validation_assessor=None) -> int:
         result = reconcile_working_bundle(
             args.project_root,
             args.working_id,
-            args.snapshot.read_text(encoding="utf-8"),
-            json.loads(args.delta.read_text(encoding="utf-8")),
-            base_snapshot=args.base_snapshot.read_text(encoding="utf-8")
+            read_spec_document(args.snapshot),
+            json.loads(read_spec_document(args.delta)),
+            base_snapshot=read_spec_document(args.base_snapshot)
             if args.base_snapshot
             else None,
             expected_revision=args.expected_revision,

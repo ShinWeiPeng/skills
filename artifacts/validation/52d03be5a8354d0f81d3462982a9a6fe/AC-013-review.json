@@ -1,0 +1,8 @@
+{
+  "ac": "AC-013",
+  "criterion": "Task 間資料、事件及訊息通道均可指出 OS 工具與公開契約；越界私有狀態／未宣告全域交接可被指出；OS 相依 API 不外洩至功能契約，工具選擇不省略容量與持有規則。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "OS-CHAN-001 requires target OS tools for all Task handoffs. Each channel records actual endpoints, tool, purpose, capacity and ownership. Public ports/adapters reuse existing MOD-DEP-005/006 and TYPE-002 isolation rules.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

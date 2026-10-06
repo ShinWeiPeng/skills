@@ -11,7 +11,7 @@
   - Entrypoints: [`ask-matt`](../skills/engineering/ask-matt/SKILL.md) (skill)<br>[`main`](../skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
 - `plugin_assembly_composition` — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
   - Entrypoints: [`main`](../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../scripts/install-local.ps1) (script)
-- `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI. Compose design sources and durable architecture document updates through the specification document owner.
   - Entrypoints: [`main`](../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
 - `project_validation_composition` — Inject the project validation adapter into existing specification and delivery public CLIs.
   - Entrypoints: [`main`](../skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
@@ -70,14 +70,14 @@ flowchart TD
 - **Purpose:** Move an engineering idea or defect through planning, implementation, and review without bypassing required gates.
 - **Children:** `spec_governance_domain`, `formatter_governance_domain`
 - **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
-- **Protection Rationale:** Product mutation and commits require task and repository authorization; specification lifecycle writes do not grant that authority.; Every repository-modifying change set has one canonical specification before implementation.; Governed delivery reloads the current canonical hash, working identity and explicit human execution instruction.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
+- **Protection Rationale:** SPEC-0039 continue-execution orchestrates same-event AC preparation, owner confirmation, admission, projection and a reviewed continuation; status-only success is not a product write.; Legacy snapshots are recovered only from grant-bound persisted history; missing evidence, malformed state, changed scope and revoked or superseded events remain explicit blockers.; Continuation checkpoints preserve idempotency after interruption and recheck target hashes; implementation admission and actual acceptance evidence remain separate.; Product mutation and commits require task and repository authorization; specification lifecycle writes do not grant that authority.; Every repository-modifying change set has one canonical specification before implementation.; Governed delivery reloads the current canonical hash, working identity and explicit human execution instruction.; A confirmed specification is verified rather than re-interviewed only with explicit resume evidence and no new decision or conflict.
 
 ### `spec_governance_domain`
 
 - **Purpose:** Persist and reconcile engineering discussion into one canonical change-set specification, materialize it when decision-complete, and verify traceability before implementation. Verify the emitted completed-SPEC link, summary and authorization status. Own task/turn discussion entry, sourced candidate observations and durable repair-input deduplication across host continuations and restarts; saving and recovery remain available.
 - **Children:** None
 - **Related Flows:** [`governed-change-set-lifecycle`](generated/delivery_workflow_domain.md#governed-change-set-lifecycle)
-- **Protection Rationale:** Every answered decision is persisted before the next decision question.; Versioned pending questions survive timeout and mode changes without a deadline.; Only an explicit matching answer with a new DISC record clears a pending question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Every completed specification is presented in the emitted reply with its current ID, title, canonical link, summary and authorization state.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.; Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.; The caller's expected revision or snapshot hash does not match the persisted working specification. → Preserve the persisted snapshot, reload it, and reconcile the answer again without allocating replacement IDs.
+- **Protection Rationale:** Every answered decision is persisted before the next decision question.; Versioned pending questions survive timeout and mode changes without a deadline.; Only an explicit matching answer with a new DISC record clears a pending question.; Specification lifecycle writes never authorize product, Git, or external mutations.; Preparation continuation derives only missing scenario selectors from unique SPEC-scoped rules and verifies original document bytes, full snapshot transitions and definition hashes.; Proposal completion exposes all acceptance selection gaps before confirmation.; Every completed specification is presented in the emitted reply with its current ID, title, canonical link, summary and authorization state.; Confirmed specifications have unique stable IDs, resolved relations, no open decisions, and at least one acceptance criterion per requirement.; Confirmed unimplemented specifications reopen in place before a possible contract change; implemented specifications never reopen.; Implemented specifications record PASS evidence for every acceptance criterion and a passing Spec review.; Conflicts, open decisions, invalid references, or missing requirement-to-acceptance traceability remain. → Preserve the last confirmed specification and return to grilling with exactly one conclusion-changing question.; The caller's expected revision or snapshot hash does not match the persisted working specification. → Preserve the persisted snapshot, reload it, and reconcile the answer again without allocating replacement IDs.
 
 ### `formatter_governance_domain`
 
@@ -116,7 +116,7 @@ flowchart TD
 
 ### `architecture_governance_cli`
 
-- **Purpose:** Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- **Purpose:** Compose the governance engine and pinned native provider behind the single public architecture CLI. Compose design sources and durable architecture document updates through the specification document owner.
 - **Children:** None
 - **Related Flows:** None
 - **Protection Rationale:** Gate execution never downloads or replaces a native provider cache.
@@ -138,7 +138,7 @@ flowchart TD
 - [`governance_workflow_domain`](generated/governance_workflow_domain.md) — Enforce decision completeness, evidence-calibrated Flow cost review, architecture ownership, evidence-backed explanation, and bounded runtime validation.
 - [`plugin_assembly_composition`](generated/plugin_assembly_composition.md) — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
 - [`python_runtime_selection_domain`](generated/python_runtime_selection_domain.md) — Own the deterministic admission policy that accepts an explicit compatible runtime, otherwise prefers a compatible PATH observation and requests Windows Launcher fallback only after that observation is rejected.
-- [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI.
+- [`architecture_governance_cli`](generated/architecture_governance_cli.md) — Compose the governance engine and pinned native provider behind the single public architecture CLI. Compose design sources and durable architecture document updates through the specification document owner.
 - [`project_validation_composition`](generated/project_validation_composition.md) — Inject the project validation adapter into existing specification and delivery public CLIs.
 
 ## End-to-End Flows
@@ -176,6 +176,7 @@ flowchart TD
     n_libclang_toolchain_adapter["libclang_toolchain_adapter (L3+)<br/>安裝並驗證鎖定版本的 Espressif libclang 工具鏈"]
     n_project_validation_adapter["project_validation_adapter (L3+)<br/>呼叫專案驗證工具並回傳可追溯結果"]
     n_project_validation_composition["project_validation_composition (L0)<br/>在入口注入專案驗證工具"]
+    n_project_validation_binding["project_validation_binding (L3+)<br/>串接專案檔案、共用規格格式與驗證規劃"]
     n_guided_workflow_router -.->|depends| n_workflow_routing_domain
     n_guided_workflow_router -.->|depends| n_risk_routing_domain
     n_guided_workflow_router -.->|depends| n_delivery_workflow_domain
@@ -204,10 +205,14 @@ flowchart TD
     n_integration_validation_technical -.->|depends| n_plugin_release_governance_technical
     n_architecture_governance_cli -.->|depends| n_governance_workflow_domain
     n_architecture_governance_cli -.->|depends| n_libclang_toolchain_adapter
+    n_architecture_governance_cli -.->|depends| n_spec_governance_domain
     n_libclang_toolchain_adapter -.->|depends| n_governance_workflow_domain
     n_project_validation_adapter -.->|depends| n_spec_governance_domain
+    n_project_validation_adapter -.->|depends| n_project_validation_binding
     n_project_validation_composition -.->|depends| n_delivery_workflow_domain
     n_project_validation_composition -.->|depends| n_project_validation_adapter
+    n_project_validation_binding -.->|depends| n_spec_governance_domain
+    n_project_validation_binding -.->|depends| n_verification_ladder_domain
 ```
 
 ## Type Catalog
@@ -249,6 +254,7 @@ flowchart TD
 - `verdict-output-port` — `governance_workflow_domain` / `port` / `module-public`
 - `validation-profile-error` — `governance_workflow_domain` / `private-helper` / `private`
 - `platform-transport-adapter` — `governance_workflow_domain` / `adapter-binding` / `private`
+- `spec-document-error` — `spec_governance_domain` / `private-helper` / `private`
 
 ## State Ownership
 

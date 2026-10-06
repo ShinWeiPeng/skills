@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "run_id": "e4a47d5ac87a4778aeceb4ccd249f932",
+  "kind": "tests",
+  "started_at": "2026-09-24T05:06:38.816974+00:00",
+  "metadata": {
+    "target": {
+      "flow": "plugin-integration"
+    },
+    "scenario": "spec0038-regression",
+    "tool": {
+      "name": "run_host_check",
+      "version": "1"
+    },
+    "command": [
+      ".codex-arch-deps/venv/Scripts/python.exe",
+      "-c",
+      "import sys,unittest; sys.path.insert(0,\"tests/flows/plugin-integration/plugin\"); suite=unittest.defaultTestLoader.loadTestsFromNames([\"test_managed_delivery\",\"test_spec_governance\",\"test_turn_continuity\"]); r=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not r.wasSuccessful())"
+    ],
+    "source": {
+      "revision": "c334a7f7a9193f26f8f63ab8922da94c1c7fe282",
+      "dirty_sha256": "95ce2c9294eabc66d0c1678722994a5cb9dca34901f1006b7b087c922de04624"
+    },
+    "inputs": {},
+    "spec": "SPEC-0038"
+  },
+  "status": "completed",
+  "outcome": "PASS",
+  "ended_at": "2026-09-24T05:07:01.985132+00:00",
+  "files": {
+    ".run.json": "ae1e42ba74585d02ea99c16a66673bb6c0346a0de83621ef61bd25c7e2532deb",
+    "reports/command.log": "78fa479407668fbae9043ef223101444d0e9b53aedb36941c59f8071add1adb0",
+    "reports/result.json": "11b0f1f9b54eaf6c361d6afe44da8a96beed4f10c7b5bdf2391f4ef931388952"
+  }
+}

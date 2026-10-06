@@ -1,0 +1,8 @@
+{
+  "ac": "AC-001",
+  "criterion": "既定 OS 沿用；未定案時提出比較並確認；無多 OS 需求時不強制多平台實作。",
+  "method": "Source/contract review and actual executable host regressions",
+  "finding": "OS selection workflow preserves a confirmed OS; only an open selection compares alternatives. Platform format records actual runtime and capabilities; no generic multi-OS requirement is introduced.",
+  "verdict": "PASS",
+  "limits": "Target runtime obligations remain project-specific."
+}

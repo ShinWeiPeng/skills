@@ -1,0 +1,42 @@
+format_version: 1
+canonical: specs/SPEC-0044-shared-document-governance.md
+sections:
+- section: Problem
+  path: specs/SPEC-0044-shared-document-governance.md
+- section: Solution
+  path: specs/SPEC-0044-shared-document-governance.md
+- section: User Stories
+  path: specs/SPEC-0044/requirements.md
+- section: Requirements
+  path: specs/SPEC-0044/requirements.md
+- section: Decisions
+  path: specs/SPEC-0044/discussion.md
+- section: Discussion Context
+  path: specs/SPEC-0044/discussion.md
+- section: Acceptance Criteria
+  path: specs/SPEC-0044/acceptance.md
+- section: Implementation Plan
+  path: specs/SPEC-0044/discussion.md
+- section: Acceptance Mapping
+  path: specs/SPEC-0044/acceptance.md
+- section: Relationships
+  path: specs/SPEC-0044-shared-document-governance.md
+- section: Out of Scope
+  path: specs/SPEC-0044-shared-document-governance.md
+- section: Open Decisions
+  path: specs/SPEC-0044/discussion.md
+- section: Routing/Gates
+  path: specs/SPEC-0044-shared-document-governance.md
+- section: Revision History
+  path: specs/SPEC-0044/discussion.md
+- section: Current Specification
+  path: specs/SPEC-0044-shared-document-governance.md
+- section: Decision History
+  path: specs/SPEC-0044/discussion.md
+- section: Pending Discussion
+  path: specs/SPEC-0044/discussion.md
+- section: Completeness Gaps
+  path: specs/SPEC-0044/discussion.md
+- section: Discussion History
+  path: specs/SPEC-0044/discussion.md
+designs: []

@@ -1,0 +1,8 @@
+{
+  "ac": "AC-002",
+  "criterion": "耗盡案例有明確行為，禁止回退違反路徑配置／等待限制。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A full bounded pool rejects the request and reports exhaustion. Required finding for the counterexample: Falling back to an unbudgeted heap violates MEM-ALLOC-001/MEM-CAP-001.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

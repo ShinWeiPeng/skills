@@ -4,6 +4,7 @@ import fnmatch
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import stat
@@ -302,7 +303,21 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                 if parts[0] == "specs" and (
                     "evidence" in parts
                     or role != "specification"
-                    or Path(relative).suffix.lower() != ".md"
+                    or (
+                        Path(relative).suffix.lower() != ".md"
+                        and not (
+                            len(parts) >= 3
+                            and re.fullmatch(r"SPEC-\d{4}", parts[1])
+                            and (
+                                (len(parts) == 3 and parts[2] == "references.yaml")
+                                or (
+                                    len(parts) == 4
+                                    and parts[2] == "candidates"
+                                    and Path(relative).suffix.lower() == ".yaml"
+                                )
+                            )
+                        )
+                    )
                 ):
                     _diag(
                         items,

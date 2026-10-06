@@ -1,0 +1,8 @@
+{
+  "ac": "AC-018",
+  "criterion": "必須執行的復原通知在消費前被覆寫後，未完成狀態仍可被負責單元依契約期限發現並重新觸發；不能因通知遺失誤報完成，不能無界增加狀態或工作。",
+  "method": "Model-assisted source/document review plus executable host regressions",
+  "finding": "Reviewed rule/design contract case. Compliant example: A bounded pending-recovery state is checked by the responsible unit within the declared deadline after notification overwrite. Required finding for the counterexample: Recovery exists only as an overwritten notification, or retry jobs grow without limit: ERR-RECOVER-001 failure.",
+  "verdict": "PASS",
+  "limits": "Rule/design governance acceptance; target runtime claims require separate project evidence."
+}

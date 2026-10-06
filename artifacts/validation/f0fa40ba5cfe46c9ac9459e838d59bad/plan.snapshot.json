@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "binding": {
+    "project_root": "C:\\Users\\hugo_peng\\skill\\skills",
+    "spec": "specs/SPEC-0039-authorization-event-routing-and-legacy-migration.md",
+    "spec_id": "SPEC-0039",
+    "revision": 2,
+    "spec_sha256": "be699ccc551d0dedbb6da53fdea24426f84cf542eab57675247618bb15780d4f",
+    "documents": {
+      "architecture/adoption.yaml": {
+        "state": "present",
+        "sha256": "9b828b332786c7a2174cf01f17fcaa54044d57bdf04e4bf5390e5c234280fe88"
+      },
+      "architecture/manifest.yaml": {
+        "state": "present",
+        "sha256": "1d65fbd01fa715cb1628b09159509bec18fb0f85660ef5fbd4dda2a07191949c"
+      },
+      "validation/verification-ladder.yaml": {
+        "state": "present",
+        "sha256": "54c20bfe3b4e531dc6b8993c7cda4f2ff699b40ee69c607a31a7feee488707a9"
+      },
+      "validation/on-device.yaml": {
+        "state": "missing",
+        "sha256": null
+      },
+      "validation/layout.yaml": {
+        "state": "present",
+        "sha256": "135ba82d7c7a7ff9349579dc5a75f930a19ce4759e00cd069bc15d4565d36c18"
+      },
+      "validation/acceptance-SPEC-0039.json": {
+        "state": "present",
+        "sha256": "3eb52ddd915d3e28a28f9418328453f6e82c4ed878e0d5a14f50ec1046767552"
+      }
+    },
+    "skill": {
+      "version": "0.20.0",
+      "sha256": "768646d32c6f432b46305cb402d8f9cd6c16c50185223003e27040897904af42"
+    },
+    "device_profile_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "acceptance": {
+    "AC-001": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-001",
+        "REQ-001, REQ-002",
+        "一次授權下，父流程自動完成缺失情境對照修復、owner 確認及完整 admission，抵達隔離 fixture 的原實作接續入口；原事件 ID 不變且沒有第二次授權請求。",
+        "Host caller-to-managed end-to-end integration"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Caller routing and event identity are host contracts."
+    },
+    "AC-002": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-002",
+        "REQ-003, REQ-006",
+        "中斷重入不重複套用；並行修改不覆寫；相同輸入無進展時有限退出；其他 SPEC 授權隔離。",
+        "Host state transition and fault injection"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Atomic state transitions and recovery run on the host."
+    },
+    "AC-003": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-003",
+        "REQ-004, REQ-005",
+        "可驗證歷史可遷移；缺失、錯誤雜湊、改門檻、跨身份、撤銷和未知差異拒絕；原紀錄不變。",
+        "Host migration positive/negative fixtures"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Migration verifies historical host records."
+    },
+    "AC-004": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-004",
+        "REQ-006",
+        "新授權有效但其他 gate 未通過時仍禁止產品操作，輸出能分辨授權與准入原因。",
+        "Host managed admission integration"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Authorization and admission are independent host decisions."
+    },
+    "AC-005": {
+      "claims": [
+        "host-semantics"
+      ],
+      "contract": [
+        "AC-005",
+        "REQ-001, REQ-004, REQ-005",
+        "SPEC-0068 歷史隔離 fixture 覆蓋可信歷史恢復、資料不足明確回報、已有較新真實授權不依赖舊快照三條路；引用或重載不建立授權；不修改實際韌體專案。",
+        "Isolated historical-case regression"
+      ],
+      "rules": [
+        "verification-planner-contract",
+        "verification-routing-contract"
+      ],
+      "layers": [
+        "module-contract",
+        "sil"
+      ],
+      "scenario_layers": {},
+      "execution_profiles": [],
+      "enablement_scenarios": [],
+      "build_artifact": null,
+      "rationale": "Historical data is replayed in an isolated host fixture, with no device claim."
+    }
+  }
+}
