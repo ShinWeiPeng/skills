@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:governed-engineering-skills:routing-contract",
+  "title": "Engineering risk routing contracts",
+  "$defs": {
+    "RoutingDecision": {
+      "type": "object",
+      "required": ["task_class", "matched_hard_triggers", "risk_class", "required_gates", "next_skill", "status", "return_to_flow"],
+      "properties": {
+        "task_class": {"type": "string"},
+        "matched_hard_triggers": {"type": "array", "items": {"type": "string"}},
+        "risk_class": {"type": ["string", "null"], "enum": ["R0", "R1", "R2", "R3", null]},
+        "required_gates": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "next_skill": {"type": ["string", "null"]},
+        "status": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "return_to_flow": {"type": ["string", "null"]},
+        "blockers": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "GateResult": {
+      "type": "object",
+      "required": ["gate", "status", "evidence", "resume_target"],
+      "properties": {
+        "gate": {"type": "string"},
+        "status": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "resume_target": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}

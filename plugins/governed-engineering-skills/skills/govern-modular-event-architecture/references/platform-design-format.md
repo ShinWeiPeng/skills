@@ -1,0 +1,7 @@
+# Platform design format
+
+Use the shared SPEC-owner document format (Identity table plus one Design Data YAML block). One source owns each fact. Numeric values require units and estimate/measurement basis. Unknown and not-applicable are distinct and carry reasons. Confirmed references pin ID/version/path/hash through the shared collection owner.
+
+`platform_design` projects an envelope with `id`, positive `version` and `data`. Data keys are: `os`, `cpu`, `cores`, `usable_ram`, `capabilities`, `call_limits`, `scheduler`. Each fact has `status` (known/unknown/not-applicable), `reason`, and for known values `value`, `basis`, `source_refs`; capacities also have `unit`. OS includes runtime/version; CPU includes architecture and supported instructions; capabilities and call_limits identify supported tools, ISR/call environments and wait restrictions; scheduler includes policy and analysis capability. Existing OS selection is preserved; unset OS is compared and confirmed per project. Multiple OS support requires an explicit need.
+
+OS, CPU, core count and usable RAM facts are owned by the fixed Platform Facts table; source_refs are maintained once in the designated YAML fact_sources mapping. OS and CPU values are scalar names including versions; cores use positive integer/count, RAM uses positive numeric B/KiB/MiB/GiB. Capabilities, call limits and scheduler capabilities remain nested YAML. Shared design_table_format defines exact columns and typed JSON scalar cells.

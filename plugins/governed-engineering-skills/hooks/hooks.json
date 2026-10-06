@@ -1,0 +1,55 @@
+{
+  "description": "Engineering discussion persistence; review exact hook definitions before enabling.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,runpy;runpy.run_path(os.path.join(os.environ['PLUGIN_ROOT'],'skills','implement','scripts','discussion_hook.py'),run_name='__main__')\"",
+            "timeout": 15,
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'hooks/run-windows.ps1')\""
+          }
+        ],
+        "matcher": "startup|resume|compact"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,runpy;runpy.run_path(os.path.join(os.environ['PLUGIN_ROOT'],'skills','implement','scripts','discussion_hook.py'),run_name='__main__')\"",
+            "timeout": 15,
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'hooks/run-windows.ps1')\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,runpy;runpy.run_path(os.path.join(os.environ['PLUGIN_ROOT'],'skills','implement','scripts','discussion_hook.py'),run_name='__main__')\"",
+            "timeout": 15,
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'hooks/run-windows.ps1')\""
+          }
+        ],
+        "matcher": "^(Bash|exec_command|apply_patch|Edit|Write)$"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,runpy;runpy.run_path(os.path.join(os.environ['PLUGIN_ROOT'],'skills','implement','scripts','discussion_hook.py'),run_name='__main__')\"",
+            "timeout": 15,
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'hooks/run-windows.ps1')\""
+          }
+        ]
+      }
+    ]
+  }
+}

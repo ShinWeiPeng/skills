@@ -1,0 +1,4 @@
+interface:
+  display_name: "Coding standards"
+  short_description: "Apply shared rules using project constraints"
+  default_prompt: "Use $coding-standards to check the applicable rules before implementing this change."

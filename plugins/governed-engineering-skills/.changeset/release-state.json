@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0",
+  "current_version": "0.21.0",
+  "previous_version": "0.20.0",
+  "bump": "minor",
+  "production_fingerprint": "sha256:3fbfdde624b61347f211e82ac47fec49a0f874262e1a706e894ed57e44f376d7",
+  "applied_changesets": [
+    "shared-coding-rules-and-delivery-repair"
+  ]
+}
