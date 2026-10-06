@@ -1,5 +1,19 @@
 # Governed Engineering Skills
 
+## 0.21.0
+
+### Added
+
+- Shared coding standards and structured implementation design validation.
+
+### Changed
+
+- Separated architecture workflows, formats and ADR governance; retained pending consolidated governance planning changes.
+
+### Fixed
+
+- Consistent SPEC acceptance parsing and bounded authorized preparation/file operations.
+
 ## 0.20.0
 
 ### Changed
