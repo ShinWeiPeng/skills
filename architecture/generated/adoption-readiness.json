@@ -66,7 +66,6 @@
           "skills/engineering/govern-modular-event-architecture/scripts/state_catalog.py",
           "skills/engineering/govern-modular-event-architecture/scripts/type_catalog.py",
           "skills/engineering/govern-modular-event-architecture/scripts/validation_layout.py",
-          "skills/engineering/implement/scripts/discussion_hook.py",
           "skills/engineering/implement/scripts/managed_delivery.py",
           "skills/engineering/implement/scripts/project_validation_adapter.py",
           "skills/engineering/implement/scripts/project_validation_workflow.py",
