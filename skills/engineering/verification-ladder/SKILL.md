@@ -96,7 +96,15 @@ the implementation.
 
 ### Software-in-the-Loop (SIL)
 
-Run the production functional implementation on the host. Replace only hardware,
+Run the production functional implementation on the host.
+SIL means Software-in-the-Loop: run complete production functional modules on the
+host through their public commands, queries or events. `host-semantics` claims
+require both Module Contract coverage and executed module SIL; one qualifying suite
+may provide both evidence rows. A separate simulated integration claim is not
+needed, and absence of such a claim cannot exempt SIL. Pure document content checks
+are document validation rather than module functional execution. A test named
+"host regression" qualifies only when its actual source and public-seam coverage
+meet this contract; a label alone is insufficient. Replace only hardware,
 clock, transport, storage, or other external dependencies with Fake or Replay
 Adapters. Exercise project-selected rates, time/sequence/pairing semantics, boundary
 batches, conservation/backlog, failures, gaps, resets, and bounded-duration cases.
@@ -143,6 +151,8 @@ resets, unexplained loss, corruption, deadline violations, and queue overwrite.
 
 ## Delegate device execution
 
+After the applicable target build and flash are complete, execute the prepared
+selected device cases; build/flash success never constitutes PIL or HIL PASS.
 For every selected PIL, HIL, or System/Soak layer, invoke `$validate-on-device` after
 Validation Enablement. Let it own permissions, provider probing, upload/reset,
 bounded capture, native traces, evidence integrity, and PASS/FAIL/BLOCKED evaluation.
@@ -166,6 +176,8 @@ governed scheduling analysis plus selected PIL inputs and final HIL evidence.
 
 ## Report the result
 
+Report module SIL, cross-module integration/Adapter Contract, build, Web and
+AST/architecture separately, with applicable PIL/HIL/System results.
 For each layer report scope, triggered rule IDs, inputs, executable command or guided
 steps, metrics and thresholds, evidence artifact, verdict, stop condition, and next
 permitted layer. Mark an unselected layer `not applicable` only with the matrix's

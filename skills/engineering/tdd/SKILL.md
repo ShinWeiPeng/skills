@@ -63,3 +63,17 @@ Language, dependency and isolation checks are outside layout scope; independentl
 required architecture or device checks retain their own completion requirements. Do not change project Git policy.
 
 Own setup/reset/cleanup per case; shared fixtures are readonly by default. Use private support/ locally and tests/support/<capability>/ for shared assets. Verify state isolation with reorder/repeat/concurrency tests where applicable.
+
+## Production-module verification
+
+For a functional change, list affected production modules, public interfaces and
+cases mapped to the current ACs before implementation. Execute complete production
+modules through those interfaces; verify inputs/outputs, state transitions, event
+order and error recovery. Fake or Replay only external dependencies and retain the
+module's production algorithms and state machines. Add cross-module integration and
+shared Adapter Contract tests where coordination or ports change. Reuse qualifying
+existing cases instead of duplicating harnesses. Missing cases or execution evidence
+keep functional completion BLOCKED.
+
+Use verification-ladder for selected SIL/PIL/HIL/System obligations. Report module
+SIL, integration/Adapter Contract, build, Web and AST/architecture separately.

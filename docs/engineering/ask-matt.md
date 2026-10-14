@@ -42,6 +42,14 @@ The idea `ask-matt` gives you to think with is the **flow** — a path *through*
 
 Every turn reloads the task-bound working specification. A saved question survives short answers, interruptions and question-tool timeouts; factual follow-ups can continue without clearing it. Governed delivery checks the current specification and the original explicit execution instruction before writing.
 
+## Documents before implementation
+
+Specifications, proposals, GLOSSARY, ADRs, architecture records and documentation
+views can be authored and saved during discussion without `開始執行`. Only product
+implementation, tests, runtime configuration and executable outputs wait for the
+execution grant. Document writes preserve concurrent edits and never grant product
+authority. Operational skill instructions remain part of implementation.
+
 ## Where it fits
 
 `ask-matt` is the **router** — the standalone map that sits over the whole set. It is the node every other docs page links back to as [ask-matt](https://aihero.dev/skills-ask-matt), so it never sits *in* a chain; it points *into* every chain. From here you'll most often land on [grill-with-docs](https://aihero.dev/skills-grill-with-docs), the head of the main flow, or [triage](https://aihero.dev/skills-triage), the on-ramp for work you didn't create. When even the router's own picture is stale, its [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/ask-matt) is the map of record.
@@ -107,16 +115,11 @@ must make. A saved explanation does not need a formal SPEC; an adopted change wi
 complete scope and acceptance does. Suggested changes remain candidates until
 accepted and do not expand authorization.
 
-The candidate plugin includes prompt, resume, pre-tool and Stop hooks. Review and
-trust their exact definitions before activation. Missing discussion can trigger
-one automatic continuation for an actual input state. Unchanged failures do not
-loop, and restarting does not erase retry history. Failed saving reports the missing
-scope and ends the reply normally; discussion and recovery can continue. After a
-repair, saving and rechecking can succeed in the same task. Product changes still
-require a current SPEC and execution authorization. Reply wording differences do
-not count as missing requirements. Script tests alone do not prove desktop hooks were loaded
-or fired. The covered tool paths are Bash, exec_command and file edits; other tools, hosted
-search, streamed text and interruptions have explicit coverage limits.
+The router and discussion owner are called explicitly with task and turn sources.
+No lifecycle hooks are registered, and host trust, loading or firing evidence is
+not required. Failed saving reports the unsaved scope while discussion and document
+repair remain available. Product changes require the current SPEC and execution
+authorization.
 
 ## Bounded diagnosis and recovery
 

@@ -53,6 +53,14 @@ The skill's central idea is the **seam**, the public boundary you observe behavi
 
 The "pre-agreed" part matters, and it is also the skill's weakest point. Nothing inside `implement` agrees the seams. `tdd` is the skill that asks, and it refuses to write a test at an unconfirmed seam. So in practice the agreement happens either upstream in the spec, or in the first exchange of the run. If it happens nowhere, the run becomes "just write the code" and nothing warns you. Naming the seams in the spec is what stops that.
 
+## Documents before implementation
+
+Specifications, proposals, GLOSSARY, ADRs, architecture records and documentation
+views can be authored and saved during discussion without `開始執行`. Only product
+implementation, tests, runtime configuration and executable outputs wait for the
+execution grant. Document writes preserve concurrent edits and never grant product
+authority. Operational skill instructions remain part of implementation.
+
 ## Common questions
 
 **It finished, but my ticket is still open and the acceptance criteria are still unchecked.**

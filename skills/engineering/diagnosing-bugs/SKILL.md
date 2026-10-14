@@ -20,16 +20,14 @@ formal SPEC. Materialize only a complete adopted change scope, expected behavior
 decisions and acceptance criteria. Reopen confirmed changes and create successors
 for implemented contracts using the existing lifecycle.
 
-Bundled trusted hooks establish task/turn obligations, inspect covered dependent
-operations and check Stop persistence. Unknown intent is not silently exempt.
-SPEC-0032 separates synchronization from recovery permission. Permit one automatic
-repair per actual input state; replay or restart cannot reset its durable history.
-After a failed repair, report unsaved scope and finish normally. Discussion, reading,
-classification, saving and rechecking remain available; product changes still require
-a current SPEC and valid execution authorization. Historical repair failure is not
-a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
-hooks require the explicit owner CLI and remain a capability gap. Do not bypass
-hook trust or claim interception of every tool, reply or interrupt.
+Explicitly invoke the discussion owner and router with the actual task, turn and
+source references. Save and verify the current discussion before dependent product
+operations and before completing the turn. The bundle registers no lifecycle hooks
+and requires no host trust, loading or firing evidence. Preserve legacy observations
+as history. Permit bounded repair; after failed synchronization, report the unsaved
+scope and keep reading, discussion and document repair available. Product changes
+still require the current SPEC and valid execution authorization. Reply hashes are
+audit evidence; they do not prove semantic completeness or intercept host tools.
 
 
 

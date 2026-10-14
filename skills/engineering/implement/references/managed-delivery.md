@@ -34,7 +34,7 @@ or parallel batch. A rejected gate ends the dependent sequence.
 
 Invoke `python scripts/managed_delivery.py --project-root <root> --request <json>`.
 Request files are local governance evidence, stored under `spec-governance/`.
-Every request names `task_ref`. Authorization, status and apply also name the
+Product-execution requests name `task_ref`. Authorization, status and apply also name the
 canonical relative `spec` and `working_reference`.
 
 Authorize only after observing the user's current exact execution message:
@@ -383,3 +383,21 @@ from the canonical SPEC and reports unresolved selectors separately. Apply its
 patch through the common entry. Generation neither authorizes writes nor proves
 acceptance. Missing devices preserve required layers as unverified; continue
 independent authorized work and never substitute host evidence for HIL.
+
+
+## Document replacement without execution authority
+
+Use `operation: write-document` with a `patch` containing `path`, `before_sha256`
+and `content`. This operation requires no receipt, confirmed SPEC or product
+compatibility admission and always returns `product_code_allowed: false`.
+It accepts top-level README, CONTEXT, GLOSSARY and CHANGELOG Markdown files,
+`docs/` Markdown/RST/text and `architecture/` Markdown/YAML/JSON records. SPEC writes
+continue through spec-governance's owner. Operational skill instructions, tests,
+source code, runtime configuration and executable generated outputs use product
+admission. A Markdown extension alone does not make an executable instruction a
+pure document. External publishing and Git actions retain their own authorization.
+
+Document replacement uses the same path checks, reviewed base hash, atomic commit
+lock and bounded merge behavior as product replacement. A changed base is preserved;
+merged content requires validation before commit. No document operation creates an
+execution receipt or changes a suspended execution phase.

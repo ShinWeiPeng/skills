@@ -65,9 +65,11 @@ additive without allowing it to weaken universal evidence boundaries.
    once.
 3. For each requested trigger, find all matching project rules; zero matches blocks.
 4. Compute `required = union(universal(trigger), rule.layers)`.
-5. Sort by `module-contract`, `sil`, `adapter-contract`, `pil`, `hil`,
+5. Require `module-contract` plus `sil` for formal-module `host-semantics`.
+   Reject selected layers marked not applicable or lacking a project contract.
+6. Sort by `module-contract`, `sil`, `adapter-contract`, `pil`, `hil`,
    `system-soak`; ordering never removes a layer.
-6. When evidence is assessed, require the claim's authoritative layer to be present
+7. When evidence is assessed, require the claim's authoritative layer to be present
    and passed; lower layers may remain supporting evidence only.
 
 There is no score or tie-breaking winner because all activated layers are additive.
@@ -116,3 +118,12 @@ not by adding platform examples to universal policy.
 ## SPEC-0027 project context and completion extension
 
 Proposed extension authorized for implementation by the user in the SPEC-0027 task: combine prompt-derived gates with fresh project-policy and AC-plan obligations by deterministic union. Preserve canonical layer order and existing evidence authority. Bind saved plans and results to SPEC, policy, profile and skill inputs; reject missing, stale, unknown or lower-authority evidence at completion and before AC PASS writes. Candidate alternatives were reminder-only instructions and blanket HIL; both fail the scoped enforcement contract. Exact host fixture verdicts, short-command routing and lifecycle bypass tests provide validation; no timing-performance claim is made. Existing algorithm acceptance metadata is not expanded to claim independent approval of this extension.
+
+## Module SIL execution evidence
+
+Selection reports `NOT_RUN` and does not certify harness capability. Functional
+completion requires current execution reports with public interfaces, cases,
+module-owned production paths/hashes, argv, exit status and captured output. Fake
+only external dependencies and preserve production algorithms/state machines.
+A contract label, build, bare PASS log or unrelated/test source cannot substitute
+for module SIL. Pure document content checks make no host module functional claim.

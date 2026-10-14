@@ -21,6 +21,27 @@ No alternate test root is permitted, including existing projects. Migrate source
 fixtures, runner paths, references and source sets together. Curated fixture data
 must declare provenance; a report-like suffix does not alone determine its role.
 
+## Functional verification through complete modules
+
+For each functional change, map affected modules, public interfaces and cases to
+acceptance criteria. Execute production modules through those interfaces, preserving
+internal algorithms and state machines. Fake/Replay only external dependencies;
+verify I/O, state transitions, event order and recovery. Add cross-module integration
+and demand-owned Adapter Contract cases when coordination or ports change.
+
+Production module execution on the host is module SIL (Software-in-the-Loop).
+Host functional claims require Module Contract coverage plus executed SIL; one
+suite may support both rows. A separate simulated integration claim is unnecessary.
+Document content validation does not constitute a module functional claim.
+Bind SIL reports to the current plan, module-owned production paths and hashes,
+public interfaces, executed cases, argv, exit status and captured output. Missing
+or stale evidence blocks functional completion. Existing qualifying host regression
+cases may be reused; a renamed test label is insufficient.
+
+Report module SIL, integration/Adapter Contract, build, Web and AST/architecture
+separately. Execute applicable prepared PIL/HIL cases after target build and flash;
+build/flash success is not runtime PASS. Keep other selected System/Soak obligations.
+
 ## Scope of directory governance
 
 Layout checks positions, roles, owners, provenance and references. It does not
