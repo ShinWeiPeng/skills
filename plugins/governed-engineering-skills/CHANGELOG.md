@@ -1,5 +1,21 @@
 # Governed Engineering Skills
 
+## 0.22.0
+
+### Added
+
+- Promoted whole-spec implementation, PR, retrospective, wizard and productivity skills.
+
+### Changed
+
+- Restore the 0.20.0-based implementation while preserving the published 0.21.0 release baseline for the automatic 0.22.0 minor release.
+- Updated upstream workflows while retaining 0.20.0 canonical-spec and execution governance.
+- Prefer GLOSSARY.md while preserving legacy CONTEXT.md discovery.
+
+### Fixed
+
+- Upstream wizard, tracker, review and forced-mutation verification fixes.
+
 ## 0.21.0
 
 ### Added

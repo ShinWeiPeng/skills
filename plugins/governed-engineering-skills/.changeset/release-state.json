@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.21.0",
-  "previous_version": "0.20.0",
+  "current_version": "0.22.0",
+  "previous_version": "0.21.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:b636363f8f1d2177d09f3ddefe7fa763eee05bb983f1e0fcea8871437dd7b54f",
+  "production_fingerprint": "sha256:5661927e2e74b1df5f0b381792ad7394dfbda7a4605bf95345ae4efe629c18fb",
   "applied_changesets": [
-    "shared-coding-rules-and-delivery-repair"
+    "upstream-sync-from-020"
   ]
 }
