@@ -1,0 +1,112 @@
+{
+  "schema_version": 2,
+  "spec_id": "SPEC-0061",
+  "source": {
+    "revision": 7,
+    "definitions_sha256": "25b4a58c7636f50dcdacf0133394f7885f594869a281d38f71c6bcc4d9c7dd73"
+  },
+  "acceptance": {
+    "AC-001": {
+      "definition": {
+        "id": "AC-001",
+        "requirements": "REQ-001",
+        "criterion": "無execution receipt可安全保存文件，不能寫產品程式、技能規則或runtime設定；過期基底保留原檔。",
+        "validation method": "public managed writer behavior tests"
+      },
+      "criterion_sha256": "331d5c94bd4ed1bdc49e7440ca992001e3082ece59b853ce6eda23916f76aafc",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Complete production module interfaces with external fixtures on the host; no hardware claim."
+    },
+    "AC-002": {
+      "definition": {
+        "id": "AC-002",
+        "requirements": "REQ-002",
+        "criterion": "source/assembled Plugin無hooks註冊或專用adapter，手動discussion及產品授權回歸仍有效。",
+        "validation method": "distribution and owner regression tests"
+      },
+      "criterion_sha256": "91e367417730a35b74337713748e2c4f22ce813bd227726c56b44ded56522da5",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Complete production module interfaces with external fixtures on the host; no hardware claim."
+    },
+    "AC-003": {
+      "definition": {
+        "id": "AC-003",
+        "requirements": "REQ-003",
+        "criterion": "matched rule漏sil仍選module-contract與sil；明確排除sil或缺harness不能悄悄通過host功能計畫。",
+        "validation method": "production planner CLI regression tests"
+      },
+      "criterion_sha256": "479b6764df4c60fa2e8f7655b4455a209b7d971b7077d4d55b248584ef594e11",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Complete production module interfaces with external fixtures on the host; no hardware claim."
+    },
+    "AC-004": {
+      "definition": {
+        "id": "AC-004",
+        "requirements": "REQ-004",
+        "criterion": "SIL缺runner、模組/公開接口/案例、執行結果或正確來源hash均BLOCKED；完整對應證據可PASS。",
+        "validation method": "public project acceptance behavioral fixtures"
+      },
+      "criterion_sha256": "d45410afca62b52c2db918a4540cc3658f43b54d0652baf54dfe253714ad9f89",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Complete production module interfaces with external fixtures on the host; no hardware claim."
+    },
+    "AC-005": {
+      "definition": {
+        "id": "AC-005",
+        "requirements": "REQ-005",
+        "criterion": "共用測試契約明確完整正式模組與各環境證據；建置/燒錄不等於PIL/HIL通過，分項結果可辨識。",
+        "validation method": "focused contract/document checks and module suites"
+      },
+      "criterion_sha256": "76839b9f263f422dd8fcfa1704530f68b9c34d06dd97d342fa141c718fd2e5b6",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Complete production module interfaces with external fixtures on the host; no hardware claim."
+    },
+    "AC-006": {
+      "definition": {
+        "id": "AC-006",
+        "requirements": "REQ-006",
+        "criterion": "組裝產物與來源一致，必要引用完整，focused regression/formatter/architecture檢查通過。",
+        "validation method": "assembly validation, regression, formatter and architecture gate"
+      },
+      "criterion_sha256": "a3c4b632dc2b499ce0e2c533f9475686a9eb8d0f2bd9643409a8d33a8ffcbe19",
+      "evidence_claims": [
+        "host-semantics"
+      ],
+      "contract_dimensions": [
+        "call-order"
+      ],
+      "execution_changes": [],
+      "rationale": "Complete production module interfaces with external fixtures on the host; no hardware claim."
+    }
+  }
+}

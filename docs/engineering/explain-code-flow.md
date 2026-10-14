@@ -29,13 +29,8 @@ must make. A saved explanation does not need a formal SPEC; an adopted change wi
 complete scope and acceptance does. Suggested changes remain candidates until
 accepted and do not expand authorization.
 
-The candidate plugin includes prompt, resume, pre-tool and Stop hooks. Review and
-trust their exact definitions before activation. Missing discussion can trigger
-one automatic continuation for an actual input state. Unchanged failures do not
-loop, and restarting does not erase retry history. Failed saving reports the missing
-scope and ends the reply normally; discussion and recovery can continue. After a
-repair, saving and rechecking can succeed in the same task. Product changes still
-require a current SPEC and execution authorization. Reply wording differences do
-not count as missing requirements. Script tests alone do not prove desktop hooks were loaded
-or fired. The covered tool paths are Bash, exec_command and file edits; other tools, hosted
-search, streamed text and interruptions have explicit coverage limits.
+The router and discussion owner are called explicitly with task and turn sources.
+No lifecycle hooks are registered, and host trust, loading or firing evidence is
+not required. Failed saving reports the unsaved scope while discussion and document
+repair remain available. Product changes require the current SPEC and execution
+authorization.

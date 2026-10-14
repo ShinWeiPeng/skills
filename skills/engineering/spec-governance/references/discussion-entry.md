@@ -5,33 +5,24 @@ product delivery requires a saved entry with matching task, working identity and
 current revision/hash. Investigation and discussion handoffs remain available when
 synchronization fails; their results never authorize product writes. Neither a selected skill nor a caller's `done` flag is evidence.
 
-## Host and manual entry
+## Explicit discussion entry
 
-The bundled hook config uses `SessionStart`, `UserPromptSubmit`, `PreToolUse` and
-`Stop`. Install/enable is separate from reviewing and trusting the exact definition.
-Linux uses `python3`. Windows uses the explicit `GOVERNED_ENGINEERING_PYTHON`
-executable or the current project's `.codex-arch-deps/venv/Scripts/python.exe`,
-verifies Python 3.11+, and does not select an incompatible PATH Python. Codex
-supplies `PLUGIN_ROOT`. Runtime failure emits a capability gap without terminating the task; unverified product operations remain denied. Never set managed trust or use a hook-trust bypass to manufacture evidence.
-
-Prompt hooks establish an unknown obligation because the host payload has no
-engineering-intent field. The engineering router classifies it and initializes the
-working SPEC in `specs/` automatically. For a non-engineering request, explicitly classify that
-turn as `non-engineering` with a reason; no working SPEC is created. Do not inherit
-engineering classification merely because an earlier turn discussed code.
+The bundle registers no lifecycle hooks. Invoke the router and discussion owner
+explicitly with the actual task, turn and source references. Engineering requests
+initialize the working SPEC; classify non-engineering turns with their actual
+reason. Do not infer a new turn's intent solely from earlier engineering work.
 
 Bind the selected canonical repository before the first SPEC when host cwd differs.
 Send `operation: bind-project`, `task_ref` and an absolute `project_root` to the owner
-at the host root. Hook, router and owner resolve that same task binding. Rebinding
+at the host root. Router and owner resolve that same task binding. Rebinding
 an established task or silently relocating an existing SPEC is refused. Existing
 unknown source records transfer under the shared binding lock before the pointer
 changes; conflicts preserve both stores and block the binding. Ambiguous
 parent workspaces retain their pending source and require an explicit selection;
-never guess a child repository or create a second SPEC. Hook session/turn IDs
-are source observations, not user approval. Legacy records have no retroactive
+never guess a child repository or create a second SPEC. Task/turn IDs are source references, not user approval. Legacy records have no retroactive
 entry evidence; resuming does not invent it.
 
-Without loaded hooks, call guided_workflow_router with actual `--task-ref`,
+Call guided_workflow_router with actual `--task-ref`,
 `--turn-ref` and `--source-ref` before the first substantive engineering reply.
 The owner CLI also accepts a request file:
 
@@ -39,9 +30,8 @@ The owner CLI also accepts a request file:
 python <plugin>/skills/spec-governance/scripts/discussion_state.py --project-root <project> --request spec-governance/DISCUSSION-REQUEST-turn.json
 ```
 
-A repair may create/update only that `DISCUSSION-REQUEST-*.json` request surface via
-apply_patch before invoking the owner. The pre-tool recovery allowance does not
-permit an arbitrary script, shell chain, receipt replacement or product patch.
+Repairs may update the owner request surface and document records. They cannot
+replace execution receipts or grant authority for product patches.
 
 ```json
 {
@@ -133,23 +123,11 @@ delivery contract. Recovery never restores a stale receipt.
 
 ## Coverage and acceptance
 
-| Capability | Required evidence |
-|---|---|
-| Supported | Host version and documented event schema |
-| Trusted | Host review of current hook definition; never inferred from install |
-| Loaded | Host resolves this exact candidate's config and command |
-| Fired | Real event/task/turn trace and resulting owner files |
-
-The configured pre-tool surface covers Bash and apply_patch/Edit/Write. Bounded
-reads and owner-request recovery remain possible when saving is blocked. MCP,
-other local functions, hosted tools, ongoing process stdin, already streamed text
-and interruptions are not claimed to be fully intercepted by this config. Stop
-cannot retract a reply already shown. Timeout, startup failure or missing hooks
-must be reported as a gap even when voluntary CLI persistence works.
-
-Synthetic events and launcher-process tests establish host-side contracts only.
-Real desktop traces are required for AC-001/002/009/010/011 and overall acceptance;
-missing trust/loading/firing evidence keeps those criteria pending.
+Evaluate explicit router/owner persistence and managed delivery through their
+public interfaces. Saving, classification, rechecking and document repair remain
+available without implementation authorization. Missing synchronization blocks
+only dependent product writes. No host trust, loading or firing proof is required;
+these voluntary entrypoints do not intercept arbitrary tools or streamed replies.
 
 Before explicit contract confirmation, the agent reviews goal, scope, behavior, exceptions
 and acceptance against the actual adopted contract. Supply `completeness_review`
@@ -182,13 +160,9 @@ retroactive proof of item coverage. The mechanism checks identified items, not t
 model's ability to understand every natural-language decision. Report the actual
 `spec_presentation` link, revision and status and any unsaved scope.
 
-## Hook observations are separate from host verification
+## Legacy adapter history
 
-Query `hook-health` for declared event support and adapter observations. A direct
-owner save is manual and creates no hook observation. The stdin adapter records its
-event, task/turn, host and canonical roots, entrypoint hash, package version, and
-input/output hashes. Those records are caller-attested observations, not authenticated
-proof that Codex trusted, loaded or fired that candidate. `trusted`, `loaded`, and
-`fired` remain `unverified` without external host evidence; absent observations never
-mean success. Bounded observation history discloses truncation. Do not enable trust
-automatically or substitute simulated subprocess events for desktop validation.
+Legacy observations remain readable as history. The compatibility `hook-health`
+query reports a retired adapter with no supported events and host trust/loading/
+firing `not-applicable`; it does not grant authority. Recording new hook observations
+is rejected. Use the explicit owner protocol for current discussion evidence.

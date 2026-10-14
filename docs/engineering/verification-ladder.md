@@ -1,12 +1,3 @@
-# Verification Ladder
-
-Availability:
-
-Install **Governed Engineering Skills**, then start a new Codex task so the new
-skill inventory is loaded.
-
-[Source](../../skills/engineering/verification-ladder/SKILL.md)
-
 ## What it does
 
 `verification-ladder` selects the lowest sufficient additive evidence layers for
@@ -17,6 +8,13 @@ System/Soak acceptance.
 The project stores architecture bindings, thresholds, scenarios, evidence paths,
 and non-applicability rationale in `validation/verification-ladder.yaml`. Universal
 hard triggers and evidence-authority rules remain stable across projects.
+
+## When to reach for it
+
+Type `/verification-ladder`, or the agent selects it when engineering acceptance
+needs host, target, hardware or long-duration evidence. Use
+[TDD](https://aihero.dev/skills-tdd) for the implementation loop and
+[validate-on-device](https://aihero.dev/skills-validate-on-device) for device runs.
 
 ## TDD and model tests
 
@@ -69,3 +67,21 @@ the same SPEC. Missing selections are listed together before confirmation, while
 drafts can still be saved. A generated mapping is not a complete plan or passing
 test evidence. Explicit user waivers are recorded with their scope and source and
 shown separately from tests that passed; other evidence remains required.
+
+
+## Complete modules on the host
+
+Test production modules through their public interfaces and replace only external
+dependencies with Fake or Replay. These module SIL cases verify I/O, state, event
+order and recovery; add integration tests for coordination between modules. A host
+regression suite can satisfy SIL when it runs this production code and preserves
+actual commands, results, cases and source hashes. A build or architecture check
+alone cannot complete functional validation. Selected PIL/HIL cases run after the
+appropriate target build and flash, with their own recorded results.
+
+## Where it fits
+
+This is the verification-planning step inside delivery. It selects the evidence
+layers; TDD executes host cases and validate-on-device executes selected device
+cases. [ask-matt](https://aihero.dev/skills-ask-matt) routes engineering requests
+into the appropriate workflow.

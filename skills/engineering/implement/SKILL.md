@@ -7,11 +7,13 @@ description: "Implement a piece of work based on a spec or set of tickets."
 ## Universal SPEC visibility and execution boundary
 
 Apply this workflow to every project, language, size of change and later turn.
-Before any program writing (including bug fixes, tests, configuration, formatting
-and generated output), establish the current confirmed SPEC, present it, and
+Before product implementation (including bug fixes, tests, runtime configuration,
+source formatting and executable generated output), establish the current confirmed SPEC, present it, and
 observe the user's exact `開始執行` for that scope. A requirement, option answer,
 adoption, small follow-up or prior task authorization is not a new execution grant.
-Keep SPEC discussion and persistence active while product execution waits.
+Author, revise and save SPECs, proposals, GLOSSARY, ADRs, architecture records and
+documentation views without waiting for `開始執行`. Document writes grant no product
+execution authority. Keep document conflict and path protections active.
 
 Every completed SPEC creation or reconfirmed revision must appear in the actual
 user-visible reply: **SPEC ID and title linked to the canonical file**, a nonempty
@@ -128,3 +130,17 @@ same-scope verification repairs use the same current authorization. Missing
 results to be produced do not prohibit their implementation; final acceptance
 still requires the confirmed layers and evidence. Read `generate-acceptance`
 output before applying its derived patch and preserve unresolved planning gaps.
+
+## Production-module verification
+
+For a functional change, list affected production modules, public interfaces and
+cases mapped to the current ACs before implementation. Execute complete production
+modules through those interfaces; verify inputs/outputs, state transitions, event
+order and error recovery. Fake or Replay only external dependencies and retain the
+module's production algorithms and state machines. Add cross-module integration and
+shared Adapter Contract tests where coordination or ports change. Reuse qualifying
+existing cases instead of duplicating harnesses. Missing cases or execution evidence
+keep functional completion BLOCKED.
+
+Use verification-ladder for selected SIL/PIL/HIL/System obligations. Report module
+SIL, integration/Adapter Contract, build, Web and AST/architecture separately.

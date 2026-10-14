@@ -1,4 +1,4 @@
-"""SPEC-0029 owner and host-adapter contracts; these are not desktop evidence."""
+"""SPEC-0029 explicit discussion-owner contracts."""
 
 import json
 import os
@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "CLAUDE.md").is_file())
 sys.path.insert(0, str(ROOT / "skills/engineering/spec-governance/scripts"))
 sys.path.insert(0, str(ROOT / "skills/engineering/implement/scripts"))
-from discussion_hook import handle_hook
+sys.path.insert(0, str(ROOT / "skills/engineering/engineering-risk-routing/scripts"))
 from discussion_state import discussion_request
 from spec_contract import (
     assess_turn_context,
@@ -128,33 +128,8 @@ class DiscussionEntryTests(unittest.TestCase):
             source_ref="fixture-user-1",
         )
         self.assertEqual("SPEC-0001", routed["turn_context"]["working_spec"]["spec_id"])
-        recovery = handle_hook(
-            {
-                "hook_event_name": "PreToolUse",
-                "session_id": "task-a",
-                "turn_id": "turn-1",
-                "cwd": str(self.root),
-                "tool_name": "Write",
-                "tool_input": {
-                    "file_path": str(
-                        project / "spec-governance/DISCUSSION-REQUEST-repair.json"
-                    )
-                },
-            }
-        )
-        self.assertNotEqual(
-            "deny", recovery.get("hookSpecificOutput", {}).get("permissionDecision")
-        )
         self.save()
-        result = handle_hook(
-            {
-                "hook_event_name": "Stop",
-                "session_id": "task-a",
-                "turn_id": "turn-1",
-                "cwd": str(self.root),
-            }
-        )
-        self.assertEqual({}, result)
+        self.assertEqual("PASS", self.call("stop", reply_text="saved")["verdict"])
         other = self.root / "other"
         other.mkdir()
         with self.assertRaisesRegex(ValueError, "already bound"):
@@ -174,41 +149,6 @@ class DiscussionEntryTests(unittest.TestCase):
         self.assertEqual("BLOCKED", self.call("status")["verdict"])
         self.save()
         self.assertEqual("PASS", self.call("status")["verdict"])
-
-    def test_hook_health_distinguishes_manual_save_from_adapter_observation(self):
-        health = self.call("hook-health")
-        for key in ("trusted", "loaded", "fired"):
-            self.assertEqual("unverified", health[key])
-        self.assertEqual([], health["adapter_observations"])
-        self.enter()
-        self.save()
-        self.assertEqual([], self.call("hook-health")["adapter_observations"])
-        payload = {
-            "hook_event_name": "SessionStart",
-            "session_id": "task-a",
-            "cwd": str(self.root),
-        }
-        run = subprocess.run(
-            [
-                sys.executable,
-                str(ROOT / "skills/engineering/implement/scripts/discussion_hook.py"),
-            ],
-            input=json.dumps(payload),
-            capture_output=True,
-            encoding="utf-8",
-            timeout=15,
-            check=False,
-        )
-        self.assertEqual(0, run.returncode, run.stderr)
-        health = self.call("hook-health")
-        observation = health["adapter_observations"][-1]
-        self.assertEqual("SessionStart", observation["event"])
-        self.assertEqual("task-a", observation["task_ref"])
-        self.assertEqual(str(self.root.resolve()), observation["project_root"])
-        self.assertEqual(64, len(observation["entrypoint_sha256"]))
-        self.assertEqual("unverified", health["fired"])
-        self.assertEqual("unverified", health["trusted"])
-        self.assertEqual("caller-attested-adapter-stdin", observation["provenance"])
 
     def test_ambiguous_parent_retains_source_until_explicit_binding(self):
         for name in ("one", "two"):
@@ -332,24 +272,11 @@ class DiscussionEntryTests(unittest.TestCase):
         self.call("enter", prompt="Hello", source_ref="source-2")
         self.call("classify", kind="non-engineering", reason="A greeting")
         self.assertEqual("BLOCKED", self.call("status")["verdict"])
-        blocked = handle_hook(
-            {
-                "cwd": str(self.root),
-                "hook_event_name": "PreToolUse",
-                "session_id": "task-a",
-                "turn_id": "turn-2",
-                "tool_name": "Bash",
-                "tool_input": {"command": "build-product"},
-            },
-        )
-        self.assertEqual("deny", blocked["hookSpecificOutput"]["permissionDecision"])
         self.assertEqual(
             "BLOCKED",
             self.call("stop", reply_text="Pending engineering work")["verdict"],
         )
-        final = self.call(
-            "stop", reply_text="Pending engineering work", stop_hook_active=True
-        )
+        final = self.call("stop", reply_text="Pending engineering work")
         self.assertTrue(final["continue"])
         self.assertNotEqual(True, final.get("saved"))
         self.base["turn_id"] = "turn-3"
@@ -856,35 +783,6 @@ class DiscussionEntryTests(unittest.TestCase):
             assess_turn_context(self.root, task_ref="task-a")["working_spec"]["status"],
         )
 
-    def test_host_detects_model_omitted_calls_and_consumes_once(self):
-        base = {"cwd": str(self.root), "session_id": "task-a", "turn_id": "turn-1"}
-        handle_hook(
-            {**base, "hook_event_name": "UserPromptSubmit", "prompt": "debug a crash"}
-        )
-        first = handle_hook(
-            {**base, "hook_event_name": "Stop", "last_assistant_message": "unsaved"}
-        )
-        self.assertEqual("block", first["decision"])
-        final = handle_hook(
-            {
-                **base,
-                "hook_event_name": "Stop",
-                "last_assistant_message": "unsaved",
-                "stop_hook_active": True,
-            }
-        )
-        self.assertNotIn("continue", final)
-        self.assertIn("systemMessage", final)
-        denied = handle_hook(
-            {
-                **base,
-                "hook_event_name": "PreToolUse",
-                "tool_name": "apply_patch",
-                "tool_input": {"command": "patch"},
-            }
-        )
-        self.assertEqual("deny", denied["hookSpecificOutput"]["permissionDecision"])
-
     def test_reply_wording_is_audit_only(self):
         self.enter()
         self.save("prepared text")
@@ -946,193 +844,6 @@ class DiscussionEntryTests(unittest.TestCase):
             },
         )
         self.assertEqual("PASS", result["verdict"])
-
-    def test_host_topic_change_can_be_nonengineering(self):
-        self.enter()
-        self.save()
-        base = {"cwd": str(self.root), "session_id": "task-a", "turn_id": "poetry"}
-        handle_hook(
-            {**base, "hook_event_name": "UserPromptSubmit", "prompt": "寫一首詩"}
-        )
-        self.base["turn_id"] = "poetry"
-        self.call("classify", kind="non-engineering", reason="Standalone poetry")
-        self.assertEqual("PASS", self.call("stop", reply_text="詩")["verdict"])
-
-    def test_manifest_command_runs_from_unrelated_directory(self):
-        plugin = self.root / "中文候選"
-        for skill in ("spec-governance", "implement", "engineering-risk-routing"):
-            shutil.copytree(
-                ROOT / "skills/engineering" / skill,
-                plugin / "skills" / skill,
-                ignore=shutil.ignore_patterns("__pycache__"),
-            )
-        config = json.loads(
-            (ROOT / "plugins/governed-engineering-skills/hooks/hooks.json").read_text()
-        )
-        command = config["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"]
-        self.assertTrue(command.startswith('python3 -c "'))
-        python_code = command[len('python3 -c "') : -1]
-        payload = {
-            "cwd": str(self.root),
-            "session_id": "launch-task",
-            "turn_id": "launch-turn",
-            "hook_event_name": "UserPromptSubmit",
-            "prompt": "提出量測方案",
-        }
-        run = subprocess.run(
-            [sys.executable, "-c", python_code],
-            input=json.dumps(payload),
-            text=True,
-            encoding="utf-8",
-            capture_output=True,
-            cwd=self.root,
-            env=os.environ | {"PLUGIN_ROOT": str(plugin), "PYTHONIOENCODING": "utf-8"},
-            check=False,
-        )
-        self.assertEqual(0, run.returncode, run.stderr)
-        output = json.loads(run.stdout)
-        self.assertIn("hookSpecificOutput", output)
-        self.assertNotIn("continue", output)
-        if os.name == "nt":
-            (plugin / "hooks").mkdir()
-            launcher = plugin / "hooks/run-windows.ps1"
-            shutil.copyfile(
-                ROOT / "plugins/governed-engineering-skills/hooks/run-windows.ps1",
-                launcher,
-            )
-            env = os.environ | {
-                "PLUGIN_ROOT": str(plugin),
-                "GOVERNED_ENGINEERING_PYTHON": sys.executable,
-            }
-            payload["turn_id"] = "windows-launch-turn"
-            env.pop("PYTHONUTF8", None)
-            env.pop("PYTHONIOENCODING", None)
-            windows_command = config["hooks"]["UserPromptSubmit"][0]["hooks"][0][
-                "commandWindows"
-            ]
-            run = subprocess.run(
-                windows_command,
-                input=json.dumps(payload, ensure_ascii=False),
-                text=True,
-                encoding="utf-8",
-                capture_output=True,
-                cwd=self.root,
-                env=env,
-                timeout=15,
-                check=False,
-            )
-            self.assertEqual(0, run.returncode, run.stderr)
-            self.assertIn("hookSpecificOutput", json.loads(run.stdout))
-            state = discussion_request(
-                self.root, {"operation": "resume", "task_ref": "launch-task"}
-            )["state"]
-            self.assertEqual(
-                payload["prompt"], state["turns"]["windows-launch-turn"]["prompt"]
-            )
-
-            # Real Windows adapter processes, not proof of Codex host hook firing.
-            def adapter(event, **data):
-                run = subprocess.run(
-                    windows_command,
-                    input=json.dumps(
-                        {**payload, "hook_event_name": event, **data},
-                        ensure_ascii=False,
-                    ),
-                    text=True,
-                    encoding="utf-8",
-                    capture_output=True,
-                    cwd=self.root,
-                    env=env,
-                    timeout=15,
-                    check=False,
-                )
-                self.assertEqual(0, run.returncode, run.stderr)
-                return json.loads(run.stdout)
-
-            self.assertEqual(
-                "block", adapter("Stop", last_assistant_message="missing")["decision"]
-            )
-            stopped = adapter(
-                "Stop", last_assistant_message="still missing", stop_hook_active=True
-            )
-            self.assertIn("systemMessage", stopped)
-            self.assertNotIn("continue", stopped)
-            owner = plugin / "skills/spec-governance/scripts/discussion_state.py"
-            request_path = (
-                self.root / "spec-governance/DISCUSSION-REQUEST-windows-save.json"
-            )
-            owner_base = {"task_ref": "launch-task", "turn_id": "windows-launch-turn"}
-
-            def owner_call(operation, **values):
-                request_path.write_text(
-                    json.dumps({**owner_base, "operation": operation, **values}),
-                    encoding="utf-8",
-                )
-                command = f'& "{sys.executable}" -X utf8 "{owner}" --project-root "{self.root}" --request "{request_path}"'
-                allowed = adapter(
-                    "PreToolUse", tool_name="exec_command", tool_input={"cmd": command}
-                )
-                self.assertNotEqual(
-                    "deny",
-                    allowed.get("hookSpecificOutput", {}).get("permissionDecision"),
-                )
-                run = subprocess.run(
-                    [
-                        sys.executable,
-                        "-X",
-                        "utf8",
-                        str(owner),
-                        "--project-root",
-                        str(self.root),
-                        "--request",
-                        str(request_path),
-                    ],
-                    text=True,
-                    encoding="utf-8",
-                    capture_output=True,
-                    cwd=self.root,
-                    env=env,
-                    timeout=15,
-                    check=False,
-                )
-                response = json.loads(run.stdout)
-                if operation != "status":
-                    self.assertEqual(0, run.returncode, response)
-                return response
-
-            owner_call(
-                "classify", kind="engineering", reason="Windows fault/recovery fixture"
-            )
-            binding = owner_call("status")["binding"]
-            owner_call(
-                "observe",
-                items=[],
-                source_refs=["host:UserPromptSubmit:windows-launch-turn"],
-            )
-            owner_call(
-                "record",
-                binding=binding,
-                summary="Saved actual Windows test discussion",
-                source_ref="fixture-windows-user",
-                reply_text="prepared wording",
-            )
-            self.assertEqual(
-                {}, adapter("Stop", last_assistant_message="equivalent revised wording")
-            )
-            env["GOVERNED_ENGINEERING_PYTHON"] = str(self.root / "missing-python.exe")
-            run = subprocess.run(
-                windows_command,
-                input=json.dumps(payload),
-                text=True,
-                encoding="utf-8",
-                capture_output=True,
-                cwd=self.root,
-                env=env,
-                timeout=15,
-                check=False,
-            )
-            self.assertNotIn("continue", json.loads(run.stdout))
-            self.assertIn("systemMessage", json.loads(run.stdout))
 
     def test_killed_process_releases_lock_without_resetting_repair(self):
         self.enter()
@@ -1271,88 +982,6 @@ class DiscussionEntryTests(unittest.TestCase):
         self.assertTrue(current["turns"]["turn-1"]["legacy_repair"]["repair_failed"])
         self.assertEqual("PASS", self.call("status")["verdict"])
 
-    def test_native_windows_owner_command_is_recovery_not_arbitrary_python(self):
-        from discussion_hook import SKILLS, _recovery_or_read
-
-        owner = SKILLS / "spec-governance/scripts/discussion_state.py"
-        request = "spec-governance/DISCUSSION-REQUEST-save.json"
-        command = f'& "{sys.executable}" -X utf8 "{owner}" --project-root "{self.root}" --request {request}'
-        payload = {
-            "cwd": str(self.root),
-            "tool_name": "exec_command",
-            "tool_input": {"cmd": command},
-        }
-        self.assertTrue(_recovery_or_read(payload))
-        for bad in (
-            command + "; echo unsafe",
-            command.replace(
-                str(owner),
-                str(self.root / "spec-governance/scripts/discussion_state.py"),
-            ),
-            command.replace(request, "src/request.json"),
-        ):
-            with self.subTest(command=bad):
-                self.assertFalse(
-                    _recovery_or_read({**payload, "tool_input": {"cmd": bad}})
-                )
-
-    def test_recovery_allowed_even_when_discussion_store_is_corrupt(self):
-        from discussion_hook import _failure
-
-        self.enter()
-        path = next((self.root / "spec-governance").glob("DISCUSSION-*.json"))
-        path.write_text("not-json", encoding="utf-8")
-        base = {
-            "cwd": str(self.root),
-            "session_id": "task-a",
-            "turn_id": "turn-1",
-            "hook_event_name": "PreToolUse",
-        }
-        allowed = handle_hook({**base, "tool_name": "Read", "tool_input": {}})
-        self.assertNotIn("permissionDecision", allowed["hookSpecificOutput"])
-        failed = _failure(
-            {
-                **base,
-                "tool_name": "apply_patch",
-                "tool_input": {"input": "product patch"},
-            },
-            "corrupt",
-        )
-        self.assertEqual("deny", failed["hookSpecificOutput"]["permissionDecision"])
-        self.assertEqual("not-json", path.read_text(encoding="utf-8"))
-
-    def test_request_patch_absolute_path_allowed_but_mixed_product_patch_denied(self):
-        from discussion_hook import _recovery_or_read
-
-        request = self.root / "spec-governance/DISCUSSION-REQUEST-save.json"
-        patch = f"*** Begin Patch\n*** Add File: {request}\n+{{}}\n*** End Patch"
-        payload = {
-            "cwd": str(self.root),
-            "tool_name": "apply_patch",
-            "tool_input": {"input": patch},
-        }
-        self.assertTrue(_recovery_or_read(payload))
-        payload["tool_input"]["input"] = patch.replace(
-            "*** End Patch", "*** Add File: src/product.py\n+unsafe\n*** End Patch"
-        )
-        self.assertFalse(_recovery_or_read(payload))
-
-    def test_malformed_hook_payload_warns_without_terminating_task(self):
-        script = ROOT / "skills/engineering/implement/scripts/discussion_hook.py"
-        for raw in ("{", "[]", '{"hook_event_name":"Stop"}'):
-            run = subprocess.run(
-                [sys.executable, str(script)],
-                input=raw,
-                text=True,
-                encoding="utf-8",
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(0, run.returncode, run.stderr)
-            result = json.loads(run.stdout)
-            self.assertIn("systemMessage", result)
-            self.assertNotIn("continue", result)
-
     def test_product_authority_is_independent_of_historical_repair_failure(self):
         import hashlib
 
@@ -1458,52 +1087,6 @@ class DiscussionEntryTests(unittest.TestCase):
         self.assertEqual(result["supporting_skill"], result["selected_skill"])
         self.assertFalse(result["product_code_allowed"])
 
-    def test_corrupt_state_shapes_do_not_terminate_hook_or_overwrite_store(self):
-        self.enter()
-        state_path = next((self.root / "spec-governance").glob("DISCUSSION-*.json"))
-        script = ROOT / "skills/engineering/implement/scripts/discussion_hook.py"
-        payload = {
-            "cwd": str(self.root),
-            "session_id": "task-a",
-            "turn_id": "turn-1",
-            "hook_event_name": "Stop",
-        }
-        for bad in (
-            "null",
-            "[]",
-            '{"schema_version":2,"task_ref":"task-a","turns":{"turn-1":null}}',
-        ):
-            state_path.write_text(bad, encoding="utf-8")
-            run = subprocess.run(
-                [sys.executable, str(script)],
-                input=json.dumps(payload),
-                text=True,
-                encoding="utf-8",
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(0, run.returncode, run.stderr)
-            response = json.loads(run.stdout)
-            self.assertIn("systemMessage", response)
-            self.assertNotIn("continue", response)
-            self.assertEqual(bad, state_path.read_text(encoding="utf-8"))
-
-    def test_recovery_does_not_ignore_exec_workdir_override(self):
-        from discussion_hook import SKILLS, _recovery_or_read
-
-        owner = SKILLS / "spec-governance/scripts/discussion_state.py"
-        command = f'"{sys.executable}" "{owner}" --project-root . --request spec-governance/DISCUSSION-REQUEST-x.json'
-        payload = {
-            "cwd": str(self.root),
-            "tool_name": "exec_command",
-            "tool_input": {"cmd": command, "workdir": str(self.root)},
-        }
-        self.assertTrue(_recovery_or_read(payload))
-        payload["tool_input"]["workdir"] = str(self.root / "other")
-        self.assertFalse(_recovery_or_read(payload))
-        payload["tool_input"] = {"cmd": "Get-Content (New-Item unsafe.txt)"}
-        self.assertFalse(_recovery_or_read(payload))
-
     def test_missing_v2_repair_history_is_not_reset(self):
         self.enter()
         self.call("stop")
@@ -1516,38 +1099,23 @@ class DiscussionEntryTests(unittest.TestCase):
             self.call("stop")
         self.assertEqual(bad, path.read_text(encoding="utf-8"))
 
-    def test_pending_sync_hook_denies_product_but_allows_recovery(self):
-        from unittest.mock import patch
-
-        pending = {
-            "kind": "engineering",
-            "entry_saved": True,
-            "repair_used": True,
-            "verdict": "BLOCKED",
-            "sync_status": "pending",
-        }
-        payload = {
-            "cwd": str(self.root),
-            "session_id": "task-a",
-            "turn_id": "turn-1",
-            "hook_event_name": "PreToolUse",
-        }
-        with patch("discussion_hook.manage_delivery_discussion", return_value=pending):
-            denied = handle_hook(
-                {
-                    **payload,
-                    "tool_name": "apply_patch",
-                    "tool_input": {
-                        "patch": "*** Begin Patch\n*** Add File: src/x.py\n+x\n*** End Patch"
-                    },
-                }
-            )
-            self.assertEqual("deny", denied["hookSpecificOutput"]["permissionDecision"])
-            allowed = handle_hook({**payload, "tool_name": "Read", "tool_input": {}})
-            self.assertNotEqual(
-                "deny", allowed.get("hookSpecificOutput", {}).get("permissionDecision")
-            )
-
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RetiredHookTests(unittest.TestCase):
+    def test_legacy_health_is_readonly_and_no_longer_requires_host_firing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = discussion_request(
+                root, {"operation": "hook-health", "task_ref": "legacy-task"}
+            )
+            self.assertTrue(result["retired"])
+            self.assertEqual([], result["supported"]["adapter_events"])
+            self.assertEqual("not-applicable", result["fired"])
+            with self.assertRaisesRegex(ValueError, "retired"):
+                discussion_request(
+                    root,
+                    {"operation": "record-hook-observation", "task_ref": "legacy-task"},
+                )

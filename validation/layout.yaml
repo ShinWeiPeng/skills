@@ -346,6 +346,7 @@ entries:
   - skills/engineering/validate-on-device/architecture/manifest.yaml
   - skills/engineering/verification-ladder/agents/openai.yaml
   - skills/engineering/verification-ladder/references/project-validation.schema.json
+  - skills/engineering/verification-ladder/references/sil-execution.schema.json
   - skills/engineering/verification-ladder/references/verification-ladder.schema.json
   - skills/engineering/wayfinder/agents/openai.yaml
   - skills/in-progress/claude-handoff/agents/openai.yaml
@@ -396,9 +397,6 @@ entries:
   - skills/engineering/spec-governance/scripts/execution_state.py
   - skills/engineering/spec-governance/scripts/spec_contract.py
   - skills/engineering/spec-governance/scripts/discussion_state.py
-  - skills/engineering/implement/scripts/discussion_hook.py
-  - plugins/governed-engineering-skills/hooks/hooks.json
-  - plugins/governed-engineering-skills/hooks/run-windows.ps1
   - skills/engineering/validate-on-device/scripts/validate_on_device.py
   - skills/engineering/validate-on-device/scripts/vod/__init__.py
   - skills/engineering/validate-on-device/scripts/vod/evidence.py
@@ -481,6 +479,7 @@ entries:
   - tests/flows/plugin-integration/plugin/test_formatter_governance.py
   - tests/flows/plugin-integration/plugin/test_guided_routing.py
   - tests/flows/plugin-integration/plugin/test_install_local.ps1
+  - tests/flows/plugin-integration/plugin/test_document_writes.py
   - tests/flows/plugin-integration/plugin/test_managed_delivery.py
   - tests/flows/plugin-integration/plugin/test_routing.py
   - tests/flows/plugin-integration/plugin/test_spec_governance.py
@@ -493,6 +492,7 @@ entries:
   owner: plugin-integration
 - include:
   - tests/modules/verification_ladder_domain/ladder/test_project_validation.py
+  - tests/modules/verification_ladder_domain/ladder/test_module_sil.py
   - tests/modules/verification_ladder_domain/ladder/test_verification_ladder.py
   - tests/modules/verification_ladder_domain/test_run_storage.py
   role: test
@@ -575,10 +575,13 @@ entries:
 - include:
   - specs/SPEC-0035-execution-authorization-compatibility.md
   - specs/SPEC-0036-generic-layout-repair.md
+  - specs/SPEC-0061-doc-authoring-authorization-boundary.md
   role: specification
 - include:
   - validation/acceptance-SPEC-0035.json
   - validation/acceptance-SPEC-0036.json
+  - validation/acceptance-SPEC-0061.json
+  - validation/run-references-SPEC-0061.json
   - validation/run-references-SPEC-0036.json
   role: validation-definition
 - include:

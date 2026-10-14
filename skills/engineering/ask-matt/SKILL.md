@@ -22,27 +22,27 @@ spec-governance's consolidated discussion and delivery policy for history,
 resumption, questions, saving and authorization; do not create another gate. Reopen confirmed changes and create successors
 for implemented contracts using the existing lifecycle.
 
-Bundled trusted hooks establish task/turn obligations, inspect covered dependent
-operations and check Stop persistence. Unknown intent is not silently exempt.
-SPEC-0032 separates synchronization from recovery permission. Permit one automatic
-repair per actual input state; replay or restart cannot reset its durable history.
-After a failed repair, report unsaved scope and finish normally. Discussion, reading,
-classification, saving and rechecking remain available; product changes still require
-a current SPEC and valid execution authorization. Historical repair failure is not
-a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
-hooks require the explicit owner CLI and remain a capability gap. Do not bypass
-hook trust or claim interception of every tool, reply or interrupt.
+Explicitly invoke the discussion owner and router with the actual task, turn and
+source references. Save and verify the current discussion before dependent product
+operations and before completing the turn. The bundle registers no lifecycle hooks
+and requires no host trust, loading or firing evidence. Preserve legacy observations
+as history. Permit bounded repair; after failed synchronization, report the unsaved
+scope and keep reading, discussion and document repair available. Product changes
+still require the current SPEC and valid execution authorization. Reply hashes are
+audit evidence; they do not prove semantic completeness or intercept host tools.
 
 
 
 ## Universal SPEC visibility and execution boundary
 
 Apply this workflow to every project, language, size of change and later turn.
-Before any program writing (including bug fixes, tests, configuration, formatting
-and generated output), establish the current confirmed SPEC, present it, and
+Before product implementation (including bug fixes, tests, runtime configuration,
+source formatting and executable generated output), establish the current confirmed SPEC, present it, and
 observe the user's exact `開始執行` for that scope. A requirement, option answer,
 adoption, small follow-up or prior task authorization is not a new execution grant.
-Keep SPEC discussion and persistence active while product execution waits.
+Author, revise and save SPECs, proposals, GLOSSARY, ADRs, architecture records and
+documentation views without waiting for `開始執行`. Document writes grant no product
+execution authority. Keep document conflict and path protections active.
 
 Every completed SPEC creation or reconfirmed revision must appear in the actual
 user-visible reply: **SPEC ID and title linked to the canonical file**, a nonempty
@@ -210,8 +210,8 @@ regardless of size or an explicitly requested skill such as `tdd`.
 - When an adopted change contract is decision-complete, invoke `spec-governance.materialize` to confirm
   that same canonical `specs/SPEC-####-<slug>.md` in place. This spec-only lifecycle write does not
   authorize product changes.
-- Do not modify product source, tests, configuration, `GLOSSARY.md`, ADRs,
-  architecture artifacts, generated files, Git, or external state until the user
+- Do not modify product source, tests, runtime configuration, executable generated
+  outputs, Git, or external state until the user
   says exact `開始執行`. Every modifying path must complete `spec-verified` before
   TDD or implementation.
 - Enforce this boundary from the plugin's bundled contracts. Never require, create,
@@ -322,17 +322,17 @@ was saved. Link the same canonical file through reopening and confirmation.
 ## Persistent discussion and pre-receipt repair
 
 Resolve the task's explicitly selected project root through the spec owner's binding
-before router, hook or owner work. Every new engineering turn reviews its sources
+before router or owner work. Every new engineering turn reviews its sources
 and identified items through `observe`, then records actual contract row mappings
 in the same working SPEC; a summary alone is insufficient. Confirmation is explicit,
 not a side effect of saving discussion. Follow the spec-governance discussion entry
-contract for recovery and honest hook-health reporting.
+contract for explicit owner recovery and preserved historical observations.
 
 Delivery retains valid pending authorization separately from a receipt. Route a
 missing acceptance mapping through `plan-acceptance-repair` / `repair-acceptance`
 in the managed delivery contract; unknown mappings stay as durable drafts. Full
 admission still controls product operations, and regular recovery keeps its receipt
-requirement. Never equate an adapter invocation with verified desktop hook firing.
+requirement. Current discussion verification uses the explicit owner protocol.
 
 For other missing validation definitions, use `prepare-validation` with the same
 retained authorization. Use `enablement-status` to admit the declared preparation

@@ -86,8 +86,6 @@ modules:
   paths:
   - skills/engineering/ask-matt
   - skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
-  - skills/engineering/implement/scripts/discussion_hook.py
-  - plugins/governed-engineering-skills/hooks/run-windows.ps1
   parent: null
   depends_on:
   - workflow_routing_domain

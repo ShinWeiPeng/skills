@@ -12,6 +12,7 @@ import re
 import sys
 import tempfile
 import time
+from contextlib import nullcontext
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "spec-governance/scripts"))
@@ -241,6 +242,22 @@ def _target(root: Path, relative: str) -> Path:
     return target
 
 
+def _document_target(root: Path, relative: str) -> Path:
+    target = _target(root, relative)
+    path = Path(relative)
+    suffix = path.suffix.casefold()
+    allowed = (
+        relative in {"README.md", "CONTEXT.md", "GLOSSARY.md", "CHANGELOG.md"}
+        or (path.parts[0] == "docs" and suffix in {".md", ".rst", ".txt"})
+        or (path.parts[0] == "architecture" and suffix in {".md", ".yaml", ".json"})
+    )
+    if not allowed:
+        raise ValueError(
+            "document writing is limited to authored documentation and architecture records"
+        )
+    return target
+
+
 def _current_hash(path: Path) -> str | None:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
 
@@ -288,6 +305,8 @@ def _apply(
     state: dict,
     validation_assessor=None,
     candidate_validator=None,
+    *,
+    document_only=False,
 ) -> dict:
     patch = request["patch"]
     required = {"path", "before_sha256", "content"}
@@ -310,14 +329,16 @@ def _apply(
         or hashlib.sha256(base.encode()).hexdigest() != patch["before_sha256"]
     ):
         raise ValueError("before_content must match the reviewed base hash")
+    target_for = _document_target if document_only else _target
     for retry in range(3):
-        _admit(
-            root,
-            request,
-            read_execution_state(root, request["task_ref"]),
-            validation_assessor,
-        )
-        target = _target(root, patch["path"])
+        if not document_only:
+            _admit(
+                root,
+                request,
+                read_execution_state(root, request["task_ref"]),
+                validation_assessor,
+            )
+        target = target_for(root, patch["path"])
         raw = target.read_bytes() if target.exists() else None
         before = hashlib.sha256(raw).hexdigest() if raw is not None else None
         content = patch["content"]
@@ -357,8 +378,9 @@ def _apply(
                     "unaffected_branches_suspended": False,
                 }
         # Validate the current admission after integration and before committing.
-        fresh = read_execution_state(root, request["task_ref"])
-        binding = _admit(root, request, fresh, validation_assessor)
+        if not document_only:
+            fresh = read_execution_state(root, request["task_ref"])
+            binding = _admit(root, request, fresh, validation_assessor)
         temporary = None
         try:
             fd, temporary = tempfile.mkstemp(
@@ -370,14 +392,18 @@ def _apply(
                 os.chmod(temporary, target.stat().st_mode)
             with (
                 project_state_lock(root, "product-commit"),
-                project_state_lock(root, "execution:" + request["task_ref"]),
+                (
+                    nullcontext()
+                    if document_only
+                    else project_state_lock(root, "execution:" + request["task_ref"])
+                ),
             ):
                 if (
-                    _target(root, patch["path"]) != target
+                    target_for(root, patch["path"]) != target
                     or _current_hash(target) != before
                 ):
                     continue
-                if (
+                if not document_only and (
                     read_execution_state(root, request["task_ref"]) != fresh
                     or execution_binding(
                         root,
@@ -392,7 +418,7 @@ def _apply(
                 temporary = None
             return {
                 "verdict": "PASS",
-                "product_code_allowed": True,
+                "product_code_allowed": not document_only,
                 "path": patch["path"],
                 "before_sha256": before,
                 "after_sha256": hashlib.sha256(encoded).hexdigest(),
@@ -801,6 +827,17 @@ def execute_request(
     root: Path, request: dict, validation_assessor=None, candidate_validator=None
 ) -> dict:
     """Inventory dependent operations, then recheck existing authority and admission."""
+    if isinstance(request, dict) and request.get("operation") == "write-document":
+        try:
+            return _apply(
+                root.resolve(),
+                request,
+                {},
+                candidate_validator=candidate_validator,
+                document_only=True,
+            )
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            return _blocked(str(error))
     compatibility = None
     try:
         if isinstance(request, dict) and request.get("operation") in {

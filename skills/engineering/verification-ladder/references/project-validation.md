@@ -16,6 +16,10 @@ For selected device layers, map scenario_layers to the activated matrix scenario
 declare the current build_artifact, and copy enablement_scenarios from the profile's
 acceptance prerequisites. Only one accepted execution profile may be selected per AC.
 Host-only decisions must explicitly explain why their contracts need no device layer.
+Formal module `host-semantics` selects module-contract plus SIL. An exemption
+based only on "no separate simulated integration" is invalid. Reuse existing
+production-module cases, add the missing matrix contract/report, and recompute the
+plan explicitly; do not relabel or mutate historical results.
 Legacy host projects without validation policy/matrix retain their host behavior;
 missing governed mappings require explicit migration and cannot provide hardware PASS.
 
@@ -100,3 +104,26 @@ the rows. No newest-file lookup or historical evidence rebind is permitted.
 The composed router/delivery adapter also reports the whole-project layout gate.
 Planning and enablement may authorize remediation of existing layout debt; they
 do not claim overall compliance. Acceptance and release require layout PASS.
+
+
+## Executed module SIL report
+
+Use [sil-execution.schema.json](sil-execution.schema.json) for the report shape.
+Every SIL row references a hashed JSON `runner_result` alongside its captured test
+output. The report has `layer: sil`, `ac`, current `plan_sha256`, `verdict`,
+`complete: true`, actual argv `command`, integer `exit_code` (zero for PASS) and
+nonempty `modules`. Each module identifies an activated architecture module `id`,
+nonempty `public_interfaces`, executed `cases`, and `production_sources` containing
+project-relative `path` plus SHA-256. `external_dependencies` is an array of
+`interface` and `mode` (`fake`, `replay` or `real`); use an empty array if none.
+All activated modules must be covered. Production paths must belong to the named
+module in the bound architecture manifest; test/fixture or other-module files cannot
+substitute for production sources. Preserve production algorithms/state
+machines and the original execution output. A plan or a bare PASS log is not an
+execution report. Missing, mismatched or stale reports keep acceptance BLOCKED;
+complete failed execution remains FAIL. Reports remain caller-attested evidence.
+
+Planning selects layers and leaves `functional_validation_complete: false`. The
+planner reports SIL harness/coverage execution requirements with `NOT_RUN`; it does
+not probe or certify runner capability. Supply or implement the missing harness
+and execute it before claiming functional acceptance.

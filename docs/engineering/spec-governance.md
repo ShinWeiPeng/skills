@@ -30,6 +30,14 @@ Its leading idea is **one canonical spec**: requirements, decisions, acceptance 
 
 Required questions are saved with their exact options and a version before presentation. They have no response deadline. Answers are reconciled against that saved version and recorded in Discussion Context; stale or duplicate answers cannot silently clear pending decisions.
 
+## Documents before implementation
+
+Specifications, proposals, GLOSSARY, ADRs, architecture records and documentation
+views can be authored and saved during discussion without `開始執行`. Only product
+implementation, tests, runtime configuration and executable outputs wait for the
+execution grant. Document writes preserve concurrent edits and never grant product
+authority. Operational skill instructions remain part of implementation.
+
 ## Where it fits
 
 This is the durable contract between grilling, implementation, and review. [ask-matt](https://aihero.dev/skills-ask-matt) routes modifying work through it.
@@ -95,16 +103,11 @@ must make. A saved explanation does not need a formal SPEC; an adopted change wi
 complete scope and acceptance does. Suggested changes remain candidates until
 accepted and do not expand authorization.
 
-The candidate plugin includes prompt, resume, pre-tool and Stop hooks. Review and
-trust their exact definitions before activation. Missing discussion can trigger
-one automatic continuation for an actual input state. Unchanged failures do not
-loop, and restarting does not erase retry history. Failed saving reports the missing
-scope and ends the reply normally; discussion and recovery can continue. After a
-repair, saving and rechecking can succeed in the same task. Product changes still
-require a current SPEC and execution authorization. Reply wording differences do
-not count as missing requirements. Script tests alone do not prove desktop hooks were loaded
-or fired. The covered tool paths are Bash, exec_command and file edits; other tools, hosted
-search, streamed text and interruptions have explicit coverage limits.
+The router and discussion owner are called explicitly with task and turn sources.
+No lifecycle hooks are registered, and host trust, loading or firing evidence is
+not required. Failed saving reports the unsaved scope while discussion and document
+repair remain available. Product changes require the current SPEC and execution
+authorization.
 
 ## Bounded diagnosis and recovery
 
@@ -151,9 +154,8 @@ observations do not duplicate decisions. Continuing discussion keeps one working
 SPEC until an explicit confirmation step. An explicit task root binding lets a
 parent workspace and its selected child repository use the same document.
 
-Hook observations report their runtime and task identity separately from host
-trust, loading and firing. Manual saves and simulated events cannot prove desktop
-hook enforcement; missing real evidence remains unverified.
+Historical adapter observations remain readable. Current discussion evidence comes
+from explicit owner calls and saved source records.
 
 Distinct accepted items need distinct saved decision rows with matching sources. An unrelated non-engineering reply keeps earlier engineering obligations pending until they are saved.
 

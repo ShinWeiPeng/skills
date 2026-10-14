@@ -42,6 +42,16 @@ The three anti-patterns it is written to prevent:
 
 Mocks are for system boundaries only: external APIs, time, randomness, sometimes the filesystem or the database. Never mock your own modules.
 
+## Complete modules on the host
+
+Test production modules through their public interfaces and replace only external
+dependencies with Fake or Replay. These module SIL cases verify I/O, state, event
+order and recovery; add integration tests for coordination between modules. A host
+regression suite can satisfy SIL when it runs this production code and preserves
+actual commands, results, cases and source hashes. A build or architecture check
+alone cannot complete functional validation. Selected PIL/HIL cases run after the
+appropriate target build and flash, with their own recorded results.
+
 ## Common questions
 
 **Why doesn't it refactor? The description says "red-green-refactor".**

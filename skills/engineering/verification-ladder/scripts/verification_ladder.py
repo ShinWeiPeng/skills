@@ -74,7 +74,7 @@ UNIVERSAL_LAYERS = {
     "physical-hardware": {"hil"},
     "transport-protocol": {"hil"},
     "logging": {"hil"},
-    "host-semantics": {"module-contract"},
+    "host-semantics": {"module-contract", "sil"},
     "adapter-conformance": {"adapter-contract"},
     "controlled-target-cost": {"pil"},
     "production-timing": {"hil"},
@@ -84,7 +84,7 @@ UNIVERSAL_LAYERS = {
     "soft-real-time": {"pil", "hil"},
 }
 EVIDENCE_AUTHORITY = {
-    "host-semantics": "module-contract",
+    "host-semantics": "sil",
     "adapter-conformance": "adapter-contract",
     "controlled-target-cost": "pil",
     "production-timing": "hil",
@@ -433,10 +433,27 @@ def plan(matrix: dict[str, Any], requested: dict[str, set[str]]) -> dict[str, An
     }
     for rule in activated:
         layers.update(rule["layers"])
+    excluded = {item.get("layer") for item in matrix.get("not_applicable", [])}
+    problems.extend(
+        f"required layer {layer!r} cannot be not_applicable"
+        for layer in sorted(layers & excluded)
+    )
+    problems.extend(
+        f"required layer {layer!r} has no project contract"
+        for layer in sorted(layers - set(matrix.get("layers", {})))
+    )
+    if problems:
+        return {"status": "BLOCKED", "errors": problems}
     return {
         "status": "PASS",
         "required_layers": [layer for layer in LAYER_ORDER if layer in layers],
         "activated_rules": [rule["id"] for rule in activated],
+        "execution_status": "NOT_RUN",
+        "execution_requirements": [
+            "Provide and execute the module SIL harness with public interfaces and cases; selection PASS is not runner readiness or functional PASS."
+        ]
+        if "sil" in layers
+        else [],
     }
 
 

@@ -438,69 +438,20 @@ def _repair_input(root, task, row):
 def _operate(root, state, request):
     task = state["task_ref"]
     operation = request["operation"]
-    if operation in {"hook-health", "record-hook-observation"}:
-        observations = state.setdefault("hook_observations", [])
-        if not isinstance(observations, list) or any(
-            not isinstance(row, dict) for row in observations
-        ):
-            raise ValueError(
-                "invalid hook observation history; preserve for investigation"
-            )
-        if operation == "record-hook-observation":
-            observation = request.get("observation")
-            fields = {
-                "event",
-                "host_root",
-                "entrypoint_sha256",
-                "package_version",
-                "input_sha256",
-                "result_sha256",
-                "observed_at",
-            }
-            if not isinstance(observation, dict) or set(observation) != fields:
-                raise ValueError("bounded hook observation fields required")
-            observation = {
-                key: _text(value, "observation." + key)
-                for key, value in observation.items()
-            }
-            if observation["event"] not in {
-                "SessionStart",
-                "UserPromptSubmit",
-                "PreToolUse",
-                "Stop",
-            }:
-                raise ValueError("unsupported observed adapter event")
-            observation.update(
-                task_ref=task,
-                turn_id=request.get("turn_id"),
-                project_root=str(root),
-                provenance="caller-attested-adapter-stdin",
-            )
-            if observation not in observations:
-                observations.append(observation)
-            if len(observations) > 256:
-                state["truncated_hook_observations"] = (
-                    state.get("truncated_hook_observations", 0)
-                    + len(observations)
-                    - 256
-                )
-                del observations[:-256]
+    if operation == "record-hook-observation":
+        raise ValueError(
+            "lifecycle hook observations are retired; invoke the discussion owner explicitly"
+        )
+    if operation == "hook-health":
         return {
             "verdict": "PASS",
             "product_code_allowed": False,
-            "supported": {
-                "adapter_events": [
-                    "SessionStart",
-                    "UserPromptSubmit",
-                    "PreToolUse",
-                    "Stop",
-                ],
-                "host": "unverified",
-            },
-            "trusted": "unverified",
-            "loaded": "unverified",
-            "fired": "unverified",
-            "adapter_observations": observations,
+            "supported": {"adapter_events": [], "host": "not-applicable"},
+            "trusted": "not-applicable",
+            "loaded": "not-applicable",
+            "fired": "not-applicable",
+            "retired": True,
+            "adapter_observations": state.get("hook_observations", []),
             "truncated_observations": state.get("truncated_hook_observations", 0),
         }
     if operation == "resume":
@@ -905,7 +856,7 @@ def _operate(root, state, request):
             repair_key in prior.get("repair_keys", [])
             for prior in state["turns"].values()
         )
-        if consumed or request.get("stop_hook_active") is True:
+        if consumed:
             if repair_key not in keys:
                 keys.append(repair_key)
             row["repair_failed"] = True  # history only; never bars record/classify

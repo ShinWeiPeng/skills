@@ -20,27 +20,27 @@ formal SPEC. Materialize only a complete adopted change scope, expected behavior
 decisions and acceptance criteria. Reopen confirmed changes and create successors
 for implemented contracts using the existing lifecycle.
 
-Bundled trusted hooks establish task/turn obligations, inspect covered dependent
-operations and check Stop persistence. Unknown intent is not silently exempt.
-SPEC-0032 separates synchronization from recovery permission. Permit one automatic
-repair per actual input state; replay or restart cannot reset its durable history.
-After a failed repair, report unsaved scope and finish normally. Discussion, reading,
-classification, saving and rechecking remain available; product changes still require
-a current SPEC and valid execution authorization. Historical repair failure is not
-a permanent denial. Reply wording hashes are audit evidence, not synchronization gates. Report support, trust, loading and actual firing separately; missing
-hooks require the explicit owner CLI and remain a capability gap. Do not bypass
-hook trust or claim interception of every tool, reply or interrupt.
+Explicitly invoke the discussion owner and router with the actual task, turn and
+source references. Save and verify the current discussion before dependent product
+operations and before completing the turn. The bundle registers no lifecycle hooks
+and requires no host trust, loading or firing evidence. Preserve legacy observations
+as history. Permit bounded repair; after failed synchronization, report the unsaved
+scope and keep reading, discussion and document repair available. Product changes
+still require the current SPEC and valid execution authorization. Reply hashes are
+audit evidence; they do not prove semantic completeness or intercept host tools.
 
 
 
 ## Universal SPEC visibility and execution boundary
 
 Apply this workflow to every project, language, size of change and later turn.
-Before any program writing (including bug fixes, tests, configuration, formatting
-and generated output), establish the current confirmed SPEC, present it, and
+Before product implementation (including bug fixes, tests, runtime configuration,
+source formatting and executable generated output), establish the current confirmed SPEC, present it, and
 observe the user's exact `開始執行` for that scope. A requirement, option answer,
 adoption, small follow-up or prior task authorization is not a new execution grant.
-Keep SPEC discussion and persistence active while product execution waits.
+Author, revise and save SPECs, proposals, GLOSSARY, ADRs, architecture records and
+documentation views without waiting for `開始執行`. Document writes grant no product
+execution authority. Keep document conflict and path protections active.
 
 Every completed SPEC creation or reconfirmed revision must appear in the actual
 user-visible reply: **SPEC ID and title linked to the canonical file**, a nonempty
@@ -152,8 +152,9 @@ journal loss alone into reopened decisions.
 Route domain vocabulary to `GLOSSARY.md`, change-set requirements and acceptance to
 the canonical spec, qualifying architectural decisions to a **proposed** ADR, and
 unconfirmed content only to the working spec. During grilling, canonical `specs/SPEC-####-*.md` lifecycle writes and task-private runtime state writes are allowed.
-`GLOSSARY.md`, ADRs, architecture artifacts, tests, generated views, implementation,
-Git, and external actions still require exact `開始執行`. These outputs are one
+`GLOSSARY.md`, ADRs, architecture records and generated documentation views may be
+saved during discussion. Product implementation, tests, runtime configuration,
+executable generated output, Git and external actions require exact `開始執行`. These outputs are one
 change set; do not recursively start another interview.
 
 ## Canonical contract

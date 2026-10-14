@@ -7,6 +7,7 @@ All public assessments reread the bounded project documents; no device is opened
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
 import re
@@ -171,6 +172,7 @@ def assess_project(root, spec=None, *, phase="planning", candidate_text=None):
         "documents": {},
         "phase": phase,
         "device_actions_authorized": False,
+        "functional_validation_complete": False,
     }
     try:
         _assess(root, spec, phase, candidate_text, result)
@@ -375,6 +377,20 @@ def _assess(root, spec, phase, candidate_text, result):
             "contract": rows[ac][:4],
             "rules": selected["activated_rules"],
             "layers": layers,
+            "module_refs": sorted(
+                {
+                    ref
+                    for rule in rules
+                    for ref in rule["architecture_refs"]
+                    if ref in {m["id"] for m in docs[DOCUMENTS[1]].get("modules", [])}
+                }
+            ),
+            "module_paths": {
+                m["id"]: m.get("paths", [])
+                for m in docs[DOCUMENTS[1]].get("modules", [])
+                if m["id"]
+                in {ref for rule in rules for ref in rule["architecture_refs"]}
+            },
             "scenario_layers": assignments,
             "execution_profiles": profiles,
             "enablement_scenarios": prerequisites,
@@ -383,6 +399,13 @@ def _assess(root, spec, phase, candidate_text, result):
         }
     layers = set(layer for item in plans.values() for layer in item["layers"])
     result["required_layers"] = [layer for layer in LAYER_ORDER if layer in layers]
+    result["execution_requirements"] = (
+        [
+            "Module SIL harness, interfaces and cases must be executed and reported; planning does not verify runner capability."
+        ]
+        if "sil" in layers
+        else []
+    )
     if layers & DEVICE_LAYERS:
         result["required_gates"].append("validate-on-device")
     binding = {
@@ -548,6 +571,95 @@ def artifact_hash(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def _sil_execution(root, result, row, item):
+    """Validate the reported execution of production modules through public seams."""
+    report_path = row.get("runner_result")
+    if report_path not in [a["path"] for a in row["artifacts"]] or not any(
+        a["path"] != report_path for a in row["artifacts"]
+    ):
+        raise ValueError("SIL requires a hashed runner_result execution report")
+    report = read_document(root, report_path, {}, required=True)
+    command = report.get("command")
+    modules = report.get("modules")
+    if (
+        report.get("layer") != "sil"
+        or report.get("ac") != row["ac"]
+        or report.get("verdict") != row["verdict"]
+        or report.get("plan_sha256") != result["plan_sha256"]
+        or report.get("complete") is not True
+        or not isinstance(command, list)
+        or not command
+        or any(not isinstance(arg, str) or not arg.strip() for arg in command)
+        or type(report.get("exit_code")) is not int
+        or (row["verdict"] == "PASS" and report["exit_code"] != 0)
+        or not isinstance(modules, list)
+        or not modules
+    ):
+        raise ValueError(
+            "SIL execution report is incomplete or disagrees with the current plan/result"
+        )
+    covered = set()
+    for module in modules:
+        if not isinstance(module, dict) or module.get("id") not in item["module_refs"]:
+            raise ValueError(
+                "SIL module must be bound to an activated architecture module"
+            )
+        if module["id"] in covered:
+            raise ValueError("SIL report contains a duplicate module")
+        covered.add(module["id"])
+        for field in ("public_interfaces", "cases"):
+            names = _strings(module.get(field), "SIL " + field)
+            if not names or any(not name.strip() for name in names):
+                raise ValueError("SIL requires public interfaces and executed cases")
+        if not isinstance(module.get("external_dependencies"), list):
+            raise ValueError(
+                "SIL external dependencies must name the Fake/Replay seams, or be empty"
+            )
+        for dependency in module["external_dependencies"]:
+            if (
+                not isinstance(dependency, dict)
+                or (
+                    not isinstance(dependency.get("interface"), str)
+                    or not dependency["interface"].strip()
+                )
+                or dependency.get("mode") not in {"fake", "replay", "real"}
+            ):
+                raise ValueError(
+                    "SIL dependency must identify an external interface and execution mode"
+                )
+        sources = module.get("production_sources")
+        if not isinstance(sources, list) or not sources:
+            raise ValueError("SIL must identify the executed production sources")
+        for source in sources:
+            relative = source["path"]
+            target = project_path(root, relative)
+            owners = item["module_paths"].get(module["id"], [])
+            if Path(relative).parts[0] in {
+                "tests",
+                "artifacts",
+                "docs",
+                "validation",
+                "specs",
+                "architecture",
+                "spec-governance",
+            } or not any(
+                isinstance(owner, str)
+                and (
+                    relative == owner
+                    or relative.startswith(owner.rstrip("/") + "/")
+                    or fnmatch.fnmatchcase(relative, owner)
+                )
+                for owner in owners
+            ):
+                raise ValueError(
+                    "SIL production source is not owned by its declared module"
+                )
+            if not target.is_file() or artifact_hash(target) != source.get("sha256"):
+                raise ValueError("SIL production source is missing or stale")
+    if covered != set(item["module_refs"]):
+        raise ValueError("SIL execution does not cover all activated modules")
+
+
 def _evidence_row(root, result, row):
     if not isinstance(row, dict):
         raise ValueError("invalid evidence result")
@@ -578,6 +690,8 @@ def _evidence_row(root, result, row):
         target = project_path(root, artifact["path"])
         if not target.is_file() or artifact_hash(target) != artifact.get("sha256"):
             raise ValueError("missing or stale evidence artifact")
+    if layer == "sil":
+        _sil_execution(root, result, row, item)
     if layer in DEVICE_LAYERS:
         build = project_path(root, item["build_artifact"])
         if (
@@ -692,6 +806,9 @@ def _evaluate(root, result, bundle, phase):
         ):
             result["errors"].append(f"{ac}: separate release acceptance missing")
     result["verdict"] = "FAIL" if failed else "BLOCKED" if result["errors"] else "PASS"
+    result["functional_validation_complete"] = (
+        phase in {"acceptance", "release"} and result["verdict"] == "PASS"
+    )
     result["evidence_trust"] = (
         "caller-supplied-artifacts-not-authenticated-observations"
     )
