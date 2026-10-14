@@ -7,12 +7,12 @@ User request (2026-10-14): abandon the old 0.21.0 changes and merge the updated
 
 - Fork base: `c334a7f7a9193f26f8f63ab8922da94c1c7fe282` (`governed-engineering-skills@0.20.0`).
 - Upstream: `49dd158d1076134a641b33efb035946536778336` (main, 2026-10-09).
-- Excluded former fork tip: `b55c495c2b1825c5a8e37519fe57d99706476074`.
+- Discarded source revision: `b55c495c2b1825c5a8e37519fe57d99706476074`.
 
 ## Integration requirements
 
 1. Merge upstream history into the 0.20.0 base without incorporating the former
-   0.21.0 fork commit or untracked files from the original checkout.
+   0.21.0 source changes or untracked files from the original checkout.
 2. Integrate upstream promoted skills and supported workflow fixes, preserving
    the fork's automatic engineering router, canonical specifications, execution
    governance, debugging model gate and native installer/release infrastructure.
@@ -81,6 +81,20 @@ literal dynamic import targets. Their source-bound dependency hashes were
 refreshed after review, and the whole-project gate passed. The pinned temporary
 clang Python binding remains an ignored build dependency, not a shipped source.
 
-The former 0.21.0 tip is not an ancestor of the merge base. Final parent/history
-checks are performed after the merge commit. The original checkout's unrelated
-untracked files are not incorporated into this commit.
+The initial integration commit `c90d5d3` has parents `c334a7f` and `49dd158`;
+it was built without the former 0.21.0 changes or the original checkout's unrelated
+untracked files.
+
+## Pull request integration
+
+PR #50 targets `main`, whose former tip is `b55c495` (0.21.0). A direct merge of
+the divergent branches was conflicted and could retain discarded 0.21.0 behavior.
+Commit `5fcb1d6` records main as a second parent and resolves the merge to exactly
+the already validated `c90d5d3` tree. The equality check passed. This preserves
+main's history while explicitly restoring the chosen 0.20.0-based contents; it
+does not reuse the discarded 0.21.0 implementation. No force push is required.
+
+The PR diff against main therefore includes both the intentional 0.21.0 rollback
+and the upstream integration. Only this provenance note changes after the
+reviewed source snapshot; the source, tests and operational manifests are
+unchanged. Existing releases/tags are not rewritten or published by this PR.
