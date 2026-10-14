@@ -9,7 +9,6 @@ import os
 import re
 from contextlib import nullcontext
 from pathlib import Path
-from document_bundle import read_spec_document, read_spec_bytes, spec_hash
 from uuid import uuid4
 
 from spec_contract import (
@@ -71,7 +70,7 @@ def resolve_discussion_project(root: Path, task: str) -> Path:
     path = _project_binding_path(host, task)
     if not path.exists():
         return host
-    value = json.loads(read_spec_document(path))
+    value = json.loads(path.read_text(encoding="utf-8"))
     if (
         not isinstance(value, dict)
         or set(value) != {"schema_version", "task_ref", "host_root", "project_root"}
@@ -102,7 +101,7 @@ def _bind_project(root, request):
     with project_state_lock(host, "project-binding:" + task):
         path = _project_binding_path(host, task)
         if path.exists():
-            if json.loads(read_spec_document(path)) != value:
+            if json.loads(path.read_text(encoding="utf-8")) != value:
                 raise ValueError(
                     "task is already bound; implicit project relocation is prohibited"
                 )
@@ -160,7 +159,7 @@ def _bind_project(root, request):
 def _load(path, task):
     if not path.exists():
         return {"schema_version": 2, "task_ref": task, "active_turn": None, "turns": {}}
-    state = json.loads(read_spec_document(path))
+    state = json.loads(path.read_text(encoding="utf-8"))
     if (
         not isinstance(state, dict)
         or state.get("schema_version") not in {1, 2}
@@ -354,7 +353,7 @@ def _items_reviewed(row):
 def _item_bindings(root, working, items, bindings):
     if not isinstance(bindings, dict) or set(bindings) != set(items):
         raise ValueError("save a binding for every identified item")
-    rows = _snapshot_rows(read_spec_document(root / working["snapshot_path"]))
+    rows = _snapshot_rows((root / working["snapshot_path"]).read_text(encoding="utf-8"))
     adopted_decisions = set()
     for identity, item in items.items():
         refs = bindings[identity]
@@ -429,7 +428,7 @@ def _repair_input(root, task, row):
                 "kind": row["kind"],
                 "identified_items": row.get("items"),
                 "reviewed_sources": row.get("reviewed_sources"),
-                "owner": hashlib.sha256(read_spec_bytes(Path(__file__))).hexdigest(),
+                "owner": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             },
             sort_keys=True,
         )
@@ -773,7 +772,7 @@ def _operate(root, state, request):
             working["snapshot_path"] == working["journal_path"]
             and working["status"] == "working"
         ):
-            text = read_spec_document(root / working["snapshot_path"])
+            text = (root / working["snapshot_path"]).read_text(encoding="utf-8")
             adopted = any(key.startswith("REQ-") for key in _snapshot_rows(text))
             accepted = any(key.startswith("AC-") for key in _snapshot_rows(text))
             review = completeness or {}

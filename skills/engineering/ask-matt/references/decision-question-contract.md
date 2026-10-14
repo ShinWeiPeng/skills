@@ -93,7 +93,7 @@ user to select an incomplete option.
 ## Authorization exclusions
 
 This presentation contract does not change the repository's exact `開始執行`
-boundary for product source, tests, configuration, `CONTEXT.md`, ADRs, architecture
+boundary for product source, tests, configuration, `GLOSSARY.md`, ADRs, architecture
 artifacts, generated files, Git, or external actions. The narrow exception is
 `spec-governance`: after governed grilling begins it may persist local, commit-blocked
 `spec-governance/WORKING-SPEC-*` snapshot/journal pairs, and when decision-complete it may create, update, or

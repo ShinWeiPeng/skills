@@ -99,10 +99,6 @@ and cannot be reported as completed acceptance.
 See [spec-governance](https://aihero.dev/skills-spec-governance) for the shared
 responsibility and [implement](https://aihero.dev/skills-implement) for execution.
 
-## Maintained document collections
+## Upstream integration
 
-Each design has one maintained Markdown source. The compact SPEC entry points to
-requirements, acceptance, discussion and fixed design versions. The SPEC owner
-checks the full collection and preserves confirmed history. Interrupted updates
-retain original bytes and current authority so the cause can be repaired and the
-original update completed without overwriting later edits.
+The fork retains one persisted decision at a time. Phrase the question so a yes accepts the recommended answer; facts remain the agent's responsibility.

@@ -27,12 +27,7 @@ class SharedFlowCostContractTests(unittest.TestCase):
             SKILLS_ROOT
             / "govern-modular-event-architecture"
             / "references"
-            / "flow-cost-checks.md"
-        )
-
-        cls.reference += read(
-            SKILLS_ROOT
-            / "govern-modular-event-architecture/references/flow-review-format.md"
+            / "flow-cost-review.md"
         )
 
     def test_contract_defines_four_ordered_dimensions(self) -> None:
@@ -136,7 +131,7 @@ class SkillIntegrationContractTests(unittest.TestCase):
         governance = read(
             SKILLS_ROOT / "govern-modular-event-architecture" / "SKILL.md"
         )
-        self.assertIn("flow-cost-checks.md", governance)
+        self.assertIn("flow-cost-review.md", governance)
 
     def test_architecture_report_requires_execution_and_evolution_evidence(
         self,

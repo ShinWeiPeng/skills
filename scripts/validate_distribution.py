@@ -29,8 +29,8 @@ from assemble_plugin import (  # noqa: E402
 MANDATORY_CAPABILITY_EVIDENCE = {
     "code-review": ("git diff", "sub-agent"),
     "diagnosing-bugs": ("regression",),
-    "domain-modeling": ("CONTEXT.md", "ADRs"),
-    "grill-with-docs": ("CONTEXT.md", "ADR"),
+    "domain-modeling": ("GLOSSARY.md", "ADRs"),
+    "grill-with-docs": ("GLOSSARY.md", "ADR"),
     "grill-me": ("spec-governance",),
     "grilling": ("spec-governance",),
     "handoff": ("temporary directory",),
@@ -109,8 +109,8 @@ def validate(repo_root: Path) -> list[str]:
         errors.append("formal architecture still exists inside the plugin shell")
 
     skills = promoted_skills(repo_root)
-    if len(skills) != 31:
-        errors.append(f"expected 31 promoted skills, found {len(skills)}")
+    if len(skills) != 36:
+        errors.append(f"expected 36 promoted skills, found {len(skills)}")
     for name, root in skills.items():
         if not (root / "agents" / "openai.yaml").is_file():
             errors.append(f"{name}: missing agents/openai.yaml")

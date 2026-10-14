@@ -48,3 +48,5 @@ dist/
 .test-tmp/
 __pycache__/
 *.pyc
+
+.claude/

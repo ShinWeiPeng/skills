@@ -162,7 +162,7 @@ the confirmed canonical spec has materialized.
 Assess both axes independently as `present`, `absent`, or `indeterminate`:
 
 - `implementation`: product source or tests provide strong implementation evidence.
-- `stateful_context`: formal context such as `CONTEXT.md`, a spec, PRD, ADR, or
+- `stateful_context`: formal context such as `GLOSSARY.md`, a spec, PRD, ADR, or
   architecture manifest provides durable project knowledge. Empty formal-context
   files are `indeterminate`, not present.
 
@@ -210,7 +210,7 @@ regardless of size or an explicitly requested skill such as `tdd`.
 - When an adopted change contract is decision-complete, invoke `spec-governance.materialize` to confirm
   that same canonical `specs/SPEC-####-<slug>.md` in place. This spec-only lifecycle write does not
   authorize product changes.
-- Do not modify product source, tests, configuration, `CONTEXT.md`, ADRs,
+- Do not modify product source, tests, configuration, `GLOSSARY.md`, ADRs,
   architecture artifacts, generated files, Git, or external state until the user
   says exact `開始執行`. Every modifying path must complete `spec-verified` before
   TDD or implementation.
@@ -221,7 +221,7 @@ regardless of size or an explicitly requested skill such as `tdd`.
   repeating grilling when there is no new decision or conflict.
 - If execution exposes any possible contract-changing discretionary decision, invoke
   `spec-governance.reopen` before clarification, suspend the existing execution
-  authorization, and return to grilling one question at a time. Except for the verified SPEC-0038 preparation transition below, every SPEC revision,
+  authorization, and return to grilling one question at a time. Every SPEC revision,
   including reconfirmation with no actual contract delta, requires a fresh exact
   `開始執行` covering that revision. Compiler errors and test failures that can be investigated are
   facts, not user decisions.
@@ -278,12 +278,6 @@ explicit user discussion pause, or a presented decision-complete proposal permit
 waiting. The check grants no product execution authority.
 
 ## Project validation obligations
-
-If confirmation is waiting only for validation definitions, retain the existing
-execution instruction and use bounded `prepare-validation` for the same working
-SPEC. This does not authorize program edits. Confirm the unchanged contract and
-retry the original event through managed admission; do not request a duplicate
-execution phrase for this preparation-only transition.
 
 At entry, resume, and explicit skill reload, run the guided router with current task/SPEC references. Inspect `project_validation`: it rereads project policy, manifest, matrix and device profile with hashes. Preserve its additive `required_gates` on short prompts. A reload is not complete merely because SKILL.md was read. Missing mappings remain BLOCKED for dependent acceptance; continue read-only discovery and spec repair. Unchanged reload does not create a new execution-authorization requirement.
 
@@ -384,87 +378,31 @@ changes, clear receipts, or fabricate a successful validation.
 
 Before handing a newly confirmed plan to delivery, use spec-governance acceptance-plan completeness. Keep draft saving and current authorized repairs available; never confuse generated definitions with planning or acceptance PASS.
 
+## Existing project glossary compatibility
 
-## Verified preparation continuation (SPEC-0038)
+Prefer `GLOSSARY.md` and `GLOSSARY-MAP.md`. If only legacy `CONTEXT.md` or
+`CONTEXT-MAP.md` exists, read it before creating a glossary, preserve its content,
+and use the existing governed document-update workflow for an authorized rename.
+Do not silently create a second glossary or rename project files during discovery.
 
-Complete AC prose and machine-readable selectors together before presenting a
-decision-complete proposal. Reloaded discussion context reports every selector gap;
-confirmation checks the plan again. Saving drafts remains available.
+## Updated upstream routes
 
-The sole revision exception is a retained, unrevoked pending grant whose missing
-scenario selectors are uniquely determined by explicit SPEC-scoped project rules.
-Use managed prepare-validation with acceptance_mapping: true. The SPEC owner
-derives the additions; delivery reserves original bytes, input hashes and a
-versioned transition proof before reconciliation. Verify the entire document and
-ordered journal, then confirm and retry the original event through full admission.
-A preparation PASS never grants product or device authority or acceptance PASS.
+Read a skill's `SKILL.md` before describing its behavior or recommending that one
+of its steps be skipped; the summaries here are orientation only.
 
-Capture original validation definitions with the pending grant. Existing rules,
-scenarios and layers remain exactly equal; only independent definitions may be added.
-Legacy recovery requires grant-bound validation history and original_document_hex
-matching both retained file hashes. Missing original definitions stay unverified.
-Unprovable history, ambiguous scenarios, modified existing values, definition drift,
-reopen, revocation and unrelated identities remain denied with their cause. Preserve
-old receipts and source events. Generic reconcile and same-ID contract changes are
-not covered by this exception. Missing claims, rationale or build selections still
-require an evidenced specification decision; do not guess them.
+After canonical-spec verification and current delivery admission, use `implement`
+for one ticket or explicit `implement-spec` for a whole ticket graph on one
+integration branch. Both retain the fork's governance gates. `pr` provides the PR
+body format; it does not itself authorize publication. After the fix or build,
+recommend user-invoked `retro` in the same session to improve the agent environment.
+For a missing test seam, propose `improve-codebase-architecture` separately.
 
-## Automatic preparation and execution continuation (SPEC-0039)
+`wizard` creates a human-operated procedure for provisioning or a migration;
+`to-questionnaire` gathers another person's decisions; `wait-what` rephrases an
+unclear answer; `writing-for-agents` is the writing reference for skills and
+agent-facing documents. These add focused capabilities, not alternate execution
+permission. The fork retains `resolving-merge-conflicts` for governed merge work.
 
-Use managed `continue-execution` as the parent entry after explicit execution
-authorization and on same-scope retries. Supply the actual `source_event_id`,
-original `instruction`, reviewed `expected_hash`, and the usual task/SPEC/working
-references. The parent retains the same event while deriving missing AC scenario
-selectors, saving transition evidence, confirming through the SPEC owner,
-retrying full admission, generating the acceptance projection and checking planning.
-Do not stop at a child `next_action`, or ask again merely because preparation
-changed a file. Hashes still protect concurrency and integrity; the owner-derived
-transition proves the allowed scope.
-
-Optional `preparation_patches` holds at most four reviewed additive definition
-patches handled by existing `prepare-validation`. Never invent ambiguous scenario,
-claim, rationale, threshold or build selections. Optional `continuation` is exactly
-`{"operation":"status"}` (default) or `{"operation":"apply","patch":{...}}`.
-The latter runs the reviewed managed replacement after readiness checks. A status
-continuation means implementation is admitted, not that code was written: resume
-the implementation workflow in the same turn, then test, repair within scope,
-review and call `complete` with actual acceptance evidence. Build, device and
-release actions retain their own operation-specific requirements.
-
-The parent saves product continuation checkpoints and rechecks receipts/target
-hashes on replay. Owner transition journals and grant history are preparation
-checkpoints. Identical deterministic preparation blockers are returned without
-repeating effects; changed real inputs permit re-evaluation. External planning
-conditions are rechecked instead of cached as permanent failures. Concurrent or
-revoked state never authorizes a blind retry.
-
-Legacy migration searches persisted authorization history for matching original
-event, binding and instruction, verifies original document hashes and validates
-the saved definition baseline, then appends a versioned migration record retaining
-the old application. This is caller-attested local evidence, not host-authenticated
-approval. It cannot reconstruct never-recorded data: report `legacy-baseline-missing`
-with the missing evidence, preserve the original record and investigate. If a real
-new user authorization already exists, bind that event to the current reviewed
-specification without requiring the missing old baseline; never manufacture one
-from a reload, quotation or automatic retry. Superseded events cannot regain authority.
-
-Report authorization validity, admission, source event, bound revision/hash,
-reason, next action and source trust separately. Preparation/admission success
-does not imply acceptance success. Ask only when a genuine user decision or missing
-authority remains, not to compensate for a recoverable preparation gap.
-
-## Shared coding rule source
-
-Before designing or changing code, and during review, load [coding-standards](../coding-standards/SKILL.md). Use the same catalog version and project applicability result throughout. Architecture governance owns the module/interface/flow design records; present concrete implementation choices before SPEC confirmation and compare real code afterward. Do not copy rule definitions into this Skill.
-
-## Shared document collections (SPEC-0044)
-
-Use the SPEC owner's [document governance](../spec-governance/references/document-governance.md),
-[format contract](../spec-governance/references/document-format.md), [update/recovery workflow](../spec-governance/references/document-update-workflow.md)
-and [migration workflow](../spec-governance/references/document-migration-workflow.md). Read the complete
-projection through `document_bundle`, including fixed design references. Current
-designs are maintained in Markdown; manifests/views are generated from those sources.
-Design, implementation and acceptance checks have distinct evidence requirements.
-Migrate the selected legacy SPEC/dependencies through the managed owner entry,
-preserving its source event and semantic proof; recover partial updates from the
-reserved originals. Solve failures and verify the original work before completion.
+At a phase boundary, read [PHASE-BOUNDARIES.md](PHASE-BOUNDARIES.md) before choosing
+continue, clear, a portable handoff, a subagent or compact. Preserve the canonical
+SPEC and current task binding across whichever transition is appropriate.

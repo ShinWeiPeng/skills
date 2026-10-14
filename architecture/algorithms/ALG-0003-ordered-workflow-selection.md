@@ -280,3 +280,7 @@ authorization rather than rejecting historical repair failure. Owner Stop uses a
 persisted input fingerprint to suppress unchanged automatic retries; classification,
 record and verify are still callable after exhaustion. A changed current SPEC can
 be rechecked, while turn identity or reply wording alone cannot reset the allowance.
+
+The promoted `implement-spec`, `wizard` and `to-questionnaire` routes are modifying
+explicit skills; invoking them without a current canonical specification must
+return to the governed discussion/admission path rather than a read-only shortcut.
