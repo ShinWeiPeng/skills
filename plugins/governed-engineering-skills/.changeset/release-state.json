@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.20.0",
-  "previous_version": "0.19.0",
+  "current_version": "0.21.0",
+  "previous_version": "0.20.0",
   "bump": "minor",
-  "production_fingerprint": "sha256:86acbf0ec5d17f56898bd722c65774c95ebfaa135af2f301e510b03f831405d7",
+  "production_fingerprint": "sha256:b636363f8f1d2177d09f3ddefe7fa763eee05bb983f1e0fcea8871437dd7b54f",
   "applied_changesets": [
-    "consolidated-governance-acceptance-planning"
+    "shared-coding-rules-and-delivery-repair"
   ]
 }

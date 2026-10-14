@@ -22,9 +22,9 @@ User request (2026-10-14): abandon the old 0.21.0 changes and merge the updated
 4. Prefer the new GLOSSARY names while recognizing legacy CONTEXT documents and
    preserving empty-document classification.
 5. Validate assembly, compatibility inventory, integration, routing, version
-   metadata and relevant existing suites. Preserve current governed version
-   0.20.0; record the changed sources through the existing pending-release owner
-   without applying or publishing a release.
+   metadata and relevant existing suites. Preserve the published 0.21.0 release baseline while keeping the product
+   implementation based on 0.20.0; the existing minor intent must generate 0.22.0
+   through the normal Version PR, without locally applying or publishing a release.
 
 ## Conflict decisions
 
@@ -46,7 +46,7 @@ Checks completed against the isolated merge tree on 2026-10-14:
 | Check | Result |
 | --- | --- |
 | Single-source assembly / distribution / artifact validation | PASS, 36 promoted skills |
-| Governed version metadata | PASS, current version remains 0.20.0; release intent not applied |
+| Governed version metadata | PASS, published version baseline 0.21.0; minor target 0.22.0; release intent not applied |
 | Assembled plugin contracts | PASS, 395 tests |
 | Shared distribution contracts | PASS, 39 tests, including 2 platform skips |
 | Architecture module contracts | PASS, 105 tests |
@@ -95,6 +95,26 @@ main's history while explicitly restoring the chosen 0.20.0-based contents; it
 does not reuse the discarded 0.21.0 implementation. No force push is required.
 
 The PR diff against main therefore includes both the intentional 0.21.0 rollback
-and the upstream integration. Only this provenance note changes after the
-reviewed source snapshot; the source, tests and operational manifests are
-unchanged. Existing releases/tags are not rewritten or published by this PR.
+and the upstream integration. Subsequent release bookkeeping restores the published 0.21.0 package/manifest
+version, release-state, historical changeset and changelog records. It preserves
+0.20.0-based implementation and tests while making the existing minor intent
+calculate 0.22.0. Existing releases/tags are not rewritten or published by this PR.
+
+## Automatic release sequence
+
+1. After this feature PR merges to main and validation passes, the workflow applies
+   the minor intent to the published 0.21.0 baseline and creates/updates the
+   `plugin-release/main` Version PR for 0.22.0.
+2. After that Version PR merges and validation passes, no pending intent remains;
+   the workflow creates `governed-engineering-skills@0.22.0` and publishes the
+   generated Marketplace branch. The workflow does not auto-merge the Version PR.
+
+Release bookkeeping is kept separately from the reverted implementation: choosing
+0.20.0 as a source baseline must not rewind an already published package version.
+
+Release-baseline correction validation: 30 version-contract tests passed;
+assembly/distribution/integration validation passed at the published 0.21.0
+baseline; disposable tracked-checkout release rehearsal produced 0.22.0 and
+verified eligibility for governed-engineering-skills@0.22.0. The architecture
+release gate passed. The real source release intent remains pending; no actual
+release tag or Marketplace publication was performed.
