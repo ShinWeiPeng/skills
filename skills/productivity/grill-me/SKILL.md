@@ -3,7 +3,7 @@ name: grill-me
 description: Interview a greenfield engineering request when both implementation and durable project context are absent. Model-invoked by ask-matt; users need not name it.
 ---
 
-Run a `/grilling` session for a project assessed as `absent / absent`.
+Call the Skill tool with "grilling" for a project assessed as `absent / absent`.
 
 Follow the shared Decision Question Contract supplied by `/ask-matt` for every
 decision asked through this wrapper.

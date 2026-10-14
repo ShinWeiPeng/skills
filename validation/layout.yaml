@@ -12,6 +12,7 @@ entries:
   - plugins/governed-engineering-skills/build/**
   - '**/__pycache__/**'
   - plugins/governed-engineering-skills/.tmp/**
+  - .validation-deps/**
   role: build-output
   provenance: Provisioned third-party runtime, assembly output, compiler/test caches;
     no project source ownership
@@ -40,7 +41,6 @@ entries:
   - AGENTS.md
   - CHANGELOG.md
   - CLAUDE.md
-  - CONTEXT.md
   - README.md
   - architecture/algorithms/ALG-0001-hard-trigger-risk-routing.md
   - architecture/algorithms/ALG-0002-three-state-project-assessment.md
@@ -93,15 +93,10 @@ entries:
   - docs/productivity/grilling.md
   - docs/productivity/handoff.md
   - docs/productivity/teach.md
-  - docs/productivity/writing-great-skills.md
   - plugins/governed-engineering-skills/AGENTS.md
   - plugins/governed-engineering-skills/CHANGELOG.md
   - plugins/governed-engineering-skills/docs/versioning.md
   - skills/deprecated/README.md
-  - skills/deprecated/design-an-interface/SKILL.md
-  - skills/deprecated/qa/SKILL.md
-  - skills/deprecated/request-refactor-plan/SKILL.md
-  - skills/deprecated/ubiquitous-language/SKILL.md
   - skills/engineering/README.md
   - skills/engineering/ask-matt/SKILL.md
   - skills/engineering/ask-matt/references/decision-question-contract.md
@@ -113,7 +108,6 @@ entries:
   - skills/engineering/diagnosing-bugs/SKILL.md
   - skills/engineering/diagnosing-bugs/references/debug-model-packet.md
   - skills/engineering/domain-modeling/ADR-FORMAT.md
-  - skills/engineering/domain-modeling/CONTEXT-FORMAT.md
   - skills/engineering/domain-modeling/SKILL.md
   - skills/engineering/engineering-risk-routing/SKILL.md
   - skills/engineering/engineering-risk-routing/references/entry-gate.md
@@ -189,12 +183,9 @@ entries:
   - skills/engineering/verification-ladder/references/project-validation.md
   - skills/engineering/wayfinder/SKILL.md
   - skills/in-progress/README.md
-  - skills/in-progress/batch-grill-me/SKILL.md
   - skills/in-progress/claude-handoff/SKILL.md
   - skills/in-progress/loop-me/SKILL.md
   - skills/in-progress/setup-ts-deep-modules/SKILL.md
-  - skills/in-progress/to-questionnaire/SKILL.md
-  - skills/in-progress/wizard/SKILL.md
   - skills/in-progress/writing-beats/SKILL.md
   - skills/in-progress/writing-fragments/SKILL.md
   - skills/in-progress/writing-shape/SKILL.md
@@ -203,9 +194,6 @@ entries:
   - skills/misc/migrate-to-shoehorn/SKILL.md
   - skills/misc/scaffold-exercises/SKILL.md
   - skills/misc/setup-pre-commit/SKILL.md
-  - skills/personal/README.md
-  - skills/personal/edit-article/SKILL.md
-  - skills/personal/obsidian-vault/SKILL.md
   - skills/productivity/README.md
   - skills/productivity/grill-me/SKILL.md
   - skills/productivity/grilling/SKILL.md
@@ -215,8 +203,6 @@ entries:
   - skills/productivity/teach/MISSION-FORMAT.md
   - skills/productivity/teach/RESOURCES-FORMAT.md
   - skills/productivity/teach/SKILL.md
-  - skills/productivity/writing-great-skills/GLOSSARY.md
-  - skills/productivity/writing-great-skills/SKILL.md
   role: documentation
 - include:
   - tests/flows/plugin-integration/support/installer/fake-artifact-access.ps1
@@ -322,10 +308,6 @@ entries:
   - plugins/governed-engineering-skills/.changeset/release-state.json
   - plugins/governed-engineering-skills/.codex-plugin/plugin.json
   - plugins/governed-engineering-skills/package.json
-  - skills/deprecated/design-an-interface/agents/openai.yaml
-  - skills/deprecated/qa/agents/openai.yaml
-  - skills/deprecated/request-refactor-plan/agents/openai.yaml
-  - skills/deprecated/ubiquitous-language/agents/openai.yaml
   - skills/engineering/ask-matt/agents/openai.yaml
   - skills/engineering/clarify-improvement-proposals/agents/openai.yaml
   - skills/engineering/code-review/agents/openai.yaml
@@ -366,13 +348,10 @@ entries:
   - skills/engineering/verification-ladder/references/project-validation.schema.json
   - skills/engineering/verification-ladder/references/verification-ladder.schema.json
   - skills/engineering/wayfinder/agents/openai.yaml
-  - skills/in-progress/batch-grill-me/agents/openai.yaml
   - skills/in-progress/claude-handoff/agents/openai.yaml
   - skills/in-progress/loop-me/agents/openai.yaml
   - skills/in-progress/setup-ts-deep-modules/agents/openai.yaml
   - skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs
-  - skills/in-progress/to-questionnaire/agents/openai.yaml
-  - skills/in-progress/wizard/agents/openai.yaml
   - skills/in-progress/writing-beats/agents/openai.yaml
   - skills/in-progress/writing-fragments/agents/openai.yaml
   - skills/in-progress/writing-shape/agents/openai.yaml
@@ -380,13 +359,10 @@ entries:
   - skills/misc/migrate-to-shoehorn/agents/openai.yaml
   - skills/misc/scaffold-exercises/agents/openai.yaml
   - skills/misc/setup-pre-commit/agents/openai.yaml
-  - skills/personal/edit-article/agents/openai.yaml
-  - skills/personal/obsidian-vault/agents/openai.yaml
   - skills/productivity/grill-me/agents/openai.yaml
   - skills/productivity/grilling/agents/openai.yaml
   - skills/productivity/handoff/agents/openai.yaml
   - skills/productivity/teach/agents/openai.yaml
-  - skills/productivity/writing-great-skills/agents/openai.yaml
   role: metadata
 - include:
   - skills/engineering/engineering-risk-routing/scripts/classify_risk.py
@@ -539,7 +515,6 @@ entries:
   - scripts/validate_distribution.py
   - scripts/windows-artifact-access.ps1
   - skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh
-  - skills/in-progress/wizard/template.sh
   - skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh
   role: tooling
 - include:
@@ -598,9 +573,6 @@ entries:
   role: template
   provenance: Illustrative authored layout input, requires project-specific adoption
 - include:
-  - .governed-release-source-inventory.json
-  role: metadata
-- include:
   - specs/SPEC-0035-execution-authorization-compatibility.md
   - specs/SPEC-0036-generic-layout-repair.md
   role: specification
@@ -612,6 +584,56 @@ entries:
 - include:
   - validation/run-references-SPEC-0035.json
   role: validation-definition
+- include:
+  - .agents/install-block.md
+  - .out-of-scope/frozen-misc-skills.md
+  - .out-of-scope/harness-name-collisions.md
+  - .out-of-scope/lazy-load-writing-for-agents.md
+  - .out-of-scope/native-question-tool.md
+  - .out-of-scope/new-skills.md
+  - .out-of-scope/subagent-recursion.md
+  - GLOSSARY.md
+  - SCOPE.md
+  - docs/agents/triage-labels.md
+  - docs/engineering/implement-spec.md
+  - docs/engineering/pr.md
+  - docs/engineering/retro.md
+  - docs/engineering/wizard.md
+  - docs/productivity/to-questionnaire.md
+  - docs/productivity/wait-what.md
+  - docs/productivity/writing-for-agents.md
+  - docs/upstream-sync-from-020.md
+  - skills/engineering/ask-matt/PHASE-BOUNDARIES.md
+  - skills/engineering/domain-modeling/GLOSSARY-FORMAT.md
+  - skills/engineering/implement-spec/SKILL.md
+  - skills/engineering/pr/CREDITS.md
+  - skills/engineering/pr/SKILL.md
+  - skills/engineering/retro/SKILL.md
+  - skills/engineering/wizard/SKILL.md
+  - skills/in-progress/chief-of-staff/SKILL.md
+  - skills/productivity/to-questionnaire/SKILL.md
+  - skills/productivity/wait-what/SKILL.md
+  - skills/productivity/writing-for-agents/SKILL-MECHANICS.md
+  - skills/productivity/writing-for-agents/SKILL.md
+  role: documentation
+- include:
+  - .github/ISSUE_TEMPLATE/bug.yml
+  - .github/ISSUE_TEMPLATE/config.yml
+  - .github/ISSUE_TEMPLATE/idea.yml
+  - skills/engineering/implement-spec/agents/openai.yaml
+  - skills/engineering/pr/agents/openai.yaml
+  - skills/engineering/retro/agents/openai.yaml
+  - skills/engineering/wizard/agents/openai.yaml
+  - skills/in-progress/chief-of-staff/agents/openai.yaml
+  - skills/productivity/to-questionnaire/agents/openai.yaml
+  - skills/productivity/wait-what/agents/openai.yaml
+  - skills/productivity/writing-for-agents/agents/openai.yaml
+  role: metadata
+- include:
+  - .github/workflows/needs-info.yml
+  - .github/workflows/triage-label.yml
+  - skills/engineering/wizard/template.sh
+  role: tooling
 required_analyzers:
 - python
 external_modules:
@@ -637,14 +659,14 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py:
-    sha256: cfe795c007f12725a5aa43ae11313e81a72921677609da796664d7c1a547e531
+    sha256: 8d834f29f8c8ca67cdb37ee4ba848874bde1f682210bd6f3f91c44a3e84b2579
     targets:
     - scripts/assemble_plugin.py
     - scripts/validate_distribution.py
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/plugin/test_guided_routing.py:
-    sha256: 163ad24be028fb895bea430e2240800028ead7ef41318fb4c93f102f562d8159
+    sha256: d2282ae4c4e4a3d40e627fcd155370f6f146f0941bc7b314a6e269118d06fc70
     targets:
     - skills/engineering/engineering-risk-routing/scripts/project_state.py
     - skills/engineering/engineering-risk-routing/scripts/repository_evidence.py

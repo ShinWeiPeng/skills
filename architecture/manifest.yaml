@@ -67,6 +67,7 @@ source_sets:
   - dist/**
   - .cache/**
   - .codex-arch-deps/**
+  - .validation-deps/**
   - node_modules/**
   - .ruff_cache/**
   - .tmp/**
@@ -264,7 +265,13 @@ modules:
   - skills/productivity/grilling
   - skills/productivity/handoff
   - skills/productivity/teach
-  - skills/productivity/writing-great-skills
+  - skills/productivity/writing-for-agents
+  - skills/engineering/implement-spec
+  - skills/engineering/pr
+  - skills/engineering/retro
+  - skills/engineering/wizard
+  - skills/productivity/to-questionnaire
+  - skills/productivity/wait-what
   parent: guided_workflow_router
   depends_on:
   - spec_governance_domain

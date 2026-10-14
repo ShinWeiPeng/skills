@@ -138,6 +138,16 @@ class ProjectStateAssessmentTests(unittest.TestCase):
             result["evidence"][0]["classification"],
         )
 
+    def test_current_and_legacy_glossaries_preserve_project_state(self) -> None:
+        for name in ("GLOSSARY.md", "GLOSSARY-MAP.md", "CONTEXT.md", "CONTEXT-MAP.md"):
+            for size, expected in ((20, "present"), (0, "indeterminate")):
+                with self.subTest(name=name, size=size):
+                    result = PROJECT_STATE.assess_project_state(
+                        [{"path": name, "tracking": "tracked", "size_bytes": size}]
+                    )
+                    self.assertEqual("absent", result["implementation"])
+                    self.assertEqual(expected, result["stateful_context"])
+
     def test_empty_formal_context_is_indeterminate_not_present(self) -> None:
         result = PROJECT_STATE.assess_project_state(
             [{"path": "CONTEXT.md", "tracking": "tracked", "size_bytes": 0}]
@@ -436,6 +446,15 @@ class IntentAssessmentTests(unittest.TestCase):
 
         self.assertEqual("explicit-skill", result["intent"])
         self.assertTrue(result["requires_modification"])
+
+    def test_promoted_writer_skills_require_modifying_routes(self) -> None:
+        for name in ("implement-spec", "wizard", "to-questionnaire"):
+            with self.subTest(skill=name):
+                result = WORKFLOW_SELECTION.classify_intent(
+                    "/" + name, explicit_skill=name
+                )
+                self.assertEqual("explicit-skill", result["intent"])
+                self.assertTrue(result["requires_modification"])
 
     def test_explicit_code_review_cannot_hide_direct_fix_intent(self) -> None:
         result = WORKFLOW_SELECTION.classify_intent(

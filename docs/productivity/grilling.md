@@ -98,3 +98,7 @@ and cannot be reported as completed acceptance.
 
 See [spec-governance](https://aihero.dev/skills-spec-governance) for the shared
 responsibility and [implement](https://aihero.dev/skills-implement) for execution.
+
+## Upstream integration
+
+The fork retains one persisted decision at a time. Phrase the question so a yes accepts the recommended answer; facts remain the agent's responsibility.

@@ -162,7 +162,7 @@ the confirmed canonical spec has materialized.
 Assess both axes independently as `present`, `absent`, or `indeterminate`:
 
 - `implementation`: product source or tests provide strong implementation evidence.
-- `stateful_context`: formal context such as `CONTEXT.md`, a spec, PRD, ADR, or
+- `stateful_context`: formal context such as `GLOSSARY.md`, a spec, PRD, ADR, or
   architecture manifest provides durable project knowledge. Empty formal-context
   files are `indeterminate`, not present.
 
@@ -210,7 +210,7 @@ regardless of size or an explicitly requested skill such as `tdd`.
 - When an adopted change contract is decision-complete, invoke `spec-governance.materialize` to confirm
   that same canonical `specs/SPEC-####-<slug>.md` in place. This spec-only lifecycle write does not
   authorize product changes.
-- Do not modify product source, tests, configuration, `CONTEXT.md`, ADRs,
+- Do not modify product source, tests, configuration, `GLOSSARY.md`, ADRs,
   architecture artifacts, generated files, Git, or external state until the user
   says exact `開始執行`. Every modifying path must complete `spec-verified` before
   TDD or implementation.
@@ -377,3 +377,32 @@ investigation/discussion. Keep rejection evidence and never overwrite concurrent
 changes, clear receipts, or fabricate a successful validation.
 
 Before handing a newly confirmed plan to delivery, use spec-governance acceptance-plan completeness. Keep draft saving and current authorized repairs available; never confuse generated definitions with planning or acceptance PASS.
+
+## Existing project glossary compatibility
+
+Prefer `GLOSSARY.md` and `GLOSSARY-MAP.md`. If only legacy `CONTEXT.md` or
+`CONTEXT-MAP.md` exists, read it before creating a glossary, preserve its content,
+and use the existing governed document-update workflow for an authorized rename.
+Do not silently create a second glossary or rename project files during discovery.
+
+## Updated upstream routes
+
+Read a skill's `SKILL.md` before describing its behavior or recommending that one
+of its steps be skipped; the summaries here are orientation only.
+
+After canonical-spec verification and current delivery admission, use `implement`
+for one ticket or explicit `implement-spec` for a whole ticket graph on one
+integration branch. Both retain the fork's governance gates. `pr` provides the PR
+body format; it does not itself authorize publication. After the fix or build,
+recommend user-invoked `retro` in the same session to improve the agent environment.
+For a missing test seam, propose `improve-codebase-architecture` separately.
+
+`wizard` creates a human-operated procedure for provisioning or a migration;
+`to-questionnaire` gathers another person's decisions; `wait-what` rephrases an
+unclear answer; `writing-for-agents` is the writing reference for skills and
+agent-facing documents. These add focused capabilities, not alternate execution
+permission. The fork retains `resolving-merge-conflicts` for governed merge work.
+
+At a phase boundary, read [PHASE-BOUNDARIES.md](PHASE-BOUNDARIES.md) before choosing
+continue, clear, a portable handoff, a subagent or compact. Preserve the canonical
+SPEC and current task binding across whichever transition is appropriate.

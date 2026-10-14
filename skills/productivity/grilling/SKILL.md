@@ -49,8 +49,6 @@ Before asking, follow the shared Decision Question Contract supplied by `/ask-ma
 
 Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering.
 
-If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up rather than asking me. The *decisions*, though, are mine — put each one to me and wait for my answer.
-
 Do not implement or perform product, Git, or external actions until I confirm we
 have reached a shared understanding.
 
@@ -95,3 +93,5 @@ turn with a clickable canonical SPEC ID/title link, actual revision and lifecycl
 status, a short change summary and the current execution authorization state.
 A failed save must be described as failed; never claim that an unpersisted change
 was saved. Link the same canonical file through reopening and confirmation.
+
+Word each decision question so "yes" accepts the recommended answer. Keep the fork's one-question-at-a-time persisted discussion contract.

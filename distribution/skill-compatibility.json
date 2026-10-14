@@ -1,40 +1,287 @@
 {
   "schema_version": "1.1.0",
-  "supported_surfaces": ["codex-desktop", "codex-cli"],
+  "supported_surfaces": [
+    "codex-desktop",
+    "codex-cli"
+  ],
   "skills": {
-    "ask-matt": {"classification": "codex-compatible", "reason": "Automatically routes repository engineering work through Codex governance capabilities.", "host_dependencies": ["repository inspection", "Codex engineering router"]},
-    "clarify-improvement-proposals": {"classification": "codex-compatible", "reason": "Its governed proposal gate depends on repository evidence and Codex architecture routing.", "host_dependencies": ["repository inspection", "architecture governance"]},
-    "code-review": {"classification": "codex-compatible", "reason": "The review contract requires Git evidence and parallel review sub-agents.", "host_dependencies": ["Git repository", "parallel sub-agents"]},
-    "codebase-design": {"classification": "codex-compatible", "reason": "Its read-only deep-module vocabulary works in Codex; modification requests hand off to architecture governance.", "host_dependencies": []},
-    "diagnosing-bugs": {"classification": "codex-compatible", "reason": "The workflow requires repository inspection, instrumentation, and regression-test execution.", "host_dependencies": ["repository filesystem", "test execution"]},
-    "domain-modeling": {"classification": "codex-compatible", "reason": "The workflow persists CONTEXT.md and ADR changes in the project repository.", "host_dependencies": ["repository filesystem"]},
-    "engineering-risk-routing": {"classification": "codex-compatible", "reason": "The classifier selects proposal, architecture, code-flow, and runtime-evidence gates available in Codex.", "host_dependencies": ["Codex skill inventory", "repository evidence"]},
-    "explain-code-flow": {"classification": "codex-compatible", "reason": "Formal System and Parent explanations require repository architecture manifests and generated views.", "host_dependencies": ["repository filesystem", "architecture views"]},
-    "formatter-governance": {"classification": "codex-compatible", "reason": "The workflow inspects repository formatter evidence, confirms and protects full-program writes, preflights exact scaffold paths, and evaluates CLI checks.", "host_dependencies": ["repository filesystem", "Git status", "terminal execution", "native permission boundary"]},
-    "govern-modular-event-architecture": {"classification": "codex-compatible", "reason": "The gate executes repository-local architecture tooling and may require a native libclang provider.", "host_dependencies": ["terminal execution", "repository filesystem", "native toolchain"]},
-    "grill-me": {"classification": "codex-compatible", "reason": "The greenfield wrapper persists a canonical repository spec and returns through the Codex engineering router.", "host_dependencies": ["repository filesystem", "Codex engineering router"]},
-    "grill-with-docs": {"classification": "codex-compatible", "reason": "The interview reads project context and writes CONTEXT.md and ADRs into the repository.", "host_dependencies": ["repository filesystem"]},
-    "grilling": {"classification": "codex-compatible", "reason": "For engineering work the loop persists and reconciles repository spec-governance state before continuing.", "host_dependencies": ["repository filesystem", "spec governance"]},
-    "handoff": {"classification": "codex-compatible", "reason": "The handoff is written to the operating-system temporary directory.", "host_dependencies": ["local filesystem"]},
-    "implement": {"classification": "codex-compatible", "reason": "The workflow edits repository files and executes governed tests and review gates.", "host_dependencies": ["repository filesystem", "test execution"]},
-    "improve-codebase-architecture": {"classification": "codex-compatible", "reason": "The workflow scans a repository and writes a local visual report.", "host_dependencies": ["repository filesystem", "local artifact generation"]},
-    "prototype": {"classification": "codex-compatible", "reason": "The workflow builds and runs repository-local prototype artifacts.", "host_dependencies": ["repository filesystem", "runtime execution"]},
-    "research": {"classification": "codex-compatible", "reason": "The workflow delegates research and saves the cited result into the repository.", "host_dependencies": ["repository filesystem", "sub-agent execution"]},
-    "resolving-merge-conflicts": {"classification": "codex-compatible", "reason": "The workflow operates on an in-progress Git merge or rebase.", "host_dependencies": ["Git repository"]},
-    "setup-matt-pocock-skills": {"classification": "codex-compatible", "reason": "Setup creates repository configuration, labels, and domain-document structure.", "host_dependencies": ["repository filesystem", "issue tracker"]},
-    "spec-governance": {"classification": "codex-compatible", "reason": "Canonical spec reconciliation and commit disposition require repository-local files and Git evidence.", "host_dependencies": ["repository filesystem", "Git evidence"]},
-    "tdd": {"classification": "codex-compatible", "reason": "The red-green-refactor loop requires editing code and executing the repository test runner.", "host_dependencies": ["repository filesystem", "test execution"]},
-    "teach": {"classification": "codex-compatible", "reason": "The multi-session course stores state in the current workspace directory.", "host_dependencies": ["workspace filesystem"]},
-    "to-spec": {"classification": "codex-compatible", "reason": "The workflow reconciles repository spec files and publishes to the configured issue tracker.", "host_dependencies": ["repository filesystem", "issue tracker"]},
-    "to-tickets": {"classification": "codex-compatible", "reason": "The workflow writes local ticket files or creates native issue-tracker dependencies.", "host_dependencies": ["repository filesystem or issue tracker"]},
-    "triage": {"classification": "codex-compatible", "reason": "The state machine reads and updates issues and pull requests through a configured tracker.", "host_dependencies": ["issue tracker"]},
-    "validate-on-device": {"classification": "codex-compatible", "reason": "Runtime acceptance requires physical-device or operating-system access, permissions, and native capture tools.", "host_dependencies": ["device or OS access", "native capture tools", "runtime permissions"]},
-    "verification-ladder": {"classification": "codex-compatible", "reason": "Layer planning uses repository contracts and host tests, then delegates selected physical or native evidence to validate-on-device.", "host_dependencies": ["repository filesystem", "test execution", "validate-on-device for selected device layers"]},
-    "wayfinder": {"classification": "codex-compatible", "reason": "The workflow creates and resolves a durable map of issue-tracker decision tickets.", "host_dependencies": ["issue tracker"]},
-    "writing-great-skills": {"classification": "codex-compatible", "reason": "The writing guidance is instruction-only and has no additional host dependency.", "host_dependencies": []}
+    "ask-matt": {
+      "classification": "codex-compatible",
+      "reason": "Automatically routes repository engineering work through Codex governance capabilities.",
+      "host_dependencies": [
+        "repository inspection",
+        "Codex engineering router"
+      ]
+    },
+    "clarify-improvement-proposals": {
+      "classification": "codex-compatible",
+      "reason": "Its governed proposal gate depends on repository evidence and Codex architecture routing.",
+      "host_dependencies": [
+        "repository inspection",
+        "architecture governance"
+      ]
+    },
+    "code-review": {
+      "classification": "codex-compatible",
+      "reason": "The review contract requires Git evidence and parallel review sub-agents.",
+      "host_dependencies": [
+        "Git repository",
+        "parallel sub-agents"
+      ]
+    },
+    "codebase-design": {
+      "classification": "codex-compatible",
+      "reason": "Its read-only deep-module vocabulary works in Codex; modification requests hand off to architecture governance.",
+      "host_dependencies": []
+    },
+    "diagnosing-bugs": {
+      "classification": "codex-compatible",
+      "reason": "The workflow requires repository inspection, instrumentation, and regression-test execution.",
+      "host_dependencies": [
+        "repository filesystem",
+        "test execution"
+      ]
+    },
+    "domain-modeling": {
+      "classification": "codex-compatible",
+      "reason": "The workflow persists GLOSSARY.md (or legacy CONTEXT.md) and ADR changes in the project repository.",
+      "host_dependencies": [
+        "repository filesystem"
+      ]
+    },
+    "engineering-risk-routing": {
+      "classification": "codex-compatible",
+      "reason": "The classifier selects proposal, architecture, code-flow, and runtime-evidence gates available in Codex.",
+      "host_dependencies": [
+        "Codex skill inventory",
+        "repository evidence"
+      ]
+    },
+    "explain-code-flow": {
+      "classification": "codex-compatible",
+      "reason": "Formal System and Parent explanations require repository architecture manifests and generated views.",
+      "host_dependencies": [
+        "repository filesystem",
+        "architecture views"
+      ]
+    },
+    "formatter-governance": {
+      "classification": "codex-compatible",
+      "reason": "The workflow inspects repository formatter evidence, confirms and protects full-program writes, preflights exact scaffold paths, and evaluates CLI checks.",
+      "host_dependencies": [
+        "repository filesystem",
+        "Git status",
+        "terminal execution",
+        "native permission boundary"
+      ]
+    },
+    "govern-modular-event-architecture": {
+      "classification": "codex-compatible",
+      "reason": "The gate executes repository-local architecture tooling and may require a native libclang provider.",
+      "host_dependencies": [
+        "terminal execution",
+        "repository filesystem",
+        "native toolchain"
+      ]
+    },
+    "grill-me": {
+      "classification": "codex-compatible",
+      "reason": "The greenfield wrapper persists a canonical repository spec and returns through the Codex engineering router.",
+      "host_dependencies": [
+        "repository filesystem",
+        "Codex engineering router"
+      ]
+    },
+    "grill-with-docs": {
+      "classification": "codex-compatible",
+      "reason": "The interview reads project context and writes GLOSSARY.md (or legacy CONTEXT.md) and ADRs into the repository.",
+      "host_dependencies": [
+        "repository filesystem"
+      ]
+    },
+    "grilling": {
+      "classification": "codex-compatible",
+      "reason": "For engineering work the loop persists and reconciles repository spec-governance state before continuing.",
+      "host_dependencies": [
+        "repository filesystem",
+        "spec governance"
+      ]
+    },
+    "handoff": {
+      "classification": "codex-compatible",
+      "reason": "The handoff is written to the operating-system temporary directory.",
+      "host_dependencies": [
+        "local filesystem"
+      ]
+    },
+    "implement": {
+      "classification": "codex-compatible",
+      "reason": "The workflow edits repository files and executes governed tests and review gates.",
+      "host_dependencies": [
+        "repository filesystem",
+        "test execution"
+      ]
+    },
+    "improve-codebase-architecture": {
+      "classification": "codex-compatible",
+      "reason": "The workflow scans a repository and writes a local visual report.",
+      "host_dependencies": [
+        "repository filesystem",
+        "local artifact generation"
+      ]
+    },
+    "prototype": {
+      "classification": "codex-compatible",
+      "reason": "The workflow builds and runs repository-local prototype artifacts.",
+      "host_dependencies": [
+        "repository filesystem",
+        "runtime execution"
+      ]
+    },
+    "research": {
+      "classification": "codex-compatible",
+      "reason": "The workflow delegates research and saves the cited result into the repository.",
+      "host_dependencies": [
+        "repository filesystem",
+        "sub-agent execution"
+      ]
+    },
+    "resolving-merge-conflicts": {
+      "classification": "codex-compatible",
+      "reason": "The workflow operates on an in-progress Git merge or rebase.",
+      "host_dependencies": [
+        "Git repository"
+      ]
+    },
+    "setup-matt-pocock-skills": {
+      "classification": "codex-compatible",
+      "reason": "Setup creates repository configuration, labels, and domain-document structure.",
+      "host_dependencies": [
+        "repository filesystem",
+        "issue tracker"
+      ]
+    },
+    "spec-governance": {
+      "classification": "codex-compatible",
+      "reason": "Canonical spec reconciliation and commit disposition require repository-local files and Git evidence.",
+      "host_dependencies": [
+        "repository filesystem",
+        "Git evidence"
+      ]
+    },
+    "tdd": {
+      "classification": "codex-compatible",
+      "reason": "The red-green-refactor loop requires editing code and executing the repository test runner.",
+      "host_dependencies": [
+        "repository filesystem",
+        "test execution"
+      ]
+    },
+    "teach": {
+      "classification": "codex-compatible",
+      "reason": "The multi-session course stores state in the current workspace directory.",
+      "host_dependencies": [
+        "workspace filesystem"
+      ]
+    },
+    "to-spec": {
+      "classification": "codex-compatible",
+      "reason": "The workflow reconciles repository spec files and publishes to the configured issue tracker.",
+      "host_dependencies": [
+        "repository filesystem",
+        "issue tracker"
+      ]
+    },
+    "to-tickets": {
+      "classification": "codex-compatible",
+      "reason": "The workflow writes local ticket files or creates native issue-tracker dependencies.",
+      "host_dependencies": [
+        "repository filesystem or issue tracker"
+      ]
+    },
+    "triage": {
+      "classification": "codex-compatible",
+      "reason": "The state machine reads and updates issues and pull requests through a configured tracker.",
+      "host_dependencies": [
+        "issue tracker"
+      ]
+    },
+    "validate-on-device": {
+      "classification": "codex-compatible",
+      "reason": "Runtime acceptance requires physical-device or operating-system access, permissions, and native capture tools.",
+      "host_dependencies": [
+        "device or OS access",
+        "native capture tools",
+        "runtime permissions"
+      ]
+    },
+    "verification-ladder": {
+      "classification": "codex-compatible",
+      "reason": "Layer planning uses repository contracts and host tests, then delegates selected physical or native evidence to validate-on-device.",
+      "host_dependencies": [
+        "repository filesystem",
+        "test execution",
+        "validate-on-device for selected device layers"
+      ]
+    },
+    "wayfinder": {
+      "classification": "codex-compatible",
+      "reason": "The workflow creates and resolves a durable map of issue-tracker decision tickets.",
+      "host_dependencies": [
+        "issue tracker"
+      ]
+    },
+    "implement-spec": {
+      "classification": "codex-compatible",
+      "reason": "Whole-spec parallel implementation shares canonical specification and governed delivery admission.",
+      "host_dependencies": [
+        "repository filesystem",
+        "Git worktrees",
+        "parallel sub-agents",
+        "test execution"
+      ]
+    },
+    "pr": {
+      "classification": "codex-compatible",
+      "reason": "PR-body reference supports review evidence without performing publication.",
+      "host_dependencies": []
+    },
+    "retro": {
+      "classification": "codex-compatible",
+      "reason": "Session retrospective recommends environment improvements; mutations retain governance.",
+      "host_dependencies": [
+        "repository inspection"
+      ]
+    },
+    "wizard": {
+      "classification": "codex-compatible",
+      "reason": "Creates and validates human-operated Bash procedures with explicit secret handling.",
+      "host_dependencies": [
+        "bash",
+        "shellcheck",
+        "repository inspection"
+      ]
+    },
+    "to-questionnaire": {
+      "classification": "codex-compatible",
+      "reason": "Produces a questionnaire for another person; sending it requires explicit authorization.",
+      "host_dependencies": [
+        "repository filesystem"
+      ]
+    },
+    "wait-what": {
+      "classification": "codex-compatible",
+      "reason": "Rephrases an unclear explanation using the project glossary.",
+      "host_dependencies": []
+    },
+    "writing-for-agents": {
+      "classification": "codex-compatible",
+      "reason": "Instruction-only reference for skills and documents read by agents.",
+      "host_dependencies": []
+    }
   },
   "representative_invocations": {
     "engineering": "codebase-design",
-    "productivity": "writing-great-skills"
+    "productivity": "writing-for-agents"
   }
 }

@@ -1,0 +1,18 @@
+{
+  "bump": "minor",
+  "changesets": [
+    "upstream-sync-from-020"
+  ],
+  "summary": {
+    "Added": [
+      "Promoted whole-spec implementation, PR, retrospective, wizard and productivity skills."
+    ],
+    "Changed": [
+      "Updated upstream workflows while retaining 0.20.0 canonical-spec and execution governance.",
+      "Prefer GLOSSARY.md while preserving legacy CONTEXT.md discovery."
+    ],
+    "Fixed": [
+      "Upstream wizard, tracker, review and forced-mutation verification fixes."
+    ]
+  }
+}

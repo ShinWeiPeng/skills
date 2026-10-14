@@ -48,7 +48,10 @@ a `spec-verified: PASS` result. Before implementation, render a REQ → AC → t
 traceability assessment; missing requirements, validation methods, invalid
 references, conflicts, or open decisions are `BLOCKED`.
 
-Use /tdd where possible, at pre-agreed seams.
+If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
+
+Call the Skill tool with "tdd" where possible, at pre-agreed seams.
+
 
 Immediately before governed mutation, run `scripts/spec_delivery.py --project-root
 <root> --spec <canonical-path> --expected-hash <verified-file-sha256>
@@ -66,7 +69,7 @@ their owning skill.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-Once done, use /code-review to review the work.
+Once done, call the Skill tool with "code-review" to review the work.
 
 After every AC has actual PASS evidence and the code-review Spec axis reports no
 missing, incorrect, or scope-creep behavior, the implement orchestration may update

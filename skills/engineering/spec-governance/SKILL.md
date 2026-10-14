@@ -128,7 +128,7 @@ Before the first decision, invoke `start` or `status`. After each user answer:
 
 1. Reload the authoritative canonical SPEC Markdown; reuse unchanged REQ, DEC, AC,
    and DISC IDs.
-2. Compare it with non-empty `CONTEXT.md`, accepted ADRs, and the architecture
+2. Compare it with non-empty `GLOSSARY.md`, accepted ADRs, and the architecture
    manifest.
 3. Reconcile using its expected revision and SHA-256. Atomically replace the complete
    human-readable Markdown snapshot with structured Discussion Context, then append only normalized delta, IDs,
@@ -149,10 +149,10 @@ If the journal is missing or its chain is invalid, trust the WORKING-SPEC Markdo
 epoch marked `continuity: unavailable`, and continue from settled IDs. Do not turn
 journal loss alone into reopened decisions.
 
-Route domain vocabulary to `CONTEXT.md`, change-set requirements and acceptance to
+Route domain vocabulary to `GLOSSARY.md`, change-set requirements and acceptance to
 the canonical spec, qualifying architectural decisions to a **proposed** ADR, and
 unconfirmed content only to the working spec. During grilling, canonical `specs/SPEC-####-*.md` lifecycle writes and task-private runtime state writes are allowed.
-`CONTEXT.md`, ADRs, architecture artifacts, tests, generated views, implementation,
+`GLOSSARY.md`, ADRs, architecture artifacts, tests, generated views, implementation,
 Git, and external actions still require exact `開始執行`. These outputs are one
 change set; do not recursively start another interview.
 

@@ -65,3 +65,7 @@ The guided router resolves the spec owner's explicit task/project binding before
 collecting repository evidence. Hook, router and owner therefore inspect the same
 canonical root even when desktop cwd is its parent. This binding does not change
 risk classification or authorize product operations.
+
+Project-state discovery recognizes both `GLOSSARY.md`/`GLOSSARY-MAP.md` and the
+legacy `CONTEXT.md`/`CONTEXT-MAP.md` names. An empty glossary remains indeterminate;
+its name alone never proves durable project knowledge.

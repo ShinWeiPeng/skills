@@ -32,7 +32,8 @@ records safely enumerable exclusions without reading a symbolic-link target.
 ## Exact behavior and tie-breaking
 
 1. Recognized non-empty source or test suffixes set implementation to `present`.
-2. Non-empty formal context paths set stateful context to `present`.
+2. Non-empty formal context paths set stateful context to `present`. Both current
+   `GLOSSARY.md`/`GLOSSARY-MAP.md` and legacy `CONTEXT.md`/`CONTEXT-MAP.md` qualify.
 3. Empty formal context paths add context ambiguity; empty source placeholders add
    implementation ambiguity.
 4. Generic scaffolds make both axes indeterminate only when no strong source or

@@ -33,7 +33,15 @@ def _is_stateful_context(path: Path) -> bool:
     normalized = path.as_posix().casefold()
     name = path.name.casefold()
     return (
-        name in {"context.md", "prd.md", "spec.md"}
+        name
+        in {
+            "glossary.md",
+            "glossary-map.md",
+            "context.md",
+            "context-map.md",
+            "prd.md",
+            "spec.md",
+        }
         or normalized == "architecture/manifest.yaml"
         or normalized.startswith("architecture/decisions/")
         or normalized.startswith("docs/spec")

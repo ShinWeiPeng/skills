@@ -186,3 +186,7 @@ See [spec-governance](https://aihero.dev/skills-spec-governance) for the shared
 responsibility and [implement](https://aihero.dev/skills-implement) for execution.
 
 Specification confirmation includes a complete validation plan. Missing selections are reported together before delivery; saving a draft and repairing an authorized change remain available.
+
+## Upstream integration
+
+The updated map also covers whole-spec parallel delivery with `implement-spec`, PR descriptions with `pr`, user-invoked `retro`, human-operated `wizard` procedures, `to-questionnaire`, `wait-what`, and `writing-for-agents`. Canonical-spec and execution gates continue to apply. At a phase boundary, choose among continue, clear, portable handoff, subagents and compact using `PHASE-BOUNDARIES.md`.
