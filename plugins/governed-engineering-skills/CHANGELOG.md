@@ -1,5 +1,13 @@
 # Governed Engineering Skills
 
+## 0.23.0
+
+### Changed
+
+- Separate document authoring from product execution authorization.
+- Retire lifecycle hooks while preserving explicit discussion ownership and legacy history.
+- Require executed public production-module SIL reports for host functional acceptance, with module-owned source hashes and separate verification results.
+
 ## 0.22.0
 
 ### Added
