@@ -1,0 +1,42 @@
+# Replace example-module/example-flow with IDs from architecture/manifest.yaml.
+# This is authored input, never a substitute for inventorying an existing project.
+schema_version: 1
+entries:
+  - include: ["tests/modules/example-module/**"]
+    exclude: ["tests/modules/example-module/support/**"]
+    role: test
+    owner: example-module
+  - include: ["tests/modules/example-module/support/**"]
+    role: support
+    owner: example-module
+  - include: ["tests/flows/example-flow/**"]
+    role: test
+    owner: example-flow
+  - include: ["tests/support/time/**"]
+    role: support
+    owner: example-module
+  - include: ["validation/**"]
+    role: validation-definition
+  - include: ["artifacts/tests/**", "artifacts/validation/**"]
+    role: run-output
+  - include: ["specs/**"]
+    role: specification
+  - include: ["spec-governance/**"]
+    role: governance-state
+  - include: ["src/**"]
+    role: production
+    owner: example-module
+# Declare all remaining project files and provenance-controlled exclusions.
+required_analyzers: [python]
+external_modules: []
+dynamic_dependencies: {}
+references: []
+output_bindings:
+  - writer: project_validation
+    root: artifacts/validation
+    target: {module: example-module}
+  - writer: validate-on-device
+    root: artifacts/validation
+    scenario: example-scenario
+    target: {flow: example-flow}
+external_resources: []

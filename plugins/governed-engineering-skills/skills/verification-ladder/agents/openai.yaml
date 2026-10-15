@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verification Ladder"
+  short_description: "Select contract, host, target, hardware, and soak evidence."
+  default_prompt: "Use $verification-ladder to derive the required validation layers and reject evidence substitution for this engineering change."

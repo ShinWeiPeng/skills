@@ -1,0 +1,20 @@
+{
+  "interface": {
+    "displayName": "Governed Engineering"
+  },
+  "name": "governed-engineering",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "governed-engineering-skills",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/governed-engineering-skills",
+        "source": "local"
+      }
+    }
+  ]
+}

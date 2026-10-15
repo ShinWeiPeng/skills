@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ask Matt"
+  short_description: "Automatically route every engineering request"
+  default_prompt: "Automatically assess this engineering request with $ask-matt; do not require the user to name a skill."
