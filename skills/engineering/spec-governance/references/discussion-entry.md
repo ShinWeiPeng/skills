@@ -166,3 +166,51 @@ Legacy observations remain readable as history. The compatibility `hook-health`
 query reports a retired adapter with no supported events and host trust/loading/
 firing `not-applicable`; it does not grant authority. Recording new hook observations
 is rejected. Use the explicit owner protocol for current discussion evidence.
+
+## Diagnosis fix contract review
+
+When diagnosis proposes a new fix or changes its behavior, register it with
+`discussion_state.py` operation `propose-fix` before related product work, including
+regression tests. Use the current task/turn and binding, a stable `FIX-###`, exact
+fix description and source reference. A shared repair goal is not evidence that
+specific behavior is already adopted. Read-only investigation remains available.
+
+Use the same owner's `compare-fix` operation to compare `applicable_states`,
+`ordering`, `success`, `failure`, `rollback` and `retry`. Each dimension has
+`status` (`covered`, `changed`, `unknown`), `rationale`, and `clauses` containing
+actual REQ/DEC/AC IDs and their exact behavioral `text`. A covered dimension needs
+at least one clause; validation methods, evidence labels and the whole SPEC title
+are not behavioral clauses. Explain applicability; exact text matching alone
+cannot establish semantic coverage.
+
+Both operations require `binding` exactly from current discussion `status`.
+`compare-fix` additionally requires the latest `proposal_event_hash`, the complete
+`dimensions` map, `summary`, `source_ref` and `presentation_ref`. Present the
+six-dimension comparison and its result in the actual reply before dependent
+modification. The presentation reference is caller-attested; it does not prove
+that a reply was emitted or that the user read it.
+
+| Result | Required continuation |
+|---|---|
+| All dimensions covered, no pending question, valid receipt | Save current discussion and continue the authorized repair. |
+| Any changed dimension | Discuss the delta; use the existing confirmed reopen or implemented successor, then confirmation and applicable new execution authorization. |
+| Any unknown dimension or missing/stale comparison | Investigate read-only and ask only the unresolved decision; related managed edits wait. |
+
+The owner stores proposals and comparisons in the same canonical SPEC's discussion
+audit, without changing its contract snapshot for a covered repair. No second
+contract or authorization state is created. A changed proposal invalidates its
+old comparison; a new contract snapshot requires a current comparison. Ordinary
+unchanged test retries and exact operation replays preserve valid receipts.
+
+A factual follow-up, including "why did application fail?" or a request to inspect
+the fix, is not adoption. Answer it and reconnect the same saved question ID and
+version. Timeout, empty replies and mode changes do not resolve pending questions.
+
+`verify_delivery_admission` and the managed writer reject registered fixes without
+current covered comparisons. This is a voluntary managed workflow: callers must
+register fixes, and model/trace review must detect omitted or misleading semantic
+classification. It does not intercept arbitrary host tools or prove semantics
+from hashes. Normalized trace audit accepts `fix_proposed` with the returned
+proposal hash and current binding, and `fix_comparison` with the owner's actual
+assessment as `review`; neither event grants execution authority. Raw trace review
+still requires tool provenance and independently verified command effects.

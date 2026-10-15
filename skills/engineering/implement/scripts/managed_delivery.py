@@ -1319,7 +1319,15 @@ def _audit_source_trace(packet: dict) -> dict:
         last_position = positions[ref]
         if (
             event.get("kind")
-            in {"admission", "managed_write", "spec_saved", "context", "turn_start"}
+            in {
+                "admission",
+                "managed_write",
+                "spec_saved",
+                "context",
+                "turn_start",
+                "fix_proposed",
+                "fix_comparison",
+            }
             and source.get("type") != "commandExecution"
         ):
             gaps.append("tool state cannot be attested by a non-tool source")
@@ -1373,6 +1381,7 @@ def audit_trace(events: list[dict] | dict) -> dict:
     context = None
     observed = {}
     question_count = 0
+    fix_proposals, covered_fixes = {}, set()
     host = None
     violations = []
     if not isinstance(events, list) or any(
@@ -1387,6 +1396,56 @@ def audit_trace(events: list[dict] | dict) -> dict:
         kind = event.get("kind")
         if not isinstance(kind, str):
             violations.append({"index": index, "reason": "trace kind must be text"})
+            continue
+        if kind == "fix_proposed":
+            identifier, token, binding = (
+                event.get("fix_id"),
+                event.get("proposal_event_hash"),
+                event.get("binding"),
+            )
+            if (
+                not isinstance(identifier, str)
+                or not re.fullmatch(r"FIX-\d{3,6}", identifier)
+                or not isinstance(token, str)
+                or not re.fullmatch(r"[a-f0-9]{64}", token)
+                or not isinstance(binding, dict)
+                or set(binding) != {"working_id", "revision", "snapshot_hash"}
+            ):
+                violations.append(
+                    {"index": index, "reason": "invalid fix comparison obligation"}
+                )
+            elif fix_proposals.get(identifier) != (token, binding):
+                fix_proposals[identifier] = (token, binding)
+                covered_fixes.discard(identifier)
+            continue
+        if kind == "fix_comparison":
+            review = event.get("review")
+            if (
+                not isinstance(review, dict)
+                or review.get("verdict") not in {"PASS", "BLOCKED"}
+                or review.get("product_code_allowed") is not False
+                or not isinstance(review.get("fixes"), dict)
+            ):
+                violations.append(
+                    {
+                        "index": index,
+                        "reason": "fix comparison is not current and covered",
+                    }
+                )
+            else:
+                for identifier, (token, binding) in fix_proposals.items():
+                    row = review["fixes"].get(identifier, {})
+                    if not isinstance(row, dict):
+                        row = {}
+                    if (
+                        review.get("verdict") == "PASS"
+                        and row.get("proposal_event_hash") == token
+                        and row.get("status") == "covered"
+                        and review.get("binding") == binding
+                    ):
+                        covered_fixes.add(identifier)
+                    else:
+                        covered_fixes.discard(identifier)
             continue
         if kind == "mode_change" and turn is not None:
             # Only a new host turn can establish an already-active Plan mode.
@@ -1583,6 +1642,12 @@ def audit_trace(events: list[dict] | dict) -> dict:
         elif kind == "pause":
             authorized = False
         elif kind == "spec_saved":
+            if fix_proposals:
+                binding = event.get("binding")
+                for key, (token, previous) in list(fix_proposals.items()):
+                    if binding != previous:
+                        covered_fixes.discard(key)
+                        fix_proposals[key] = (token, binding)
             authorized = False
             if event.get("verdict") == "PASS":
                 pending_spec = False
@@ -1597,6 +1662,13 @@ def audit_trace(events: list[dict] | dict) -> dict:
                 {"index": index, "reason": "direct tool bypasses managed entrypoint"}
             )
         elif kind == "managed_write":
+            if set(fix_proposals) - covered_fixes:
+                violations.append(
+                    {
+                        "index": index,
+                        "reason": "write before current covered fix comparison",
+                    }
+                )
             if not authorized or event.get("verdict") != "PASS":
                 violations.append(
                     {

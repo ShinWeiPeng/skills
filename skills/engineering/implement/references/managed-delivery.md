@@ -401,3 +401,12 @@ Document replacement uses the same path checks, reviewed base hash, atomic commi
 lock and bounded merge behavior as product replacement. A changed base is preserved;
 merged content requires validation before commit. No document operation creates an
 execution receipt or changes a suspended execution phase.
+
+## Diagnose repairs without expanding authority
+
+Before applying a newly proposed or changed diagnosis fix, complete the existing
+spec-governance [fix review](../../spec-governance/references/discussion-entry.md#diagnosis-fix-contract-review).
+Admission checks the current owner assessment in addition to the original receipt
+and pending-question state. Missing, stale or noncovered comparisons reject the
+write. Covered same-contract repairs preserve valid authority; comparing a fix
+does not create authority. Factual follow-ups cannot be treated as adoption.

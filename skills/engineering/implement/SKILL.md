@@ -144,3 +144,11 @@ keep functional completion BLOCKED.
 
 Use verification-ladder for selected SIL/PIL/HIL/System obligations. Report module
 SIL, integration/Adapter Contract, build, Web and AST/architecture separately.
+
+## Diagnosis repair admission
+
+For new or changed diagnosis fixes, require the spec-governance
+[fix comparison](../spec-governance/references/discussion-entry.md#diagnosis-fix-contract-review)
+before related tests or source edits. Existing managed admission enforces current
+registered comparisons and pending questions. Preserve current valid authorization
+for covered repairs and unchanged retries; never infer coverage from a shared goal.

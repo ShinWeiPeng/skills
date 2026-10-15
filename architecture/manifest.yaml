@@ -416,6 +416,8 @@ modules:
     invariants:
     - Every answered decision is persisted before the next decision question.
     - Versioned pending questions survive timeout and mode changes without a deadline.
+    - New diagnosis fixes are registered in the same canonical audit and require current
+      six-dimension behavioral clause comparisons before related managed edits.
     - Only an explicit matching answer with a new DISC record clears a pending question.
     - Specification lifecycle writes never authorize product, Git, or external mutations.
     - Every completed specification is presented in the emitted reply with its current ID,
@@ -441,6 +443,9 @@ modules:
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_turn_context
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+    symbol: assess_fix_comparisons
     kind: function
   - path: skills/engineering/spec-governance/scripts/discussion_state.py
     symbol: discussion_request
@@ -490,6 +495,9 @@ modules:
     kind: function
   - path: skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_turn_context
+    kind: function
+  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+    symbol: assess_fix_comparisons
     kind: function
   - path: skills/engineering/spec-governance/scripts/discussion_state.py
     symbol: discussion_request

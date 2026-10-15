@@ -16,7 +16,11 @@ SPEC_SCRIPTS_ROOT = SKILLS_ROOT / "spec-governance" / "scripts"
 if str(SPEC_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPEC_SCRIPTS_ROOT))
 
-from discussion_state import discussion_request, resolve_discussion_project
+from discussion_state import (
+    assess_fix_comparisons,
+    discussion_request,
+    resolve_discussion_project,
+)
 from execution_state import assess_execution_compatibility
 from spec_contract import (
     assess_project_validation,
@@ -134,6 +138,13 @@ def verify_delivery_admission(
         return blocked | {
             "reason": "working and canonical specification identity/status mismatch"
         }
+    if working:
+        owner_task = working.get("task_ref")
+        if task_ref is not None and owner_task != task_ref:
+            return blocked | {"reason": "working specification belongs to another task"}
+        review = assess_fix_comparisons(root, working, owner_task)
+        if review["verdict"] != "PASS":
+            return blocked | {"reason": review["reason"], "fix_review": review}
     dependencies = check_spec_dependencies(root, path)
     if dependencies:
         return blocked | {

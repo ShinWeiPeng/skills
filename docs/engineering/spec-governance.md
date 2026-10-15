@@ -198,3 +198,20 @@ the same SPEC. Missing selections are listed together before confirmation, while
 drafts can still be saved. A generated mapping is not a complete plan or passing
 test evidence. Explicit user waivers are recorded with their scope and source and
 shown separately from tests that passed; other evidence remains required.
+
+## Repair scope and existing authorization
+
+When diagnosis proposes a new repair, the agent shows how applicable states,
+ordering, success, failure, rollback and retry relate to specific adopted clauses.
+"The same repair goal" does not establish that those choices were already agreed.
+
+| Comparison | What you see next |
+| --- | --- |
+| Existing clauses cover the behavior | The agent explains the match and continues with still-valid authorization. |
+| Behavior changes or remains unclear | Investigation can continue; related managed edits wait for the discussion and specification lifecycle. |
+| You ask why it failed or request an explanation | The agent answers and returns to the unanswered repair question. |
+
+Registered repairs without current comparisons are rejected at the managed edit
+entry. Unchanged test retries do not start another approval cycle. These checks
+verify records and references; semantic review still matters, and direct host
+tools are outside this voluntary workflow.

@@ -193,3 +193,20 @@ Specification confirmation includes a complete validation plan. Missing selectio
 ## Upstream integration
 
 The updated map also covers whole-spec parallel delivery with `implement-spec`, PR descriptions with `pr`, user-invoked `retro`, human-operated `wizard` procedures, `to-questionnaire`, `wait-what`, and `writing-for-agents`. Canonical-spec and execution gates continue to apply. At a phase boundary, choose among continue, clear, portable handoff, subagents and compact using `PHASE-BOUNDARIES.md`.
+
+## Repair scope and existing authorization
+
+When diagnosis proposes a new repair, the agent shows how applicable states,
+ordering, success, failure, rollback and retry relate to specific adopted clauses.
+"The same repair goal" does not establish that those choices were already agreed.
+
+| Comparison | What you see next |
+| --- | --- |
+| Existing clauses cover the behavior | The agent explains the match and continues with still-valid authorization. |
+| Behavior changes or remains unclear | Investigation can continue; related managed edits wait for the discussion and specification lifecycle. |
+| You ask why it failed or request an explanation | The agent answers and returns to the unanswered repair question. |
+
+Registered repairs without current comparisons are rejected at the managed edit
+entry. Unchanged test retries do not start another approval cycle. These checks
+verify records and references; semantic review still matters, and direct host
+tools are outside this voluntary workflow.

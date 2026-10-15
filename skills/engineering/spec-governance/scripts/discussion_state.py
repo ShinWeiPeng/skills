@@ -435,6 +435,178 @@ def _repair_input(root, task, row):
     )
 
 
+FIX_DIMENSIONS = (
+    "applicable_states",
+    "ordering",
+    "success",
+    "failure",
+    "rollback",
+    "retry",
+)
+
+
+def _fix_records(root, working, task):
+    events, continuity = _read_journal(root / working["journal_path"])
+    if continuity != "continuous":
+        raise ValueError("fix comparison requires continuous SPEC history")
+    proposals, comparisons = {}, {}
+    for event in events:
+        record = event.get("delta", {}).get("discussion", {})
+        if record.get("task_ref") != task:
+            continue
+        if record.get("kind") == "fix-proposed":
+            proposals[record["fix_id"]] = dict(record, event_hash=event["event_hash"])
+        elif record.get("kind") == "fix-comparison":
+            comparisons[record["fix_id"]] = record
+    return proposals, comparisons
+
+
+def _comparison_dimensions(root, working, dimensions):
+    if not isinstance(dimensions, dict) or set(dimensions) != set(FIX_DIMENSIONS):
+        raise ValueError("fix comparison requires all six behavior dimensions")
+    rows = _snapshot_rows((root / working["snapshot_path"]).read_text(encoding="utf-8"))
+    normalized = {}
+    for dimension in FIX_DIMENSIONS:
+        row = dimensions[dimension]
+        if not isinstance(row, dict) or set(row) != {"status", "rationale", "clauses"}:
+            raise ValueError("fix dimension requires status, rationale and clauses")
+        status = row["status"]
+        if status not in {"covered", "changed", "unknown"}:
+            raise ValueError("unknown fix comparison classification")
+        rationale = _redact_sensitive_content(_text(row["rationale"], "rationale"))
+        clauses = row["clauses"]
+        if not isinstance(clauses, list) or len(clauses) > 32:
+            raise ValueError("fix clauses must be a bounded list")
+        if status == "covered" and not clauses:
+            raise ValueError("covered behavior requires actual contract clauses")
+        for clause in clauses:
+            if not isinstance(clause, dict) or set(clause) != {"id", "text"}:
+                raise ValueError("fix clause requires id and exact behavioral text")
+            identifier = _text(clause["id"], "clause.id")
+            quote = _text(clause["text"], "clause.text")
+            actual = rows.get(identifier, {})
+            behavior = next(
+                (
+                    actual[k]
+                    for k in ("requirement", "decision", "criterion")
+                    if k in actual
+                ),
+                None,
+            )
+            if behavior is None or quote != behavior:
+                raise ValueError(
+                    "fix comparison cites missing or mismatched behavioral clause"
+                )
+        normalized[dimension] = {
+            "status": status,
+            "rationale": rationale,
+            "clauses": clauses,
+        }
+    return normalized
+
+
+def assess_fix_comparisons(root, working, task):
+    """Check registered fixes, not the semantic truth of caller classifications."""
+    proposals, comparisons = _fix_records(root, working, task)
+    binding = {key: working[key] for key in ("working_id", "revision", "snapshot_hash")}
+    fixes = {}
+    for identifier, proposal in proposals.items():
+        comparison = comparisons.get(identifier, {})
+        current = (
+            comparison.get("binding") == binding
+            and comparison.get("proposal_event_hash") == proposal["event_hash"]
+        )
+        status = "missing-or-stale"
+        if current:
+            dimensions = _comparison_dimensions(
+                root, working, comparison.get("dimensions")
+            )
+            status = (
+                "covered"
+                if all(r["status"] == "covered" for r in dimensions.values())
+                else "needs-discussion"
+            )
+        fixes[identifier] = {
+            "fix": proposal["fix"],
+            "source_ref": proposal["source_ref"],
+            "proposal_event_hash": proposal["event_hash"],
+            "status": status,
+        }
+    pending = [key for key, value in fixes.items() if value["status"] != "covered"]
+    return {
+        "verdict": "BLOCKED" if pending else "PASS",
+        "fixes": fixes,
+        "pending": pending,
+        "binding": binding,
+        "task_ref": task,
+        "reason": "fix comparison missing, stale or not covered"
+        if pending
+        else "registered fixes are covered",
+        "product_code_allowed": False,
+        "enforcement_scope": "registered-fixes-only",
+    }
+
+
+def _review_fix(root, task, row, request):
+    working = _working(root, task, row)
+    binding = _binding(root, task, row)
+    if request.get("binding") != binding:
+        raise ValueError("stale or mismatched fix comparison binding")
+    identifier = _text(request.get("fix_id"), "fix_id")
+    if not re.fullmatch(r"FIX-\d{3,6}", identifier):
+        raise ValueError("fix_id must be FIX- followed by three to six digits")
+    source = _text(request.get("source_ref"), "source_ref")
+    proposals, comparisons = _fix_records(root, working, task)
+    if request["operation"] == "propose-fix":
+        fix = _redact_sensitive_content(_text(request.get("fix"), "fix"))
+        latest = proposals.get(identifier, {})
+        if latest.get("fix") == fix and latest.get("source_ref") == source:
+            return {
+                "verdict": "PASS",
+                "replayed": True,
+                "proposal_event_hash": latest["event_hash"],
+                "product_code_allowed": False,
+            }
+        record = {
+            "kind": "fix-proposed",
+            "task_ref": task,
+            "turn_id": row["turn_id"],
+            "fix_id": identifier,
+            "fix": fix,
+            "source_ref": source,
+            "binding": binding,
+        }
+        event = _append(root, working, record)
+        row["saved"] = None
+        return {
+            "verdict": "PASS",
+            "replayed": False,
+            "proposal_event_hash": event["event_hash"],
+            "product_code_allowed": False,
+        }
+    proposal = proposals.get(identifier)
+    if proposal is None or request.get("proposal_event_hash") != proposal["event_hash"]:
+        raise ValueError("fix comparison must reference the latest exact proposal")
+    dimensions = _comparison_dimensions(root, working, request.get("dimensions"))
+    record = {
+        "kind": "fix-comparison",
+        "task_ref": task,
+        "turn_id": row["turn_id"],
+        "fix_id": identifier,
+        "binding": binding,
+        "source_ref": source,
+        "proposal_event_hash": proposal["event_hash"],
+        "dimensions": dimensions,
+        "presentation_ref": _text(request.get("presentation_ref"), "presentation_ref"),
+        "summary": _redact_sensitive_content(_text(request.get("summary"), "summary")),
+    }
+    if comparisons.get(identifier) == record:
+        return assess_fix_comparisons(root, working, task) | {"replayed": True}
+    _append(root, working, record)
+    row["saved"] = None
+    return assess_fix_comparisons(root, working, task) | {"replayed": False}
+
+
 def _operate(root, state, request):
     task = state["task_ref"]
     operation = request["operation"]
@@ -569,6 +741,10 @@ def _operate(root, state, request):
             "kind": row["kind"],
             "working_id": row.get("working_id"),
         }
+    if operation in {"propose-fix", "compare-fix"}:
+        if row["kind"] != "engineering":
+            raise ValueError("fix review requires an engineering discussion")
+        return _review_fix(root, task, row, request)
     if operation == "observe":
         if row["kind"] != "engineering":
             raise ValueError(

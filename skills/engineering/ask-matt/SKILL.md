@@ -406,3 +406,13 @@ permission. The fork retains `resolving-merge-conflicts` for governed merge work
 At a phase boundary, read [PHASE-BOUNDARIES.md](PHASE-BOUNDARIES.md) before choosing
 continue, clear, a portable handoff, a subagent or compact. Preserve the canonical
 SPEC and current task binding across whichever transition is appropriate.
+
+## Review new diagnosis fixes before continuing
+
+When diagnosis discovers a new or changed repair, invoke spec-governance's
+[fix contract review](../spec-governance/references/discussion-entry.md#diagnosis-fix-contract-review)
+before tests or product edits. Require registration and all six behavior dimensions
+with specific REQ/DEC/AC clauses. A common goal or unchanged SPEC hash is not
+semantic coverage. Route changed/unknown behavior back to grilling; preserve an
+existing valid receipt for covered repairs. Factual follow-ups never clear pending
+questions. Ordinary test retries with the same fix need no new interview.

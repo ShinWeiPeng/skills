@@ -427,3 +427,13 @@ from SPEC after revisions and preserve legacy ungoverned host compatibility.
 Record explicit user waivers with their source and exact scope in SPEC, report
 them as user-waived rather than tested PASS, and retain every unwaived obligation.
 Never infer a waiver from unavailable hosts or hardware.
+
+## Own diagnosis fix comparisons
+
+The discussion owner additionally accepts `propose-fix` and `compare-fix`; follow
+the sole [fix review contract](references/discussion-entry.md#diagnosis-fix-contract-review).
+Keep sourced fix obligations and six-dimension clause comparisons in the canonical
+SPEC audit. Missing, stale, changed or unknown comparisons block related managed
+edits without blocking read-only diagnosis. The owner supplies
+`assess_fix_comparisons` to delivery admission. This checks registered evidence,
+not the truth or completeness of model semantic judgments.

@@ -249,3 +249,20 @@ responsibility and [implement](https://aihero.dev/skills-implement) for executio
 ## Upstream integration
 
 A passed ticket reference is fetched from the configured tracker and its title is stated before implementation. For a whole spec with independent ready tickets, `implement-spec` runs the task graph on one integration branch using the same governed admission.
+
+## Repair scope and existing authorization
+
+When diagnosis proposes a new repair, the agent shows how applicable states,
+ordering, success, failure, rollback and retry relate to specific adopted clauses.
+"The same repair goal" does not establish that those choices were already agreed.
+
+| Comparison | What you see next |
+| --- | --- |
+| Existing clauses cover the behavior | The agent explains the match and continues with still-valid authorization. |
+| Behavior changes or remains unclear | Investigation can continue; related managed edits wait for the discussion and specification lifecycle. |
+| You ask why it failed or request an explanation | The agent answers and returns to the unanswered repair question. |
+
+Registered repairs without current comparisons are rejected at the managed edit
+entry. Unchanged test retries do not start another approval cycle. These checks
+verify records and references; semantic review still matters, and direct host
+tools are outside this voluntary workflow.

@@ -188,3 +188,14 @@ Required before declaring done:
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message, so the next debugger learns
 - [ ] For model-alignment bugs, the confirmed Debug Model Packet still explains the final evidence, or its correction is recorded
+
+## Compare the proposed fix with the adopted contract
+
+Before turning a diagnosis into tests or a code repair, register every new or
+changed fix and complete the spec-governance
+[fix contract review](../spec-governance/references/discussion-entry.md#diagnosis-fix-contract-review).
+Present specific clauses for applicable states, ordering, success, failure,
+rollback and retry. Do not turn a shared goal into implied adopted behavior.
+Covered repairs retain valid authority. Changed or unknown behavior returns to
+grilling before dependent mutation; investigation remains available. Answering
+why a failure occurs does not confirm its repair or resolve the pending question.
