@@ -1,5 +1,12 @@
 # Governed Engineering Skills
 
+## 0.23.1
+
+### Fixed
+
+- Require registered diagnosis fixes to carry current six-dimension SPEC comparisons before managed edits; preserve pending questions across factual follow-ups.
+- Bind comparisons to the exact proposal, task and contract while retaining valid covered-fix authority.
+
 ## 0.23.0
 
 ### Changed

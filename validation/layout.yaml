@@ -481,6 +481,7 @@ entries:
   - tests/flows/plugin-integration/plugin/test_install_local.ps1
   - tests/flows/plugin-integration/plugin/test_document_writes.py
   - tests/flows/plugin-integration/plugin/test_managed_delivery.py
+  - tests/flows/plugin-integration/plugin/test_fix_contract_review.py
   - tests/flows/plugin-integration/plugin/test_routing.py
   - tests/flows/plugin-integration/plugin/test_spec_governance.py
   - tests/flows/plugin-integration/plugin/test_turn_continuity.py
@@ -576,11 +577,13 @@ entries:
   - specs/SPEC-0035-execution-authorization-compatibility.md
   - specs/SPEC-0036-generic-layout-repair.md
   - specs/SPEC-0061-doc-authoring-authorization-boundary.md
+  - specs/SPEC-0063-diagnosis-fix-contract-review.md
   role: specification
 - include:
   - validation/acceptance-SPEC-0035.json
   - validation/acceptance-SPEC-0036.json
   - validation/acceptance-SPEC-0061.json
+  - validation/acceptance-SPEC-0063.json
   - validation/run-references-SPEC-0061.json
   - validation/run-references-SPEC-0036.json
   role: validation-definition
