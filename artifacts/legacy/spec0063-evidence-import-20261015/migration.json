@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "imported_at": "2026-10-15T03:18:18.315115+00:00",
+  "source_revision": "0c488b957ac9c4956eb8e29e4eeb61e6c8b3f2ad",
+  "reason": "Preserve previously committed reports without retroactively inventing run identity or allocation metadata.",
+  "files": [
+    {
+      "original_path": "artifacts/validation/spec0063-ed694c62ad004b7e974d73c849e56028/summary.md",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-ed694c62ad004b7e974d73c849e56028/summary.md",
+      "sha256": "4875f9344e1bc7477c5607d28fa75ca2b3526ce082bfb35356deafec8c99448e",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/discussion-save.json",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/discussion-save.json",
+      "sha256": "4966238569d9366b20d651422c3f225ec6c6f908acab2bb68c491dd0f11027a4",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/historical-contract.md",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/historical-contract.md",
+      "sha256": "572551482914befc1ac0c89d79564e300c1820a199601b2bee1da24c533c91ff",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/historical-grant-source.json",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/historical-grant-source.json",
+      "sha256": "9742151cdf1ea95a9e2b0df5e5361860f3d0d550e92273af0bba92cae86b36f3",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/historical-sources.json",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/historical-sources.json",
+      "sha256": "a3ec1494426efd47ac217ff9baad84da032e351055a22087e82068f48f12eab0",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/replay-events.json",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/replay-events.json",
+      "sha256": "7dbb380031f12af82572773e2fe53f345f1d69be1dfaa35c3c57cbbffa991803",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/report.md",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/report.md",
+      "sha256": "c069957f9c1b10de614c89129cedcbdf83ad98e0c035b0479e6159c9c3a0f778",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/result.json",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/result.json",
+      "sha256": "8d8404c02e488957bdf08189ed589696e3832100a1e2da4842796fdb98c7c496",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    },
+    {
+      "original_path": "artifacts/validation/spec0063-history-1792032925021/source-hashes.json",
+      "destination": "artifacts/legacy/spec0063-evidence-import-20261015/artifacts/validation/spec0063-history-1792032925021/source-hashes.json",
+      "sha256": "71f913004391ef4008405aa9a52d50dbb99ae57baaade4c1d6864447a5bccb09",
+      "provenance": "Existing tracked historical evidence imported byte-for-byte; original run allocation metadata was not recorded. Not a fresh allocated run or complete acceptance."
+    }
+  ]
+}
