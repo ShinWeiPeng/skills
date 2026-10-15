@@ -689,7 +689,7 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/plugin/test_version_governance.py:
-    sha256: ca20bad9929328fdca8b86ca52bfc39118450f8b6fe3ac47238f8a65d90d5e8f
+    sha256: a26befb0a9075dd0457df57556856d8c2aab4041884eef15dd357739c8f3f12e
     targets:
     - plugins/governed-engineering-skills/scripts/version_governance.py
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled

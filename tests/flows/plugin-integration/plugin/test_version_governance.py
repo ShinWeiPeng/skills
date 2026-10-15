@@ -529,6 +529,55 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, release_tooling_job)
 
+    def test_publication_events_are_limited_to_main(self) -> None:
+        import ast
+
+        import yaml
+
+        condition = yaml.safe_load(self._workflow())["jobs"]["release"]["if"]
+        expression = (
+            condition.replace("github.event_name", "event_name")
+            .replace("github.ref", "ref")
+            .replace("&&", " and ")
+            .replace("||", " or ")
+            .strip()
+        )
+        for event_name, ref, expected in (
+            ("push", "refs/heads/main", True),
+            ("workflow_dispatch", "refs/heads/main", True),
+            ("pull_request", "refs/pull/53/merge", False),
+            ("pull_request", "refs/heads/main", False),
+            ("schedule", "refs/heads/main", False),
+            ("push", "refs/heads/feature", False),
+            ("workflow_dispatch", "refs/heads/feature", False),
+            ("workflow_dispatch", "refs/tags/0.23.0", False),
+        ):
+            with self.subTest(event_name=event_name, ref=ref):
+                values = {"event_name": event_name, "ref": ref}
+
+                def evaluate(node):
+                    if isinstance(node, ast.Constant):
+                        return node.value
+                    if isinstance(node, ast.Name):
+                        return values[node.id]
+                    if isinstance(node, ast.BoolOp):
+                        results = [evaluate(value) for value in node.values]
+                        if isinstance(node.op, ast.And):
+                            return all(results)
+                        if isinstance(node.op, ast.Or):
+                            return any(results)
+                    if (
+                        isinstance(node, ast.Compare)
+                        and len(node.ops) == 1
+                        and isinstance(node.ops[0], ast.Eq)
+                    ):
+                        return evaluate(node.left) == evaluate(node.comparators[0])
+                    self.fail("Unsupported release condition syntax")
+
+                self.assertEqual(
+                    expected, evaluate(ast.parse(expression, mode="eval").body)
+                )
+
     def test_publication_waits_for_both_validation_jobs(self) -> None:
         workflow = self._workflow()
         release_job = workflow.partition("\n  release:")[2]
