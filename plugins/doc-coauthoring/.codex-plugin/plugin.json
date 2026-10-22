@@ -1,0 +1,6 @@
+{
+  "name": "doc-coauthoring",
+  "version": "0.1.0",
+  "description": "Collaboratively write, refine and reader-test structured documents.",
+  "skills": "./skills/"
+}

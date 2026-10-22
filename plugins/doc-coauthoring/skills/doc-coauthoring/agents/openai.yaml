@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doc Coauthoring"
+  short_description: "Draft and refine documents with independent reader checks"
+  default_prompt: "Use $doc-coauthoring to help me draft and refine this document, then test it with a fresh reader."

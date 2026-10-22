@@ -1,0 +1,13 @@
+{
+  "name": "doc-coauthoring",
+  "owner": {
+    "name": "ShinWeiPeng"
+  },
+  "plugins": [
+    {
+      "name": "doc-coauthoring",
+      "source": "./plugins/doc-coauthoring",
+      "description": "Three-stage document coauthoring for Codex and Claude."
+    }
+  ]
+}

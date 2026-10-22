@@ -1,0 +1,15 @@
+{
+  "name": "doc-coauthoring",
+  "interface": {
+    "displayName": "Doc Coauthoring"
+  },
+  "plugins": [
+    {
+      "name": "doc-coauthoring",
+      "source": {
+        "source": "local",
+        "path": "./plugins/doc-coauthoring"
+      }
+    }
+  ]
+}

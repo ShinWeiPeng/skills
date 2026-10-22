@@ -1,0 +1,14 @@
+{
+  "source_commit": "6336eee5f85c7a802c666244d97e59c6a744f39d",
+  "source_tag": "doc-coauthoring@0.1.0",
+  "source_tag_commit": "6336eee5f85c7a802c666244d97e59c6a744f39d",
+  "rollback": {
+    "previous_publication_commit": "none:first-publication"
+  },
+  "artifact": {
+    "plugin_name": "doc-coauthoring",
+    "version": "0.1.0",
+    "production_fingerprint": "sha256:8865ae3ada00b8f91194f2591a43dc169685134b96146a36d72d46bcf21e3cc8",
+    "content_fingerprint": "sha256:9faf31acc2b87b3c65c2efc9fb5f02bbf9b8a2b2ac67eb12e5eca874a5057dff"
+  }
+}
