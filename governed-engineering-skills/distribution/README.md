@@ -10,9 +10,11 @@ the OpenAI Plugin copy. The root source keeps Claude's field, while
 `agents/openai.yaml` remains the Codex invocation-policy authority. This is a
 deterministic packaging normalization, not a second editable Skill source.
 
+All paths and commands on this page are relative to the engineering package root: `governed-engineering-skills/` in a source checkout. Change to that directory before following the examples.
+
 ## User installation
 
-Run the native launcher for the current platform from the repository root:
+Run the native launcher for the current platform from that package directory:
 
 - Windows: double-click `Install Governed Engineering Skills.cmd`.
 - Ubuntu, Debian, Fedora, or RHEL with GNOME, KDE Plasma, or Xfce:

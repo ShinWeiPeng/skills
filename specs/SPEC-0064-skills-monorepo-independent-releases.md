@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0064
-revision: 17
+revision: 19
 status: confirmed
 change_set: skills-monorepo-independent-releases
 working_id: WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases
@@ -15,7 +15,7 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 | ID | Criterion | Requirements | Validation Method | Expected Output / Pass condition | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | AC-001 | 一個來源 repo 中可取得兩個套件，repo URL 與 root specs canonical 路徑維持不變。 | REQ-001 | 乾淨 tracked checkout 檢查、git ls-files 目錄對照及相對連結檢查。 | 並列兩套件、只有一個 Git root，來源無遺漏與重複可編輯副本。 | NOT RUN |
-| AC-002 | 工程版本、changeset 歷史、既有 tag、安裝身分與 consumer artifact 邏輯路徑保留。 | REQ-001 REQ-002 | 遷移前後組裝 inventory 比對、版本檢查、tag SHA 比對、既有安裝 fixture。 | 只有規劃內變動；無非預期版本重設或 tag 移動，原安裝入口仍成功。 | NOT RUN |
+| AC-002 | 工程版本、changeset 歷史、既有 tag、安裝身分與 consumer artifact 邏輯路徑保留。 | REQ-001 REQ-002 | 遷移前後組裝 inventory 比對、版本檢查、tag SHA 比對、既有安裝 fixture。 | 只有規劃內變動；無非預期版本重設或 tag 移動，套件內安裝入口成功；root 舊入口依 DEC-009 明確移除。 | NOT RUN |
 | AC-003 | 僅工程產物變更時，只產生工程 Version PR／tag／發佈更新。 | REQ-002 REQ-003 | 臨時 Git repo 與 GitHub boundary fake，注入工程 changeset/intent 後重現功能合併及升版合併。 | 文件版本、changesets、PR 及發佈 ref 均不變。 | NOT RUN |
 | AC-004 | 僅文件產物變更時，只產生文件 Version PR／tag／發佈更新。 | REQ-002 REQ-003 | 同 AC-003，僅注入 doc-coauthoring 變更。 | 工程版本、changesets、PR 及發佈 ref 均不變。 | NOT RUN |
 | AC-005 | 兩套件同時變更時，各自獨立版本與 Version PR；任一可先合併。 | REQ-002 REQ-003 | 兩套件 bump 等級不同且以兩種合併順序重現。 | 版本各依其 intent；未發佈者不被帶入另一套件 artifact。 | NOT RUN |
@@ -28,6 +28,7 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 | AC-012 | doc 上游來源、固定 commit、適配差異與適用授權完整可追溯。 | REQ-004 | UPSTREAM.md、來源檔 SHA、授權依據與差異的人工 review 加結構檢查。 | 來源與適配可重現，沒有把另一套件授權自動套用。 | NOT RUN |
 | AC-013 | 全部搬移後組裝、既有測試、版本、架構及 generated-view 檢查可從乾淨 checkout 重現。 | REQ-001 REQ-002 REQ-003 REQ-004 | 延續 Windows/Ubuntu 與 Python 3.11/3.12/3.13 既有 matrix；suite assembly/validation/version、repo gate release 及 render check。 | 命令 exit 0，無失效來源路徑或過期 generated view，正式產物通過對應 release gate。 | NOT RUN |
 | AC-014 | Git tracked tree 不含四類指定 root 目錄；必要 CI 來源保留且乾淨 checkout 可重建驗證設定，本機產物不刪除、不覆蓋人為修改。 | REQ-005 | Git inventory、設定產生器保護契約、原 CI matrix 與正式 release gate。 | root 無指定追蹤項目，原檢查全數通過；相容設定可重建且衝突時拒絕覆寫。 | NOT RUN |
+| AC-015 | 來源樹不含五個 root 舊入口；保留套件內三個啟動器與必要 scripts，文件／架構沒有 active 舊入口引用。 | REQ-006 | Git inventory、套件啟動器參數／退出碼契約、組裝驗證、render 與 release gate。 | 五個 root 路徑不存在，套件實際入口與原 CI 檢查通過，版本不回退。 | NOT RUN |
 
 ## Decisions
 | ID | Decision | Source |
@@ -41,6 +42,8 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 | DEC-006 | 使用者要求來源 repo 僅上傳必要且需要追蹤的檔案，並指出 spec-governance、artifacts、tests/flows/plugin-integration/monorepo、validation 非必要；CI 使用中之測試與設定如何保留待 Q-004。 | user:minimal-tracked-files |
 | DEC-008 | 保留必要 CI 測試與設定；非必要內容只留本機並放在對應資料夾。必要來源整理至 .github；舊工具的 validation 設定以可重建本機副本供應且拒絕覆蓋人為修改，不降低 CI 檢查。 | user:necessary-ci-locals |
 | DEC-007 | 補作文件套件進入 main 的整合，完成原先相依 PR 尚未帶回 main 的部分；不回退已發布的工程 0.23.2。 | user:integrate-doc-main |
+
+| DEC-009 | 根目錄兩支 scripts 轉接程式非必要；使用者明確表示不需要保留舊路徑。移除 root scripts/assemble_plugin.py、scripts/validate_distribution.py 及三個 Install Governed Engineering Skills 啟動器，保留工程套件內的正式入口並更新測試、文件與架構。 | user:remove-old-entrypoints |
 
 ## Discussion Context
 ### DISC-001: 目錄與發佈範圍
@@ -107,6 +110,14 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 - **Explicit rationale:** 必要來源保留，其他內容本機保存。
 - **Resulting impact:** DEC-008 REQ-005 AC-014。
 
+### DISC-009: 移除舊根目錄入口
+- **Situation:** 使用者確認根目錄 scripts 只是相容轉接，兩組啟動器也為保留舊路徑。
+- **Question:** 是否需要繼續保留舊根目錄入口？
+- **Options and tradeoffs:** 保留可沿用舊指令；移除可精簡根目錄，使用者改用套件內入口。
+- **User answer:** 這個是非必要的吧。不需要保留舊路徑。
+- **Explicit rationale:** 不需要舊路徑相容。
+- **Resulting impact:** DEC-009 REQ-006 AC-002 AC-015；不刪除套件內的安裝與驗證實作。
+
 ## Open Decisions
 None.
 
@@ -127,11 +138,13 @@ None.
 | REQ-003 | 保留 PR 升版流程。 | user:因為目前是透過PR進行版本控管的 |
 | REQ-004 | doc-coauthoring 同時支援 Codex 與 Claude，保留原有三階段流程，適配平台工具與安裝設定。 | user:採用1 |
 | REQ-005 | 來源 repo 不再追蹤 root spec-governance/、artifacts/、tests/flows/plugin-integration/monorepo/、validation/。必要 CI 測試及設定保留於 .github；產物與執行狀態保留本機對應目錄並忽略。維持原自動升版、兩平台安裝與 CI 檢查。 | DEC-006 DEC-008 |
+| REQ-006 | 不再保留五個 root 相容入口；安裝、組裝與驗證一律使用 governed-engineering-skills/ 內對應入口。必要套件啟動器的參數與退出碼契約仍須通過，移除失效文件及架構引用。 | DEC-009 |
 
 ## Revision History
 None.
 | 11 | 2026-10-22 | Reopened before clarification: User requests a minimal tracked repository and identifies four root paths for exclusion; required CI source/configuration retention requires one clarified decision. |
 | 16 | 2026-10-22 | Reopened before clarification: Align rendered tables and target directory sketch with the adopted cleanup; no requirement or acceptance delta. |
+| 18 | 2026-10-22 | Reopened before clarification: User explicitly declines old entrypath compatibility and requests removal of unnecessary root forwarding scripts and installer launchers. |
 
 ## Routing/Gates
 Q-001@2 的採用1已確認雙平台範圍；本回合再由 Q-002@6 的「採用方案，開始執行」確認整份方案並提供本次執行授權。保存實際原始授權，交付 admission 通過前不寫產品。
@@ -185,7 +198,7 @@ skills/                              # ShinWeiPeng/skills；唯一 Git root
     └── 授權與來源聲明
 ```
 
-原有 repo-root 安裝啟動器暫保留為轉呼叫入口，目標為工程套件子目錄的同名啟動器。既有開發指令若保留相容入口，入口只轉呼叫，不保留第二份實作。其他既有 buckets 與資源依已審閱的 tracked inventory 搬移；不刪除或自動搬走未追蹤的使用者資料。root specs 的 canonical 路徑保持穩定。
+依 DEC-009 移除三個 repo-root 安裝啟動器及兩支 root scripts 轉接程式；安裝、組裝與驗證直接使用工程套件子目錄內的正式入口。其他既有 buckets 與資源依已審閱的 tracked inventory 搬移；不刪除或自動搬走未追蹤的使用者資料。root specs 的 canonical 路徑保持穩定。
 
 ### 版本權威與升版 PR
 
@@ -447,6 +460,19 @@ root repository architecture manifest 與 canonical specs 保持 repo 級；pack
     ],
     "execution_changes": [],
     "rationale": "Tracked inventory, reproducible CI configuration and preservation of edited local settings are bounded host file semantics."
+  },
+  "AC-015": {
+    "evidence_claims": [
+      "host-semantics",
+      "adapter-conformance"
+    ],
+    "contract_dimensions": [
+      "input-output-units",
+      "external-port",
+      "error-reset"
+    ],
+    "execution_changes": [],
+    "rationale": "Verify source entrypath inventory and actual package launcher argument/exit-code adapters after explicit removal of legacy root aliases."
   }
 }
 ```
@@ -500,6 +526,10 @@ None.
 - user:directory-not-split: 說明為何 GitHub main 尚未顯示兩個套件目錄，只核對 PR 與目前來源狀態，不變更方案或產品
 - assistant:directory-diagnosis: Read-only follow-up: verified PR55 merged to main while PR56 merged to codex/skills-monorepo; main therefore lacks doc-coauthoring. No new scope or execution authority. Original native exception remains recorded by DEC-005.
 - user:minimal-tracked-files: User requests tracking only necessary files and identifies spec-governance, artifacts, tests/flows/plugin-integration/monorepo, validation as unnecessary. Clarify whether required CI source tests/configuration can be retained at another path; no product changes in this turn.
+- user:necessary-ci-locals: 保留必要的 CI 測試與設定。非必要的保留本機，但要在正確的資料夾內；亦要求處理文件套件進入 main 的整合。
+- assistant:cleanup-pr-ready: SPEC0064 revision17 confirmed with adopted REQ005/AC014. PR58 targets main, retains engineering0.23.2, integrates doc package, relocates required CI sources, untracks four root categories without deleting local files, archives 636 local records with SHA256. Clean snapshot release gate and24contracts plusdocchecks pass; two-axis review closed. Doc cloud CI passed; shared Windows jobs pending at report time. Full authoring/license/formal-acceptance limitations remain unchanged.
+- user:installer-wrappers: scripts 的功能是什麼？為什麼 skills 根目錄與 governed-engineering-skills 下各有三個 Install Governed Engineering Skills？只說明用途與重複入口原因，不修改產品。
+- assistant:installer-wrapper-explanation: Read-only file inspection confirms root scripts/assemble_plugin.py and validate_distribution.py delegate via runpy to the engineering package. Root CMD and SH launchers delegate to package launchers; root desktop delegates to package GUI installer. Package scripts own actual assembly, validation and installation. Two launcher triplets preserve prior entrypaths, not duplicate installer logic. No deletion or new scope adopted.
 
 ### Source and Revision Audit
 
@@ -539,5 +569,12 @@ None.
 {"affected_ids":[],"baseline_contract_hash":"5ec02f5ff637d90c0e3229295fdf62c0fb0275e1ce32c7c5e1104ec4b4c003bf","conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"d6b8ff9f7e8e945c74ef9acdd69ad45b05bf1ee701a3e7db6e07358142cebc40","event_type":"reopen","event_version":1,"open_decisions":[],"previous_event_hash":"d0a9fb16a0e0f1885453ef05643e3db0f61fa4163b8815a5677f76b29cef9c29","previous_snapshot_hash":"e8c8e0ef3deb52acd35cba1dbba3c144e94b2cd50b1a6e8deb6c6d481cef953b","recorded_at":"2026-10-22T06:26:05.047974+00:00","relationships":[],"revision":16,"snapshot_hash":"239aa389a5155f337b5921d3c22c797cf54368943190f20329ccf50105fcfc94","verdict":"BLOCKED","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"cb9851a81d99274519736fcbf74ee7877c3404530012d04f47af9eb9c87d668d","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"d6b8ff9f7e8e945c74ef9acdd69ad45b05bf1ee701a3e7db6e07358142cebc40","previous_snapshot_hash":"239aa389a5155f337b5921d3c22c797cf54368943190f20329ccf50105fcfc94","recorded_at":"2026-10-22T06:26:05.573513+00:00","relationships":[],"revision":17,"snapshot_hash":"8adf7be7aacf663525d455151855c7e56df4c2671eb3f839836bc8768d3cb549","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"7565980088e9c679177934bafa52c3ab3f3ae0fd938c6ad23ef2cf70315398a8","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"cb9851a81d99274519736fcbf74ee7877c3404530012d04f47af9eb9c87d668d","previous_snapshot_hash":"8adf7be7aacf663525d455151855c7e56df4c2671eb3f839836bc8768d3cb549","recorded_at":"2026-10-22T06:26:06.295055+00:00","relationships":[],"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"goal":"保留必要的 CI 測試與設定。非必要的保留本機，但要在正確的資料夾內；亦要求處理文件套件進入 main 的整合。","historical_entry_evidence":"not-inferred","kind":"entry","source_ref":"user:necessary-ci-locals","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-necessary-ci-locals"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"43351f959d197a7c4426aa285e05d310ba4c7aa6c5707c4ae2dad8bc9d7f30af","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"7565980088e9c679177934bafa52c3ab3f3ae0fd938c6ad23ef2cf70315398a8","previous_snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","recorded_at":"2026-10-22T06:32:37.362892+00:00","relationships":[],"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"binding":{"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"},"candidates":[],"completeness_review":null,"identified_items":{"CATALOG-QUESTION":{"id":"CATALOG-QUESTION","kind":"question","source_ref":"user:hidden-catalogs","text":"Why were .github, .claude-plugin and .agents/plugins uploaded? Their release and catalog functions were explained."},"KEEP-CI-SOURCE":{"id":"KEEP-CI-SOURCE","kind":"accepted","source_ref":"user:necessary-ci-locals","text":"Retain required CI tests/settings and keep unnecessary records locally in their proper folders."},"MAIN-INTEGRATION":{"id":"MAIN-INTEGRATION","kind":"accepted","source_ref":"user:integrate-doc-main","text":"Also complete the missing document package integration into main."},"MINIMAL-TRACKING":{"id":"MINIMAL-TRACKING","kind":"accepted","source_ref":"user:minimal-tracked-files","text":"Only necessary source/configuration should be tracked; four named root directories should be excluded."}},"item_bindings":{"CATALOG-QUESTION":["REQ-003","REQ-004"],"KEEP-CI-SOURCE":["DEC-008"],"MAIN-INTEGRATION":["DEC-007"],"MINIMAL-TRACKING":["DEC-006"]},"kind":"saved","reply_sha256":"49c82c0f4e41d218270fa4c7902c87cc76809d720271b118023987276e1bb835","reply_stage":"prepared-until-host-stop","reviewed_sources":["user:hidden-catalogs","user:integrate-doc-main","user:minimal-tracked-files","user:necessary-ci-locals"],"source_ref":"assistant:cleanup-pr-ready","summary":"SPEC0064 revision17 confirmed with adopted REQ005/AC014. PR58 targets main, retains engineering0.23.2, integrates doc package, relocates required CI sources, untracks four root categories without deleting local files, archives 636 local records with SHA256. Clean snapshot release gate and24contracts plusdocchecks pass; two-axis review closed. Doc cloud CI passed; shared Windows jobs pending at report time. Full authoring/license/formal-acceptance limitations remain unchanged.","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-necessary-ci-locals"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"037c484b99cee5d5942cdfaf733fa52753094a4b42df9caeaeab89523d4f8e39","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"43351f959d197a7c4426aa285e05d310ba4c7aa6c5707c4ae2dad8bc9d7f30af","previous_snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","recorded_at":"2026-10-22T06:32:38.447493+00:00","relationships":[],"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"goal":"scripts 的功能是什麼？為什麼 skills 根目錄與 governed-engineering-skills 下各有三個 Install Governed Engineering Skills？只說明用途與重複入口原因，不修改產品。","historical_entry_evidence":"not-inferred","kind":"entry","source_ref":"user:installer-wrappers","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-installer-wrappers"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"98724324f002539495aff7ca98a8e107da27550f6d96190c6e3e1cb7e8119e2a","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"037c484b99cee5d5942cdfaf733fa52753094a4b42df9caeaeab89523d4f8e39","previous_snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","recorded_at":"2026-10-22T06:55:29.157860+00:00","relationships":[],"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"binding":{"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"},"candidates":[],"completeness_review":null,"identified_items":{},"item_bindings":{},"kind":"saved","reply_sha256":"78c1fe30080df2e1de199331110db9b89a86820b6a8299154c89a6ad29653067","reply_stage":"prepared-until-host-stop","reviewed_sources":["user:installer-wrappers"],"source_ref":"assistant:installer-wrapper-explanation","summary":"Read-only file inspection confirms root scripts/assemble_plugin.py and validate_distribution.py delegate via runpy to the engineering package. Root CMD and SH launchers delegate to package launchers; root desktop delegates to package GUI installer. Package scripts own actual assembly, validation and installation. Two launcher triplets preserve prior entrypaths, not duplicate installer logic. No deletion or new scope adopted.","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-installer-wrappers"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"2b455ae59359f9dbcc0fbebed8272a9ed67303096e96ba790654293a5863d139","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"98724324f002539495aff7ca98a8e107da27550f6d96190c6e3e1cb7e8119e2a","previous_snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","recorded_at":"2026-10-22T06:55:33.631341+00:00","relationships":[],"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"baseline_contract_hash":"27b316f551eec66d9180570f4417555fbff23dea95ec2fea5a631cca34d61ace","conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"f0ca9ad994eab3313e1f9bfd229511f29fac51d61e2203429c74fb53476fcc56","event_type":"reopen","event_version":1,"open_decisions":[],"previous_event_hash":"2b455ae59359f9dbcc0fbebed8272a9ed67303096e96ba790654293a5863d139","previous_snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","recorded_at":"2026-10-22T07:15:39.975951+00:00","relationships":[],"revision":18,"snapshot_hash":"90184563267ae7af7315779c343a8ce017155130e86961cfb16dd316480d21d6","verdict":"BLOCKED","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":["AC-002","AC-015","DEC-009","DISC-009","REQ-006"],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":["AC-002"],"added_ids":["AC-015","DEC-009","DISC-009","REQ-006"],"changed_ids":["AC-002"],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"b117c6076e70d4c65f801f73473ca30d34f757f6dc0cad3827c8e16ead333e68","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"f0ca9ad994eab3313e1f9bfd229511f29fac51d61e2203429c74fb53476fcc56","previous_snapshot_hash":"90184563267ae7af7315779c343a8ce017155130e86961cfb16dd316480d21d6","recorded_at":"2026-10-22T07:15:40.801141+00:00","relationships":[],"revision":19,"snapshot_hash":"b76df7f884e308c370fa11541dad04f053b80d3ff7c74658a9a879e00a71be0a","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"d2f094ccd5e278f9946399146b4ab8579d2c7cb374fa98635d7afbd27e4531a4","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"b117c6076e70d4c65f801f73473ca30d34f757f6dc0cad3827c8e16ead333e68","previous_snapshot_hash":"b76df7f884e308c370fa11541dad04f053b80d3ff7c74658a9a879e00a71be0a","recorded_at":"2026-10-22T07:15:41.785360+00:00","relationships":[],"revision":19,"snapshot_hash":"bbad4ae80c7fd89945d17dad10f834432f261778d1d3c735294c2f6184275519","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 ```
 <!-- spec-audit:end -->
