@@ -45,6 +45,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: Install pinned release metadata parser
+        run: python -m pip install -r doc-coauthoring/requirements-release.txt
       - name: Check the shared source and both harness manifests
         run: python doc-coauthoring/scripts/release.py check
       - name: Run package and publication contracts
@@ -86,6 +88,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - name: Install pinned release metadata parser
+        run: python -m pip install -r doc-coauthoring/requirements-release.txt
       - name: Propose the doc package version
         id: version
         run: >-
