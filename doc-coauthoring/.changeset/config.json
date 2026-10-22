@@ -1,0 +1,6 @@
+{
+  "package": "doc-coauthoring",
+  "initial_version": "0.0.0",
+  "version_policy": "stable-only",
+  "tag_template": "doc-coauthoring@{version}"
+}

@@ -1,0 +1,4 @@
+Doc coauthoring workflow adapted from anthropics/skills, commit 00756142ab04c82a447693cf373c4e0c554d1005.
+Original workflow: Anthropic, 2025. Local adaptation: ShinWeiPeng/skills, 2026.
+Changes: platform-neutral tools, Codex/Claude capability references, isolated-reader fallback, package release infrastructure.
+See UPSTREAM.md for the precise license basis and qualification. No engineering-package license is substituted.

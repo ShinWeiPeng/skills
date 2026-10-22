@@ -326,3 +326,123 @@ class ReleaseRecoveryTests(unittest.TestCase):
         self.assertIsNone(release.remote_head(self.root, "sample-release"))
         self.assertEqual(self.publish(), "published")
         self.assertEqual(self.git("rev-parse", "sample@0.1.0"), tag)
+
+
+class VersionPrIsolationTests(unittest.TestCase):
+    def test_different_package_versions_merge_in_either_order(self):
+        for order in [("engineering", "docs"), ("docs", "engineering")]:
+            with (
+                self.subTest(order=order),
+                tempfile.TemporaryDirectory(
+                    prefix="independent-versions-", dir=ROOT
+                ) as directory,
+            ):
+                root = Path(directory) / "source"
+                root.mkdir()
+                remote = Path(directory) / "remote.git"
+                release.git(
+                    root, "init", "--quiet", "--initial-branch=main", "--template="
+                )
+                subprocess.run(
+                    [
+                        "git",
+                        "init",
+                        "--bare",
+                        "--initial-branch=main",
+                        "--template=",
+                        str(remote),
+                    ],
+                    check=True,
+                    capture_output=True,
+                )
+                for key, value in [
+                    ("user.name", "Contract Test"),
+                    ("user.email", "test@example.invalid"),
+                ]:
+                    release.git(root, "config", key, value)
+                release.git(root, "remote", "add", "origin", str(remote))
+                # A demand-owned command port fake: formal bump validation is independently
+                # covered by each real package engine, while Git and PR orchestration remain real.
+                provider = root / "package-port.py"
+                provider.write_text(
+                    'import json,sys\nfrom pathlib import Path\nr=Path(sys.argv[1]);i=r/"intent.json"\nif sys.argv[2]=="apply" and i.exists():\n v=json.loads(i.read_text())["next"];(r/"package.json").write_text(json.dumps({"version":v}));(r/"CHANGELOG.md").write_text(v);i.unlink()\n'
+                )
+                packages = {}
+                for name, version, next_version, branch in [
+                    ("engineering", "0.23.1", "0.23.2", "plugin-release/main"),
+                    ("docs", "0.0.0", "0.1.0", "plugin-release/doc-coauthoring"),
+                ]:
+                    package_root = root / name
+                    package_root.mkdir()
+                    (package_root / "package.json").write_text(
+                        json.dumps({"version": version})
+                    )
+                    (package_root / "intent.json").write_text(
+                        json.dumps({"next": next_version})
+                    )
+                    packages[name] = {
+                        "root": name,
+                        "version_file": name + "/package.json",
+                        "version_branch": branch,
+                        "commands": {
+                            "check": ["python", str(provider), name, "check"],
+                            "apply": ["python", str(provider), name, "apply"],
+                        },
+                    }
+                release.git(root, "add", "--all")
+                release.git(root, "commit", "-m", "feature intents")
+                release.git(root, "push", "origin", "main")
+                base = release.git(root, "rev-parse", "HEAD").stdout.strip()
+                requests = []
+                original_run = subprocess.run
+
+                def boundary(arguments, *args, **kwargs):
+                    if arguments[0] == "gh":
+                        requests.append(arguments)
+                        return subprocess.CompletedProcess(
+                            arguments,
+                            0,
+                            "[]"
+                            if arguments[2] == "list"
+                            else "https://example.invalid/review",
+                            "",
+                        )
+                    return original_run(arguments, *args, **kwargs)
+
+                with mock.patch.object(release.subprocess, "run", side_effect=boundary):
+                    for name in ["engineering", "docs"]:
+                        release.git(root, "checkout", "main")
+                        self.assertTrue(
+                            release.update_version_pr(root, name, packages[name])
+                        )
+                        paths = release.git(
+                            root, "diff", "--name-only", base, "HEAD"
+                        ).stdout.splitlines()
+                        self.assertTrue(paths)
+                        self.assertTrue(
+                            all(path.startswith(name + "/") for path in paths), paths
+                        )
+                self.assertEqual(len([r for r in requests if r[2] == "create"]), 2)
+                for name in order:
+                    release.git(root, "checkout", "main")
+                    release.git(
+                        root,
+                        "merge",
+                        "--no-ff",
+                        packages[name]["version_branch"],
+                        "-m",
+                        "merge " + name,
+                    )
+                    release.git(root, "push", "origin", "main")
+                self.assertEqual(
+                    json.loads((root / "engineering/package.json").read_text())[
+                        "version"
+                    ],
+                    "0.23.2",
+                )
+                self.assertEqual(
+                    json.loads((root / "docs/package.json").read_text())["version"],
+                    "0.1.0",
+                )
+                self.assertFalse((root / "engineering/intent.json").exists())
+                self.assertFalse((root / "docs/intent.json").exists())
