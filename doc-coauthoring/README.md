@@ -9,6 +9,7 @@ One editable source lives in [skills/doc-coauthoring/SKILL.md](skills/doc-coauth
 Run commands from the repository root:
 
 ```sh
+python -m pip install -r doc-coauthoring/requirements-release.txt
 python doc-coauthoring/scripts/release.py check
 python doc-coauthoring/scripts/release.py assemble
 python doc-coauthoring/scripts/release.py validate
@@ -19,6 +20,20 @@ Add a `.changeset/<id>.md` and `.changeset/release-intent.json` for artifact cha
 ## Installation candidate
 
 Copy or link `skills/doc-coauthoring/` into the skill directory supported by your harness, or load this package's plugin manifest. After the first Version PR is merged, the dedicated consumer branch provides a Codex marketplace and a Claude marketplace containing only this package. Root Claude marketplace discovery also exposes this package alongside the engineering suite.
+
+For a local Codex candidate, assemble it first, then run:
+
+```sh
+codex plugin marketplace add ./doc-coauthoring/dist/doc-coauthoring-release
+codex plugin add doc-coauthoring@doc-coauthoring
+```
+
+After the feature PR reaches main, Claude can use the preserved root marketplace:
+
+```text
+/plugin marketplace add ShinWeiPeng/skills
+/plugin install doc-coauthoring@mattpocock
+```
 
 Invoke `$doc-coauthoring` in Codex, or ask Claude to use doc-coauthoring. A useful request includes document type, audience, desired decision and any existing material. When isolated reader tools are unavailable, finish the manual fresh-conversation reader test before calling Reader Testing complete.
 

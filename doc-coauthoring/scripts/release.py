@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -31,6 +32,39 @@ def write(root, relative, value):
         encoding="utf-8",
         newline="\n",
     )
+
+
+def guarded_path(root, path):
+    """Reject redirected descendants and verify the resolved package boundary."""
+    root = root.resolve()
+    relative = path.absolute().relative_to(root)
+    current = root
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink() or (
+            current.exists()
+            and getattr(current.lstat(), "st_file_attributes", 0)
+            & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 1024)
+        ):
+            raise ValueError("redirected package path: " + str(current))
+    path.resolve().relative_to(root)
+    return path
+
+
+def yaml_mapping(text, label):
+    try:
+        import yaml
+    except ImportError as error:
+        raise ValueError(
+            "release checks require PyYAML; install requirements-release.txt"
+        ) from error
+    try:
+        value = yaml.safe_load(text)
+    except yaml.YAMLError as error:
+        raise ValueError("invalid YAML in " + label) from error
+    if not isinstance(value, dict):
+        raise ValueError(label + " must be a YAML mapping")
+    return value
 
 
 def tracked(root):
@@ -59,7 +93,7 @@ def tracked(root):
             continue
         relative = Path(item.decode("utf-8")).relative_to(prefix).as_posix()
         if relative in FILES or relative.startswith("skills/"):
-            path = root / relative
+            path = guarded_path(root, root / relative)
             if not path.is_file() or path.is_symlink():
                 raise ValueError(
                     "tracked package source is absent or redirected: " + relative
@@ -130,14 +164,33 @@ def check(root):
         raise ValueError("harnesses must reference the shared skill source")
     skill = (root / "skills/doc-coauthoring/SKILL.md").read_text(encoding="utf-8")
     frontmatter = re.match(r"\A---\n(.*?)\n---\n", skill, re.DOTALL)
+    if not frontmatter:
+        raise ValueError("shared SKILL.md requires YAML frontmatter")
+    metadata = yaml_mapping(frontmatter[1], "SKILL.md frontmatter")
     if (
-        not frontmatter
-        or not re.search(r"^name: doc-coauthoring$", frontmatter[1], re.MULTILINE)
-        or not re.search(r"^description: .+", frontmatter[1], re.MULTILINE)
+        metadata.get("name") != NAME
+        or not isinstance(metadata.get("description"), str)
+        or not metadata["description"].strip()
+        or len(metadata["description"]) > 1024
     ):
-        raise ValueError(
-            "shared SKILL.md requires valid name and description frontmatter"
+        raise ValueError("shared SKILL.md requires valid name and description")
+    agent = yaml_mapping(
+        (root / "skills/doc-coauthoring/agents/openai.yaml").read_text(
+            encoding="utf-8"
+        ),
+        "agents/openai.yaml",
+    )
+    interface = agent.get("interface", {})
+    if (
+        not isinstance(interface, dict)
+        or not all(
+            isinstance(interface.get(key), str) and interface[key].strip()
+            for key in ["display_name", "short_description", "default_prompt"]
         )
+        or not 25 <= len(interface["short_description"]) <= 64
+        or "$doc-coauthoring" not in interface["default_prompt"]
+    ):
+        raise ValueError("invalid Codex skill interface metadata")
     for relative in tracked(root):
         if not relative.endswith(".md"):
             continue
@@ -251,9 +304,10 @@ def apply_intent(root):
 
 def tree_fingerprint(root):
     digest = hashlib.sha256()
-    for path in sorted(root.rglob("*")):
-        if path.is_symlink():
-            raise ValueError("redirected artifact path")
+    for path in sorted(
+        root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()
+    ):
+        guarded_path(root, path)
         if path.is_file():
             digest.update(
                 path.relative_to(root).as_posix().encode()
@@ -264,8 +318,10 @@ def tree_fingerprint(root):
     return "sha256:" + digest.hexdigest()
 
 
-def replace_generated(stage, destination):
-    # Both source and destination are created by this command, below the package dist root.
+def replace_generated(root, stage, destination):
+    # Verify both resolved paths immediately before replacement or recursive removal.
+    guarded_path(root, stage).resolve().relative_to(root / "dist")
+    guarded_path(root, destination).resolve().relative_to(root / "dist")
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         if (
@@ -273,8 +329,8 @@ def replace_generated(stage, destination):
             or not (destination / ".generated-doc-coauthoring").is_file()
         ):
             raise ValueError("refusing to replace an unrelated output directory")
-        shutil.rmtree(destination)
-    stage.replace(destination)
+        shutil.rmtree(guarded_path(root, destination))
+    guarded_path(root, stage).replace(guarded_path(root, destination))
 
 
 def assemble(
@@ -285,9 +341,7 @@ def assemble(
     previous_publication_commit="none:first-publication",
 ):
     identity = check(root)
-    dist = root / "dist"
-    if dist.is_symlink():
-        raise ValueError("redirected dist directory")
+    dist = guarded_path(root, root / "dist")
     dist.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(
         prefix=".doc-coauthoring-stage-", dir=dist
@@ -300,7 +354,7 @@ def assemble(
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(canonical_bytes(root / relative))
         (artifact / ".generated-doc-coauthoring").write_text(
-            "Generated by scripts/release.py\n", encoding="utf-8"
+            "Generated by scripts/release.py\n", encoding="utf-8", newline="\n"
         )
         publication = staging / (NAME + "-release")
         plugin = publication / "plugins" / NAME
@@ -348,16 +402,16 @@ def assemble(
         }
         write(publication, "publication-record.json", payload)
         (publication / ".generated-doc-coauthoring").write_text(
-            "Generated publication\n", encoding="utf-8"
+            "Generated publication\n", encoding="utf-8", newline="\n"
         )
-        replace_generated(artifact, dist / NAME)
-        replace_generated(publication, dist / (NAME + "-release"))
+        replace_generated(root, artifact, dist / NAME)
+        replace_generated(root, publication, dist / (NAME + "-release"))
     return payload
 
 
 def validate(root):
     check(root)
-    artifact = root / "dist" / NAME
+    artifact = guarded_path(root, root / "dist" / NAME)
     expected_paths = set(tracked(root)) | {".generated-doc-coauthoring"}
     actual_paths = {
         p.relative_to(artifact).as_posix() for p in artifact.rglob("*") if p.is_file()
@@ -368,7 +422,7 @@ def validate(root):
         for path in expected_paths - {".generated-doc-coauthoring"}
     ):
         raise ValueError("artifact differs from authoritative tracked sources")
-    publication = root / "dist" / (NAME + "-release")
+    publication = guarded_path(root, root / "dist" / (NAME + "-release"))
     payload = read(publication, "publication-record.json")
     identity = check(root)
     expected = {

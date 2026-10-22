@@ -697,6 +697,7 @@ entries:
 - include:
   - doc-coauthoring/scripts/**
   - .github/workflows/doc-coauthoring.yml
+  - doc-coauthoring/requirements-release.txt
   role: tooling
 - include:
   - doc-coauthoring/dist/**
@@ -786,6 +787,12 @@ dynamic_dependencies:
     - governed-engineering-skills/scripts/validate_distribution.py
     rationale: Compatibility entry point executes the explicitly named canonical package
       script.
+  tests/flows/plugin-integration/monorepo/test_doc_release.py:
+    sha256: a514b1736f66e4afabb35086f7b40d3abfc08e675c790a4ce9620b0fee575922
+    targets:
+    - doc-coauthoring/scripts/release.py
+    rationale: Mixed-case golden vector loads only the public document release fingerprint
+      port.
 test_roots:
 - tests
 - governed-engineering-skills/tests
