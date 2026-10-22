@@ -53,6 +53,7 @@ source_sets:
   - governed-engineering-skills/tools/**
   - tests/flows/plugin-integration/monorepo/**
   - .github/scripts/**
+  - doc-coauthoring/scripts/**
   exclude: []
   purpose: Test source and support follow dedicated ownership and dependency rules.
   provenance: Repository-owned Module and Flow tests and development tooling.
@@ -80,6 +81,7 @@ source_sets:
   - governed-engineering-skills/plugins/governed-engineering-skills/.tmp/**
   - '**/__pycache__/**'
   - governed-engineering-skills/dist/**
+  - doc-coauthoring/dist/**
   exclude: []
   purpose: Exclude generated runtime and validation caches.
   provenance: Python and local build tools.

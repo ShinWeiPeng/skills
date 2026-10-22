@@ -1,0 +1,6 @@
+{
+  "name": "doc-coauthoring",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared document coauthoring workflow for Codex and Claude."
+}
