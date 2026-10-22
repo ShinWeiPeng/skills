@@ -1,0 +1,96 @@
+name: Doc coauthoring
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: doc-coauthoring-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      doc: ${{ steps.detect.outputs.doc-coauthoring }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - id: detect
+        run: >-
+          python .github/scripts/package_release.py detect
+          --base "${{ github.event.pull_request.base.sha || github.event.before }}"
+          --github-output "$GITHUB_OUTPUT"
+
+  package-validation:
+    needs: scope
+    if: needs.scope.outputs.doc == 'true'
+    name: Doc package / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Check the shared source and both harness manifests
+        run: python doc-coauthoring/scripts/release.py check
+      - name: Run package and publication contracts
+        run: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_*.py" -v
+      - name: Assemble and validate both marketplace candidates
+        run: |
+          python doc-coauthoring/scripts/release.py assemble
+          python doc-coauthoring/scripts/release.py validate
+
+  required-validation:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [scope, package-validation]
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(job["result"] in ("success","skipped") for job in results.values()), results'
+
+  release:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.scope.outputs.doc == 'true'
+    runs-on: ubuntu-latest
+    needs: [scope, package-validation, required-validation]
+    concurrency:
+      group: package-release-doc-coauthoring
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Propose the doc package version
+        id: version
+        run: >-
+          python .github/scripts/package_release.py version
+          --package doc-coauthoring --github-output "$GITHUB_OUTPUT"
+      - name: Publish only after the Version PR is merged
+        if: steps.version.outputs.changed == 'false'
+        run: python .github/scripts/package_release.py publish --package doc-coauthoring

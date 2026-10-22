@@ -1,0 +1,1 @@
+Follow the repository-root instructions for engineering work. Keep one workflow in skills/doc-coauthoring/SKILL.md and conditional platform references. Release changes require a package changeset and release intent; never change the engineering package version.

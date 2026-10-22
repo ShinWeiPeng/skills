@@ -1,14 +1,26 @@
 # Skills
 
-Two independently released skill packages in one repository.
+Clone this repository once to obtain both independently versioned packages:
 
-| Package | Purpose | Installation |
-| --- | --- | --- |
-| [governed-engineering-skills](./governed-engineering-skills/README.md) | Governed engineering workflows for Codex and the existing Claude plugin | Double-click the root Windows installer, or run the root shell installer. |
-| doc-coauthoring | Collaborative document writing for Codex and Claude | Added in the following package PR. |
+```text
+skills/
+├── governed-engineering-skills/  # Engineering workflows and existing history
+└── doc-coauthoring/              # Document coauthoring for Codex and Claude
+```
 
-Clone once with `git clone https://github.com/ShinWeiPeng/skills.git`. Each package owns its version, changesets, changelog, Version PR, immutable tags and generated publication branch. Downloading the repository does not install both packages.
+```sh
+git clone https://github.com/ShinWeiPeng/skills.git
+```
 
-Feature PRs record the affected package release intent. After merge, automation creates that package's Version PR. A reviewed Version PR merge publishes only that package. Root navigation documentation does not bump either package. Shared release configuration checks both packages without forcing both to release.
+| Package | Purpose | Version PR branch | Published consumer branch |
+| --- | --- | --- | --- |
+| [governed-engineering-skills](governed-engineering-skills/README.md) | Governed engineering workflows | `plugin-release/main` | `marketplace-release` |
+| [doc-coauthoring](doc-coauthoring/README.md) | Context gathering, refinement and independent reader testing | `plugin-release/doc-coauthoring` | `doc-coauthoring-release` |
 
-Engineering installation identities and `marketplace-release` remain compatible. The root installers delegate to the engineering package; canonical specifications remain under `specs/`.
+Changes to one package go through its own feature PR, changeset, Version PR, changelog and `<package>@<version>` tag. Both packages may appear in a feature PR; each version change is reviewed independently. Automation publishes only after the respective Version PR is merged. Root navigation documents do not bump either package; shared release or CI changes validate both. See [release-packages.json](release-packages.json) for exact package boundaries.
+
+The engineering installers at this root preserve the existing `governed-engineering` marketplace and consumer branch. Engineering source and development commands now live inside its package; shared architecture, specifications and validation definitions remain at the Git root.
+
+The root Claude marketplace retains its legacy name `mattpocock` and catalogs both packages. Dedicated generated consumer branches each contain only their own package. Follow each package README for installation and validation status. The doc package's initial intent proposes 0.1.0 through a Version PR; source bootstrap metadata remains 0.0.0 until that PR is reviewed.
+
+Each package has its own license/provenance records. The doc workflow derives from the pinned Anthropic example; review [its upstream attribution and license basis](doc-coauthoring/UPSTREAM.md). General document writing uses the doc workflow; engineering changes continue to enter through the engineering router.

@@ -18,6 +18,12 @@
         "code-review",
         "grilling"
       ]
+    },
+    {
+      "name": "doc-coauthoring",
+      "source": "./doc-coauthoring",
+      "description": "Shared three-stage documentation workflow with Claude capability guidance.",
+      "category": "productivity"
     }
   ]
 }
