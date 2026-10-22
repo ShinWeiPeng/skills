@@ -14,7 +14,8 @@ from typing import Any
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-REPOSITORY_ROOT = PLUGIN_ROOT.parents[1]
+PACKAGE_ROOT = PLUGIN_ROOT.parents[1]
+REPOSITORY_ROOT = PACKAGE_ROOT  # Backward-compatible public default.
 SEMVER_RE = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:\+codex\.([0-9A-Za-z-]+))?$"
@@ -150,41 +151,58 @@ def assembly_source_inventory(
     """Map tracked repository sources to their unique Plugin artifact paths."""
     repository_root = repository_root.resolve()
     # An extracted rehearsal may live underneath an unrelated Git checkout.
-    # Its explicit inventory is authoritative only when it has no own Git root.
+    project_root = (
+        repository_root.parent
+        if (repository_root.parent / "release-packages.json").is_file()
+        else repository_root
+    )
     if (repository_root / REHEARSAL_SOURCE_INVENTORY).is_file() and not (
-        repository_root / ".git"
+        project_root / ".git"
     ).exists():
         repository_paths = [
             Path(path) for path in _rehearsal_inventory_paths(repository_root)
         ]
     else:
-        completed = subprocess.run(
-            [
-                "git",
-                "ls-files",
-                "--cached",
-                "--",
-                PLUGIN_SOURCE_ROOT.as_posix(),
-                *(root.as_posix() for root in PROMOTED_SOURCE_ROOTS),
-            ],
+        resolved = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
             cwd=repository_root,
             text=True,
             capture_output=True,
             check=False,
         )
-        if completed.returncode == 0:
-            repository_paths = [
-                Path(line.replace("\\", "/")) for line in completed.stdout.splitlines()
-            ]
-        else:
-            try:
-                raw_paths = _rehearsal_inventory_paths(repository_root)
-            except ValueError as exc:
-                detail = completed.stderr.strip() or "tracked inventory unavailable"
-                raise ValueError(
-                    f"unable to inventory tracked Plugin sources: {detail}"
-                ) from exc
-            repository_paths = [Path(path) for path in raw_paths]
+        if resolved.returncode:
+            raise ValueError("unable to resolve Git root for tracked package inventory")
+        git_root = Path(resolved.stdout.strip()).resolve()
+        package_prefix = repository_root.relative_to(git_root)
+        completed = subprocess.run(
+            [
+                "git",
+                "ls-files",
+                "--full-name",
+                "--cached",
+                "-z",
+                "--",
+                (package_prefix / PLUGIN_SOURCE_ROOT).as_posix(),
+                *(
+                    (package_prefix / source_root).as_posix()
+                    for source_root in PROMOTED_SOURCE_ROOTS
+                ),
+            ],
+            cwd=git_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if completed.returncode:
+            raise ValueError(
+                "unable to inventory tracked package sources: "
+                + completed.stderr.strip()
+            )
+        repository_paths = [
+            Path(value).relative_to(package_prefix)
+            for value in completed.stdout.split("\0")
+            if value
+        ]
 
     entries: dict[str, Path] = {}
     plugin_prefix = PLUGIN_SOURCE_ROOT.as_posix() + "/"

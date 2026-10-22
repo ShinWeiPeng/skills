@@ -1,5 +1,15 @@
 # Governed Engineering Skills
 
+## 0.23.2
+
+### Changed
+
+- Relocate authoritative engineering sources beneath a package root while preserving plugin and Marketplace identities.
+
+### Fixed
+
+- Resolve tracked sources from the Git root and release independently from sibling packages.
+
 ## 0.23.1
 
 ### Fixed

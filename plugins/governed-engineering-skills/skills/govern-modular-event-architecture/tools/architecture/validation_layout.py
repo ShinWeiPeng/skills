@@ -91,11 +91,10 @@ def _read(path):
 
 def _suite(path):
     parts = path.split("/")
-    return (
-        "/".join(parts[:3])
-        if len(parts) > 3 and parts[:2] in (["tests", "modules"], ["tests", "flows"])
-        else None
-    )
+    if "tests" not in parts:
+        return None
+    index = parts.index("tests")
+    return "/".join(parts[:index + 3]) if len(parts) > index + 3 and parts[index + 1] in {"modules", "flows"} else None
 
 
 def _edge(items, source, target, records):
@@ -294,10 +293,18 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
             "external_resources",
             "dynamic_dependencies",
             "release_isolation",
+            "test_roots",
             "external_modules",
         }
         if set(policy) - allowed or not isinstance(policy.get("entries"), list):
             raise ValueError("unknown layout field or missing entries")
+        test_roots = policy.get("test_roots", ["tests"])
+        if not isinstance(test_roots, list) or not test_roots or len(set(test_roots)) != len(test_roots):
+            raise ValueError("test_roots must declare unique portable test roots")
+        for test_root in test_roots:
+            _safe(root, test_root)
+            if test_root.split("/")[-1] != "tests":
+                raise ValueError("test roots must end in tests")
         entries = policy["entries"]
         for entry in entries:
             if (
@@ -388,6 +395,10 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                 role = entry["role"]
                 records[relative] = entry
                 parts = relative.split("/")
+                for test_root in sorted(test_roots, key=len, reverse=True):
+                    if relative.startswith(test_root + "/"):
+                        parts = ["tests", *relative[len(test_root) + 1:].split("/")]
+                        break
                 if "tests" in parts[1:] and role not in {
                     "run-output",
                     "legacy-output",

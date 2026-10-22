@@ -17,7 +17,7 @@ Git tracking or ignore policy. Missing adoption is BLOCKED; migration is explici
 - Canonical generated architecture views keep their documented generator location.
   General development/build tools keep their declared role; they are not all tests.
 
-No alternate test root is permitted, including existing projects. Migrate source,
+An alternate package test root is permitted only when explicitly declared in `validation/layout.yaml` as described under Package test roots; other alternate roots remain forbidden, including in existing projects. Migrate source,
 fixtures, runner paths, references and source sets together. Curated fixture data
 must declare provenance; a report-like suffix does not alone determine its role.
 
@@ -98,3 +98,7 @@ Provide migration cross-references for historical paths and update active consum
 
 Start from [the explicit example](validation-layout.example.yaml), inventory actual files,
 and resolve every placeholder against the architecture manifest before adoption.
+
+## Package test roots
+
+A monorepo may declare `test_roots: [tests, governed-engineering-skills/tests]` in the shared `validation/layout.yaml`. Each root must be a portable project-relative path ending in `tests`; undeclared nested test roots remain invalid. Module/Flow ownership, private support boundaries, evidence paths, and analyzer requirements still apply. This changes test location only.

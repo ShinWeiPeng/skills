@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.23.1",
-  "previous_version": "0.23.0",
+  "current_version": "0.23.2",
+  "previous_version": "0.23.1",
   "bump": "patch",
-  "production_fingerprint": "sha256:bfe7d3051004c3d2faf629abb6b33e88b8870ae588c6127835ed0c2f90ba98c9",
+  "production_fingerprint": "sha256:a7e83be59c3a248af06519c5a464b7d718e5388a572e53175e8b8ba89227b225",
   "applied_changesets": [
-    "diagnosis-fix-contract-review"
+    "monorepo-package-root"
   ]
 }

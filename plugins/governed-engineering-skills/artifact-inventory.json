@@ -1,5 +1,5 @@
 {
-  "content_fingerprint": "sha256:c2d877d04bc2d638e2b27a6625d34eacf5b3fdaff6f25324491f5ddf87b5f068",
+  "content_fingerprint": "sha256:eab84892287f66d78a45aec905a386e97fc3ce44c818f4f90aecf9131f5f028e",
   "files": [
     {
       "path": ".changeset/applied/0.10.0/formatter-governance.md",
@@ -95,6 +95,11 @@
       "path": ".changeset/applied/0.23.0/document-authoring-and-module-sil.md",
       "sha256": "302ff4e598c20df80e0054738d10e06955a650d7d8c7e8c684a56f2cbc037e1d",
       "size": 272
+    },
+    {
+      "path": ".changeset/applied/0.23.1/diagnosis-fix-contract-review.md",
+      "sha256": "6875789b786455ffa1d48b76042e3086d3cfed5ee1abecff77ce59b1fadedee5",
+      "size": 434
     },
     {
       "path": ".changeset/applied/0.3.0/explicit-prerelease-group.md",
@@ -232,29 +237,29 @@
       "size": 343
     },
     {
-      "path": ".changeset/diagnosis-fix-contract-review.md",
-      "sha256": "6875789b786455ffa1d48b76042e3086d3cfed5ee1abecff77ce59b1fadedee5",
-      "size": 434
+      "path": ".changeset/monorepo-package-root.md",
+      "sha256": "d241a1814af2a66a5019a6c7d2c0a3ffde0d03bde4462ae25d349b72688ff376",
+      "size": 174
     },
     {
       "path": ".changeset/release-state.json",
-      "sha256": "64763679594ef8b45998cf0872f1217991a101b71e99c4ff53cecf0787526d3e",
-      "size": 282
+      "sha256": "df1616341b8fc85acf7148f57629e002c7fa59195fa1d65a27fb258cb239a50d",
+      "size": 274
     },
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "0b0843b22a076f4bb742d298c372dd90763b5badab742a9344dde30a674b4af1",
+      "sha256": "8521659ccda32d78b729af890919955123b3e9fa3481b61856310e92f3ea59c8",
       "size": 3089
     },
     {
       "path": "AGENTS.md",
-      "sha256": "80a4d1e546630edcdad0125cd1d41dd2951081a9f3532d412fc26b3ee8cc94ac",
-      "size": 4016
+      "sha256": "dbc0ba694cf29147b6cb3eb177c43944592a3a6003c15a8d7ae8476871a4ea4a",
+      "size": 4116
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "102cbc60e58dff3b1232f0637f258efd06032b28e063e9c8bb87d370a393cd99",
-      "size": 13550
+      "sha256": "71a2cd2b0cdad151c8e380f2d8c8b701522fec6b41cd7a80d8b878917b41efc1",
+      "size": 13800
     },
     {
       "path": "docs/versioning.md",
@@ -263,7 +268,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "1449b374dd3022e71af07db0880ec7bfbbb5600df62ea2c22bf8f0abdc50402f",
+      "sha256": "881ce101a04b0d09d23313fe930171a1f2763c680dead31c58f8b01a0a1f4af0",
       "size": 402
     },
     {
@@ -278,8 +283,8 @@
     },
     {
       "path": "scripts/version_governance.py",
-      "sha256": "7cfce5127140c7d211952b2b6ebf8f156d2e220279444818999399d4776b31d8",
-      "size": 30339
+      "sha256": "de8b88d6bedd0b34a59ad2011869b468929e294c990dc33c4b24a01649f8ec6f",
+      "size": 30841
     },
     {
       "path": "skills/ask-matt/PHASE-BOUNDARIES.md",
@@ -688,8 +693,8 @@
     },
     {
       "path": "skills/govern-modular-event-architecture/references/test-validation-architecture.md",
-      "sha256": "2b33b9cc55e8650d94e669f12a7e3b26df07ad91cdd0901bc4428b986871903f",
-      "size": 6206
+      "sha256": "3dc7005e3f3d7b3ee96c44824051e113aae41f7d43b33f63e52bbbd87781a705",
+      "size": 6855
     },
     {
       "path": "skills/govern-modular-event-architecture/references/validation-layout.example.yaml",
@@ -788,8 +793,8 @@
     },
     {
       "path": "skills/govern-modular-event-architecture/scripts/validation_layout.py",
-      "sha256": "d42bc0006e552f4c4b76551da2882786903080264a5c3afce96bf3a6a9a55443",
-      "size": 16641
+      "sha256": "52a97c248c1e694b7ff11c3a1603a8e6621008f048325c55bacf11b53ea2d521",
+      "size": 17813
     },
     {
       "path": "skills/govern-modular-event-architecture/tools/architecture/architecture_cli.py",
@@ -893,8 +898,8 @@
     },
     {
       "path": "skills/govern-modular-event-architecture/tools/architecture/validation_layout.py",
-      "sha256": "329a3966178aa20a33ab4a8b078984a46c52cded973490a1a2e04b5a29cc8568",
-      "size": 27753
+      "sha256": "9ae702b110bb11076415ffd7e61283b25487f4d3dd2caae8ab5d5cf80a272b91",
+      "size": 29259
     },
     {
       "path": "skills/grill-me/SKILL.md",
@@ -1463,8 +1468,8 @@
     },
     {
       "path": "skills/validate-on-device/tools/architecture/validation_layout.py",
-      "sha256": "329a3966178aa20a33ab4a8b078984a46c52cded973490a1a2e04b5a29cc8568",
-      "size": 27753
+      "sha256": "9ae702b110bb11076415ffd7e61283b25487f4d3dd2caae8ab5d5cf80a272b91",
+      "size": 29259
     },
     {
       "path": "skills/verification-ladder/SKILL.md",
@@ -1564,5 +1569,5 @@
   ],
   "plugin_name": "governed-engineering-skills",
   "schema_version": "1.0.0",
-  "version": "0.23.1"
+  "version": "0.23.2"
 }
