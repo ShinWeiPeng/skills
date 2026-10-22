@@ -155,20 +155,25 @@ class PublicationAdapterTests(unittest.TestCase):
             )
 
 
-class CompatibilityLauncherTests(unittest.TestCase):
-    def test_root_launcher_delegates_arguments_and_exit_status(self):
+class PackageLauncherTests(unittest.TestCase):
+    def test_package_launcher_preserves_arguments_and_exit_status(self):
         with tempfile.TemporaryDirectory(
             prefix="launcher contract ", dir=ROOT
         ) as directory:
             root = Path(directory)
             package = root / "governed-engineering-skills"
             package.mkdir()
+            scripts = package / "scripts"
+            scripts.mkdir()
             if os.name == "nt":
                 name = "Install Governed Engineering Skills.cmd"
-                launcher = root / name
-                shutil.copyfile(ROOT / name, launcher)
-                (package / name).write_text(
-                    "@echo off\necho [%1]\necho [%~2]\nexit /b 23\n"
+                launcher = package / name
+                shutil.copyfile(ROOT / "governed-engineering-skills" / name, launcher)
+                (scripts / "install-marketplace.ps1").write_text(
+                    "param([string]$Marker, [string]$Words)\n"
+                    'Write-Output "[$Marker]"\n'
+                    'Write-Output "[$Words]"\n'
+                    "exit 23\n"
                 )
                 command = [
                     "cmd.exe",
@@ -181,13 +186,18 @@ class CompatibilityLauncherTests(unittest.TestCase):
                 ]
             else:
                 name = "Install Governed Engineering Skills.sh"
-                launcher = root / name
-                shutil.copyfile(ROOT / name, launcher)
-                child = package / name
+                launcher = package / name
+                shutil.copyfile(ROOT / "governed-engineering-skills" / name, launcher)
+                child = scripts / "install-marketplace.sh"
                 child.write_text('#!/bin/sh\nprintf "[%s]\\n" "$@"\nexit 23\n')
                 child.chmod(0o755)
                 command = ["sh", str(launcher), "marker", "two words"]
-            result = subprocess.run(command, capture_output=True, text=True)
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                env=os.environ | {"GOVERNED_INSTALLER_NO_DELAY": "1"},
+            )
             self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
             self.assertIn("[marker]", result.stdout)
             self.assertIn("[two words]", result.stdout)

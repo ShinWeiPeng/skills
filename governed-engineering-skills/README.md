@@ -24,7 +24,7 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 
 ## Installation
 
-Clone this repository, then run the native launcher:
+Clone this repository, open the `governed-engineering-skills/` directory, then run the native launcher:
 
 - Windows: double-click **`Install Governed Engineering Skills.cmd`**.
 - Ubuntu, Debian, Fedora, or RHEL with GNOME, KDE Plasma, or Xfce:

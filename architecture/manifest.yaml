@@ -24,8 +24,6 @@ source_sets:
   - governed-engineering-skills/plugins/governed-engineering-skills/**
   - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin
   - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/**
-  - scripts/assemble_plugin.py
-  - scripts/validate_distribution.py
   exclude:
   - governed-engineering-skills/skills/**/tests/**
   - governed-engineering-skills/skills/**/tools/**
@@ -801,8 +799,6 @@ modules:
   - governed-engineering-skills/scripts/validate_distribution.py
   - governed-engineering-skills/distribution/skill-compatibility.json
   - governed-engineering-skills/distribution/personal-marketplace-publication.schema.json
-  - scripts/assemble_plugin.py
-  - scripts/validate_distribution.py
   parent: null
   depends_on:
   - codex_plugin_adapter
@@ -895,10 +891,7 @@ modules:
   - path: governed-engineering-skills/scripts/install-local.ps1
     symbol: install-local
     kind: script
-  - path: scripts/assemble_plugin.py
-    symbol: main
-    kind: cli
-  - path: scripts/validate_distribution.py
+  - path: governed-engineering-skills/scripts/validate_distribution.py
     symbol: main
     kind: cli
   public_symbols:

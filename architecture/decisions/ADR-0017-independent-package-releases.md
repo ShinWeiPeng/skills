@@ -13,3 +13,7 @@ Path selection determines checks, not release identity. Existing tags are valida
 Alternatives: a common version couples unrelated packages; a shared consumer branch requires merging last-released artifacts and serializing publishers. Independent branches preserve the engineering consumer contract. No architectural MUST-rule exception is introduced.
 
 Validation: temporary real Git repositories, isolated publication lease tests, clean tracked checkout rehearsal, package contracts and architecture gate. Approval remains with the human reviewer; this record does not invent an approval signature.
+
+## Root entrypoint cleanup
+
+SPEC-0064 DEC-009 records the maintainer's explicit decision that old root paths are unnecessary. Installation, assembly and validation use the engineering package entrypoints directly; the five root aliases are removed. Package launcher argument/exit-code contracts and the complete release checks remain required. This updates the source-tree entrypoint placement described by ADR-0014 without changing the generated marketplace identity or its consumer path.

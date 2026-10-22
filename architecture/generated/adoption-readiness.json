@@ -83,9 +83,7 @@
           "governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/providers.py",
           "governed-engineering-skills/skills/engineering/verification-ladder/scripts/project_validation.py",
           "governed-engineering-skills/skills/engineering/verification-ladder/scripts/run_storage.py",
-          "governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py",
-          "scripts/assemble_plugin.py",
-          "scripts/validate_distribution.py"
+          "governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py"
         ],
         "mode": "python-ast"
       },

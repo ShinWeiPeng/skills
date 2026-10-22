@@ -26,3 +26,5 @@ See Decisions, Discussion Context and the sourced Discussion History below.
 - 使用者決定保留必要 CI 測試與設定；來源放在 .github/tests 與 .github/validation。
 - spec-governance、artifacts 與生成的 validation 內容只留本機並忽略；先保存既有檔案，不清除 Git 歷史。
 - .github 的發版流程與兩平台 marketplace catalog 保留；非必要 issue 模板與標籤自動化只留本機。
+
+- 使用者明確表示不保留舊路徑：移除 root 兩支 scripts 轉接程式與三個安裝啟動器，直接使用工程套件內入口；更新其參數與退出碼測試。
