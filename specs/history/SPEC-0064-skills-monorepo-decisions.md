@@ -19,3 +19,10 @@ See Decisions, Discussion Context and the sourced Discussion History below.
 ## 封存選擇
 
 2026-10-22：維護者選擇「只把整理後的討論紀錄封存到 specs/history/」。原始工作檔不提交。
+
+## 後續調整
+
+- 補作文件套件整合到 main，保留已發布工程 0.23.2 的內容與 tag。
+- 使用者決定保留必要 CI 測試與設定；來源放在 .github/tests 與 .github/validation。
+- spec-governance、artifacts 與生成的 validation 內容只留本機並忽略；先保存既有檔案，不清除 Git 歷史。
+- .github 的發版流程與兩平台 marketplace catalog 保留；非必要 issue 模板與標籤自動化只留本機。

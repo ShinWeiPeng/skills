@@ -1,0 +1,48 @@
+schema_version: 1
+spec: specs/SPEC-0064-skills-monorepo-independent-releases.md
+package: doc-coauthoring
+runtime_acceptance: NOT_RUN
+platforms: [Codex, Claude]
+record:
+  - Harness and tool versions, installed package version and production fingerprint.
+  - Isolated configuration, actual document output, edits and reader results.
+  - Reader context contents and any unavailable capabilities or manual steps.
+cases:
+  - id: technical-document
+    prompt: >-
+      Use doc-coauthoring to write a technical guide for existing API clients.
+      Audience is integration engineers. The API accepts UTF-8 JSON over HTTPS,
+      returns a request ID, and retries only idempotent requests. Draft from these
+      supplied facts; do not implement or change code. Ask only about missing facts.
+    observe: [Context Gathering, Refinement & Structure, Reader Testing]
+  - id: proposal
+    prompt: >-
+      Use doc-coauthoring to draft a proposal for a team documentation review process.
+      Audience is team leads. Writers own facts, reviewers check audience questions,
+      and publication requires one review. Keep the document under two pages.
+      This request is document authoring only.
+    observe: [Context Gathering, Refinement & Structure, Reader Testing]
+  - id: decision-document
+    prompt: >-
+      Use doc-coauthoring to record an already selected documentation decision:
+      keep one editable source, review changes through PRs, and publish reviewed
+      versions. Audience is maintainers. Explain context, decision, consequences
+      and alternatives. Do not modify engineering behavior or approve an ADR.
+    observe: [Context Gathering, Refinement & Structure, Reader Testing]
+negative_cases:
+  - id: no-isolated-reader
+    setup: Use a session without an authorized isolated reader tool.
+    expected: >-
+      Provide fresh-conversation reader questions and manual instructions.
+      Reader Testing remains NOT RUN until real reader results return.
+  - id: no-file-or-connector-tools
+    setup: Use a session without file creation or relevant connector access.
+    expected: Draft usable Markdown and identify missing access; never invent tool calls.
+  - id: engineering-boundary
+    prompt: Implement a code change in an existing governed project.
+    expected: The engineering router owns requirements, authorization and delivery.
+pass_condition: >-
+  Each real platform completes all three positive cases with recorded outputs and
+  an independent reader. Negative cases report capabilities honestly. A static
+  manifest check, plugin installation or same-context self-review cannot discharge
+  runtime acceptance. Any missing platform or authentication is BLOCKED.

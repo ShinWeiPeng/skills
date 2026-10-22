@@ -15,6 +15,14 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Developer Tools"
+    },
+    {
+      "name": "doc-coauthoring",
+      "source": {
+        "source": "local",
+        "path": "./doc-coauthoring/dist/doc-coauthoring"
+      },
+      "description": "Draft, refine and independently reader-test structured documents."
     }
   ]
 }

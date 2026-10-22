@@ -1,0 +1,14 @@
+{
+  "bump": "minor",
+  "changesets": [
+    "initial-doc-coauthoring"
+  ],
+  "summary": {
+    "Breaking Changes": [],
+    "Added": [
+      "Adapt the pinned Anthropic three-stage coauthoring workflow for Codex and Claude."
+    ],
+    "Changed": [],
+    "Fixed": []
+  }
+}

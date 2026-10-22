@@ -19,8 +19,8 @@ source_sets:
   - governed-engineering-skills/scripts/windows-artifact-access.ps1
   - governed-engineering-skills/scripts/validate_distribution.py
   - governed-engineering-skills/distribution/**
-  - validation/verification-ladder.yaml
-  - validation/layout.yaml
+  - .github/validation/verification-ladder.yaml
+  - .github/validation/layout.yaml
   - governed-engineering-skills/plugins/governed-engineering-skills/**
   - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin
   - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/**
@@ -51,8 +51,9 @@ source_sets:
   include:
   - governed-engineering-skills/tests/**
   - governed-engineering-skills/tools/**
-  - tests/flows/plugin-integration/monorepo/**
+  - .github/tests/flows/plugin-integration/monorepo/**
   - .github/scripts/**
+  - doc-coauthoring/scripts/**
   exclude: []
   purpose: Test source and support follow dedicated ownership and dependency rules.
   provenance: Repository-owned Module and Flow tests and development tooling.
@@ -74,12 +75,14 @@ source_sets:
   - .validation-deps/**
   - node_modules/**
   - .ruff_cache/**
+  - validation/**
   - .tmp/**
   - .test-tmp/**
   - governed-engineering-skills/plugins/governed-engineering-skills/build/**
   - governed-engineering-skills/plugins/governed-engineering-skills/.tmp/**
   - '**/__pycache__/**'
   - governed-engineering-skills/dist/**
+  - doc-coauthoring/dist/**
   exclude: []
   purpose: Exclude generated runtime and validation caches.
   provenance: Python and local build tools.

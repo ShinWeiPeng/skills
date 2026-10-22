@@ -51,6 +51,49 @@
           ]
         ]
       }
+    },
+    "doc-coauthoring": {
+      "root": "doc-coauthoring",
+      "version_file": "doc-coauthoring/package.json",
+      "state_file": "doc-coauthoring/.changeset/release-state.json",
+      "version_branch": "plugin-release/doc-coauthoring",
+      "publication_branch": "doc-coauthoring-release",
+      "publication_dir": "doc-coauthoring/dist/doc-coauthoring-release",
+      "commands": {
+        "check": [
+          "python",
+          "doc-coauthoring/scripts/release.py",
+          "check"
+        ],
+        "fingerprint": [
+          "python",
+          "doc-coauthoring/scripts/release.py",
+          "fingerprint"
+        ],
+        "apply": [
+          "python",
+          "doc-coauthoring/scripts/release.py",
+          "apply-intent"
+        ],
+        "build": [
+          [
+            "python",
+            "doc-coauthoring/scripts/release.py",
+            "assemble",
+            "--source-commit",
+            "{source_commit}",
+            "--source-tag-commit",
+            "{source_tag_commit}",
+            "--previous-publication-commit",
+            "{previous_publication_commit}"
+          ],
+          [
+            "python",
+            "doc-coauthoring/scripts/release.py",
+            "validate"
+          ]
+        ]
+      }
     }
   }
 }
