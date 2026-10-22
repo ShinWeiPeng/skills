@@ -741,7 +741,7 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/monorepo/test_package_release.py:
-    sha256: e0f22d04640d0dcce47c707247e45829524ea4d20a1d59bc7bb1b5794224a730
+    sha256: e6556c429b244d22373e47d12ca143fa87ec4f498e8b8c1625d2f706024050c7
     targets:
     - .github/scripts/package_release.py
     rationale: Contract tests load the public package release adapter from its explicit

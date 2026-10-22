@@ -200,6 +200,13 @@ def publish_directory(root, publication, branch, previous):
 
 
 def update_version_pr(root, name, package):
+    source = git(root, "rev-parse", "HEAD").stdout.strip()
+    git(root, "fetch", "--no-tags", "origin", "refs/heads/main")
+    current_main = git(root, "rev-parse", "FETCH_HEAD").stdout.strip()
+    if source != current_main:
+        raise ValueError(
+            "stale workflow cannot replace a Version PR from an older main source"
+        )
     command(root, package["commands"]["check"])
     before = json.loads((root / package["version_file"]).read_text(encoding="utf-8"))[
         "version"

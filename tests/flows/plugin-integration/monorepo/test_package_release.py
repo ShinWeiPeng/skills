@@ -294,6 +294,26 @@ class ReleaseRecoveryTests(unittest.TestCase):
             self.publish()
         self.assertEqual(release.remote_head(self.root, "sample-release"), latest)
 
+    def test_old_workflow_cannot_replace_a_newer_version_pr_branch(self):
+        old_source = self.git("rev-parse", "HEAD")
+        current = self.version("0.2.0")
+        self.git(
+            "push",
+            "origin",
+            "HEAD:refs/heads/main",
+            "HEAD:refs/heads/plugin-release/sample",
+        )
+        self.git("checkout", "--detach", old_source)
+        package = dict(self.package, version_branch="plugin-release/sample")
+        with self.assertRaisesRegex(ValueError, "stale workflow"):
+            release.update_version_pr(self.root, "sample", package)
+        self.assertEqual(
+            release.remote_head(self.root, "plugin-release/sample"), current
+        )
+        self.assertEqual(
+            json.loads((self.root / "package.json").read_text())["version"], "0.1.0"
+        )
+
     def test_retry_after_tag_success_and_publication_failure_keeps_tag_identity(self):
         with mock.patch.object(
             release,
