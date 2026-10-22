@@ -12,7 +12,29 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      engineering: ${{ steps.detect.outputs.governed-engineering-skills }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - id: detect
+        run: >-
+          python .github/scripts/package_release.py detect
+          --base "${{ github.event.pull_request.base.sha || github.event.before }}"
+          --github-output "$GITHUB_OUTPUT"
+
   governance-validation:
+    needs: scope
+    if: needs.scope.outputs.engineering == 'true'
+    defaults:
+      run:
+        working-directory: governed-engineering-skills
     name: Governance / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     env:
@@ -99,11 +121,16 @@ jobs:
         run: >-
           python tools/architecture/architecture_cli.py
           gate --phase release
-          --manifest architecture/manifest.yaml
-          --adoption architecture/adoption.yaml
-          --baseline architecture/baseline.yaml
+          --manifest ../architecture/manifest.yaml
+          --adoption ../architecture/adoption.yaml
+          --baseline ../architecture/baseline.yaml
 
   release-tooling-validation:
+    needs: scope
+    if: needs.scope.outputs.engineering == 'true'
+    defaults:
+      run:
+        working-directory: governed-engineering-skills
     name: Release tooling / Governed plugin
     runs-on: ubuntu-latest
     steps:
@@ -127,127 +154,55 @@ jobs:
           && python plugins/governed-engineering-skills/scripts/version_governance.py check
 
   release:
-    name: Version
+    name: Version engineering package
     if: >-
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.scope.outputs.engineering == 'true'
     runs-on: ubuntu-latest
-    needs:
-      - governance-validation
-      - release-tooling-validation
+    needs: [scope, governance-validation, release-tooling-validation, package-contracts]
+    concurrency:
+      group: package-release-governed-engineering-skills
+      cancel-in-progress: false
     permissions:
       contents: write
       pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-
-      - name: Resolve Marketplace rollback target
-        id: marketplace-base
-        shell: bash
-        run: |
-          previous="$(git ls-remote origin refs/heads/marketplace-release | awk '{print $1}')"
-          if [ -z "$previous" ]; then
-            previous="none:first-publication"
-          fi
-          echo "previous=$previous" >> "$GITHUB_OUTPUT"
-
-      - name: Rebuild the exact release and Marketplace candidates
-        shell: bash
-        run: |
-          python scripts/assemble_plugin.py assemble \
-            --marketplace-publication \
-            --source-commit "$GITHUB_SHA" \
-            --previous-publication-commit "${{ steps.marketplace-base.outputs.previous }}"
-          python scripts/validate_distribution.py
-          python scripts/assemble_plugin.py validate
-
-      - name: Apply governed plugin release intent
+      - name: Create or update the engineering Version PR
         id: version
-        shell: bash
-        run: |
-          python plugins/governed-engineering-skills/scripts/version_governance.py apply-intent
-          git add -A
-          python plugins/governed-engineering-skills/scripts/version_governance.py check
-          if git diff --cached --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Create or update the governed plugin Version Pull Request
-        if: steps.version.outputs.changed == 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          branch="plugin-release/main"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B "$branch"
-          git add -A
-          git commit -m "chore: version governed engineering skills"
-          git push --force-with-lease origin "HEAD:$branch"
-          open_pr_url="$(
-            gh pr list --state open --base main --head "$branch" \
-              --limit 1 \
-              --json url \
-              --jq '.[0].url // ""'
-          )"
-          if [ -n "$open_pr_url" ]; then
-            gh pr edit "$open_pr_url" \
-              --title "chore: version governed engineering skills" \
-              --body "Automated governed plugin version update."
-          else
-            gh pr create \
-              --base main \
-              --head "$branch" \
-              --title "chore: version governed engineering skills" \
-              --body "Automated governed plugin version update."
-          fi
-
-      - name: Create missing governed plugin release tag
+        run: >-
+          python .github/scripts/package_release.py version
+          --package governed-engineering-skills --github-output "$GITHUB_OUTPUT"
+      - name: Publish the reviewed engineering version
         if: steps.version.outputs.changed == 'false'
-        shell: bash
-        run: |
-          tag="$(python plugins/governed-engineering-skills/scripts/version_governance.py tag)"
-          remote_tag_commit="$(git ls-remote --tags origin "refs/tags/$tag" | awk '{print $1}')"
-          if [ -n "$remote_tag_commit" ] && [ "$remote_tag_commit" != "$GITHUB_SHA" ]; then
-            echo "ERROR: Tag $tag points to stale commit $remote_tag_commit, expected $GITHUB_SHA."
-            exit 1
-          elif [ -n "$remote_tag_commit" ]; then
-            echo "Tag $tag already identifies $GITHUB_SHA; no release tag is needed."
-          else
-            python plugins/governed-engineering-skills/scripts/version_governance.py tag --write
-            git push origin "refs/tags/$tag"
-          fi
+        run: python .github/scripts/package_release.py publish --package governed-engineering-skills
 
-      - name: Publish the generated personal Marketplace branch
-        if: steps.version.outputs.changed == 'false'
-        shell: bash
+  package-contracts:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_*.py" -v
+
+  required-validation:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [scope, governance-validation, release-tooling-validation, package-contracts]
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
         run: |
-          staging="$RUNNER_TEMP/marketplace-release"
-          publication_worktree="$RUNNER_TEMP/marketplace-worktree"
-          cp -R dist/marketplace-release "$staging"
-          git worktree add --detach "$publication_worktree"
-          git -C "$publication_worktree" switch --orphan marketplace-release-publication
-          git -C "$publication_worktree" rm -rf --ignore-unmatch .
-          cp -R "$staging"/. "$publication_worktree"/
-          git -C "$publication_worktree" add -A
-          git -C "$publication_worktree" config user.name "github-actions[bot]"
-          git -C "$publication_worktree" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$publication_worktree" commit -m "chore: publish governed engineering skills marketplace"
-          previous="${{ steps.marketplace-base.outputs.previous }}"
-          if [ "$previous" = "none:first-publication" ]; then
-            git -C "$publication_worktree" push origin HEAD:refs/heads/marketplace-release
-          else
-            git -C "$publication_worktree" push --force-with-lease="refs/heads/marketplace-release:$previous" \
-              origin HEAD:refs/heads/marketplace-release
-          fi
+          python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(job["result"] in ("success","skipped") for job in results.values()), results'

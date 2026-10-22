@@ -27,8 +27,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Higher hard-trigger risk always takes precedence.; Missing required capabilities or evidence cannot be downgraded.
-- **Entrypoints:** [`main`](../../skills/engineering/engineering-risk-routing/scripts/classify_risk.py) (cli)
-- **Public Symbols:** [`classify`](../../skills/engineering/engineering-risk-routing/scripts/classify_risk.py) (function)
+- **Entrypoints:** [`main`](../../governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py) (cli)
+- **Public Symbols:** [`classify`](../../governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py) (function)
 
 ## Port Contracts
 
@@ -45,8 +45,8 @@ flowchart TD
 
 | ID | Owner | Declaration | Visibility | Semantic kind | Consumers | References |
 |---|---|---|---|---|---|---|
-| `routing-decision` | `risk_routing_domain` | `RoutingDecision` (interface, `skills/engineering/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | None |
-| `gate-result` | `risk_routing_domain` | `GateResult` (interface, `skills/engineering/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | domain-value | `guided_workflow_router` | None |
+| `routing-decision` | `risk_routing_domain` | `RoutingDecision` (interface, `governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | query | `guided_workflow_router` | None |
+| `gate-result` | `risk_routing_domain` | `GateResult` (interface, `governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-contract.schema.json`) | cross-module | domain-value | `guided_workflow_router` | None |
 
 ## State Ownership
 

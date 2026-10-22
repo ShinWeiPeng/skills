@@ -27,8 +27,8 @@ flowchart TD
 - **Side Effects:** Dispatch one bounded governance or toolchain operation. (`-`)
 - **Errors:** None
 - **Invariants:** Gate execution never downloads or replaces a native provider cache.
-- **Entrypoints:** [`main`](../../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
-- **Public Symbols:** [`main`](../../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+- **Entrypoints:** [`main`](../../governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+- **Public Symbols:** [`main`](../../governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
 
 ## Port Contracts
 

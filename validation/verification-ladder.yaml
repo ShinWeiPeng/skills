@@ -29,6 +29,21 @@ layers:
     evidence: Behavioral unittest output.
     stop_condition: Stop when all fixtures pass or any fixture fails or blocks.
     next_layers: []
+  adapter-contract:
+    scope: Package publication, legacy installer and Codex/Claude harness adapter
+      contracts for SPEC-0064.
+    inputs:
+    - Demand-owned Git publication, installer and platform harness interfaces; Fake
+      and real-adapter evidence as applicable.
+    metrics:
+    - Identity, allowed side effects, rejection and recovery observations.
+    thresholds:
+      pass: All applicable adapter contracts match independently expected outcomes.
+      fail: A complete observation violates identity, side-effect or recovery contracts.
+      blocked: Required adapter capability or complete observation is unavailable.
+    evidence: Reusable adapter contract outputs and versioned real harness observations.
+    stop_condition: Stop on any FAIL or BLOCKED.
+    next_layers: []
 rules:
 - id: verification-planner-contract
   architecture_refs:
@@ -83,6 +98,34 @@ rules:
   layers:
   - module-contract
   - sil
+  on_device_scenarios: []
+  execution_profiles: []
+- id: package-release-state-contract
+  architecture_refs:
+  - plugin_release_governance_technical
+  contract_dimensions:
+  - state-transition
+  - error-reset
+  execution_changes: []
+  evidence_claims:
+  - host-semantics
+  layers:
+  - module-contract
+  - sil
+  on_device_scenarios: []
+  execution_profiles: []
+- id: package-platform-adapter-contract
+  architecture_refs:
+  - plugin_release_governance_technical
+  - local_install_adapter
+  contract_dimensions:
+  - external-port
+  execution_changes: []
+  evidence_claims:
+  - adapter-conformance
+  layers:
+  - module-contract
+  - adapter-contract
   on_device_scenarios: []
   execution_profiles: []
 not_applicable:

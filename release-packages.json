@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "packages": {
+    "governed-engineering-skills": {
+      "root": "governed-engineering-skills",
+      "version_file": "governed-engineering-skills/plugins/governed-engineering-skills/package.json",
+      "state_file": "governed-engineering-skills/plugins/governed-engineering-skills/.changeset/release-state.json",
+      "legacy_state_files": [
+        "plugins/governed-engineering-skills/.changeset/release-state.json"
+      ],
+      "version_branch": "plugin-release/main",
+      "publication_branch": "marketplace-release",
+      "publication_dir": "governed-engineering-skills/dist/marketplace-release",
+      "commands": {
+        "check": [
+          "python",
+          "governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py",
+          "check"
+        ],
+        "fingerprint": [
+          "python",
+          "governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py",
+          "fingerprint"
+        ],
+        "apply": [
+          "python",
+          "governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py",
+          "apply-intent"
+        ],
+        "build": [
+          [
+            "python",
+            "governed-engineering-skills/scripts/assemble_plugin.py",
+            "assemble",
+            "--marketplace-publication"
+          ],
+          [
+            "python",
+            "governed-engineering-skills/scripts/validate_distribution.py"
+          ],
+          [
+            "python",
+            "governed-engineering-skills/scripts/assemble_plugin.py",
+            "validate"
+          ]
+        ]
+      }
+    }
+  }
+}

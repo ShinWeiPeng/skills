@@ -8,10 +8,10 @@
 - Flow IDs: `local-plugin-installation`
 - Related ADRs: `architecture/decisions/ADR-0013-continuous-stable-plugin-versioning.md`
 - Source paths:
-  - `scripts/python-runtime-selection-policy.ps1`
-  - `scripts/python-runtime-selection.ps1`
+  - `governed-engineering-skills/scripts/python-runtime-selection-policy.ps1`
+  - `governed-engineering-skills/scripts/python-runtime-selection.ps1`
 - Test and benchmark paths:
-  - `tests/flows/plugin-integration/plugin/test_install_local.ps1`
+  - `governed-engineering-skills/tests/flows/plugin-integration/plugin/test_install_local.ps1`
 - Supersedes: none
 
 ## Problem and observable success
