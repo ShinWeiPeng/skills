@@ -76,6 +76,7 @@ source_sets:
   - validation/**
   - .tmp/**
   - .test-tmp/**
+  - governed-engineering-skills/.test-tmp/**
   - governed-engineering-skills/plugins/governed-engineering-skills/build/**
   - governed-engineering-skills/plugins/governed-engineering-skills/.tmp/**
   - '**/__pycache__/**'
@@ -700,6 +701,12 @@ modules:
       target timing, scheduler, physical-hardware, or long-duration stability claims.
     - Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device
       after Validation Enablement.
+    - Canonical SPEC input streams raw bytes for its full-file hash while parsing only
+      the body outside the embedded audit; no fixed total SPEC byte cap is applied.
+    - Finite validation JSON and YAML documents share a 5000000-byte policy across
+      planning, run storage, owner catalogs and layout evidence readers.
+    - Observed file changes or malformed audit markers reject the input without
+      rewriting history or weakening specification and evidence authority.
     - Missing or stale architecture, scenario, profile, trigger, or evidence bindings
       return BLOCKED instead of silently omitting a layer.
   entrypoints:

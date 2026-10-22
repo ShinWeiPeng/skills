@@ -11,6 +11,9 @@ import stat
 import yaml
 
 
+MAX_BYTES = 5_000_000
+
+
 ROLES = {
     "test",
     "support",
@@ -80,10 +83,20 @@ def _safe(root, relative):
     return current
 
 
-def _read(path):
-    if path.stat().st_size > 1048576:
-        raise ValueError("policy/evidence exceeds 1 MiB")
-    result = yaml.safe_load(path.read_text(encoding="utf-8-sig"))
+def _read(path, root):
+    label = path.relative_to(root).as_posix()
+    size = path.stat().st_size
+    if size > MAX_BYTES:
+        raise ValueError(
+            f"policy/evidence exceeds limit: {label}: actual={size} bytes, limit={MAX_BYTES} bytes"
+        )
+    with path.open("rb") as source:
+        raw = source.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES:
+        raise ValueError(
+            f"policy/evidence exceeds limit: {label}: actual>={len(raw)} bytes, limit={MAX_BYTES} bytes"
+        )
+    result = yaml.safe_load(raw.decode("utf-8-sig"))
     if not isinstance(result, dict):
         raise ValueError("expected a mapping")
     return result
@@ -94,7 +107,11 @@ def _suite(path):
     if "tests" not in parts:
         return None
     index = parts.index("tests")
-    return "/".join(parts[:index + 3]) if len(parts) > index + 3 and parts[index + 1] in {"modules", "flows"} else None
+    return (
+        "/".join(parts[: index + 3])
+        if len(parts) > index + 3 and parts[index + 1] in {"modules", "flows"}
+        else None
+    )
 
 
 def _edge(items, source, target, records):
@@ -278,7 +295,7 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
     records = {}
     coverage = {}
     try:
-        policy = _read(_safe(root, "validation/layout.yaml"))
+        policy = _read(_safe(root, "validation/layout.yaml"), root)
         if (
             policy.get("schema_version") != 1
             or type(policy.get("schema_version")) is not int
@@ -299,7 +316,12 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
         if set(policy) - allowed or not isinstance(policy.get("entries"), list):
             raise ValueError("unknown layout field or missing entries")
         test_roots = policy.get("test_roots", ["tests"])
-        if not isinstance(test_roots, list) or not test_roots or not all(isinstance(item, str) for item in test_roots) or len(set(test_roots)) != len(test_roots):
+        if (
+            not isinstance(test_roots, list)
+            or not test_roots
+            or not all(isinstance(item, str) for item in test_roots)
+            or len(set(test_roots)) != len(test_roots)
+        ):
             raise ValueError("test_roots must declare unique portable test roots")
         for test_root in test_roots:
             _safe(root, test_root)
@@ -397,7 +419,7 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                 parts = relative.split("/")
                 for test_root in sorted(test_roots, key=len, reverse=True):
                     if relative.startswith(test_root + "/"):
-                        parts = ["tests", *relative[len(test_root) + 1:].split("/")]
+                        parts = ["tests", *relative[len(test_root) + 1 :].split("/")]
                         break
                 if "tests" in parts[1:] and role not in {
                     "run-output",
@@ -596,7 +618,7 @@ def assess_layout(project_root, manifest, *, analyzer_evidence=None):
                     if terminal.is_file():
                         validate_run(root, terminal)
                     else:
-                        identity = read_json(_safe(root, run + "/.run.json"))
+                        identity = read_json(_safe(root, run + "/.run.json"), root=root)
                         if identity.get("run_id") != run.split("/")[-1]:
                             raise ValueError("incomplete run identity mismatch")
                         # Incomplete allocation is retained but never acceptance evidence.

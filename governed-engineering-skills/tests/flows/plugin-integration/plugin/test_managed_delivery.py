@@ -526,6 +526,33 @@ class ManagedDeliveryTests(unittest.TestCase):
             | changes
         )
 
+    def test_existing_validation_input_uses_five_mb_without_raising_patch_quota(self):
+        (self.root / "validation").mkdir()
+        self.seed_pending()
+        target = self.root / "validation/layout.yaml"
+        for size in (4_999_999, 5_000_000, 5_000_001):
+            with self.subTest(size=size):
+                target.write_bytes(b"{}" + b" " * (size - 2))
+                result = execute_request(
+                    self.root,
+                    self.preparation(
+                        "validation/layout.yaml", '{"schema_version":1,"entries":[]}'
+                    ),
+                )
+                if size <= 5_000_000:
+                    self.assertTrue(result.get("preparation_applied"), result)
+                else:
+                    self.assertEqual(result["verdict"], "BLOCKED", result)
+                    self.assertIn("5000001", str(result))
+                    self.assertIn("5000000", str(result))
+        target.write_text("{}")
+        oversize_patch = '{"padding":"' + "x" * 1_048_576 + '"}'
+        result = execute_request(
+            self.root, self.preparation("validation/layout.yaml", oversize_patch)
+        )
+        self.assertEqual(result["verdict"], "BLOCKED")
+        self.assertEqual(target.read_text(), "{}")
+
     def test_preparation_enables_implementation_then_requires_acceptance_evidence(self):
         (self.root / "validation").mkdir()
         (self.root / "architecture").mkdir()

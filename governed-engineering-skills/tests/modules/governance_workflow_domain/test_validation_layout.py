@@ -46,11 +46,15 @@ class LayoutTests(unittest.TestCase):
         return assess_layout(self.root, self.manifest)
 
     def test_repository_policy_classifies_changesets_after_release_archival(self):
-        project_root = ROOT.parent if (ROOT.parent / "release-packages.json").is_file() else ROOT
+        project_root = (
+            ROOT.parent if (ROOT.parent / "release-packages.json").is_file() else ROOT
+        )
         self.policy["entries"] = yaml.safe_load(
             (project_root / "validation/layout.yaml").read_text(encoding="utf-8")
         )["entries"]
-        changesets = ("governed-engineering-skills/" if project_root != ROOT else "") + "plugins/governed-engineering-skills/.changeset"
+        changesets = (
+            "governed-engineering-skills/" if project_root != ROOT else ""
+        ) + "plugins/governed-engineering-skills/.changeset"
         for path in (
             f"{changesets}/new-release.md",
             f"{changesets}/applied/0.15.0/project-runtime-validation-enforcement.md",
@@ -88,18 +92,46 @@ class LayoutTests(unittest.TestCase):
         )
 
     def test_package_test_root_requires_explicit_declaration_and_owner(self):
-        self.policy["entries"].append({"include": ["package/tests/modules/one/**"], "role": "test", "owner": "one"})
+        self.policy["entries"].append(
+            {
+                "include": ["package/tests/modules/one/**"],
+                "role": "test",
+                "owner": "one",
+            }
+        )
         self.write("package/tests/modules/one/test_one.py", "VALUE = 1")
         self.assertEqual(self.assess()["verdict"], "FAIL")
         self.policy["test_roots"] = ["tests", "package/tests"]
         self.assertEqual(self.assess()["verdict"], "PASS")
         self.policy["entries"][-1]["owner"] = "two"
-        self.assertTrue(any(item["rule_id"] == "LAY005" for item in self.assess()["diagnostics"]))
+        self.assertTrue(
+            any(item["rule_id"] == "LAY005" for item in self.assess()["diagnostics"])
+        )
 
     def test_package_test_root_cannot_escape_or_rename_tests(self):
         for value in [["../tests"], ["package/cases"], ["tests", "tests"], [3]]:
             self.policy["test_roots"] = value
             self.assertEqual(self.assess()["verdict"], "BLOCKED")
+
+    def test_policy_uses_decimal_five_mb_boundary(self):
+        original = yaml.safe_dump(self.policy).encode()
+        for size in (4_999_999, 5_000_000, 5_000_001):
+            with self.subTest(size=size):
+                self.write(
+                    "validation/layout.yaml",
+                    (original + b"#" + b"x" * (size - len(original) - 1)).decode(),
+                )
+                result = assess_layout(self.root, self.manifest)
+                self.assertEqual(
+                    result["verdict"],
+                    "PASS" if size <= 5_000_000 else "BLOCKED",
+                    result["diagnostics"],
+                )
+                if size > 5_000_000:
+                    message = str(result["diagnostics"])
+                    self.assertIn("5000001", message)
+                    self.assertIn("5000000", message)
+                    self.assertIn("layout.yaml", message)
 
     def test_valid_owned_test(self):
         self.write("tests/modules/one/test_one.py", "def test_one(): assert True")

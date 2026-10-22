@@ -5,8 +5,11 @@ entries:
   - node_modules/**
   - dist/**
   - .ruff_cache/**
+  - .Install Governed Engineering Skills.sh.swo
+  - .Install Governed Engineering Skills.sh.swp
   - .tmp/**
   - .test-tmp/**
+  - governed-engineering-skills/.test-tmp/**
   - .cache/**
   - build/**
   - governed-engineering-skills/plugins/governed-engineering-skills/build/**
@@ -50,6 +53,7 @@ entries:
   - architecture/algorithms/ALG-0006-compatible-python-runtime-selection.md
   - architecture/algorithms/ALG-0007-verification-ladder-selection.md
   - architecture/algorithms/ALG-0008-layout-and-run-lifecycle.md
+  - architecture/algorithms/ALG-0009-streaming-spec-input.md
   - architecture/algorithms/README.md
   - architecture/decisions/ADR-0001-modular-event-architecture.md
   - architecture/decisions/ADR-0002-guided-driver-and-central-risk-router.md
@@ -645,6 +649,7 @@ entries:
   role: metadata
 - include:
   - specs/SPEC-0064-skills-monorepo-independent-releases.md
+  - specs/SPEC-0065-spec-validation-size-compatibility.md
   - specs/history/SPEC-0064-skills-monorepo-decisions.md
   role: specification
 - include:

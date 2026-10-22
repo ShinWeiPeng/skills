@@ -14,3 +14,4 @@
 | Personal Marketplace publication-tree generation | `plugin_assembly_composition` | Not applicable: exact path mapping and byte-for-byte release identity checks have one prescribed result with no heuristic, statistical, scheduling, or optimization choice | — |
 | Local Codex runtime resolution | `local_install_adapter` | Not applicable: this integration adapter probes two contractually ordered executable locations and applies a fixed availability fallback; it owns no product-domain ranking, tuning, estimation, optimization, or probabilistic method | — |
 | Codex plugin discovery | `codex_plugin_adapter` | Not applicable: declarative manifest ingestion | — |
+| Canonical SPEC streaming input and finite validation-document limits | `verification_ladder_domain` | Triggered: body/audit partitioning, consistent read failures and exact byte thresholds determine input admission | [ALG-0009](ALG-0009-streaming-spec-input.md) |

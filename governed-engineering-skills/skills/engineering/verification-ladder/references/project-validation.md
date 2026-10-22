@@ -127,3 +127,17 @@ Planning selects layers and leaves `functional_validation_complete: false`. The
 planner reports SIL harness/coverage execution requirements with `NOT_RUN`; it does
 not probe or certify runner capability. Supply or implement the missing harness
 and execute it before claiming functional acceptance.
+
+## SPEC and validation-document input
+
+Canonical SPECs use a dedicated chunked reader: acceptance parsing uses the body
+outside the embedded audit, while the plan hash still covers every original byte,
+including history. A SPEC is not rejected solely for exceeding 1 MiB or 5 MB.
+Malformed audit markers, invalid encoding, nonregular/redirected files and observed
+changes during the read remain BLOCKED. The specification owner still verifies
+history, sources, evidence and execution authority.
+
+Finite JSON/YAML policy and evidence readers, including run manifests, architecture
+owner catalogs and layout evidence, accept at most 5,000,000 bytes (decimal 5 MB).
+Oversize diagnostics include the path, observed bytes and limit. This document
+policy does not change capture quotas, managed patch limits or hash buffer sizes.

@@ -98,7 +98,7 @@ flowchart TD
 - **Purpose:** Select the lowest sufficient additive verification layers for affected module contracts and evidence claims, validate project bindings, and reject cross-layer evidence substitution.
 - **Children:** None
 - **Related Flows:** [`verification-ladder-planning`](generated/governance_workflow_domain.md#verification-ladder-planning)
-- **Protection Rationale:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
+- **Protection Rationale:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Canonical SPEC input streams raw bytes for its full-file hash while parsing only the body outside the embedded audit; no fixed total SPEC byte cap is applied.; Finite validation JSON and YAML documents share a 5000000-byte policy across planning, run storage, owner catalogs and layout evidence readers.; Observed file changes or malformed audit markers reject the input without rewriting history or weakening specification and evidence authority.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
 
 ### `plugin_assembly_composition`
 
