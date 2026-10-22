@@ -1,6 +1,3 @@
-Read and follow `CLAUDE.md` for repository-specific rules.
+Read `CLAUDE.md` for repository-wide rules, then the instructions inside the package being changed. Engineering code changes enter through the installed `ask-matt` workflow. General document co-authoring uses the standalone documentation skill and does not inherit engineering execution gates merely by sharing this repository.
 
-For every software-engineering request, enter through the model-invoked
-`ask-matt` Skill. Let `ask-matt` classify read-only work versus modifying work
-and select supporting governed Skills. `grilling` owns every engineering discussion
-and its saved working record; ask questions only for genuinely unresolved user decisions.
+SPEC-0064 records the user's task-scoped native Git/file-tool exception; preserve its hash, scope and acceptance constraints.

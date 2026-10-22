@@ -8,37 +8,39 @@ source_sets:
 - id: repository-production
   classification: production
   include:
-  - skills/engineering/**
-  - skills/productivity/**
-  - scripts/assemble_plugin.py
-  - scripts/install-local.ps1
-  - scripts/install-marketplace.ps1
-  - scripts/install-marketplace.sh
-  - scripts/python-runtime-selection-policy.ps1
-  - scripts/python-runtime-selection.ps1
-  - scripts/windows-artifact-access.ps1
-  - scripts/validate_distribution.py
-  - distribution/**
+  - governed-engineering-skills/skills/engineering/**
+  - governed-engineering-skills/skills/productivity/**
+  - governed-engineering-skills/scripts/assemble_plugin.py
+  - governed-engineering-skills/scripts/install-local.ps1
+  - governed-engineering-skills/scripts/install-marketplace.ps1
+  - governed-engineering-skills/scripts/install-marketplace.sh
+  - governed-engineering-skills/scripts/python-runtime-selection-policy.ps1
+  - governed-engineering-skills/scripts/python-runtime-selection.ps1
+  - governed-engineering-skills/scripts/windows-artifact-access.ps1
+  - governed-engineering-skills/scripts/validate_distribution.py
+  - governed-engineering-skills/distribution/**
   - validation/verification-ladder.yaml
   - validation/layout.yaml
-  - plugins/governed-engineering-skills/**
-  - plugins/governed-engineering-skills/.codex-plugin
-  - plugins/governed-engineering-skills/.codex-plugin/**
+  - governed-engineering-skills/plugins/governed-engineering-skills/**
+  - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin
+  - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/**
+  - scripts/assemble_plugin.py
+  - scripts/validate_distribution.py
   exclude:
-  - skills/**/tests/**
-  - skills/**/tools/**
-  - skills/**/architecture/generated/**
-  - skills/**/__pycache__/**
-  - tests/flows/plugin-integration/plugin/**
-  purpose: Govern the authoritative promoted Skills, tracked Plugin shell,
-    deterministic assembly, local Codex installation, compatibility inventory,
-    and optional Git Marketplace publication.
+  - governed-engineering-skills/skills/**/tests/**
+  - governed-engineering-skills/skills/**/tools/**
+  - governed-engineering-skills/skills/**/architecture/generated/**
+  - governed-engineering-skills/skills/**/__pycache__/**
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/**
+  purpose: Govern the authoritative promoted Skills, tracked Plugin shell, deterministic
+    assembly, local Codex installation, compatibility inventory, and optional Git
+    Marketplace publication.
   provenance: Human-maintained repository sources assembled into one Plugin artifact.
 - id: generated-tool-mirrors
   classification: generated-production
   include:
-  - skills/engineering/**/tools/**
-  - skills/productivity/**/tools/**
+  - governed-engineering-skills/skills/engineering/**/tools/**
+  - governed-engineering-skills/skills/productivity/**/tools/**
   exclude: []
   purpose: Distribute project-local mirrors generated from canonical skill tooling.
   provenance: Bootstrap-owned copies of canonical skill scripts.
@@ -47,8 +49,10 @@ source_sets:
 - id: repository-development
   classification: development
   include:
-  - tests/**
-  - tools/**
+  - governed-engineering-skills/tests/**
+  - governed-engineering-skills/tools/**
+  - tests/flows/plugin-integration/monorepo/**
+  - .github/scripts/**
   exclude: []
   purpose: Test source and support follow dedicated ownership and dependency rules.
   provenance: Repository-owned Module and Flow tests and development tooling.
@@ -56,7 +60,7 @@ source_sets:
   classification: derived-documentation
   include:
   - architecture/generated/**
-  - skills/**/architecture/generated/**
+  - governed-engineering-skills/skills/**/architecture/generated/**
   exclude: []
   purpose: Keep deterministic architecture views outside formal product sources.
   provenance: Architecture renderers.
@@ -72,9 +76,10 @@ source_sets:
   - .ruff_cache/**
   - .tmp/**
   - .test-tmp/**
-  - plugins/governed-engineering-skills/build/**
-  - plugins/governed-engineering-skills/.tmp/**
+  - governed-engineering-skills/plugins/governed-engineering-skills/build/**
+  - governed-engineering-skills/plugins/governed-engineering-skills/.tmp/**
   - '**/__pycache__/**'
+  - governed-engineering-skills/dist/**
   exclude: []
   purpose: Exclude generated runtime and validation caches.
   provenance: Python and local build tools.
@@ -84,8 +89,8 @@ modules:
   role: composition
   implementation_status: implemented
   paths:
-  - skills/engineering/ask-matt
-  - skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
+  - governed-engineering-skills/skills/engineering/ask-matt
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
   parent: null
   depends_on:
   - workflow_routing_domain
@@ -97,8 +102,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Automatically route every software-engineering intent by coordinating workflow
-      selection, repository state, risk, delivery, and governance domains.
+    purpose: Automatically route every software-engineering intent by coordinating
+      workflow selection, repository state, risk, delivery, and governance domains.
     diagram_summaries:
       zh-TW: 軟體工程請求的自動治理路由與流程協調
     input_ports:
@@ -110,33 +115,33 @@ modules:
     errors: []
     invariants:
     - Users never need to know or invoke ask-matt for software-engineering work.
-    - Every design or specification decision offers two or three meaningful options, preferring
-      structured choices and falling back to equivalent numbered text.
+    - Every design or specification decision offers two or three meaningful options,
+      preferring structured choices and falling back to equivalent numbered text.
     - Every repository-modifying change set completes grilling before mutation.
     - Discoverable facts are explored before any unresolved decision is asked.
-    - Every user turn is reassessed, and an active skill reroutes through this module with
-      unresolved-decision evidence before asking a repository-modifying design or specification
-      question.
-    - Unresolved-decision evidence is true exactly while a non-discoverable user choice that
-      shapes the change set remains open; it survives short answers through reconciliation
+    - Every user turn is reassessed, and an active skill reroutes through this module
+      with unresolved-decision evidence before asking a repository-modifying design
+      or specification question.
+    - Unresolved-decision evidence is true exactly while a non-discoverable user choice
+      that shapes the change set remains open; it survives short answers through reconciliation
       and clears only when no open decisions remain.
     - A newly discovered discretionary decision stops execution and returns to grilling.
-    - A confirmed specification resumes only when the caller supplies explicit resume evidence
-      or the fresh task is exactly `開始執行` with an optional canonical Spec path; discovery
-      alone proves only durable context.
+    - A confirmed specification resumes only when the caller supplies explicit resume
+      evidence or the fresh task is exactly `開始執行` with an optional canonical Spec
+      path; discovery alone proves only durable context.
     - Never route standalone learning-note or HackMD work.
   entrypoints:
-  - path: skills/engineering/ask-matt/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/ask-matt/SKILL.md
     symbol: ask-matt
     kind: skill
-  - path: skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: skills/engineering/ask-matt/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/ask-matt/SKILL.md
     symbol: ask-matt
     kind: skill
-  - path: skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
     symbol: route
     kind: function
 - id: risk_routing_domain
@@ -144,7 +149,7 @@ modules:
   role: domain
   implementation_status: implemented
   paths:
-  - skills/engineering/engineering-risk-routing
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing
   parent: guided_workflow_router
   depends_on: []
   implements_ports: []
@@ -165,11 +170,11 @@ modules:
     - Higher hard-trigger risk always takes precedence.
     - Missing required capabilities or evidence cannot be downgraded.
   entrypoints:
-  - path: skills/engineering/engineering-risk-routing/scripts/classify_risk.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: skills/engineering/engineering-risk-routing/scripts/classify_risk.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py
     symbol: classify
     kind: function
 - id: workflow_routing_domain
@@ -177,10 +182,10 @@ modules:
   role: domain
   implementation_status: implemented
   paths:
-  - skills/engineering/engineering-risk-routing/scripts/project_state.py
-  - skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
-  - skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
-  - skills/engineering/engineering-risk-routing/references/intent-rules.json
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/intent-rules.json
   parent: guided_workflow_router
   depends_on: []
   implements_ports: []
@@ -202,16 +207,16 @@ modules:
     invariants:
     - Explicit skills outrank inferred intent.
     - Intent selects the primary flow before project state and risk gates are applied.
-    - A uniquely resolved confirmed specification does not bypass ProjectState
-      interview precedence without explicit resume evidence.
-    - Pending unresolved-decision evidence means a non-discoverable user choice
-      affects implementation behavior, an interface, a persistent parameter,
-      failure policy, specification scope, or an acceptance threshold.
+    - A uniquely resolved confirmed specification does not bypass ProjectState interview
+      precedence without explicit resume evidence.
+    - Pending unresolved-decision evidence means a non-discoverable user choice affects
+      implementation behavior, an interface, a persistent parameter, failure policy,
+      specification scope, or an acceptance threshold.
     - Pending unresolved-decision evidence overrides lexical ambiguity in a short
       follow-up, selects grilling before the question is presented, and resumes at
       spec-governance for reconciliation.
-    - Exact fresh-task `開始執行` derives resume evidence; quoted, negated, or
-      conversational uses do not.
+    - Exact fresh-task `開始執行` derives resume evidence; quoted, negated, or conversational
+      uses do not.
     - Resume evidence fails closed unless it identifies one valid confirmed specification;
       ambiguous candidates require one explicit selection.
     - A reopened working canonical specification blocks execution even when completed
@@ -219,23 +224,23 @@ modules:
     - Indeterminate intent or project state is never silently guessed.
     - Risk classification adds gates but never replaces the primary user intent.
   entrypoints:
-  - path: skills/engineering/engineering-risk-routing/scripts/project_state.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
     symbol: assess_project_state
     kind: function
-  - path: skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
     symbol: select_workflow
     kind: function
   public_symbols:
-  - path: skills/engineering/engineering-risk-routing/scripts/project_state.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
     symbol: RepositoryEvidencePort
     kind: class
-  - path: skills/engineering/engineering-risk-routing/scripts/project_state.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
     symbol: assess_project_state
     kind: function
-  - path: skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
     symbol: classify_intent
     kind: function
-  - path: skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
     symbol: select_workflow
     kind: function
 - id: delivery_workflow_domain
@@ -243,33 +248,33 @@ modules:
   role: domain
   implementation_status: implemented
   paths:
-  - skills/engineering/diagnosing-bugs
-  - skills/engineering/grill-with-docs
-  - skills/engineering/triage
-  - skills/engineering/improve-codebase-architecture
-  - skills/engineering/setup-matt-pocock-skills
-  - skills/engineering/tdd
-  - skills/engineering/to-spec
-  - skills/engineering/to-tickets
-  - skills/engineering/wayfinder
-  - skills/engineering/implement
-  - skills/engineering/prototype
-  - skills/engineering/research
-  - skills/engineering/domain-modeling
-  - skills/engineering/codebase-design
-  - skills/engineering/code-review
-  - skills/engineering/resolving-merge-conflicts
-  - skills/productivity/grill-me
-  - skills/productivity/grilling
-  - skills/productivity/handoff
-  - skills/productivity/teach
-  - skills/productivity/writing-for-agents
-  - skills/engineering/implement-spec
-  - skills/engineering/pr
-  - skills/engineering/retro
-  - skills/engineering/wizard
-  - skills/productivity/to-questionnaire
-  - skills/productivity/wait-what
+  - governed-engineering-skills/skills/engineering/diagnosing-bugs
+  - governed-engineering-skills/skills/engineering/grill-with-docs
+  - governed-engineering-skills/skills/engineering/triage
+  - governed-engineering-skills/skills/engineering/improve-codebase-architecture
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills
+  - governed-engineering-skills/skills/engineering/tdd
+  - governed-engineering-skills/skills/engineering/to-spec
+  - governed-engineering-skills/skills/engineering/to-tickets
+  - governed-engineering-skills/skills/engineering/wayfinder
+  - governed-engineering-skills/skills/engineering/implement
+  - governed-engineering-skills/skills/engineering/prototype
+  - governed-engineering-skills/skills/engineering/research
+  - governed-engineering-skills/skills/engineering/domain-modeling
+  - governed-engineering-skills/skills/engineering/codebase-design
+  - governed-engineering-skills/skills/engineering/code-review
+  - governed-engineering-skills/skills/engineering/resolving-merge-conflicts
+  - governed-engineering-skills/skills/productivity/grill-me
+  - governed-engineering-skills/skills/productivity/grilling
+  - governed-engineering-skills/skills/productivity/handoff
+  - governed-engineering-skills/skills/productivity/teach
+  - governed-engineering-skills/skills/productivity/writing-for-agents
+  - governed-engineering-skills/skills/engineering/implement-spec
+  - governed-engineering-skills/skills/engineering/pr
+  - governed-engineering-skills/skills/engineering/retro
+  - governed-engineering-skills/skills/engineering/wizard
+  - governed-engineering-skills/skills/productivity/to-questionnaire
+  - governed-engineering-skills/skills/productivity/wait-what
   parent: guided_workflow_router
   depends_on:
   - spec_governance_domain
@@ -277,8 +282,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Move an engineering idea or defect through planning, implementation, and review
-      without bypassing required gates.
+    purpose: Move an engineering idea or defect through planning, implementation,
+      and review without bypassing required gates.
     diagram_summaries:
       zh-TW: 從規劃、實作到審查的受治理交付流程
     input_ports: []
@@ -288,77 +293,78 @@ modules:
     - delivery.tracker-publication-pending
     owned_state: []
     side_effects:
-    - description: Admit and atomically apply one hash-checked file replacement through the
-        managed delivery CLI, leaving arbitrary host tools outside enforcement.
+    - description: Admit and atomically apply one hash-checked file replacement through
+        the managed delivery CLI, leaving arbitrary host tools outside enforcement.
     errors: []
     invariants:
     - Product mutation and commits require task and repository authorization; specification
       lifecycle writes do not grant that authority.
-    - Every repository-modifying change set has one canonical specification before implementation.
+    - Every repository-modifying change set has one canonical specification before
+      implementation.
     - Governed delivery reloads the current canonical hash, working identity and explicit
       human execution instruction.
     - A confirmed specification is verified rather than re-interviewed only with explicit
       resume evidence and no new decision or conflict.
   entrypoints:
-  - path: skills/engineering/implement/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/implement/SKILL.md
     symbol: implement
     kind: skill
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_spec_context
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: manage_delivery_discussion
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_turn_context
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: verify_delivery_admission
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: main
     kind: function
-  - path: skills/engineering/implement/scripts/managed_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
     symbol: execute_request
     kind: function
-  - path: skills/engineering/implement/scripts/managed_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
     symbol: audit_trace
     kind: function
-  - path: skills/engineering/implement/scripts/managed_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
     symbol: main
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_compatibility
     kind: function
   public_symbols:
-  - path: skills/engineering/implement/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/implement/SKILL.md
     symbol: implement
     kind: skill
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_spec_context
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: manage_delivery_discussion
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_turn_context
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: verify_delivery_admission
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: main
     kind: function
-  - path: skills/engineering/implement/scripts/managed_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
     symbol: execute_request
     kind: function
-  - path: skills/engineering/implement/scripts/managed_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
     symbol: audit_trace
     kind: function
-  - path: skills/engineering/implement/scripts/managed_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
     symbol: main
     kind: function
-  - path: skills/engineering/implement/scripts/spec_delivery.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
     symbol: assess_delivery_compatibility
     kind: function
 - id: spec_governance_domain
@@ -366,17 +372,18 @@ modules:
   role: component
   implementation_status: implemented
   paths:
-  - skills/engineering/spec-governance
+  - governed-engineering-skills/skills/engineering/spec-governance
   parent: delivery_workflow_domain
   depends_on: []
   implements_ports: []
   public_headers: []
   description:
-    purpose: Persist and reconcile engineering discussion into one canonical change-set specification,
-      materialize it when decision-complete, and verify traceability before implementation.
-      Verify the emitted completed-SPEC link, summary and authorization status.
-      Own task/turn discussion entry, sourced candidate observations and durable repair-input
-      deduplication across host continuations and restarts; saving and recovery remain available.
+    purpose: Persist and reconcile engineering discussion into one canonical change-set
+      specification, materialize it when decision-complete, and verify traceability
+      before implementation. Verify the emitted completed-SPEC link, summary and authorization
+      status. Own task/turn discussion entry, sourced candidate observations and durable
+      repair-input deduplication across host continuations and restarts; saving and
+      recovery remain available.
     diagram_summaries:
       zh-TW: 規格保存、調和、具體化與追溯驗證
     input_ports:
@@ -393,26 +400,28 @@ modules:
     - spec-governance.blocked
     owned_state: []
     side_effects:
-    - description: Persist project and task scoped execution receipts; suspend product authority
-        independently of SPEC discussion.
+    - description: Persist project and task scoped execution receipts; suspend product
+        authority independently of SPEC discussion.
     - description: Atomically persist one canonical project-root SPEC Markdown snapshot
-        with structured, visibly redacted Discussion Context and embed its normalized audit
-        without full transcripts or hidden-reasoning prose; discussion observations may
-        include bounded redacted goals, summaries and candidate metadata with sources.
-    - description: Materialize one decision-complete canonical specification under specs/.
+        with structured, visibly redacted Discussion Context and embed its normalized
+        audit without full transcripts or hidden-reasoning prose; discussion observations
+        may include bounded redacted goals, summaries and candidate metadata with
+        sources.
+    - description: Materialize one decision-complete canonical specification under
+        specs/.
     errors:
     - id: specification_unresolved
       condition: Conflicts, open decisions, invalid references, or missing requirement-to-acceptance
         traceability remain.
       event: spec-governance.blocked
-      handling: Preserve the last confirmed specification and return to grilling with exactly
-        one conclusion-changing question.
+      handling: Preserve the last confirmed specification and return to grilling with
+        exactly one conclusion-changing question.
     - id: stale_working_spec
-      condition: The caller's expected revision or snapshot hash does not match the persisted
-        working specification.
+      condition: The caller's expected revision or snapshot hash does not match the
+        persisted working specification.
       event: spec-governance.blocked
-      handling: Preserve the persisted snapshot, reload it, and reconcile the answer again
-        without allocating replacement IDs.
+      handling: Preserve the persisted snapshot, reload it, and reconcile the answer
+        again without allocating replacement IDs.
     invariants:
     - Every answered decision is persisted before the next decision question.
     - Versioned pending questions survive timeout and mode changes without a deadline.
@@ -420,119 +429,119 @@ modules:
       six-dimension behavioral clause comparisons before related managed edits.
     - Only an explicit matching answer with a new DISC record clears a pending question.
     - Specification lifecycle writes never authorize product, Git, or external mutations.
-    - Every completed specification is presented in the emitted reply with its current ID,
-      title, canonical link, summary and authorization state.
-    - Confirmed specifications have unique stable IDs, resolved relations, no open decisions,
-      and at least one acceptance criterion per requirement.
-    - Confirmed unimplemented specifications reopen in place before a possible contract change;
-      implemented specifications never reopen.
-    - Implemented specifications record PASS evidence for every acceptance criterion and a
-      passing Spec review.
+    - Every completed specification is presented in the emitted reply with its current
+      ID, title, canonical link, summary and authorization state.
+    - Confirmed specifications have unique stable IDs, resolved relations, no open
+      decisions, and at least one acceptance criterion per requirement.
+    - Confirmed unimplemented specifications reopen in place before a possible contract
+      change; implemented specifications never reopen.
+    - Implemented specifications record PASS evidence for every acceptance criterion
+      and a passing Spec review.
   entrypoints:
-  - path: skills/engineering/spec-governance/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/spec-governance/SKILL.md
     symbol: spec-governance
     kind: skill
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: main
     kind: cli
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: project_state_lock
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: check_spec_dependencies
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_turn_context
     kind: function
-  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/discussion_state.py
     symbol: assess_fix_comparisons
     kind: function
-  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/discussion_state.py
     symbol: discussion_request
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_discussion_completion
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: finish_discussion_turn
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: record_question
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: question_surface_policy
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: update_question
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: pending_decision
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: execution_binding
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: read_execution_state
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: write_execution_state
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: assess_execution_compatibility
     kind: function
   public_symbols:
-  - path: skills/engineering/spec-governance/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/spec-governance/SKILL.md
     symbol: spec-governance
     kind: skill
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: main
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: project_state_lock
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: check_spec_dependencies
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_turn_context
     kind: function
-  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/discussion_state.py
     symbol: assess_fix_comparisons
     kind: function
-  - path: skills/engineering/spec-governance/scripts/discussion_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/discussion_state.py
     symbol: discussion_request
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_discussion_completion
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: finish_discussion_turn
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: record_question
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: question_surface_policy
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: update_question
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: pending_decision
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: execution_binding
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: read_execution_state
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: write_execution_state
     kind: function
-  - path: skills/engineering/spec-governance/scripts/spec_contract.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
     symbol: assess_spec_evidence_update
     kind: function
-  - path: skills/engineering/spec-governance/scripts/execution_state.py
+  - path: governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
     symbol: assess_execution_compatibility
     kind: function
 - id: formatter_governance_domain
@@ -540,7 +549,7 @@ modules:
   role: component
   implementation_status: implemented
   paths:
-  - skills/engineering/formatter-governance
+  - governed-engineering-skills/skills/engineering/formatter-governance
   parent: delivery_workflow_domain
   depends_on: []
   implements_ports: []
@@ -559,16 +568,16 @@ modules:
     - formatter-governance.blocked
     owned_state: []
     side_effects:
-    - description: Permit only collision-free minimal scaffold and formatter
-        configuration writes before product behavior exists.
-    - description: Invoke the selected formatter only after its availability and
-        exact target root are verified.
-    - description: Format the confirmed clean product-source and test scope only
-        after affirmative authorization, then run the same CLI's non-mutating check.
+    - description: Permit only collision-free minimal scaffold and formatter configuration
+        writes before product behavior exists.
+    - description: Invoke the selected formatter only after its availability and exact
+        target root are verified.
+    - description: Format the confirmed clean product-source and test scope only after
+        affirmative authorization, then run the same CLI's non-mutating check.
     errors:
     - id: formatter_policy_unresolved
-      condition: ProjectState, repository formatter identity, command policy, or
-        prerequisite evidence is missing or indeterminate.
+      condition: ProjectState, repository formatter identity, command policy, or prerequisite
+        evidence is missing or indeterminate.
       event: formatter-governance.blocked
       handling: Preserve the repository and stop before scaffold or product-code mutation.
     - id: formatter_target_unsafe
@@ -582,35 +591,35 @@ modules:
       event: formatter-governance.blocked
       handling: Stop product-code mutation and report the failed prerequisite.
     - id: formatter_full_write_blocked
-      condition: Canonical SPEC confirmation is absent or ambiguous, a targeted
-        program file is dirty, CLI evidence is missing, or installation fails.
+      condition: Canonical SPEC confirmation is absent or ambiguous, a targeted program
+        file is dirty, CLI evidence is missing, or installation fails.
       event: formatter-governance.blocked
       handling: Preserve all target bytes and stop before the full-format write.
     invariants:
-    - Greenfield selection uses one governed language mapping; existing projects
-      preserve their repository formatter and style or use the governed fallback
-      only when no repository CLI formatter is discoverable.
+    - Greenfield selection uses one governed language mapping; existing projects preserve
+      their repository formatter and style or use the governed fallback only when
+      no repository CLI formatter is discoverable.
     - Indeterminate project state, target-root ambiguity, path collisions, missing
-      authorization, unavailable tooling, or a failing non-mutating check blocks
-      product-code mutation.
-    - Minimal scaffold never overwrites an existing path and never creates an
-      accidental nested project.
-    - Canonical SPEC presence triggers one confirmation but never proves AI
-      authorship or authorizes a formatting write.
-    - Full-program formatting includes clean product source and tests while
-      excluding documentation, configuration, generated, vendor, and build paths.
+      authorization, unavailable tooling, or a failing non-mutating check blocks product-code
+      mutation.
+    - Minimal scaffold never overwrites an existing path and never creates an accidental
+      nested project.
+    - Canonical SPEC presence triggers one confirmation but never proves AI authorship
+      or authorizes a formatting write.
+    - Full-program formatting includes clean product source and tests while excluding
+      documentation, configuration, generated, vendor, and build paths.
   entrypoints:
-  - path: skills/engineering/formatter-governance/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/formatter-governance/SKILL.md
     symbol: formatter-governance
     kind: skill
-  - path: skills/engineering/formatter-governance/scripts/formatter_policy.py
+  - path: governed-engineering-skills/skills/engineering/formatter-governance/scripts/formatter_policy.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: skills/engineering/formatter-governance/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/formatter-governance/SKILL.md
     symbol: formatter-governance
     kind: skill
-  - path: skills/engineering/formatter-governance/scripts/formatter_policy.py
+  - path: governed-engineering-skills/skills/engineering/formatter-governance/scripts/formatter_policy.py
     symbol: main
     kind: function
 - id: governance_workflow_domain
@@ -618,10 +627,10 @@ modules:
   role: domain
   implementation_status: implemented
   paths:
-  - skills/engineering/clarify-improvement-proposals
-  - skills/engineering/explain-code-flow
-  - skills/engineering/govern-modular-event-architecture
-  - skills/engineering/validate-on-device
+  - governed-engineering-skills/skills/engineering/clarify-improvement-proposals
+  - governed-engineering-skills/skills/engineering/explain-code-flow
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture
+  - governed-engineering-skills/skills/engineering/validate-on-device
   parent: guided_workflow_router
   depends_on:
   - verification_ladder_domain
@@ -629,8 +638,7 @@ modules:
   public_headers: []
   description:
     purpose: Enforce decision completeness, evidence-calibrated Flow cost review,
-      architecture ownership, evidence-backed explanation, and bounded runtime
-      validation.
+      architecture ownership, evidence-backed explanation, and bounded runtime validation.
     diagram_summaries:
       zh-TW: 決策完整性、架構、流程成本與執行證據治理
     input_ports: []
@@ -641,22 +649,22 @@ modules:
     errors: []
     invariants:
     - Codex never approves its own ADR or Algorithm Design Record.
-    - A material Flow recommendation evaluates functional admission, execution
-      and real-time feasibility, maintainability and extensibility, and model
-      assurance before Module, Port, Event, or execution decisions are finalized.
-    - Estimated models cannot establish a platform performance winner or
-      real-time PASS; load-bearing evidence gaps remain BLOCKED.
+    - A material Flow recommendation evaluates functional admission, execution and
+      real-time feasibility, maintainability and extensibility, and model assurance
+      before Module, Port, Event, or execution decisions are finalized.
+    - Estimated models cannot establish a platform performance winner or real-time
+      PASS; load-bearing evidence gaps remain BLOCKED.
     - C/C++ AST governance resolves native libclang only through its demand-owned
       pinned provider contract.
   entrypoints:
-  - path: skills/engineering/govern-modular-event-architecture/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/SKILL.md
     symbol: govern-modular-event-architecture
     kind: skill
   public_symbols:
-  - path: skills/engineering/govern-modular-event-architecture/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/SKILL.md
     symbol: govern-modular-event-architecture
     kind: skill
-  - path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
     symbol: LibclangToolchainPort
     kind: class
 - id: verification_ladder_domain
@@ -664,15 +672,15 @@ modules:
   role: component
   implementation_status: implemented
   paths:
-  - skills/engineering/verification-ladder
+  - governed-engineering-skills/skills/engineering/verification-ladder
   parent: governance_workflow_domain
   depends_on: []
   implements_ports: []
   public_headers: []
   description:
-    purpose: Select the lowest sufficient additive verification layers for affected module
-      contracts and evidence claims, validate project bindings, and reject cross-layer evidence
-      substitution.
+    purpose: Select the lowest sufficient additive verification layers for affected
+      module contracts and evidence claims, validate project bindings, and reject
+      cross-layer evidence substitution.
     diagram_summaries:
       zh-TW: 選擇模組契約所需驗證層並阻擋跨層證據替代
     input_ports:
@@ -682,34 +690,35 @@ modules:
     owned_state:
     - name: active run operation
       ref: run-operation-context
-      description: Context-local nesting identity; only the storage adapter sets and resets it while holding the filesystem operation lock.
+      description: Context-local nesting identity; only the storage adapter sets and
+        resets it while holding the filesystem operation lock.
     side_effects: []
     errors: []
     invariants:
-    - Host evidence remains valid for host-observable semantics but never satisfies target
-      timing, scheduler, physical-hardware, or long-duration stability claims.
+    - Host evidence remains valid for host-observable semantics but never satisfies
+      target timing, scheduler, physical-hardware, or long-duration stability claims.
     - Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device
       after Validation Enablement.
-    - Missing or stale architecture, scenario, profile, trigger, or evidence bindings return
-      BLOCKED instead of silently omitting a layer.
+    - Missing or stale architecture, scenario, profile, trigger, or evidence bindings
+      return BLOCKED instead of silently omitting a layer.
   entrypoints:
-  - path: skills/engineering/verification-ladder/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/verification-ladder/SKILL.md
     symbol: verification-ladder
     kind: skill
-  - path: skills/engineering/verification-ladder/scripts/verification_ladder.py
+  - path: governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py
     symbol: main
     kind: function
-  - path: skills/engineering/verification-ladder/scripts/project_validation.py
+  - path: governed-engineering-skills/skills/engineering/verification-ladder/scripts/project_validation.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: skills/engineering/verification-ladder/SKILL.md
+  - path: governed-engineering-skills/skills/engineering/verification-ladder/SKILL.md
     symbol: verification-ladder
     kind: skill
-  - path: skills/engineering/verification-ladder/scripts/verification_ladder.py
+  - path: governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py
     symbol: main
     kind: function
-  - path: skills/engineering/verification-ladder/scripts/project_validation.py
+  - path: governed-engineering-skills/skills/engineering/verification-ladder/scripts/project_validation.py
     symbol: assess_project
     kind: function
 - id: codex_plugin_adapter
@@ -717,7 +726,7 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - plugins/governed-engineering-skills/.codex-plugin
+  - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin
   parent: null
   depends_on: []
   implements_ports: []
@@ -735,11 +744,11 @@ modules:
     invariants:
     - The manifest discovers exactly one flat skills root.
   entrypoints:
-  - path: plugins/governed-engineering-skills/.codex-plugin/plugin.json
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/plugin.json
     symbol: governed-engineering-skills
     kind: manifest
   public_symbols:
-  - path: plugins/governed-engineering-skills/.codex-plugin/plugin.json
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/plugin.json
     symbol: governed-engineering-skills
     kind: manifest
 - id: repository_evidence_adapter
@@ -747,7 +756,7 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
   parent: null
   depends_on:
   - workflow_routing_domain
@@ -772,11 +781,11 @@ modules:
     - Never follow symbolic links or read their target metadata.
     - Preserve safely enumerable excluded paths with deterministic exclusion reasons.
   entrypoints:
-  - path: skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
     symbol: GitFilesystemRepositoryEvidenceAdapter
     kind: class
   public_symbols:
-  - path: skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
+  - path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
     symbol: GitFilesystemRepositoryEvidenceAdapter
     kind: class
 - id: plugin_assembly_composition
@@ -784,11 +793,13 @@ modules:
   role: composition
   implementation_status: implemented
   paths:
+  - governed-engineering-skills/scripts/assemble_plugin.py
+  - governed-engineering-skills/scripts/install-local.ps1
+  - governed-engineering-skills/scripts/validate_distribution.py
+  - governed-engineering-skills/distribution/skill-compatibility.json
+  - governed-engineering-skills/distribution/personal-marketplace-publication.schema.json
   - scripts/assemble_plugin.py
-  - scripts/install-local.ps1
   - scripts/validate_distribution.py
-  - distribution/skill-compatibility.json
-  - distribution/personal-marketplace-publication.schema.json
   parent: null
   depends_on:
   - codex_plugin_adapter
@@ -800,12 +811,12 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Assemble one complete Plugin artifact from the tracked Plugin shell
-      and the two authoritative promoted Skill buckets, normalize host-specific
-      invocation metadata, select and validate one Python 3.11+ interpreter before
-      assembly, safely recover access to only the exact ignored Windows artifact,
-      coordinate the supported local Codex installation,
-      and optionally emit a deterministic Codex Git Marketplace publication tree.
+    purpose: Assemble one complete Plugin artifact from the tracked Plugin shell and
+      the two authoritative promoted Skill buckets, normalize host-specific invocation
+      metadata, select and validate one Python 3.11+ interpreter before assembly,
+      safely recover access to only the exact ignored Windows artifact, coordinate
+      the supported local Codex installation, and optionally emit a deterministic
+      Codex Git Marketplace publication tree.
     diagram_summaries:
       zh-TW: 組裝單一外掛並產生個人 Git 市集發佈樹
     input_ports:
@@ -820,12 +831,12 @@ modules:
     - plugin-distribution.blocked
     owned_state: []
     side_effects:
-    - description: Replace only selected ignored output directories with a
-        deterministic Plugin artifact and Marketplace publication tree.
-    - description: Rehearse release validation in a temporary checkout populated
-        exclusively from the current tracked working-tree files.
-    - description: Apply a local-only cache identity to the ignored validated
-        artifact without changing formal release metadata.
+    - description: Replace only selected ignored output directories with a deterministic
+        Plugin artifact and Marketplace publication tree.
+    - description: Rehearse release validation in a temporary checkout populated exclusively
+        from the current tracked working-tree files.
+    - description: Apply a local-only cache identity to the ignored validated artifact
+        without changing formal release metadata.
     - description: Invoke the local installation adapter only after the assembled
         Plugin inventory and fingerprint validate.
     - description: Request the Windows artifact-access adapter to repair inherited
@@ -836,8 +847,8 @@ modules:
       condition: Source metadata, artifact inventory, publication identity, tree fingerprint,
         Codex installation evidence, or output ownership is invalid.
       event: plugin-distribution.blocked
-      handling: Fail closed, preserve unrelated files, and report the mismatched
-        identity or validation boundary.
+      handling: Fail closed, preserve unrelated files, and report the mismatched identity
+        or validation boundary.
     - id: python_runtime_incompatible
       condition: An explicitly injected Python command is incompatible, or neither
         PATH Python nor the Windows Python Launcher resolves Python 3.11 or newer.
@@ -858,49 +869,58 @@ modules:
     - Plugin assembly and production fingerprinting consume the same deterministic
       source-to-artifact inventory and reject duplicate logical artifact paths.
     - Every artifact records one complete file inventory and SHA-256 content fingerprint.
-    - Assembly stages the complete replacement before removing a previous validated artifact.
-    - Assembled release-state mutation is delegated to Plugin release governance before inventory creation.
-    - The supported local installer consumes the same validated assembled artifact as optional Marketplace publication.
+    - Assembly stages the complete replacement before removing a previous validated
+      artifact.
+    - Assembled release-state mutation is delegated to Plugin release governance before
+      inventory creation.
+    - The supported local installer consumes the same validated assembled artifact
+      as optional Marketplace publication.
     - Codex Desktop and Codex CLI are the only supported installation surfaces.
     - Python selection completes before artifact mutation and the selected absolute
       interpreter performs every assembly, validation, and localization command.
-    - Windows ACL recovery accepts only the canonical repository-owned
-      dist/governed-engineering-skills directory and never a repository root, ancestor,
-      sibling, outside path, symbolic link, junction, or other reparse point.
-    - "`marketplace-release` is generated and never becomes an editable Skill source."
+    - Windows ACL recovery accepts only the canonical repository-owned dist/governed-engineering-skills
+      directory and never a repository root, ancestor, sibling, outside path, symbolic
+      link, junction, or other reparse point.
+    - '`marketplace-release` is generated and never becomes an editable Skill source.'
     - Release readiness is reported only after a tracked-file-only rehearsal passes
-      assembly, distribution, artifact, version, Marketplace-candidate, and tag
-      eligibility validation.
+      assembly, distribution, artifact, version, Marketplace-candidate, and tag eligibility
+      validation.
   entrypoints:
+  - path: governed-engineering-skills/scripts/assemble_plugin.py
+    symbol: main
+    kind: cli
+  - path: governed-engineering-skills/scripts/install-local.ps1
+    symbol: install-local
+    kind: script
   - path: scripts/assemble_plugin.py
     symbol: main
     kind: cli
-  - path: scripts/install-local.ps1
-    symbol: install-local
-    kind: script
+  - path: scripts/validate_distribution.py
+    symbol: main
+    kind: cli
   public_symbols:
-  - path: scripts/install-local.ps1
+  - path: governed-engineering-skills/scripts/install-local.ps1
     symbol: install-local
     kind: script
-  - path: plugins/governed-engineering-skills/scripts/install-local.ps1
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
     symbol: install-local
     kind: script
-  - path: scripts/assemble_plugin.py
+  - path: governed-engineering-skills/scripts/assemble_plugin.py
     symbol: assemble
     kind: function
-  - path: scripts/assemble_plugin.py
+  - path: governed-engineering-skills/scripts/assemble_plugin.py
     symbol: validate_artifact
     kind: function
-  - path: scripts/assemble_plugin.py
+  - path: governed-engineering-skills/scripts/assemble_plugin.py
     symbol: localize_artifact
     kind: function
-  - path: scripts/assemble_plugin.py
+  - path: governed-engineering-skills/scripts/assemble_plugin.py
     symbol: write_marketplace_publication
     kind: function
-  - path: scripts/assemble_plugin.py
+  - path: governed-engineering-skills/scripts/assemble_plugin.py
     symbol: rehearse_release
     kind: function
-  - path: scripts/validate_distribution.py
+  - path: governed-engineering-skills/scripts/validate_distribution.py
     symbol: validate
     kind: function
 - id: python_runtime_selection_domain
@@ -908,7 +928,7 @@ modules:
   role: domain
   implementation_status: implemented
   paths:
-  - scripts/python-runtime-selection-policy.ps1
+  - governed-engineering-skills/scripts/python-runtime-selection-policy.ps1
   parent: plugin_assembly_composition
   depends_on: []
   implements_ports: []
@@ -931,11 +951,11 @@ modules:
     - A compatible PATH observation is accepted before requesting launcher fallback.
     - A launcher observation is accepted only after its resolved runtime is revalidated.
   entrypoints:
-  - path: scripts/python-runtime-selection-policy.ps1
+  - path: governed-engineering-skills/scripts/python-runtime-selection-policy.ps1
     symbol: Select-CompatiblePythonCandidate
     kind: function
   public_symbols:
-  - path: scripts/python-runtime-selection-policy.ps1
+  - path: governed-engineering-skills/scripts/python-runtime-selection-policy.ps1
     symbol: Select-CompatiblePythonCandidate
     kind: function
 - id: python_runtime_discovery_adapter
@@ -943,7 +963,7 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - scripts/python-runtime-selection.ps1
+  - governed-engineering-skills/scripts/python-runtime-selection.ps1
   parent: null
   depends_on:
   - python_runtime_selection_domain
@@ -965,8 +985,8 @@ modules:
         PATH applications or the Windows Python Launcher.
     errors:
     - id: python_runtime_probe_failed
-      condition: A candidate cannot execute, returns malformed output, reports an old
-        version, or resolves a missing executable path.
+      condition: A candidate cannot execute, returns malformed output, reports an
+        old version, or resolves a missing executable path.
       event: plugin-distribution.blocked
       handling: Preserve the observation as a diagnostic and follow the domain-owned
         admission or fallback action without entering Plugin assembly.
@@ -974,11 +994,11 @@ modules:
     - Every accepted executable is normalized to an absolute path and revalidated.
     - Python 2 and Python 3.10 are observable candidates but never execution runtimes.
   entrypoints:
-  - path: scripts/python-runtime-selection.ps1
+  - path: governed-engineering-skills/scripts/python-runtime-selection.ps1
     symbol: Resolve-CompatiblePython
     kind: function
   public_symbols:
-  - path: scripts/python-runtime-selection.ps1
+  - path: governed-engineering-skills/scripts/python-runtime-selection.ps1
     symbol: Resolve-CompatiblePython
     kind: function
 - id: windows_artifact_access_adapter
@@ -986,7 +1006,7 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - scripts/windows-artifact-access.ps1
+  - governed-engineering-skills/scripts/windows-artifact-access.ps1
   parent: null
   depends_on: []
   implements_ports:
@@ -1018,11 +1038,11 @@ modules:
       or nested reparse point are never ACL repair targets.
     - Elevated execution derives the only target from the admitted repository root.
   entrypoints:
-  - path: scripts/windows-artifact-access.ps1
+  - path: governed-engineering-skills/scripts/windows-artifact-access.ps1
     symbol: Ensure-GovernedArtifactAccess
     kind: function
   public_symbols:
-  - path: scripts/windows-artifact-access.ps1
+  - path: governed-engineering-skills/scripts/windows-artifact-access.ps1
     symbol: Ensure-GovernedArtifactAccess
     kind: function
 - id: local_install_adapter
@@ -1030,10 +1050,10 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - plugins/governed-engineering-skills/scripts/install-local.ps1
-  - scripts/install-marketplace.ps1
-  - scripts/install-marketplace.sh
-  - distribution/installer-providers.json
+  - governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
+  - governed-engineering-skills/scripts/install-marketplace.ps1
+  - governed-engineering-skills/scripts/install-marketplace.sh
+  - governed-engineering-skills/distribution/installer-providers.json
   parent: null
   depends_on: []
   implements_ports:
@@ -1041,9 +1061,9 @@ modules:
   public_headers: []
   description:
     purpose: Install the governed Plugin through a verified Codex Marketplace CLI.
-      Support both the maintainer-only local artifact adapter and native Windows
-      and Linux user installers that provision bounded dependencies and consume
-      the generated governed Marketplace branch.
+      Support both the maintainer-only local artifact adapter and native Windows and
+      Linux user installers that provision bounded dependencies and consume the generated
+      governed Marketplace branch.
     diagram_summaries:
       zh-TW: 註冊本機 Marketplace、安裝外掛並開啟 Codex 詳情頁
     input_ports: []
@@ -1062,9 +1082,9 @@ modules:
         the platform provider declared in distribution/installer-providers.json.
     errors:
     - id: local_installation_failed
-      condition: The assembled artifact is incomplete, no PATH or Codex Desktop
-        runtime candidate can execute, Marketplace registration or Plugin installation
-        fails, or the Desktop Plugin page cannot open.
+      condition: The assembled artifact is incomplete, no PATH or Codex Desktop runtime
+        candidate can execute, Marketplace registration or Plugin installation fails,
+        or the Desktop Plugin page cannot open.
       event: local-install.blocked
       handling: Return a stable non-zero exit code and write an actionable bounded
         log. If installation fails after registration, leave the local Marketplace
@@ -1073,9 +1093,9 @@ modules:
     - Accept only the validated assembled Plugin under dist/governed-engineering-skills.
     - Resolve repository paths relative to the user-launched installer.
     - Accept only a local cache identity already produced by Plugin assembly.
-    - Probe automatic Codex candidates with a side-effect-free version command
-      before Marketplace registration; use an executable PATH candidate before
-      any bundled Desktop runtime candidate.
+    - Probe automatic Codex candidates with a side-effect-free version command before
+      Marketplace registration; use an executable PATH candidate before any bundled
+      Desktop runtime candidate.
     - Treat an explicitly injected Codex command as authoritative for maintainers
       and isolated contract tests.
     - Never report installation complete before Codex Plugin installation exits successfully.
@@ -1085,17 +1105,17 @@ modules:
     - Preserve Codex versions newer than the tracked minimum and fail closed when
       the installed command remains older after a provisioning attempt.
   entrypoints:
-  - path: plugins/governed-engineering-skills/scripts/install-local.ps1
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
     symbol: install-local
     kind: script
-  - path: scripts/install-marketplace.ps1
+  - path: governed-engineering-skills/scripts/install-marketplace.ps1
     symbol: install-marketplace
     kind: script
-  - path: scripts/install-marketplace.sh
+  - path: governed-engineering-skills/scripts/install-marketplace.sh
     symbol: install-marketplace
     kind: script
   public_symbols:
-  - path: plugins/governed-engineering-skills/scripts/install-local.ps1
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
     symbol: install-local
     kind: script
 - id: integration_validation_technical
@@ -1103,7 +1123,7 @@ modules:
   role: technical
   implementation_status: implemented
   paths:
-  - plugins/governed-engineering-skills/scripts/validate_integration.py
+  - governed-engineering-skills/plugins/governed-engineering-skills/scripts/validate_integration.py
   parent: null
   depends_on:
   - plugin_release_governance_technical
@@ -1126,16 +1146,16 @@ modules:
       condition: Inventory, metadata, portability, or learning-note isolation violates
         the assembled Plugin contract.
       event: plugin-integration.blocked
-      handling: Emit bounded diagnostics and return a non-zero validation result
-        without mutating the Plugin or user configuration.
+      handling: Emit bounded diagnostics and return a non-zero validation result without
+        mutating the Plugin or user configuration.
     invariants:
     - Validation must not mutate the plugin or user configuration.
   entrypoints:
-  - path: plugins/governed-engineering-skills/scripts/validate_integration.py
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/validate_integration.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: plugins/governed-engineering-skills/scripts/validate_integration.py
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/validate_integration.py
     symbol: main
     kind: function
 - id: plugin_release_governance_technical
@@ -1143,7 +1163,7 @@ modules:
   role: technical
   implementation_status: implemented
   paths:
-  - plugins/governed-engineering-skills/scripts/version_governance.py
+  - governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
   parent: null
   depends_on: []
   implements_ports:
@@ -1151,8 +1171,8 @@ modules:
   - plugin-release.synchronize-artifact
   public_headers: []
   description:
-    purpose: Validate and release the repository's only release unit through
-      continuous stable-only SemVer.
+    purpose: Validate the engineering package's independently versioned stable release
+      unit.
     diagram_summaries:
       zh-TW: 以穩定語意版本治理唯一外掛發佈單元
     input_ports: []
@@ -1174,7 +1194,7 @@ modules:
         release identity.
     invariants:
     - Plugin package and Codex manifest versions remain identical.
-    - Plugin release metadata is the repository's sole active version authority.
+    - Plugin release metadata is the engineering package's active version authority.
     - Local Codex cachebusters never become formal release versions.
     - Formal plugin versions contain no prerelease or general build metadata.
     - Every release intent names the complete pending changeset set, and the highest
@@ -1183,20 +1203,20 @@ modules:
       file is modified.
     - Production fingerprint synchronization rejects the tracked incomplete Plugin
       shell and accepts only a populated assembled Skill tree.
-    - Production fingerprints hash only entries selected by the deterministic
-      assembly inventory, independent of ignored or untracked workspace artifacts.
+    - Production fingerprints hash only entries selected by the deterministic assembly
+      inventory, independent of ignored or untracked workspace artifacts.
   entrypoints:
-  - path: plugins/governed-engineering-skills/scripts/version_governance.py
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: plugins/governed-engineering-skills/scripts/version_governance.py
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: assembly_source_inventory
     kind: function
-  - path: plugins/governed-engineering-skills/scripts/version_governance.py
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: validate_repository
     kind: function
-  - path: plugins/governed-engineering-skills/scripts/version_governance.py
+  - path: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
     symbol: synchronize_production_fingerprint
     kind: function
 - id: architecture_governance_cli
@@ -1204,7 +1224,7 @@ modules:
   role: composition
   implementation_status: implemented
   paths:
-  - skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
   parent: null
   depends_on:
   - governance_workflow_domain
@@ -1212,8 +1232,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Compose the governance engine and pinned native provider behind the
-      single public architecture CLI.
+    purpose: Compose the governance engine and pinned native provider behind the single
+      public architecture CLI.
     diagram_summaries:
       zh-TW: 透過單一命令列介面執行架構治理與原生分析
     input_ports: []
@@ -1226,11 +1246,11 @@ modules:
     invariants:
     - Gate execution never downloads or replaces a native provider cache.
   entrypoints:
-  - path: skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
     symbol: main
     kind: function
   public_symbols:
-  - path: skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
     symbol: main
     kind: function
 - id: libclang_toolchain_adapter
@@ -1238,7 +1258,7 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
   parent: null
   depends_on:
   - governance_workflow_domain
@@ -1246,8 +1266,8 @@ modules:
   - libclang_toolchain.resolve
   public_headers: []
   description:
-    purpose: Provision and verify the official lock-pinned Espressif libclang
-      distribution for target-capable C/C++ governance.
+    purpose: Provision and verify the official lock-pinned Espressif libclang distribution
+      for target-capable C/C++ governance.
     diagram_summaries:
       zh-TW: 安裝並驗證鎖定版本的 Espressif libclang 工具鏈
     input_ports: []
@@ -1261,11 +1281,11 @@ modules:
     - Gate execution never downloads or overwrites a cache.
     - Library loading is explicit and hash-verified.
   entrypoints:
-  - path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
     symbol: EspressifLibclangToolchainAdapter
     kind: class
   public_symbols:
-  - path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+  - path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
     symbol: EspressifLibclangToolchainAdapter
     kind: class
 - id: project_validation_adapter
@@ -1273,7 +1293,7 @@ modules:
   role: adapter
   implementation_status: implemented
   paths:
-  - skills/engineering/implement/scripts/project_validation_adapter.py
+  - governed-engineering-skills/skills/engineering/implement/scripts/project_validation_adapter.py
   parent: null
   depends_on:
   - spec_governance_domain
@@ -1281,8 +1301,8 @@ modules:
   - project-validation.assess
   public_headers: []
   description:
-    purpose: Invoke the selected verification-ladder JSON CLI with bounded execution and return
-      project validation facts without device actions.
+    purpose: Invoke the selected verification-ladder JSON CLI with bounded execution
+      and return project validation facts without device actions.
     diagram_summaries:
       zh-TW: 呼叫專案驗證工具並回傳可追溯結果
     input_ports: []
@@ -1294,11 +1314,11 @@ modules:
     invariants:
     - Never operate devices or convert incomplete evidence into PASS.
   entrypoints:
-  - path: skills/engineering/implement/scripts/project_validation_adapter.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/project_validation_adapter.py
     symbol: assess_project_validation
     kind: function
   public_symbols:
-  - path: skills/engineering/implement/scripts/project_validation_adapter.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/project_validation_adapter.py
     symbol: assess_project_validation
     kind: function
 - id: project_validation_composition
@@ -1306,7 +1326,7 @@ modules:
   role: composition
   implementation_status: implemented
   paths:
-  - skills/engineering/implement/scripts/project_validation_workflow.py
+  - governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py
   parent: null
   depends_on:
   - delivery_workflow_domain
@@ -1314,8 +1334,8 @@ modules:
   implements_ports: []
   public_headers: []
   description:
-    purpose: Inject the project validation adapter into existing specification and delivery
-      public CLIs.
+    purpose: Inject the project validation adapter into existing specification and
+      delivery public CLIs.
     diagram_summaries:
       zh-TW: 在入口注入專案驗證工具
     input_ports: []
@@ -1325,20 +1345,20 @@ modules:
     side_effects: []
     errors: []
     invariants:
-    - Functional consumers receive the demand-owned validation callable; they never construct
-      the technical adapter.
+    - Functional consumers receive the demand-owned validation callable; they never
+      construct the technical adapter.
   entrypoints:
-  - path: skills/engineering/implement/scripts/project_validation_workflow.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py
     symbol: main
     kind: cli
   public_symbols:
-  - path: skills/engineering/implement/scripts/project_validation_workflow.py
+  - path: governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py
     symbol: main
     kind: function
 composition_roots:
 - id: guided-workflow-release
   module: guided_workflow_router
-  path: skills/engineering/ask-matt/SKILL.md
+  path: governed-engineering-skills/skills/engineering/ask-matt/SKILL.md
   symbol: ask-matt
   purpose: Compose the installed plugin's governed engineering workflow entry.
   source_set: repository-production
@@ -1348,7 +1368,7 @@ ports:
   owner: verification_ladder_domain
   direction: input
   kind: query
-  contract: skills/engineering/verification-ladder/references/verification-ladder.schema.json
+  contract: governed-engineering-skills/skills/engineering/verification-ladder/references/verification-ladder.schema.json
   implemented_by: []
   description:
     purpose: Validate one project verification matrix and derive the additive layers
@@ -1367,7 +1387,7 @@ ports:
   owner: python_runtime_selection_domain
   direction: input
   kind: query
-  contract: scripts/python-runtime-selection-policy.ps1
+  contract: governed-engineering-skills/scripts/python-runtime-selection-policy.ps1
   implemented_by:
   - python_runtime_discovery_adapter
   description:
@@ -1377,12 +1397,13 @@ ports:
     immediate_rejections:
     - code: incompatible
       condition: No contractually ordered candidate resolves a valid compatible interpreter.
-  symbols: [Select-CompatiblePythonCandidate]
+  symbols:
+  - Select-CompatiblePythonCandidate
 - id: plugin-artifact-access.repair
   owner: plugin_assembly_composition
   direction: input
   kind: query
-  contract: scripts/install-local.ps1
+  contract: governed-engineering-skills/scripts/install-local.ps1
   implemented_by:
   - windows_artifact_access_adapter
   description:
@@ -1391,19 +1412,22 @@ ports:
     timing: sync
     immediate_rejections:
     - code: unsafe-target
-      condition: The target is not the exact repository artifact or contains a reparse point.
+      condition: The target is not the exact repository artifact or contains a reparse
+        point.
     - code: inaccessible
       condition: Ordinary and approved elevated inherited-ACL repair do not make every
         descendant inspectable and replaceable.
-  symbols: [install-local]
+  symbols:
+  - install-local
 - id: plugin-install.local
   owner: plugin_assembly_composition
   direction: input
   kind: command
-  contract: scripts/install-local.ps1
+  contract: governed-engineering-skills/scripts/install-local.ps1
   implemented_by: []
   description:
-    purpose: Assemble, validate, and begin installation of the governed Plugin for local Codex.
+    purpose: Assemble, validate, and begin installation of the governed Plugin for
+      local Codex.
     data: Repository-relative source, output, and Marketplace identities.
     timing: sync
     immediate_rejections:
@@ -1414,39 +1438,43 @@ ports:
     - code: artifact-access-blocked
       condition: The exact ignored Windows artifact cannot pass bounded path, reparse-point,
         ACL-repair, elevation-consent, and post-repair access checks.
-  symbols: [install-local]
+  symbols:
+  - install-local
 - id: local-install.register
   owner: plugin_assembly_composition
   direction: input
   kind: command
-  contract: plugins/governed-engineering-skills/scripts/install-local.ps1
+  contract: governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
   implemented_by:
   - local_install_adapter
   description:
-    purpose: Register the validated local Marketplace and open the governed Plugin page.
+    purpose: Register the validated local Marketplace and open the governed Plugin
+      page.
     data: Validated assembled Plugin path, Marketplace manifest path, and Plugin identifier.
     timing: sync
     immediate_rejections:
     - code: invalid
       condition: The assembled Plugin or Marketplace manifest is incomplete or inconsistent.
-  symbols: [install-local]
+  symbols:
+  - install-local
 - id: local-install.result
   owner: local_install_adapter
   direction: output
   kind: event
-  contract: plugins/governed-engineering-skills/scripts/install-local.ps1
+  contract: governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
   implemented_by: []
   description:
     purpose: Publish a bounded local Codex installation result.
     data: Stable exit status, installation phase, and actionable diagnostic.
     timing: sync
     immediate_rejections: []
-  symbols: [install-local]
+  symbols:
+  - install-local
 - id: plugin-release.synchronize-artifact
   owner: plugin_assembly_composition
   direction: input
   kind: command
-  contract: plugins/governed-engineering-skills/scripts/version_governance.py
+  contract: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
   implemented_by:
   - plugin_release_governance_technical
   description:
@@ -1461,19 +1489,20 @@ ports:
         is missing, malformed, or lacks its fingerprint field.
     - code: unavailable
       condition: The assembled Plugin fingerprint cannot be calculated.
-  symbols: [assemble]
+  symbols:
+  - assemble
 - id: plugin-release.inventory
   owner: plugin_assembly_composition
   direction: input
   kind: query
-  contract: plugins/governed-engineering-skills/scripts/version_governance.py
+  contract: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
   implemented_by:
   - plugin_release_governance_technical
   description:
     purpose: Enumerate the deterministic source-to-artifact files shared by Plugin
       assembly and production fingerprinting.
-    data: Repository root mapped to unique normalized Plugin artifact paths and
-      their source files.
+    data: Repository root mapped to unique normalized Plugin artifact paths and their
+      source files.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -1481,48 +1510,52 @@ ports:
         or maps to a duplicate logical artifact path.
     - code: unavailable
       condition: The tracked repository inventory cannot be read.
-  symbols: [assemble]
+  symbols:
+  - assemble
 - id: plugin-distribution.result
   owner: plugin_assembly_composition
   direction: output
   kind: event
-  contract: distribution/personal-marketplace-publication.schema.json
+  contract: governed-engineering-skills/distribution/personal-marketplace-publication.schema.json
   implemented_by: []
   description:
     purpose: Publish a fail-closed Plugin assembly or Marketplace validation result.
     data: Artifact identity, publication identity, and bounded validation diagnostics.
     timing: sync
     immediate_rejections: []
-  symbols: [validate_artifact]
+  symbols:
+  - validate_artifact
 - id: plugin-integration.result
   owner: integration_validation_technical
   direction: output
   kind: event
-  contract: plugins/governed-engineering-skills/scripts/validate_integration.py
+  contract: governed-engineering-skills/plugins/governed-engineering-skills/scripts/validate_integration.py
   implemented_by: []
   description:
     purpose: Publish the assembled Plugin integration-validation result.
     data: Inventory, metadata, portability, and isolation diagnostics.
     timing: sync
     immediate_rejections: []
-  symbols: [main]
+  symbols:
+  - main
 - id: plugin-release.result
   owner: plugin_release_governance_technical
   direction: output
   kind: event
-  contract: plugins/governed-engineering-skills/scripts/version_governance.py
+  contract: governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
   implemented_by: []
   description:
     purpose: Publish the stable Plugin release-identity validation result.
     data: Version, changeset, tag, and release-intent diagnostics.
     timing: sync
     immediate_rejections: []
-  symbols: [validate_repository]
+  symbols:
+  - validate_repository
 - id: guided-routing.route
   owner: guided_workflow_router
   direction: input
   kind: query
-  contract: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
   implemented_by: []
   description:
     purpose: Route one software-engineering request to its safe primary skill.
@@ -1540,7 +1573,7 @@ ports:
   owner: risk_routing_domain
   direction: input
   kind: query
-  contract: skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
   implemented_by: []
   description:
     purpose: Classify one engineering task and select required gates.
@@ -1554,10 +1587,11 @@ ports:
   owner: workflow_routing_domain
   direction: input
   kind: query
-  contract: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
   implemented_by: []
   description:
-    purpose: Convert repository evidence into a three-state implementation and documentation assessment.
+    purpose: Convert repository evidence into a three-state implementation and documentation
+      assessment.
     data: Read-only tracked and non-ignored untracked path evidence.
     timing: sync
     immediate_rejections:
@@ -1569,15 +1603,15 @@ ports:
   owner: workflow_routing_domain
   direction: input
   kind: query
-  contract: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
   implemented_by: []
   description:
     purpose: Select the authoritative skill handoff after intent, project state, risk,
       capability, and complexity checks.
     data: IntentAssessment, ProjectStateAssessment, RoutingDecision, capabilities,
       wayfinder threshold evidence, exact fresh-task confirmed-Spec resume intent,
-      and caller-supplied unresolved-decision lifecycle evidence for a
-      non-discoverable choice that shapes the change set.
+      and caller-supplied unresolved-decision lifecycle evidence for a non-discoverable
+      choice that shapes the change set.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -1588,7 +1622,7 @@ ports:
   owner: workflow_routing_domain
   direction: output
   kind: query
-  contract: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
   implemented_by:
   - repository_evidence_adapter
   description:
@@ -1604,10 +1638,11 @@ ports:
   owner: spec_governance_domain
   direction: input
   kind: command
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Create, migrate, or resolve one canonical project-root working specification with embedded audit.
+    purpose: Create, migrate, or resolve one canonical project-root working specification
+      with embedded audit.
     data: Project root, change-set slug and optional working, task, or branch evidence
       produce one immutable WorkingSpecReference.
     timing: sync
@@ -1620,16 +1655,16 @@ ports:
   owner: formatter_governance_domain
   direction: input
   kind: query
-  contract: skills/engineering/formatter-governance/references/formatter-policy-request.schema.json
+  contract: governed-engineering-skills/skills/engineering/formatter-governance/references/formatter-policy-request.schema.json
   implemented_by: []
   description:
     purpose: Evaluate formatter selection, exact-root scaffold safety, full-program
       confirmation and scope, and the pre-product mutation gate through one stable
       CLI contract.
     data: ProjectState, language or repository formatter identity and argv, exact
-      root and scaffold paths, prior evidence statuses, tool availability, check
-      status, canonical SPEC, confirmation, clean-target evidence, CLI write and
-      check outcomes, and native permission outcome.
+      root and scaffold paths, prior evidence statuses, tool availability, check status,
+      canonical SPEC, confirmation, clean-target evidence, CLI write and check outcomes,
+      and native permission outcome.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -1640,13 +1675,13 @@ ports:
   owner: formatter_governance_domain
   direction: output
   kind: event
-  contract: skills/engineering/formatter-governance/references/formatter-policy-result.schema.json
+  contract: governed-engineering-skills/skills/engineering/formatter-governance/references/formatter-policy-result.schema.json
   implemented_by: []
   description:
     purpose: Publish the formatter policy PASS or BLOCKED decision with bounded evidence.
     data: Project kind and root, formatter identity, check and write argv, program
-      and dirty file scopes, confirmation, installation and execution outcomes,
-      mutation allowances, and diagnostic reason.
+      and dirty file scopes, confirmation, installation and execution outcomes, mutation
+      allowances, and diagnostic reason.
     timing: sync
     immediate_rejections: []
   symbols:
@@ -1655,13 +1690,14 @@ ports:
   owner: spec_governance_domain
   direction: input
   kind: command
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
     purpose: Reconcile and persist one newly confirmed discussion statement before
       another decision question.
     data: Expected working revision and hash, existing durable context, and one confirmed
-      statement produce a new snapshot, normalized journal event, and consistency verdict.
+      statement produce a new snapshot, normalized journal event, and consistency
+      verdict.
     timing: sync
     immediate_rejections:
     - code: invalid
@@ -1674,23 +1710,25 @@ ports:
   owner: spec_governance_domain
   direction: input
   kind: command
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Persist one decision-complete working specification as the canonical repository artifact.
+    purpose: Persist one decision-complete working specification as the canonical
+      repository artifact.
     data: A PASS SpecConsistencyAssessment produces one versioned Markdown specification
       without granting product execution authority.
     timing: sync
     immediate_rejections:
     - code: unresolved
-      condition: Conflicts, open decisions, invalid relations, or uncovered requirements remain.
+      condition: Conflicts, open decisions, invalid relations, or uncovered requirements
+        remain.
   symbols:
   - spec-governance
 - id: spec-governance.reopen
   owner: spec_governance_domain
   direction: input
   kind: command
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
     purpose: Reopen a confirmed unimplemented specification in place before clarifying
@@ -1709,10 +1747,11 @@ ports:
   owner: spec_governance_domain
   direction: input
   kind: query
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
-    purpose: Detect staged local WORKING-SPEC pairs and require an explicit retention disposition.
+    purpose: Detect staged local WORKING-SPEC pairs and require an explicit retention
+      disposition.
     data: Project Git state and known working pairs produce delete, keep-local, or
       archive choices without performing Git actions.
     timing: sync
@@ -1725,15 +1764,17 @@ ports:
   owner: spec_governance_domain
   direction: input
   kind: query
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
     purpose: Verify a canonical specification and its requirement-to-validation traceability.
-    data: A resolved canonical specification and current request produce a PASS or BLOCKED assessment.
+    data: A resolved canonical specification and current request produce a PASS or
+      BLOCKED assessment.
     timing: sync
     immediate_rejections:
     - code: ambiguous
-      condition: More than one canonical specification matches the current change set.
+      condition: More than one canonical specification matches the current change
+        set.
     - code: invalid
       condition: The selected specification violates the structural contract.
   symbols:
@@ -1742,7 +1783,7 @@ ports:
   owner: spec_governance_domain
   direction: output
   kind: event
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
     purpose: Publish one specification lifecycle result to the delivery parent.
@@ -1755,7 +1796,7 @@ ports:
   owner: delivery_workflow_domain
   direction: output
   kind: event
-  contract: skills/engineering/spec-governance/references/spec-contract.schema.json
+  contract: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
   implemented_by: []
   description:
     purpose: Publish delivery failures that preserve a valid canonical specification.
@@ -1768,13 +1809,13 @@ ports:
   owner: governance_workflow_domain
   direction: output
   kind: query
-  contract: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+  contract: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
   implemented_by:
   - libclang_toolchain_adapter
   description:
     purpose: Resolve, bind, and verify one lock-pinned target-capable libclang provider.
-    data: Toolchain lock and operation mode produce immutable provider evidence
-      or fail-closed CAST diagnostics.
+    data: Toolchain lock and operation mode produce immutable provider evidence or
+      fail-closed CAST diagnostics.
     timing: sync
     immediate_rejections:
     - code: CAST001
@@ -1787,17 +1828,18 @@ ports:
   owner: spec_governance_domain
   direction: output
   kind: query
-  contract: skills/engineering/verification-ladder/references/project-validation.schema.json
+  contract: governed-engineering-skills/skills/engineering/verification-ladder/references/project-validation.schema.json
   implemented_by:
   - project_validation_adapter
   description:
     purpose: Assess project planning or completion before recording acceptance.
-    data: Project root, canonical SPEC and phase produce a validation verdict with source
-      hashes and diagnostics.
+    data: Project root, canonical SPEC and phase produce a validation verdict with
+      source hashes and diagnostics.
     timing: sync
     immediate_rejections:
     - code: unavailable
-      condition: Missing capability, invalid context, stale bindings or inadequate evidence.
+      condition: Missing capability, invalid context, stale bindings or inadequate
+        evidence.
   symbols:
   - assess_spec_evidence_update
 events:
@@ -1805,71 +1847,153 @@ events:
   owner: formatter_governance_domain
   output_port: formatter-governance.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
     purpose: Report that formatter selection, scaffold safety, permission, or the
       non-mutating check prevents delivery from continuing.
     emitted_when: Any formatter-governance prerequisite fails closed.
     payload_fields:
-    - {name: reason, type: string, meaning: Bounded formatter-policy diagnostic.}
-    intended_consumers: [delivery_workflow_domain]
+    - name: reason
+      type: string
+      meaning: Bounded formatter-policy diagnostic.
+    intended_consumers:
+    - delivery_workflow_domain
 - id: local-install.blocked
   owner: local_install_adapter
   output_port: local-install.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
     purpose: Report that local Codex installation cannot continue safely.
-    emitted_when: Artifact validation, Codex resolution, Marketplace registration, Plugin installation, or page launch fails.
+    emitted_when: Artifact validation, Codex resolution, Marketplace registration,
+      Plugin installation, or page launch fails.
     payload_fields:
-    - {name: reason, type: string, meaning: Bounded installation diagnostic and recovery action.}
-    intended_consumers: [plugin_assembly_composition]
+    - name: reason
+      type: string
+      meaning: Bounded installation diagnostic and recovery action.
+    intended_consumers:
+    - plugin_assembly_composition
 - id: plugin-distribution.blocked
   owner: plugin_assembly_composition
   output_port: plugin-distribution.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
-    purpose: Report that Python admission, bounded artifact-access recovery, Plugin assembly,
-      or personal Marketplace publication cannot continue safely.
+    purpose: Report that Python admission, bounded artifact-access recovery, Plugin
+      assembly, or personal Marketplace publication cannot continue safely.
     emitted_when: Python runtime, exact-target ACL recovery, artifact, publication,
       evidence, or output-ownership validation fails.
     payload_fields:
-    - {name: reason, type: string, meaning: Bounded fail-closed validation diagnostic.}
-    intended_consumers: [plugin_release_governance_technical]
+    - name: reason
+      type: string
+      meaning: Bounded fail-closed validation diagnostic.
+    intended_consumers:
+    - plugin_release_governance_technical
 - id: plugin-integration.blocked
   owner: integration_validation_technical
   output_port: plugin-integration.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
     purpose: Report that the assembled Plugin violates an integration contract.
     emitted_when: Inventory, metadata, portability, or isolation validation fails.
     payload_fields:
-    - {name: reason, type: string, meaning: Bounded integration diagnostic.}
-    intended_consumers: [plugin_release_governance_technical]
+    - name: reason
+      type: string
+      meaning: Bounded integration diagnostic.
+    intended_consumers:
+    - plugin_release_governance_technical
 - id: plugin-release.blocked
   owner: plugin_release_governance_technical
   output_port: plugin-release.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
     purpose: Report that the stable release identity is inconsistent.
     emitted_when: Version, changeset, tag, or release-intent validation fails.
     payload_fields:
-    - {name: reason, type: string, meaning: Bounded release-governance diagnostic.}
-    intended_consumers: [plugin_assembly_composition]
+    - name: reason
+      type: string
+      meaning: Bounded release-governance diagnostic.
+    intended_consumers:
+    - plugin_assembly_composition
 - id: spec-governance.blocked
   owner: spec_governance_domain
   output_port: spec-governance.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
     purpose: Tell delivery orchestration that specification work cannot continue safely.
     emitted_when: A reconciliation or verification has unresolved blocking evidence.
@@ -1886,10 +2010,22 @@ events:
   owner: delivery_workflow_domain
   output_port: delivery-workflow.result
   delivery: at-most-once
-  envelope: [event_type, source, correlation_id, stream_id, sequence, payload]
-  lifecycle: [received, validated, processing, succeeded, failed]
+  envelope:
+  - event_type
+  - source
+  - correlation_id
+  - stream_id
+  - sequence
+  - payload
+  lifecycle:
+  - received
+  - validated
+  - processing
+  - succeeded
+  - failed
   description:
-    purpose: Preserve durable context while reporting that its tracker snapshot remains pending.
+    purpose: Preserve durable context while reporting that its tracker snapshot remains
+      pending.
     emitted_when: Canonical materialization succeeds and tracker publication fails.
     payload_fields:
     - name: canonical_spec
@@ -1901,50 +2037,95 @@ types:
 - id: plugin-distribution-error
   owner: plugin_assembly_composition
   language: python
-  declaration: {path: scripts/assemble_plugin.py, symbol: DistributionError, kind: class}
+  declaration:
+    path: governed-engineering-skills/scripts/assemble_plugin.py
+    symbol: DistributionError
+    kind: class
   visibility: cross-module
   semantic_kind: domain-value
   description: Fail-closed assembly, inventory, or source-drift error.
   lifetime: One failed assembly or validation invocation.
   mutability: immutable
   mutation_authority: []
-  consumers: [plugin_assembly_composition]
+  consumers:
+  - plugin_assembly_composition
   references: []
   fields: []
 - id: personal-marketplace-publication-record
   owner: plugin_assembly_composition
   language: json-schema
   declaration:
-    path: distribution/personal-marketplace-publication.schema.json
+    path: governed-engineering-skills/distribution/personal-marketplace-publication.schema.json
     symbol: PersonalMarketplacePublicationRecord
     kind: interface
   visibility: cross-module
   semantic_kind: domain-value
-  description: Immutable identity and rollback record for one generated personal Git Marketplace tree.
+  description: Immutable identity and rollback record for one generated personal Git
+    Marketplace tree.
   lifetime: One validated Marketplace publication candidate.
   mutability: immutable
   mutation_authority: []
-  consumers: [plugin_assembly_composition]
+  consumers:
+  - plugin_assembly_composition
   references: []
   fields:
-  - {name: schema_version, type: string, role: metadata, meaning: Publication-record schema version.}
-  - {name: channel, type: string, role: domain-identity, meaning: Personal Git Marketplace publication channel.}
-  - {name: repository_url, type: string, role: domain-identity, meaning: Supported Git repository URL.}
-  - {name: git_ref, type: string, role: domain-identity, meaning: Generated Marketplace branch name.}
-  - {name: source_commit, type: string, role: metadata, meaning: Main commit used to assemble the Plugin.}
-  - {name: source_tag, type: string, role: metadata, meaning: Stable Plugin release tag.}
-  - {name: marketplace_path, type: string, role: domain-identity, meaning: Catalog path within the generated tree.}
-  - {name: sparse_paths, type: string-array, role: policy, meaning: Required Git Marketplace sparse paths.}
-  - {name: artifact, type: object, role: metadata, meaning: Plugin name version inventory and fingerprint.}
-  - {name: tree_fingerprint, type: string, role: metadata, meaning: Deterministic publication-tree fingerprint.}
-  - {name: installation_steps, type: string-array, role: policy, meaning: Optional Codex Marketplace installation instructions.}
-  - {name: rollback, type: object, role: policy, meaning: Prior validated publication commit and recovery method.}
-  - {name: evidence_checklist, type: string-array, role: metadata, meaning: Optional Codex publication verification observations.}
+  - name: schema_version
+    type: string
+    role: metadata
+    meaning: Publication-record schema version.
+  - name: channel
+    type: string
+    role: domain-identity
+    meaning: Personal Git Marketplace publication channel.
+  - name: repository_url
+    type: string
+    role: domain-identity
+    meaning: Supported Git repository URL.
+  - name: git_ref
+    type: string
+    role: domain-identity
+    meaning: Generated Marketplace branch name.
+  - name: source_commit
+    type: string
+    role: metadata
+    meaning: Main commit used to assemble the Plugin.
+  - name: source_tag
+    type: string
+    role: metadata
+    meaning: Stable Plugin release tag.
+  - name: marketplace_path
+    type: string
+    role: domain-identity
+    meaning: Catalog path within the generated tree.
+  - name: sparse_paths
+    type: string-array
+    role: policy
+    meaning: Required Git Marketplace sparse paths.
+  - name: artifact
+    type: object
+    role: metadata
+    meaning: Plugin name version inventory and fingerprint.
+  - name: tree_fingerprint
+    type: string
+    role: metadata
+    meaning: Deterministic publication-tree fingerprint.
+  - name: installation_steps
+    type: string-array
+    role: policy
+    meaning: Optional Codex Marketplace installation instructions.
+  - name: rollback
+    type: object
+    role: policy
+    meaning: Prior validated publication commit and recovery method.
+  - name: evidence_checklist
+    type: string-array
+    role: metadata
+    meaning: Optional Codex publication verification observations.
 - id: repository-artifact
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: RepositoryArtifact
     kind: interface
   visibility: cross-module
@@ -1973,12 +2154,13 @@ types:
   - name: exclusion_reason
     type: nullable-string
     role: policy
-    meaning: Deterministic reason an artifact is excluded, or null when it is eligible evidence.
+    meaning: Deterministic reason an artifact is excluded, or null when it is eligible
+      evidence.
 - id: repository-evidence
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: RepositoryEvidence
     kind: interface
   visibility: cross-module
@@ -2016,12 +2198,13 @@ types:
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: ProjectStateAssessment
     kind: interface
   visibility: cross-module
   semantic_kind: query
-  description: Evidence-backed three-state assessment of implementation and durable project context.
+  description: Evidence-backed three-state assessment of implementation and durable
+    project context.
   lifetime: One guided route.
   mutability: immutable
   mutation_authority: []
@@ -2047,7 +2230,7 @@ types:
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: IntentAssessment
     kind: interface
   visibility: cross-module
@@ -2081,7 +2264,7 @@ types:
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: WorkflowSelectionOptions
     kind: interface
   visibility: cross-module
@@ -2104,7 +2287,7 @@ types:
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: GuidedRouteDecision
     kind: interface
   visibility: cross-module
@@ -2159,18 +2342,19 @@ types:
   - name: turn_context
     type: nullable-object
     role: metadata
-    meaning: Immutable recovered task decision evidence including exact pending options and working identity.
-
+    meaning: Immutable recovered task decision evidence including exact pending options
+      and working identity.
 - id: spec-context-assessment
   owner: workflow_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
     symbol: SpecContextAssessment
     kind: interface
   visibility: cross-module
   semantic_kind: query
-  description: Deterministic binding between one engineering request and its canonical specification.
+  description: Deterministic binding between one engineering request and its canonical
+    specification.
   lifetime: One guided route and its specification handoff.
   mutability: immutable
   mutation_authority: []
@@ -2186,7 +2370,8 @@ types:
   - name: selected_path
     type: nullable-string
     role: domain-identity
-    meaning: Project-relative canonical specification path selected for this change set.
+    meaning: Project-relative canonical specification path selected for this change
+      set.
   - name: candidates
     type: string-array
     role: metadata
@@ -2199,7 +2384,7 @@ types:
   owner: spec_governance_domain
   language: json-schema
   declaration:
-    path: skills/engineering/spec-governance/references/spec-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
     symbol: WorkingSpecReference
     kind: interface
   visibility: module-public
@@ -2224,7 +2409,8 @@ types:
   - name: journal_path
     type: string
     role: metadata
-    meaning: Project-relative audit container path; equals snapshot_path for a canonical single-file SPEC. Legacy JSONL paths remain readable during migration.
+    meaning: Project-relative audit container path; equals snapshot_path for a canonical
+      single-file SPEC. Legacy JSONL paths remain readable during migration.
   - name: revision
     type: integer
     role: metadata
@@ -2244,7 +2430,8 @@ types:
   - name: spec_id
     type: string
     role: domain-identity
-    meaning: SPEC-0000 before first materialization or the preserved canonical SPEC ID.
+    meaning: SPEC-0000 before first materialization or the preserved canonical SPEC
+      ID.
   - name: change_set
     type: string
     role: metadata
@@ -2261,7 +2448,7 @@ types:
   owner: spec_governance_domain
   language: json-schema
   declaration:
-    path: skills/engineering/spec-governance/references/spec-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
     symbol: DiscussionContextRecord
     kind: interface
   visibility: module-public
@@ -2274,23 +2461,45 @@ types:
   - delivery_workflow_domain
   references: []
   fields:
-  - {name: discussion_id, type: string, role: domain-identity, meaning: Stable DISC-### identity.}
-  - {name: situation, type: string, role: domain-value, meaning: Decision context visible to the user.}
-  - {name: question, type: string, role: domain-value, meaning: Conclusion-changing question.}
-  - {name: options_and_tradeoffs, type: string, role: policy, meaning: Considered choices and material tradeoffs.}
-  - {name: user_answer, type: string, role: domain-value, meaning: Visible original user answer after required redaction.}
-  - {name: explicit_rationale, type: string, role: domain-value, meaning: User-stated rationale or not stated.}
-  - {name: resulting_impact, type: string-array, role: metadata, meaning: Affected REQ DEC and AC identities.}
+  - name: discussion_id
+    type: string
+    role: domain-identity
+    meaning: Stable DISC-### identity.
+  - name: situation
+    type: string
+    role: domain-value
+    meaning: Decision context visible to the user.
+  - name: question
+    type: string
+    role: domain-value
+    meaning: Conclusion-changing question.
+  - name: options_and_tradeoffs
+    type: string
+    role: policy
+    meaning: Considered choices and material tradeoffs.
+  - name: user_answer
+    type: string
+    role: domain-value
+    meaning: Visible original user answer after required redaction.
+  - name: explicit_rationale
+    type: string
+    role: domain-value
+    meaning: User-stated rationale or not stated.
+  - name: resulting_impact
+    type: string-array
+    role: metadata
+    meaning: Affected REQ DEC and AC identities.
 - id: spec-consistency-assessment
   owner: spec_governance_domain
   language: json-schema
   declaration:
-    path: skills/engineering/spec-governance/references/spec-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
     symbol: SpecConsistencyAssessment
     kind: interface
   visibility: module-public
   semantic_kind: query
-  description: Classified specification delta with relationship and unresolved-decision evidence.
+  description: Classified specification delta with relationship and unresolved-decision
+    evidence.
   lifetime: One discussion reconciliation.
   mutability: immutable
   mutation_authority: []
@@ -2318,12 +2527,13 @@ types:
   owner: spec_governance_domain
   language: json-schema
   declaration:
-    path: skills/engineering/spec-governance/references/spec-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
     symbol: CanonicalSpecReference
     kind: interface
   visibility: module-public
   semantic_kind: domain-value
-  description: Stable identity and lifecycle metadata for one canonical change-set specification.
+  description: Stable identity and lifecycle metadata for one canonical change-set
+    specification.
   lifetime: One specification revision.
   mutability: immutable
   mutation_authority: []
@@ -2352,12 +2562,13 @@ types:
   owner: delivery_workflow_domain
   language: markdown
   declaration:
-    path: skills/engineering/implement/SKILL.md
+    path: governed-engineering-skills/skills/engineering/implement/SKILL.md
     symbol: CanonicalSpecReferenceProjection
     kind: interface
   visibility: cross-module
   semantic_kind: domain-value
-  description: Delivery-owned projection of the canonical specification identity for guided routing.
+  description: Delivery-owned projection of the canonical specification identity for
+    guided routing.
   lifetime: One guided route and its delivery handoff.
   mutability: immutable
   mutation_authority: []
@@ -2386,12 +2597,13 @@ types:
   owner: spec_governance_domain
   language: json-schema
   declaration:
-    path: skills/engineering/spec-governance/references/spec-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
     symbol: SpecTraceabilityAssessment
     kind: interface
   visibility: module-public
   semantic_kind: query
-  description: Requirement, acceptance, validation, and scope-conformance verdict for implementation.
+  description: Requirement, acceptance, validation, and scope-conformance verdict
+    for implementation.
   lifetime: One pre-implementation verification or Spec review.
   mutability: immutable
   mutation_authority: []
@@ -2420,7 +2632,7 @@ types:
   owner: workflow_routing_domain
   language: python
   declaration:
-    path: skills/engineering/engineering-risk-routing/scripts/project_state.py
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
     symbol: RepositoryEvidencePort
     kind: class
   visibility: module-public
@@ -2439,7 +2651,7 @@ types:
   owner: repository_evidence_adapter
   language: python
   declaration:
-    path: skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
     symbol: GitFilesystemRepositoryEvidenceAdapter
     kind: class
   visibility: module-public
@@ -2458,7 +2670,7 @@ types:
   owner: risk_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
     symbol: RoutingDecision
     kind: interface
   visibility: cross-module
@@ -2504,7 +2716,7 @@ types:
   owner: risk_routing_domain
   language: json-schema
   declaration:
-    path: skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
+    path: governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
     symbol: GateResult
     kind: interface
   visibility: cross-module
@@ -2536,243 +2748,350 @@ types:
 - id: governance-diagnostic
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py, symbol: Diagnostic, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py
+    symbol: Diagnostic
+    kind: class
   visibility: private
   semantic_kind: private-helper
   description: Internal architecture diagnostic.
   lifetime: One governance invocation.
   mutability: owner-mutable
-  mutation_authority: [governance_workflow_domain]
-  consumers: [governance_workflow_domain]
+  mutation_authority:
+  - governance_workflow_domain
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: governance-manifest-error
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py, symbol: ManifestError, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py
+    symbol: ManifestError
+    kind: class
   visibility: private
   semantic_kind: private-helper
   description: Internal manifest loading failure.
   lifetime: One failed governance invocation.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: governance-ast-evidence
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py, symbol: AstEvidence, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py
+    symbol: AstEvidence
+    kind: class
   visibility: private
   semantic_kind: private-helper
   description: Internal C/C++ AST evidence accumulator.
   lifetime: One analyzer invocation.
   mutability: owner-mutable
-  mutation_authority: [governance_workflow_domain]
-  consumers: [governance_workflow_domain]
+  mutation_authority:
+  - governance_workflow_domain
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: libclang-toolchain-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py, symbol: LibclangToolchainPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+    symbol: LibclangToolchainPort
+    kind: class
   visibility: cross-module
   semantic_kind: port
-  description: Demand-owned contract for explicit provider installation and offline verification.
+  description: Demand-owned contract for explicit provider installation and offline
+    verification.
   lifetime: One governance CLI composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain, libclang_toolchain_adapter]
-  references: [libclang-toolchain-evidence]
+  consumers:
+  - governance_workflow_domain
+  - libclang_toolchain_adapter
+  references:
+  - libclang-toolchain-evidence
   fields: []
 - id: libclang-toolchain-evidence
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py, symbol: LibclangToolchainEvidence, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+    symbol: LibclangToolchainEvidence
+    kind: class
   visibility: cross-module
   semantic_kind: domain-value
-  description: Immutable provider identity, integrity, path, version, and capability evidence.
+  description: Immutable provider identity, integrity, path, version, and capability
+    evidence.
   lifetime: One provider operation or C/C++ gate.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain, libclang_toolchain_adapter]
+  consumers:
+  - governance_workflow_domain
+  - libclang_toolchain_adapter
   references: []
   fields:
-  - {name: provider, type: str, role: domain-identity, meaning: Provider identifier.}
-  - {name: provider_version, type: str, role: domain-value, meaning: Provider release.}
-  - {name: binding_version, type: str, role: domain-value, meaning: Python binding release.}
-  - {name: library_path, type: Path, role: metadata, meaning: Explicit verified library path.}
-  - {name: archive_sha256, type: str, role: metadata, meaning: Official archive digest.}
-  - {name: library_sha256, type: str, role: metadata, meaning: Extracted library digest.}
-  - {name: target_triple, type: str, role: policy, meaning: Xtensa probe target.}
+  - name: provider
+    type: str
+    role: domain-identity
+    meaning: Provider identifier.
+  - name: provider_version
+    type: str
+    role: domain-value
+    meaning: Provider release.
+  - name: binding_version
+    type: str
+    role: domain-value
+    meaning: Python binding release.
+  - name: library_path
+    type: Path
+    role: metadata
+    meaning: Explicit verified library path.
+  - name: archive_sha256
+    type: str
+    role: metadata
+    meaning: Official archive digest.
+  - name: library_sha256
+    type: str
+    role: metadata
+    meaning: Extracted library digest.
+  - name: target_triple
+    type: str
+    role: policy
+    meaning: Xtensa probe target.
 - id: toolchain-provider-error
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py, symbol: ToolchainProviderError, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+    symbol: ToolchainProviderError
+    kind: class
   visibility: cross-module
   semantic_kind: domain-value
   description: Fail-closed CAST001 or CAST002 provider diagnostic.
   lifetime: One failed provider operation.
   mutability: immutable
   mutation_authority: []
-  consumers: [architecture_governance_cli, governance_workflow_domain, libclang_toolchain_adapter]
+  consumers:
+  - architecture_governance_cli
+  - governance_workflow_domain
+  - libclang_toolchain_adapter
   references: []
   fields: []
 - id: espressif-libclang-toolchain-adapter
   owner: libclang_toolchain_adapter
   language: python
-  declaration: {path: skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py, symbol: EspressifLibclangToolchainAdapter, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+    symbol: EspressifLibclangToolchainAdapter
+    kind: class
   visibility: module-public
   semantic_kind: adapter-binding
   description: Official artifact installer and offline cache verifier.
   lifetime: One CLI composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [architecture_governance_cli]
-  references: [libclang-toolchain-port, libclang-toolchain-evidence]
+  consumers:
+  - architecture_governance_cli
+  references:
+  - libclang-toolchain-port
+  - libclang-toolchain-evidence
   fields: []
 - id: collection-input-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/execution.py, symbol: CollectionInputPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py
+    symbol: CollectionInputPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Runtime-evidence collection input contract.
   lifetime: One validation composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: collection-output-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/execution.py, symbol: CollectionOutputPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py
+    symbol: CollectionOutputPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Runtime-evidence collection output contract.
   lifetime: One validation composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: transport-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/execution.py, symbol: TransportPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py
+    symbol: TransportPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Runtime-evidence transport contract.
   lifetime: One validation composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: guided-session-input-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/guided.py, symbol: GuidedSessionInputPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/guided.py
+    symbol: GuidedSessionInputPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Guided validation-session input contract.
   lifetime: One guided session.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: guided-session-output-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/guided.py, symbol: GuidedSessionOutputPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/guided.py
+    symbol: GuidedSessionOutputPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Guided validation-session output contract.
   lifetime: One guided session.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: runtime-verdict
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/model.py, symbol: Verdict, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py
+    symbol: Verdict
+    kind: class
   visibility: module-public
   semantic_kind: domain-value
   description: Runtime validation verdict value.
   lifetime: One criterion evaluation.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: criterion-result
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/model.py, symbol: CriterionResult, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py
+    symbol: CriterionResult
+    kind: class
   visibility: module-public
   semantic_kind: domain-value
   description: Evidence-bearing criterion result.
   lifetime: One criterion evaluation.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
-  references: [runtime-verdict]
+  consumers:
+  - governance_workflow_domain
+  references:
+  - runtime-verdict
   fields: []
 - id: verdict-input-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/model.py, symbol: VerdictInputPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py
+    symbol: VerdictInputPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Verdict-domain input contract.
   lifetime: One validation composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: verdict-output-port
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/model.py, symbol: VerdictOutputPort, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py
+    symbol: VerdictOutputPort
+    kind: class
   visibility: module-public
   semantic_kind: port
   description: Verdict-domain output contract.
   lifetime: One validation composition.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: validation-profile-error
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/profile.py, symbol: ProfileError, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/profile.py
+    symbol: ProfileError
+    kind: class
   visibility: private
   semantic_kind: private-helper
   description: Invalid runtime-validation profile failure.
   lifetime: One failed profile load.
   mutability: immutable
   mutation_authority: []
-  consumers: [governance_workflow_domain]
+  consumers:
+  - governance_workflow_domain
   references: []
   fields: []
 - id: platform-transport-adapter
   owner: governance_workflow_domain
   language: python
-  declaration: {path: skills/engineering/validate-on-device/scripts/vod/providers.py, symbol: PlatformTransportAdapter, kind: class}
+  declaration:
+    path: governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/providers.py
+    symbol: PlatformTransportAdapter
+    kind: class
   visibility: private
   semantic_kind: adapter-binding
   description: Platform transport implementation selected by runtime validation.
   lifetime: One validation composition.
   mutability: owner-mutable
-  mutation_authority: [governance_workflow_domain]
-  consumers: [governance_workflow_domain]
-  references: [transport-port]
+  mutation_authority:
+  - governance_workflow_domain
+  consumers:
+  - governance_workflow_domain
+  references:
+  - transport-port
   fields: []
 type_exclusions: []
 state_objects:
@@ -2780,15 +3099,18 @@ state_objects:
   owner: verification_ladder_domain
   language: python
   declaration:
-    path: skills/engineering/verification-ladder/scripts/run_storage.py
+    path: governed-engineering-skills/skills/engineering/verification-ladder/scripts/run_storage.py
     symbol: _active_operation
     storage: thread-local
   type: ContextVar
   visibility: private
-  lifetime: One synchronous run operation; reset in finally after successful or failed collection.
+  lifetime: One synchronous run operation; reset in finally after successful or failed
+    collection.
   mutability: owner-mutable
-  read_authority: [verification_ladder_domain]
-  write_authority: [verification_ladder_domain]
+  read_authority:
+  - verification_ladder_domain
+  write_authority:
+  - verification_ladder_domain
 boundary_mappings:
 - id: routing-assessments-to-guided-handoff
   interaction: Combine workflow-owned intent and project state with risk-owned gate
@@ -2821,8 +3143,8 @@ boundary_mappings:
   forbidden_edges:
   - spec_governance_domain->delivery_workflow_domain
 - id: delivery-spec-to-routing-context
-  interaction: Convert delivery-owned canonical specification evidence into the
-    routing domain's request-to-spec context without creating a sibling dependency.
+  interaction: Convert delivery-owned canonical specification evidence into the routing
+    domain's request-to-spec context without creating a sibling dependency.
   producer: delivery_workflow_domain
   consumer: workflow_routing_domain
   parent: guided_workflow_router
@@ -2840,38 +3162,38 @@ boundary_mappings:
 flows:
 - id: verification-ladder-planning
   owner: governance_workflow_domain
-  description: Validate project-owned verification bindings, combine universal hard triggers
-    with project rules, and produce the lowest sufficient additive ladder without accepting
-    evidence from a lower-authority environment.
+  description: Validate project-owned verification bindings, combine universal hard
+    triggers with project rules, and produce the lowest sufficient additive ladder
+    without accepting evidence from a lower-authority environment.
   trigger:
     kind: command
     ref: verification-ladder.plan
-    description: A modifying change identifies affected module contracts, execution changes,
-      or evidence claims that require a verification plan.
+    description: A modifying change identifies affected module contracts, execution
+      changes, or evidence claims that require a verification plan.
   steps:
   - id: verification-ladder-planning.evaluate
     order: 1
     module: verification_ladder_domain
-    action: Resolve architecture and on-device references, validate the project matrix, apply
-      universal evidence-authority hard triggers, add project-selected layers, and return
-      PASS or BLOCKED with explicit rationale. Bind all ACs to policy and SPEC hashes and
-      assess enablement, runtime acceptance and release separately.
+    action: Resolve architecture and on-device references, validate the project matrix,
+      apply universal evidence-authority hard triggers, add project-selected layers,
+      and return PASS or BLOCKED with explicit rationale. Bind all ACs to policy and
+      SPEC hashes and assess enablement, runtime acceptance and release separately.
     receives:
     - verification-ladder.plan
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: Every requested trigger is mapped to explicit criteria and the returned ordered
-      layers are sufficient for each evidence claim.
+    result: Every requested trigger is mapped to explicit criteria and the returned
+      ordered layers are sufficient for each evidence claim.
     events: []
   errors: []
 - id: local-plugin-installation
   owner: plugin_assembly_composition
   description: Select one compatible Python interpreter, recover safe access to only
-    the exact ignored Windows artifact when necessary, assemble and validate the
-    root-owned Plugin, apply a local-only cache identity, then register and install
-    it before opening the Codex Desktop detail page.
+    the exact ignored Windows artifact when necessary, assemble and validate the root-owned
+    Plugin, apply a local-only cache identity, then register and install it before
+    opening the Codex Desktop detail page.
   trigger:
     kind: command
     ref: plugin-install.local
@@ -2893,7 +3215,8 @@ flows:
     module: windows_artifact_access_adapter
     action: Confirm that the exact dist/governed-engineering-skills output is safely
       replaceable; when an existing Windows artifact is inaccessible, try a bounded
-      inherited-ACL repair without elevation and request UAC only if that attempt fails.
+      inherited-ACL repair without elevation and request UAC only if that attempt
+      fails.
     receives:
     - plugin-artifact-access.repair
     emits: []
@@ -2904,8 +3227,8 @@ flows:
   - id: local-plugin-installation.assemble
     order: 3
     module: plugin_assembly_composition
-    action: Build the complete Plugin from the tracked shell and promoted root
-      Skills, then reject missing, stale, or fingerprint-mismatched output.
+    action: Build the complete Plugin from the tracked shell and promoted root Skills,
+      then reject missing, stale, or fingerprint-mismatched output.
     receives:
     - plugin-install.local
     emits: []
@@ -2915,8 +3238,8 @@ flows:
   - id: local-plugin-installation.localize
     order: 4
     module: plugin_assembly_composition
-    action: Apply a local-only cache identity to the validated artifact and
-      regenerate its inventory without changing formal release metadata.
+    action: Apply a local-only cache identity to the validated artifact and regenerate
+      its inventory without changing formal release metadata.
     receives: []
     emits: []
     state_changes: []
@@ -2925,9 +3248,9 @@ flows:
   - id: local-plugin-installation.register
     order: 5
     module: local_install_adapter
-    action: Select an executable Codex CLI using verified PATH-first resolution
-      with Desktop-runtime fallback, register the repository-local Marketplace,
-      install the Plugin, and open its detail page.
+    action: Select an executable Codex CLI using verified PATH-first resolution with
+      Desktop-runtime fallback, register the repository-local Marketplace, install
+      the Plugin, and open its detail page.
     receives:
     - local-install.register
     emits: []
@@ -2937,12 +3260,12 @@ flows:
     - Install the Plugin into the current user's Codex cache.
     - Open the Codex Desktop Plugin detail page.
   success:
-    result: Codex recognizes the local Marketplace entry and reports successful
-      installation from the validated, locally cache-busted artifact.
+    result: Codex recognizes the local Marketplace entry and reports successful installation
+      from the validated, locally cache-busted artifact.
     events: []
   errors:
-  - condition: The explicit, PATH, and Windows Python Launcher candidates do not
-      yield a validated Python 3.11-or-newer absolute interpreter.
+  - condition: The explicit, PATH, and Windows Python Launcher candidates do not yield
+      a validated Python 3.11-or-newer absolute interpreter.
     event: plugin-distribution.blocked
     handling: Stop before artifact mutation, report observed candidates and versions,
       and provide Python installation or explicit-selection recovery guidance.
@@ -2954,11 +3277,11 @@ flows:
       reparse-point rejection, non-elevated repair, UAC approval, or post-repair access
       validation fails.
     event: plugin-distribution.blocked
-    handling: Stop before assembly and Codex registration, leave unrelated paths
-      untouched, return a stable non-zero status, and identify the rejected safety
-      boundary or UAC recovery action.
-  - condition: Codex resolution, Marketplace registration, Plugin installation,
-      or Plugin-page launch fails.
+    handling: Stop before assembly and Codex registration, leave unrelated paths untouched,
+      return a stable non-zero status, and identify the rejected safety boundary or
+      UAC recovery action.
+  - condition: Codex resolution, Marketplace registration, Plugin installation, or
+      Plugin-page launch fails.
     event: local-install.blocked
     handling: Preserve the validated artifact, issue no removal command against a
       prior Plugin install, return a stable non-zero exit code, and provide the log
@@ -2972,17 +3295,17 @@ flows:
   trigger:
     kind: command
     ref: guided-routing.route
-    description: The user states a software-engineering intent, answers a new turn, or an
-      active skill is about to ask a repository-modifying design or specification question;
-      no ask-matt invocation is required.
+    description: The user states a software-engineering intent, answers a new turn,
+      or an active skill is about to ask a repository-modifying design or specification
+      question; no ask-matt invocation is required.
   steps:
   - id: governed-engineering-route.assess
     order: 1
     module: workflow_routing_domain
-    action: Classify ordered hard intent including exact fresh-task confirmed-Spec resume,
-      preserve caller-supplied unresolved-decision evidence from before the first design question
-      through answer reconciliation, and assess implementation and durable context from repository
-      evidence.
+    action: Classify ordered hard intent including exact fresh-task confirmed-Spec
+      resume, preserve caller-supplied unresolved-decision evidence from before the
+      first design question through answer reconciliation, and assess implementation
+      and durable context from repository evidence.
     receives:
     - workflow-routing.assess-project
     - repository-evidence.collect
@@ -2992,9 +3315,9 @@ flows:
   - id: governed-engineering-route.classify-risk
     order: 2
     module: risk_routing_domain
-    action: Match ordered risk hard triggers and preserve the required governance gates. Add
-      project-policy and AC-plan obligations from fresh validation facts, preserving them
-      on reload and short commands.
+    action: Match ordered risk hard triggers and preserve the required governance
+      gates. Add project-policy and AC-plan obligations from fresh validation facts,
+      preserving them on reload and short commands.
     receives:
     - risk-routing.classify
     emits: []
@@ -3003,27 +3326,27 @@ flows:
   - id: governed-engineering-route.select
     order: 3
     module: workflow_routing_domain
-    action: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence, unresolved-decision
-      handoff, risk-gate, capability, and wayfinder precedence to produce the authoritative
-      GuidedRouteDecision.
+    action: Apply explicit-skill, intent, project-state, confirmed-spec resume evidence,
+      unresolved-decision handoff, risk-gate, capability, and wayfinder precedence
+      to produce the authoritative GuidedRouteDecision.
     receives:
     - workflow-routing.select
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: A PASS or DEGRADED decision selects an immediate safe handoff; pending design
-      or specification decisions select grilling before the previous skill asks them and name
-      spec-governance as the immediate reconciliation target, while invalid evidence or missing
-      non-substitutable capability returns BLOCKED.
+    result: A PASS or DEGRADED decision selects an immediate safe handoff; pending
+      design or specification decisions select grilling before the previous skill
+      asks them and name spec-governance as the immediate reconciliation target, while
+      invalid evidence or missing non-substitutable capability returns BLOCKED.
     events: []
   errors: []
 - id: governed-change-set-lifecycle
   owner: delivery_workflow_domain
   description: Persist and reconcile one modifying change set into a canonical specification,
-    materialize it when decision-complete, wait for product execution authorization, verify
-    traceability, implement it, and close it only after Spec review and commit disposition
-    pass. Reject unsupported AC PASS evidence updates through project-validation.assess.
+    materialize it when decision-complete, wait for product execution authorization,
+    verify traceability, implement it, and close it only after Spec review and commit
+    disposition pass. Reject unsupported AC PASS evidence updates through project-validation.assess.
   trigger:
     kind: command
     ref: spec-governance.reconcile
@@ -3032,35 +3355,35 @@ flows:
   - id: governed-change-set-lifecycle.start
     order: 1
     module: spec_governance_domain
-    action: Create, transactionally migrate, or resolve one canonical SPEC
-      before the first decision question; migration validates legacy identity and history
+    action: Create, transactionally migrate, or resolve one canonical SPEC before
+      the first decision question; migration validates legacy identity and history
       and restores the legacy source on failure.
     receives:
     - spec-governance.start
     emits: []
     state_changes: []
     side_effects:
-    - Write one canonical SPEC Markdown file with structured Discussion
-      Context and an embedded normalized audit epoch.
+    - Write one canonical SPEC Markdown file with structured Discussion Context and
+      an embedded normalized audit epoch.
   - id: governed-change-set-lifecycle.reconcile
     order: 2
     module: spec_governance_domain
-    action: Classify the confirmed statement, update stable relationships, and report and
-      persist the working specification delta, conflicts, and open decisions before another
-      decision question.
+    action: Classify the confirmed statement, update stable relationships, and report
+      and persist the working specification delta, conflicts, and open decisions before
+      another decision question.
     receives:
     - spec-governance.reconcile
     emits: []
     state_changes: []
     side_effects:
-    - Atomically replace the working snapshot and append one normalized journal event containing
-      affected REQ DEC AC and DISC identities without transcript prose.
+    - Atomically replace the working snapshot and append one normalized journal event
+      containing affected REQ DEC AC and DISC identities without transcript prose.
   - id: governed-change-set-lifecycle.review-flow-cost
     order: 3
     module: governance_workflow_domain
-    action: Review every material as-is and target Flow through functional admission, execution
-      and real-time feasibility, maintainability and extensibility change scenarios, and model
-      assurance; keep unresolved load-bearing evidence BLOCKED.
+    action: Review every material as-is and target Flow through functional admission,
+      execution and real-time feasibility, maintainability and extensibility change
+      scenarios, and model assurance; keep unresolved load-bearing evidence BLOCKED.
     receives: []
     emits: []
     state_changes: []
@@ -3068,8 +3391,8 @@ flows:
   - id: governed-change-set-lifecycle.materialize
     order: 4
     module: spec_governance_domain
-    action: Materialize the decision-complete canonical specification under specs/ without
-      granting product execution authorization.
+    action: Materialize the decision-complete canonical specification under specs/
+      without granting product execution authorization.
     receives:
     - spec-governance.materialize
     emits: []
@@ -3079,8 +3402,9 @@ flows:
   - id: governed-change-set-lifecycle.authorize
     order: 5
     module: delivery_workflow_domain
-    action: Present the confirmed specification and wait for exact product execution authorization;
-      reopen it before clarification when a possible contract change appears.
+    action: Present the confirmed specification and wait for exact product execution
+      authorization; reopen it before clarification when a possible contract change
+      appears.
     receives:
     - spec-governance.reopen
     emits: []
@@ -3090,7 +3414,8 @@ flows:
   - id: governed-change-set-lifecycle.publish
     order: 6
     module: delivery_workflow_domain
-    action: Publish a tracker snapshot that names the repository specification as canonical.
+    action: Publish a tracker snapshot that names the repository specification as
+      canonical.
     receives: []
     emits: []
     state_changes: []
@@ -3099,8 +3424,8 @@ flows:
   - id: governed-change-set-lifecycle.verify
     order: 7
     module: spec_governance_domain
-    action: Verify requirement-to-acceptance-to-validation traceability and return to grilling
-      only when the request introduces a new decision or conflict.
+    action: Verify requirement-to-acceptance-to-validation traceability and return
+      to grilling only when the request introduces a new decision or conflict.
     receives:
     - spec-governance.verify
     emits: []
@@ -3109,24 +3434,25 @@ flows:
   - id: governed-change-set-lifecycle.formatter-gate
     order: 8
     module: formatter_governance_domain
-    action: Select the repository formatter policy or governed fallback, confirm and protect
-      any full-program write, reject ambiguous, colliding, or dirty targets, and require an
-      available CLI formatter plus a passing non-mutating check before product-code mutation.
+    action: Select the repository formatter policy or governed fallback, confirm and
+      protect any full-program write, reject ambiguous, colliding, or dirty targets,
+      and require an available CLI formatter plus a passing non-mutating check before
+      product-code mutation.
     receives:
     - formatter-governance.evaluate
     emits:
     - formatter-governance.blocked
     state_changes: []
     side_effects:
-    - Create only collision-free minimal scaffold and formatter configuration when the confirmed
-      change set targets a greenfield project.
-    - Format clean product source and tests only after affirmative confirmation and follow
-      the write with the selected formatter CLI's non-mutating check.
+    - Create only collision-free minimal scaffold and formatter configuration when
+      the confirmed change set targets a greenfield project.
+    - Format clean product source and tests only after affirmative confirmation and
+      follow the write with the selected formatter CLI's non-mutating check.
   - id: governed-change-set-lifecycle.implement-review
     order: 9
     module: delivery_workflow_domain
-    action: Implement through the agreed test seams, run two-axis review, and mark the canonical
-      specification implemented only after the Spec axis passes.
+    action: Implement through the agreed test seams, run two-axis review, and mark
+      the canonical specification implemented only after the Spec axis passes.
     receives: []
     emits: []
     state_changes: []
@@ -3135,29 +3461,31 @@ flows:
   - id: governed-change-set-lifecycle.prepare-commit
     order: 10
     module: spec_governance_domain
-    action: Reject staged local working state and require delete, keep-local, or archive disposition
-      before the delivery workflow commits.
+    action: Reject staged local working state and require delete, keep-local, or archive
+      disposition before the delivery workflow commits.
     receives:
     - spec-governance.prepare-commit
     emits: []
     state_changes: []
     side_effects: []
   success:
-    result: The implemented behavior is traceable to one canonical specification whose requirements
-      and acceptance criteria have verified PASS evidence.
+    result: The implemented behavior is traceable to one canonical specification whose
+      requirements and acceptance criteria have verified PASS evidence.
     events: []
   errors:
-  - condition: Reconciliation finds an unresolved conflict or conclusion-changing decision.
+  - condition: Reconciliation finds an unresolved conflict or conclusion-changing
+      decision.
     event: spec-governance.blocked
     handling: Remain in grilling and ask exactly one conclusion-changing question.
-  - condition: A material Flow has unresolved platform units, cost paths, budgets, model error,
-      reserve, interference, or scenario coverage.
+  - condition: A material Flow has unresolved platform units, cost paths, budgets,
+      model error, reserve, interference, or scenario coverage.
     event: spec-governance.blocked
-    handling: Preserve directional analysis but keep the performance or real-time claim BLOCKED
-      until the required evidence is calibrated.
+    handling: Preserve directional analysis but keep the performance or real-time
+      claim BLOCKED until the required evidence is calibrated.
   - condition: Canonical materialization succeeds but tracker publication fails.
     event: delivery.tracker-publication-pending
-    handling: Preserve the canonical specification and report BLOCKED with a retry target.
+    handling: Preserve the canonical specification and report BLOCKED with a retry
+      target.
   - condition: Local working state is staged or its retention disposition is missing.
     event: spec-governance.blocked
     handling: Preserve the bundle, block commit, and ask exactly one disposition question.
@@ -3173,8 +3501,8 @@ flows:
   - id: plugin-integration.verify
     order: 1
     module: plugin_assembly_composition
-    action: Assemble canonical skill sources, then run integration suites and inventory validation
-      against the candidate.
+    action: Assemble canonical skill sources, then run integration suites and inventory
+      validation against the candidate.
     receives:
     - plugin-release.synchronize-artifact
     emits: []
@@ -3182,7 +3510,8 @@ flows:
     side_effects:
     - Create independent host-test evidence under artifacts/tests/.
   success:
-    result: All selected host suites and source-to-artifact checks pass with fixed run evidence.
+    result: All selected host suites and source-to-artifact checks pass with fixed
+      run evidence.
     events: []
   errors:
   - condition: A contract, dependency capability or artifact binding is incomplete.
@@ -3204,7 +3533,8 @@ c_analyzer:
   forbidden_source_symbols: []
 python_analyzer:
   status: required
-  rationale: Production routing and integration tooling is implemented in Python and requires AST evidence.
+  rationale: Production routing and integration tooling is implemented in Python and
+    requires AST evidence.
 workloads:
 - id: verification-ladder-planning-workload
   flow: verification-ladder-planning
@@ -3279,4 +3609,5 @@ realtime_scheduling_studies: []
 validation_profiles:
 - id: plugin-host-validation
   applicability: not-applicable
-  rationale: Plugin integration validation makes no hardware, target-runtime, performance, or real-time acceptance claim.
+  rationale: Plugin integration validation makes no hardware, target-runtime, performance,
+    or real-time acceptance claim.

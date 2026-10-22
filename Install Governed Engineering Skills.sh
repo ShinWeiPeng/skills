@@ -1,5 +1,4 @@
 #!/bin/sh
 set -eu
-
 ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
-exec "$ROOT/scripts/install-marketplace.sh" "$@"
+exec "$ROOT/governed-engineering-skills/Install Governed Engineering Skills.sh" "$@"

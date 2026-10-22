@@ -8,9 +8,9 @@
 - Flow IDs: `governed-change-set-lifecycle`
 - Related ADRs: `ADR-0011`
 - Source paths:
-  - `skills/engineering/spec-governance/scripts/spec_contract.py`
-  - `skills/engineering/spec-governance/references/spec-contract.schema.json`
-- Test and benchmark paths: `tests/flows/plugin-integration/plugin/test_spec_governance.py`
+  - `governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py`
+  - `governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json`
+- Test and benchmark paths: `governed-engineering-skills/tests/flows/plugin-integration/plugin/test_spec_governance.py`
 - Supersedes: none
 
 ## Problem and observable success
@@ -74,7 +74,7 @@ or discard a local canonical spec when tracker publication fails.
 
 ## Validation
 
-`tests/flows/plugin-integration/plugin/test_spec_governance.py` covers stable validation, working-bundle persistence,
+`governed-engineering-skills/tests/flows/plugin-integration/plugin/test_spec_governance.py` covers stable validation, working-bundle persistence,
 journal recovery, stale writers, candidate resolution, ambiguity,
 working-to-confirmed-to-reopened-to-implemented lifecycle, commit disposition,
 invalid relations, uncovered requirements, and missing evidence. Router integration

@@ -8,13 +8,13 @@
 ## System Purpose and Entrypoints
 
 - `guided_workflow_router` — Automatically route every software-engineering intent by coordinating workflow selection, repository state, risk, delivery, and governance domains.
-  - Entrypoints: [`ask-matt`](../skills/engineering/ask-matt/SKILL.md) (skill)<br>[`main`](../skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
+  - Entrypoints: [`ask-matt`](../governed-engineering-skills/skills/engineering/ask-matt/SKILL.md) (skill)<br>[`main`](../governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py) (cli)
 - `plugin_assembly_composition` — Assemble one complete Plugin artifact from the tracked Plugin shell and the two authoritative promoted Skill buckets, normalize host-specific invocation metadata, select and validate one Python 3.11+ interpreter before assembly, safely recover access to only the exact ignored Windows artifact, coordinate the supported local Codex installation, and optionally emit a deterministic Codex Git Marketplace publication tree.
-  - Entrypoints: [`main`](../scripts/assemble_plugin.py) (cli)<br>[`install-local`](../scripts/install-local.ps1) (script)
+  - Entrypoints: [`main`](../governed-engineering-skills/scripts/assemble_plugin.py) (cli)<br>[`install-local`](../governed-engineering-skills/scripts/install-local.ps1) (script)<br>[`main`](../scripts/assemble_plugin.py) (cli)<br>[`main`](../scripts/validate_distribution.py) (cli)
 - `architecture_governance_cli` — Compose the governance engine and pinned native provider behind the single public architecture CLI.
-  - Entrypoints: [`main`](../skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
+  - Entrypoints: [`main`](../governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py) (function)
 - `project_validation_composition` — Inject the project validation adapter into existing specification and delivery public CLIs.
-  - Entrypoints: [`main`](../skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
+  - Entrypoints: [`main`](../governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
 
 ## Main Function Tree
 

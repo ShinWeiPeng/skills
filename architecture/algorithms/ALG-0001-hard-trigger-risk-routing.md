@@ -8,9 +8,9 @@
 - Flow IDs: `governed-engineering-route`
 - Related ADRs: `ADR-0002`
 - Source paths:
-  - `skills/engineering/engineering-risk-routing/references/routing-rules.json`
-  - `skills/engineering/engineering-risk-routing/scripts/classify_risk.py`
-- Test and benchmark paths: `tests/flows/plugin-integration/plugin/test_routing.py`
+  - `governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-rules.json`
+  - `governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py`
+- Test and benchmark paths: `governed-engineering-skills/tests/flows/plugin-integration/plugin/test_routing.py`
 - Supersedes: none
 
 ## Problem and observable success

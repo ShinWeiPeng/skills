@@ -8,11 +8,11 @@
 - Flow IDs: `governed-change-set-lifecycle`
 - Related ADRs: none
 - Source paths:
-  - `skills/engineering/govern-modular-event-architecture/references/flow-cost-review.md`
-  - `skills/engineering/improve-codebase-architecture/SKILL.md`
-  - `skills/engineering/clarify-improvement-proposals/SKILL.md`
+  - `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/flow-cost-review.md`
+  - `governed-engineering-skills/skills/engineering/improve-codebase-architecture/SKILL.md`
+  - `governed-engineering-skills/skills/engineering/clarify-improvement-proposals/SKILL.md`
 - Test and benchmark paths:
-  - `tests/flows/plugin-integration/plugin/test_flow_cost_governance.py`
+  - `governed-engineering-skills/tests/flows/plugin-integration/plugin/test_flow_cost_governance.py`
 - Supersedes: none
 
 ## Problem and observable success

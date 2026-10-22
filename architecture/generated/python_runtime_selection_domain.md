@@ -27,8 +27,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Explicit candidate admission is authoritative and never silently replaced.; A compatible PATH observation is accepted before requesting launcher fallback.; A launcher observation is accepted only after its resolved runtime is revalidated.
-- **Entrypoints:** [`Select-CompatiblePythonCandidate`](../../scripts/python-runtime-selection-policy.ps1) (function)
-- **Public Symbols:** [`Select-CompatiblePythonCandidate`](../../scripts/python-runtime-selection-policy.ps1) (function)
+- **Entrypoints:** [`Select-CompatiblePythonCandidate`](../../governed-engineering-skills/scripts/python-runtime-selection-policy.ps1) (function)
+- **Public Symbols:** [`Select-CompatiblePythonCandidate`](../../governed-engineering-skills/scripts/python-runtime-selection-policy.ps1) (function)
 
 ## Port Contracts
 

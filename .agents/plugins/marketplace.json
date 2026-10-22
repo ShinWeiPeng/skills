@@ -8,7 +8,7 @@
       "name": "governed-engineering-skills",
       "source": {
         "source": "local",
-        "path": "./dist/governed-engineering-skills"
+        "path": "./governed-engineering-skills/dist/governed-engineering-skills"
       },
       "policy": {
         "installation": "AVAILABLE",

@@ -27,8 +27,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Functional consumers receive the demand-owned validation callable; they never construct the technical adapter.
-- **Entrypoints:** [`main`](../../skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
-- **Public Symbols:** [`main`](../../skills/engineering/implement/scripts/project_validation_workflow.py) (function)
+- **Entrypoints:** [`main`](../../governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py) (cli)
+- **Public Symbols:** [`main`](../../governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py) (function)
 
 ## Port Contracts
 

@@ -8,9 +8,9 @@
 - Flow IDs: `verification-ladder-planning`
 - Related ADRs: none
 - Source paths:
-  - `skills/engineering/verification-ladder/scripts/verification_ladder.py`
-  - `skills/engineering/verification-ladder/references/verification-ladder.schema.json`
-- Test and benchmark paths: `tests/modules/verification_ladder_domain/ladder/test_verification_ladder.py`
+  - `governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py`
+  - `governed-engineering-skills/skills/engineering/verification-ladder/references/verification-ladder.schema.json`
+- Test and benchmark paths: `governed-engineering-skills/tests/modules/verification_ladder_domain/ladder/test_verification_ladder.py`
 - Supersedes: none
 
 ## Problem and observable success

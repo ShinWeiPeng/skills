@@ -31,8 +31,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Codex never approves its own ADR or Algorithm Design Record.; A material Flow recommendation evaluates functional admission, execution and real-time feasibility, maintainability and extensibility, and model assurance before Module, Port, Event, or execution decisions are finalized.; Estimated models cannot establish a platform performance winner or real-time PASS; load-bearing evidence gaps remain BLOCKED.; C/C++ AST governance resolves native libclang only through its demand-owned pinned provider contract.
-- **Entrypoints:** [`govern-modular-event-architecture`](../../skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)
-- **Public Symbols:** [`govern-modular-event-architecture`](../../skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)<br>[`LibclangToolchainPort`](../../skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py) (class)
+- **Entrypoints:** [`govern-modular-event-architecture`](../../governed-engineering-skills/skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)
+- **Public Symbols:** [`govern-modular-event-architecture`](../../governed-engineering-skills/skills/engineering/govern-modular-event-architecture/SKILL.md) (skill)<br>[`LibclangToolchainPort`](../../governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py) (class)
 
 ### `verification_ladder_domain`
 
@@ -46,8 +46,8 @@ flowchart TD
 - **Side Effects:** None
 - **Errors:** None
 - **Invariants:** Host evidence remains valid for host-observable semantics but never satisfies target timing, scheduler, physical-hardware, or long-duration stability claims.; Device-dependent PIL, HIL, and System/Soak execution is delegated to validate-on-device after Validation Enablement.; Missing or stale architecture, scenario, profile, trigger, or evidence bindings return BLOCKED instead of silently omitting a layer.
-- **Entrypoints:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`main`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (cli)
-- **Public Symbols:** [`verification-ladder`](../../skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`assess_project`](../../skills/engineering/verification-ladder/scripts/project_validation.py) (function)
+- **Entrypoints:** [`verification-ladder`](../../governed-engineering-skills/skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`main`](../../governed-engineering-skills/skills/engineering/verification-ladder/scripts/project_validation.py) (cli)
+- **Public Symbols:** [`verification-ladder`](../../governed-engineering-skills/skills/engineering/verification-ladder/SKILL.md) (skill)<br>[`main`](../../governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py) (function)<br>[`assess_project`](../../governed-engineering-skills/skills/engineering/verification-ladder/scripts/project_validation.py) (function)
 
 ## Port Contracts
 
@@ -65,29 +65,29 @@ flowchart TD
 
 | ID | Owner | Declaration | Visibility | Semantic kind | Consumers | References |
 |---|---|---|---|---|---|---|
-| `governance-diagnostic` | `governance_workflow_domain` | `Diagnostic` (class, `skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
-| `governance-manifest-error` | `governance_workflow_domain` | `ManifestError` (class, `skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
-| `governance-ast-evidence` | `governance_workflow_domain` | `AstEvidence` (class, `skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py`) | private | private-helper | `governance_workflow_domain` | None |
-| `libclang-toolchain-port` | `governance_workflow_domain` | `LibclangToolchainPort` (class, `skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | port | `governance_workflow_domain`, `libclang_toolchain_adapter` | `libclang-toolchain-evidence` |
-| `libclang-toolchain-evidence` | `governance_workflow_domain` | `LibclangToolchainEvidence` (class, `skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `governance_workflow_domain`, `libclang_toolchain_adapter` | None |
-| `toolchain-provider-error` | `governance_workflow_domain` | `ToolchainProviderError` (class, `skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_governance_cli`, `governance_workflow_domain`, `libclang_toolchain_adapter` | None |
-| `collection-input-port` | `governance_workflow_domain` | `CollectionInputPort` (class, `skills/engineering/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
-| `collection-output-port` | `governance_workflow_domain` | `CollectionOutputPort` (class, `skills/engineering/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
-| `transport-port` | `governance_workflow_domain` | `TransportPort` (class, `skills/engineering/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
-| `guided-session-input-port` | `governance_workflow_domain` | `GuidedSessionInputPort` (class, `skills/engineering/validate-on-device/scripts/vod/guided.py`) | module-public | port | `governance_workflow_domain` | None |
-| `guided-session-output-port` | `governance_workflow_domain` | `GuidedSessionOutputPort` (class, `skills/engineering/validate-on-device/scripts/vod/guided.py`) | module-public | port | `governance_workflow_domain` | None |
-| `runtime-verdict` | `governance_workflow_domain` | `Verdict` (class, `skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | domain-value | `governance_workflow_domain` | None |
-| `criterion-result` | `governance_workflow_domain` | `CriterionResult` (class, `skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | domain-value | `governance_workflow_domain` | `runtime-verdict` |
-| `verdict-input-port` | `governance_workflow_domain` | `VerdictInputPort` (class, `skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | port | `governance_workflow_domain` | None |
-| `verdict-output-port` | `governance_workflow_domain` | `VerdictOutputPort` (class, `skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | port | `governance_workflow_domain` | None |
-| `validation-profile-error` | `governance_workflow_domain` | `ProfileError` (class, `skills/engineering/validate-on-device/scripts/vod/profile.py`) | private | private-helper | `governance_workflow_domain` | None |
-| `platform-transport-adapter` | `governance_workflow_domain` | `PlatformTransportAdapter` (class, `skills/engineering/validate-on-device/scripts/vod/providers.py`) | private | adapter-binding | `governance_workflow_domain` | `transport-port` |
+| `governance-diagnostic` | `governance_workflow_domain` | `Diagnostic` (class, `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `governance-manifest-error` | `governance_workflow_domain` | `ManifestError` (class, `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `governance-ast-evidence` | `governance_workflow_domain` | `AstEvidence` (class, `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `libclang-toolchain-port` | `governance_workflow_domain` | `LibclangToolchainPort` (class, `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | port | `governance_workflow_domain`, `libclang_toolchain_adapter` | `libclang-toolchain-evidence` |
+| `libclang-toolchain-evidence` | `governance_workflow_domain` | `LibclangToolchainEvidence` (class, `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `governance_workflow_domain`, `libclang_toolchain_adapter` | None |
+| `toolchain-provider-error` | `governance_workflow_domain` | `ToolchainProviderError` (class, `governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py`) | cross-module | domain-value | `architecture_governance_cli`, `governance_workflow_domain`, `libclang_toolchain_adapter` | None |
+| `collection-input-port` | `governance_workflow_domain` | `CollectionInputPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
+| `collection-output-port` | `governance_workflow_domain` | `CollectionOutputPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
+| `transport-port` | `governance_workflow_domain` | `TransportPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py`) | module-public | port | `governance_workflow_domain` | None |
+| `guided-session-input-port` | `governance_workflow_domain` | `GuidedSessionInputPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/guided.py`) | module-public | port | `governance_workflow_domain` | None |
+| `guided-session-output-port` | `governance_workflow_domain` | `GuidedSessionOutputPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/guided.py`) | module-public | port | `governance_workflow_domain` | None |
+| `runtime-verdict` | `governance_workflow_domain` | `Verdict` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | domain-value | `governance_workflow_domain` | None |
+| `criterion-result` | `governance_workflow_domain` | `CriterionResult` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | domain-value | `governance_workflow_domain` | `runtime-verdict` |
+| `verdict-input-port` | `governance_workflow_domain` | `VerdictInputPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | port | `governance_workflow_domain` | None |
+| `verdict-output-port` | `governance_workflow_domain` | `VerdictOutputPort` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py`) | module-public | port | `governance_workflow_domain` | None |
+| `validation-profile-error` | `governance_workflow_domain` | `ProfileError` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/profile.py`) | private | private-helper | `governance_workflow_domain` | None |
+| `platform-transport-adapter` | `governance_workflow_domain` | `PlatformTransportAdapter` (class, `governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/providers.py`) | private | adapter-binding | `governance_workflow_domain` | `transport-port` |
 
 ## State Ownership
 
 | ID | Owner | Declaration | Type | Visibility | Mutability | Read authority | Write authority |
 |---|---|---|---|---|---|---|---|
-| `run-operation-context` | `verification_ladder_domain` | `_active_operation` (thread-local, `skills/engineering/verification-ladder/scripts/run_storage.py`) | `ContextVar` | private | owner-mutable | `verification_ladder_domain` | `verification_ladder_domain` |
+| `run-operation-context` | `verification_ladder_domain` | `_active_operation` (thread-local, `governed-engineering-skills/skills/engineering/verification-ladder/scripts/run_storage.py`) | `ContextVar` | private | owner-mutable | `verification_ladder_domain` | `verification_ladder_domain` |
 
 ## Cross-module Mapping
 

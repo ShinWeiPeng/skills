@@ -8,11 +8,11 @@
 - Flow IDs: `governed-engineering-route`
 - Related ADRs: `ADR-0010`, `ADR-0011`
 - Source paths:
-  - `skills/engineering/engineering-risk-routing/references/intent-rules.json`
-  - `skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json`
-  - `skills/engineering/engineering-risk-routing/scripts/workflow_selection.py`
-  - `skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py`
-- Test and benchmark paths: `tests/flows/plugin-integration/plugin/test_guided_routing.py`
+  - `governed-engineering-skills/skills/engineering/engineering-risk-routing/references/intent-rules.json`
+  - `governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json`
+  - `governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py`
+  - `governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py`
+- Test and benchmark paths: `governed-engineering-skills/tests/flows/plugin-integration/plugin/test_guided_routing.py`
 - Supersedes: none
 
 ## Problem and observable success
@@ -180,7 +180,7 @@ a required risk gate.
 
 ## Validation cases and evidence
 
-`tests/flows/plugin-integration/plugin/test_guided_routing.py` covers empty,
+`governed-engineering-skills/tests/flows/plugin-integration/plugin/test_guided_routing.py` covers empty,
 docs-only, confirmed-without-resume,
 confirmed-with-resume, exact fresh-task one/many/zero/path resolution, quoted and
 negated authorization phrases, every invalid resume state, implementation-present,
