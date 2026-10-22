@@ -302,16 +302,8 @@ def publish_package(root, name, package):
     disposition = compare_release_identity(
         identity, tagged_identity(root, package, tag)
     )
-    for build in package["commands"]["build"]:
-        command(root, build)
-    publication = root / package["publication_dir"]
-    payload = json.loads(
-        (publication / "publication-record.json").read_text(encoding="utf-8")
-    )
     previous = remote_head(root, package["publication_branch"])
-    if disposition == "create":
-        git(root, "tag", tag)
-        git(root, "push", "origin", "refs/tags/" + tag)
+    old_payload = None
     if previous:
         git(
             root,
@@ -320,11 +312,57 @@ def publish_package(root, name, package):
             "origin",
             "refs/heads/" + package["publication_branch"],
         )
-        old = git(root, "show", previous + ":publication-record.json", check=False)
-        if old.returncode == 0 and json.loads(old.stdout).get(
-            "artifact"
-        ) == payload.get("artifact"):
-            return "unchanged"
+        old_payload = json.loads(
+            git(root, "show", previous + ":publication-record.json").stdout
+        )
+        published_version = tuple(
+            map(int, old_payload["artifact"]["version"].split("."))
+        )
+        current_version = tuple(map(int, identity["version"].split(".")))
+        if current_version < published_version:
+            raise ValueError(
+                "stale workflow cannot downgrade an already published package"
+            )
+    source = git(root, "rev-parse", "HEAD").stdout.strip()
+    tag_commit = (
+        git(root, "rev-parse", tag + "^{commit}").stdout.strip()
+        if disposition == "existing"
+        else source
+    )
+    context = {
+        "{source_commit}": source,
+        "{source_tag_commit}": tag_commit,
+        "{previous_publication_commit}": previous or "none:first-publication",
+    }
+    for build in package["commands"]["build"]:
+        command(root, [context.get(argument, argument) for argument in build])
+    publication = root / package["publication_dir"]
+    payload = json.loads(
+        (publication / "publication-record.json").read_text(encoding="utf-8")
+    )
+    if (
+        payload["artifact"]["version"] != identity["version"]
+        or payload["source_tag_commit"] != tag_commit
+        or payload["rollback"]["previous_publication_commit"]
+        != context["{previous_publication_commit}"]
+    ):
+        raise ValueError(
+            "publication metadata differs from the inspected source and previous release"
+        )
+    if (
+        old_payload
+        and old_payload["artifact"]["version"] == identity["version"]
+        and old_payload["artifact"] != payload["artifact"]
+    ):
+        raise ValueError(
+            "same published version cannot contain different artifact content"
+        )
+    if disposition == "create":
+        git(root, "tag", tag)
+    # An identical push is safe; also retries a local tag whose previous push failed.
+    git(root, "push", "origin", "refs/tags/" + tag)
+    if old_payload and old_payload["artifact"] == payload["artifact"]:
+        return "unchanged"
     publish_directory(root, publication, package["publication_branch"], previous)
     return "published"
 

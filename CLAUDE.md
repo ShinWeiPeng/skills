@@ -7,4 +7,4 @@
 - Root installers and script entrypoints are compatibility delegates, not second implementations.
 - Preserve existing user work and untracked data. Stage explicit reviewed paths; do not use repository-wide `git add -A`. Generated consumer branches are never editable source.
 
-Cross-package tests: `python -m unittest discover -s tests/monorepo -p "test_*.py" -v`. Engineering assembly: `python governed-engineering-skills/scripts/assemble_plugin.py rehearse`.
+Cross-package tests: `python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_*.py" -v`. Engineering assembly: `python governed-engineering-skills/scripts/assemble_plugin.py rehearse`.

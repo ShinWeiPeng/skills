@@ -17,7 +17,7 @@ Git tracking or ignore policy. Missing adoption is BLOCKED; migration is explici
 - Canonical generated architecture views keep their documented generator location.
   General development/build tools keep their declared role; they are not all tests.
 
-No alternate test root is permitted, including existing projects. Migrate source,
+An alternate package test root is permitted only when explicitly declared in `validation/layout.yaml` as described under Package test roots; other alternate roots remain forbidden, including in existing projects. Migrate source,
 fixtures, runner paths, references and source sets together. Curated fixture data
 must declare provenance; a report-like suffix does not alone determine its role.
 

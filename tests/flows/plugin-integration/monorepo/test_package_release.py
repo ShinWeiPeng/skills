@@ -6,6 +6,8 @@ import os
 import shutil
 import subprocess
 import tempfile
+import sys
+from unittest import mock
 import unittest
 from pathlib import Path
 
@@ -193,3 +195,114 @@ class CompatibilityLauncherTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReleaseRecoveryTests(unittest.TestCase):
+    """Real Git refs with a minimal package-command fake and no GitHub writes."""
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(
+            prefix="release-recovery-", dir=ROOT
+        )
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name) / "source"
+        self.root.mkdir()
+        remote = Path(self.temporary.name) / "remote.git"
+        self.git("init", "--quiet", "--initial-branch=main", "--template=")
+        subprocess.run(
+            [
+                "git",
+                "init",
+                "--bare",
+                "--initial-branch=main",
+                "--template=",
+                str(remote),
+            ],
+            capture_output=True,
+            check=True,
+        )
+        self.git("config", "user.name", "Release Contract")
+        self.git("config", "user.email", "release@example.invalid")
+        self.git("remote", "add", "origin", str(remote))
+        (self.root / ".gitignore").write_text("output/\n")
+        (self.root / "fixture-build.py").write_text(
+            'import json,sys\nfrom pathlib import Path\np=Path("output");p.mkdir(exist_ok=True)\nv=json.loads(Path("package.json").read_text())["version"]\npayload={"artifact":{"version":v,"content_fingerprint":"content-"+v},"source_commit":sys.argv[1],"source_tag_commit":sys.argv[2],"rollback":{"previous_publication_commit":sys.argv[3]}}\n(p/"publication-record.json").write_text(json.dumps(payload))\n'
+        )
+        self.package = {
+            "root": "sample",
+            "version_file": "package.json",
+            "state_file": "state.json",
+            "publication_dir": "output",
+            "publication_branch": "sample-release",
+            "commands": {
+                "check": ["python", "-c", "pass"],
+                "fingerprint": ["python", "-c", "print('sha256:'+'a'*64)"],
+                "build": [
+                    [
+                        "python",
+                        "fixture-build.py",
+                        "{source_commit}",
+                        "{source_tag_commit}",
+                        "{previous_publication_commit}",
+                    ]
+                ],
+            },
+        }
+        self.version("0.1.0")
+
+    def git(self, *args):
+        return release.git(self.root, *args).stdout.strip()
+
+    def version(self, value):
+        (self.root / "package.json").write_text(json.dumps({"version": value}))
+        (self.root / "state.json").write_text(
+            json.dumps(
+                {
+                    "current_version": value,
+                    "production_fingerprint": "sha256:" + "a" * 64,
+                }
+            )
+        )
+        self.git("add", "--all")
+        self.git("commit", "-m", value)
+        return self.git("rev-parse", "HEAD")
+
+    def publish(self):
+        return release.publish_package(self.root, "sample", self.package)
+
+    def test_old_workflow_cannot_downgrade_and_rollback_records_actual_previous_sha(
+        self,
+    ):
+        first_source = self.git("rev-parse", "HEAD")
+        self.assertEqual(self.publish(), "published")
+        first_publication = release.remote_head(self.root, "sample-release")
+        first_tag = self.git("rev-parse", "sample@0.1.0")
+        self.assertEqual(self.publish(), "unchanged")
+        self.assertEqual(first_tag, self.git("rev-parse", "sample@0.1.0"))
+        self.version("0.2.0")
+        self.assertEqual(self.publish(), "published")
+        latest = release.remote_head(self.root, "sample-release")
+        record = json.loads(self.git("show", latest + ":publication-record.json"))
+        self.assertEqual(
+            record["rollback"]["previous_publication_commit"], first_publication
+        )
+        self.assertEqual(
+            record["source_tag_commit"], self.git("rev-parse", "sample@0.2.0")
+        )
+        self.git("checkout", "--detach", first_source)
+        with self.assertRaisesRegex(ValueError, "stale workflow"):
+            self.publish()
+        self.assertEqual(release.remote_head(self.root, "sample-release"), latest)
+
+    def test_retry_after_tag_success_and_publication_failure_keeps_tag_identity(self):
+        with mock.patch.object(
+            release,
+            "publish_directory",
+            side_effect=OSError("temporary publication failure"),
+        ):
+            with self.assertRaises(OSError):
+                self.publish()
+        tag = self.git("rev-parse", "sample@0.1.0")
+        self.assertIsNone(release.remote_head(self.root, "sample-release"))
+        self.assertEqual(self.publish(), "published")
+        self.assertEqual(self.git("rev-parse", "sample@0.1.0"), tag)

@@ -169,8 +169,21 @@ class SharedSkillDistributionTests(unittest.TestCase):
         self.assertNotIn("--manifest skills/", workflow)
 
     def test_algorithm_records_reference_existing_source_and_test_paths(self) -> None:
+        records = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(PROJECT_ROOT),
+                "ls-files",
+                "--cached",
+                "--full-name",
+                "-z",
+                "--",
+                "architecture/algorithms/ALG-*.md",
+            ]
+        )
         for record in sorted(
-            (PROJECT_ROOT / "architecture" / "algorithms").glob("ALG-*.md")
+            PROJECT_ROOT / path.decode("utf-8") for path in records.split(b"\0") if path
         ):
             metadata = record.read_text(encoding="utf-8").split("## Problem", 1)[0]
             referenced_paths = [

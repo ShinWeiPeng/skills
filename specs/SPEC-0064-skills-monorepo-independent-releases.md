@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0064
-revision: 9
+revision: 10
 status: confirmed
 change_set: skills-monorepo-independent-releases
 working_id: WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases
@@ -119,7 +119,7 @@ skills/                              # ShinWeiPeng/skills；唯一 Git root
 ├── release-packages.json             # 套件路徑與發佈身分的宣告設定
 ├── architecture/                     # repo 架構與跨套件發佈契約
 ├── specs/                            # 既有 canonical SPEC 路徑不搬移
-├── tests/monorepo/                   # 跨套件 CI／發佈契約測試
+├── tests/flows/plugin-integration/monorepo/                   # 跨套件 CI／發佈契約測試
 ├── governed-engineering-skills/
 │   ├── skills/engineering/
 │   ├── skills/productivity/
@@ -394,11 +394,11 @@ root repository architecture manifest 與 canonical specs 保持 repo 級；pack
 
 以下命令為遷移後計畫；尚未執行。所有命令保存 argv、工作目錄、exit code 與不可變 run 輸出。
 
-- Cross-package contracts: python -m unittest discover -s tests/monorepo -p "test_*.py" -v。新 fixture 由實作階段建立；涵蓋 AC-003 至 AC-008。
+- Cross-package contracts: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_*.py" -v。新 fixture 由實作階段建立；涵蓋 AC-003 至 AC-008。
 - Engineering assembly: python governed-engineering-skills/scripts/assemble_plugin.py assemble --marketplace-publication；接著 python governed-engineering-skills/scripts/validate_distribution.py；python governed-engineering-skills/scripts/assemble_plugin.py validate。必須使用明確 package/git roots，產物不得混入 doc。
 - Engineering version: python governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py check。
-- Architecture: python governed-engineering-skills/tools/architecture/architecture_cli.py gate --phase release --manifest architecture/manifest.yaml --adoption architecture/adoption.yaml --baseline architecture/baseline.yaml；render 以同一 public CLI 的 --check 模式驗證，不直接使用 legacy internal script。
-- Doc package contracts: python -m unittest discover -s doc-coauthoring/tests -p "test_*.py" -v。包含兩份平台 manifest 及共同來源、固定版本／來源 SHA、相對引用與 fallback。
+- Architecture: python governed-engineering-skills/tools/architecture/architecture_cli.py gate --phase release --manifest architecture/manifest.yaml --adoption architecture/adoption.yaml --baseline architecture/baseline.yaml；generated views 由同一 public CLI 的 release gate 驗證；render 用於重建，不使用不存在的 --check 選項或 legacy internal script。
+- Doc package contracts: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_doc_release.py" -v。包含兩份平台 manifest 及共同來源、固定版本／來源 SHA、相對引用與 fallback。
 - Platform cases: 在隔離設定的 Codex 與 Claude session 各載入該次組裝的 doc-coauthoring；輸入固定技術文件、提案、決策文件案例；逐次記錄三階段輸出、獨立 reader context 與人工 fallback；關閉 sub-agent／移除工具的負例必須顯示對應狀態，不能宣稱讀者檢驗成功。安裝／載入失敗是 BLOCKED 或 FAIL，不能由靜態 manifest 通過代替。
 - Migration link and source review: compare git ls-files tracked paths and artifact inventory before/after; check every moved relative Markdown link, launcher target, manifest reference and tag SHA; record observer, commands, before/after hashes, observed output and pass condition.
 
@@ -418,24 +418,7 @@ None.
 
 ## Completeness Gaps
 
-- AC-002: trigger 'adapter-conformance' is not mapped by any project rule
-- AC-002: trigger 'external-port' is not mapped by any project rule
-- AC-003: trigger 'error-reset' is not mapped by any project rule
-- AC-003: trigger 'state-transition' is not mapped by any project rule
-- AC-004: trigger 'error-reset' is not mapped by any project rule
-- AC-004: trigger 'state-transition' is not mapped by any project rule
-- AC-005: trigger 'error-reset' is not mapped by any project rule
-- AC-005: trigger 'state-transition' is not mapped by any project rule
-- AC-007: trigger 'error-reset' is not mapped by any project rule
-- AC-007: trigger 'state-transition' is not mapped by any project rule
-- AC-008: trigger 'adapter-conformance' is not mapped by any project rule
-- AC-008: trigger 'error-reset' is not mapped by any project rule
-- AC-008: trigger 'external-port' is not mapped by any project rule
-- AC-008: trigger 'state-transition' is not mapped by any project rule
-- AC-010: trigger 'adapter-conformance' is not mapped by any project rule
-- AC-010: trigger 'external-port' is not mapped by any project rule
-- AC-011: trigger 'adapter-conformance' is not mapped by any project rule
-- AC-011: trigger 'external-port' is not mapped by any project rule
+None.
 
 <!-- spec-audit:start -->
 ## Discussion History
@@ -476,5 +459,7 @@ None.
 {"affected_ids":["DEC-005","DISC-004"],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":["DEC-005","DISC-004"],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"de9b47a24a79ce7d2dbf607513327843fe72648895b311c60831c7654b26d577","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"15af3b2a3c9f9aee8b761701d42967a458a02a56ed92589a924fd6a9ac25675b","previous_snapshot_hash":"111a84eddba51e0679449e5ef61e0a7c025ca7909f6a9f526b82399194273988","recorded_at":"2026-10-22T03:56:04.925203+00:00","relationships":[],"revision":9,"snapshot_hash":"5cb2fdd7a75e6953d6bf48824877882698676f4a339e684b18424dc5e4074863","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"e760706b4ee8235711704704c572355dde799baf05f50506bae5ac20d34eef30","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"de9b47a24a79ce7d2dbf607513327843fe72648895b311c60831c7654b26d577","previous_snapshot_hash":"5cb2fdd7a75e6953d6bf48824877882698676f4a339e684b18424dc5e4074863","recorded_at":"2026-10-22T03:56:06.535446+00:00","relationships":[],"revision":9,"snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"binding":{"revision":9,"snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"},"candidates":[],"completeness_review":{"acceptance":{"evidence":"AC-001 through AC-013 and selector mappings remain unchanged; additive matrix rules now cover the declared evidence categories.","source_ref":"user:adopt-plan-start"},"behavior":{"evidence":"Two independent Version PR flows, immutable tags and isolated publications; shared doc workflow across two harnesses.","source_ref":"user:adopt-plan-start"},"exceptions":{"evidence":"Identity conflicts and missing capabilities reject; no lowered tests or fake PASS; hashed tracked-source inventory protects existing data.","source_ref":"user:adopt-plan-start"},"goal":{"evidence":"One skills repository, two sibling packages, independent reviewed releases.","source_ref":"user:adopt-plan-start"},"scope":{"evidence":"Complete approved SPEC-0064 proposal with only the separately authorized native-tool exception.","source_ref":"user:adopt-plan-start"}},"identified_items":{"ALLOW-NATIVE":{"id":"ALLOW-NATIVE","kind":"accepted","source_ref":"user:allow-native-tools","text":"User allowed the scoped native Git/file-tool exception in Q-003, preserving the existing execution authorization and hash/scope/acceptance constraints."}},"item_bindings":{"ALLOW-NATIVE":["DEC-005"]},"kind":"saved","reply_sha256":"f8ef130743fff66d41f9b3613093b927ce41f6e0b02a677ad2f4d310bb57fee0","reply_stage":"prepared-until-host-stop","reviewed_sources":["user:allow-native-tools"],"source_ref":"assistant:authorized-native-entry","summary":"Reconciled explicit native-tool exception without changing the approved product scope. Applied only reviewed additive verification matrix patch after exact hash check; verified all 485 relocation hashes and no destination conflicts. Original execution authorization retained.","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-allow-native-tools"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"f33acea89060b37b57d3adc981e80153572e54ba4bc191c5039868525d5f4eb0","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"e760706b4ee8235711704704c572355dde799baf05f50506bae5ac20d34eef30","previous_snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","recorded_at":"2026-10-22T03:56:06.733170+00:00","relationships":[],"revision":9,"snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"b042257d4af7d5b39f5cc8986321d2da97b72e3a19f8b382f5033f7ec80fd8e5","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"f33acea89060b37b57d3adc981e80153572e54ba4bc191c5039868525d5f4eb0","previous_snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","recorded_at":"2026-10-22T04:40:53.233230+00:00","relationships":[],"revision":10,"snapshot_hash":"3ca107a6b4085762a9a4ca3beb89b6c378d32ca5c0cec161176739a516f982c3","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"877a0e848a49a90d57381ddf6dddcb3dd24352c2554f9a95393f3681d35b5cf0","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"b042257d4af7d5b39f5cc8986321d2da97b72e3a19f8b382f5033f7ec80fd8e5","previous_snapshot_hash":"3ca107a6b4085762a9a4ca3beb89b6c378d32ca5c0cec161176739a516f982c3","recorded_at":"2026-10-22T04:40:53.689740+00:00","relationships":[],"revision":10,"snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 ```
 <!-- spec-audit:end -->

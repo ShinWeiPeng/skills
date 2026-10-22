@@ -32,7 +32,13 @@
             "python",
             "governed-engineering-skills/scripts/assemble_plugin.py",
             "assemble",
-            "--marketplace-publication"
+            "--marketplace-publication",
+            "--source-commit",
+            "{source_commit}",
+            "--source-tag-commit",
+            "{source_tag_commit}",
+            "--previous-publication-commit",
+            "{previous_publication_commit}"
           ],
           [
             "python",

@@ -674,6 +674,9 @@ entries:
   - specs/SPEC-0064-skills-monorepo-independent-releases.md
   - specs/history/SPEC-0064-skills-monorepo-decisions.md
   role: specification
+- include:
+  - validation/acceptance-SPEC-0064.json
+  role: validation-definition
 required_analyzers:
 - python
 external_modules:
@@ -693,13 +696,13 @@ output_bindings:
 external_resources: []
 dynamic_dependencies:
   governed-engineering-skills/scripts/assemble_plugin.py:
-    sha256: c629ea6e3616b36b4db5afee0d457a47f40a9537b9653b00b2c694ac9c3e3a60
+    sha256: 332d05eea90096f2618bd928a78954e52126ac7d5c76f0ceae01ce777e1d38f7
     targets:
     - governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   governed-engineering-skills/tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py:
-    sha256: 2d4c4d2bd4828563fb502d677bc028eb5faf217d1bb12b10487b3d5d722a2b38
+    sha256: 87dbff3b3c23ea83a13e505ea752ee2f8773631295a099af1f22cb07d8a2d053
     targets:
     - governed-engineering-skills/scripts/assemble_plugin.py
     - governed-engineering-skills/scripts/validate_distribution.py
@@ -738,7 +741,7 @@ dynamic_dependencies:
     rationale: Reviewed literal source/assembled-artifact loader constants; assembled
       paths map to these canonical source files, verified by distribution inventory.
   tests/flows/plugin-integration/monorepo/test_package_release.py:
-    sha256: bb196c953324732800e08446c8ec96a116d87c46dc21d587354f5a9e7545e388
+    sha256: e0f22d04640d0dcce47c707247e45829524ea4d20a1d59bc7bb1b5794224a730
     targets:
     - .github/scripts/package_release.py
     rationale: Contract tests load the public package release adapter from its explicit

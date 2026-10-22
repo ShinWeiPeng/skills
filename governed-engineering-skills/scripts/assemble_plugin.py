@@ -469,6 +469,7 @@ def write_marketplace_publication(
     *,
     source_commit: str,
     previous_publication_commit: str,
+    source_tag_commit: str | None = None,
 ) -> Path:
     output = output.resolve()
     if output == repo_root.resolve() or output in repo_root.resolve().parents:
@@ -482,13 +483,19 @@ def write_marketplace_publication(
     plugin_destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(artifact, plugin_destination)
 
-    project_root = repo_root.parent if (repo_root.parent / "release-packages.json").is_file() else repo_root
+    project_root = (
+        repo_root.parent
+        if (repo_root.parent / "release-packages.json").is_file()
+        else repo_root
+    )
     catalog = json.loads(
         (project_root / ".agents" / "plugins" / "marketplace.json").read_text(
             encoding="utf-8"
         )
     )
-    plugins = [item for item in catalog.get("plugins", []) if item.get("name") == PLUGIN_NAME]
+    plugins = [
+        item for item in catalog.get("plugins", []) if item.get("name") == PLUGIN_NAME
+    ]
     catalog["plugins"] = plugins
     if (
         not isinstance(plugins, list)
@@ -512,6 +519,7 @@ def write_marketplace_publication(
         "git_ref": MARKETPLACE_BRANCH,
         "source_commit": source_commit,
         "source_tag": f"{PLUGIN_NAME}@{result['version']}",
+        "source_tag_commit": source_tag_commit or source_commit,
         "marketplace_path": MARKETPLACE_PATH,
         "sparse_paths": list(MARKETPLACE_SPARSE_PATHS),
         "artifact": {
@@ -601,7 +609,9 @@ def validate_marketplace_publication(
         raise DistributionError(
             f"Marketplace publication tree is incomplete: {exc}"
         ) from exc
-    plugins = [item for item in catalog.get("plugins", []) if item.get("name") == PLUGIN_NAME]
+    plugins = [
+        item for item in catalog.get("plugins", []) if item.get("name") == PLUGIN_NAME
+    ]
     catalog["plugins"] = plugins
     if not isinstance(plugins, list) or len(plugins) != 1:
         raise DistributionError("Marketplace catalog must contain exactly one Plugin")
@@ -644,6 +654,7 @@ def main() -> int:
     parser.add_argument("--marketplace-publication", action="store_true")
     parser.add_argument("--marketplace-output", type=Path)
     parser.add_argument("--source-commit")
+    parser.add_argument("--source-tag-commit")
     parser.add_argument(
         "--previous-publication-commit", default="none:first-publication"
     )
@@ -677,6 +688,7 @@ def main() -> int:
                     publication_root,
                     source_commit=source_commit,
                     previous_publication_commit=args.previous_publication_commit,
+                    source_tag_commit=args.source_tag_commit,
                 )
                 schema = json.loads(
                     (
