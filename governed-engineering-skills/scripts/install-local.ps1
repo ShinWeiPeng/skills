@@ -52,7 +52,12 @@ try {
     $artifactAccess = [System.IO.Path]::GetFullPath($ArtifactAccessScript)
     $adapter = Join-Path $RepositoryRoot 'plugins\governed-engineering-skills\scripts\install-local.ps1'
     $artifact = Join-Path $RepositoryRoot 'dist\governed-engineering-skills'
-    $marketplace = Join-Path $RepositoryRoot '.agents\plugins\marketplace.json'
+    $projectRoot = $RepositoryRoot
+    $parentRoot = Split-Path $RepositoryRoot -Parent
+    if (Test-Path -LiteralPath (Join-Path $parentRoot 'release-packages.json') -PathType Leaf) {
+        $projectRoot = $parentRoot
+    }
+    $marketplace = Join-Path $projectRoot '.agents\plugins\marketplace.json'
     foreach ($required in @($assembler, $validator, $pythonSelector, $artifactAccess, $adapter, $marketplace)) {
         if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
             Write-InstallLog "Required installer component is missing: $required" 'ERROR'

@@ -23,7 +23,12 @@ $fakePythonCompatibleRuntime = Join-Path $PSScriptRoot '../support/installer/fak
 $fakePythonProbeFailure = Join-Path $PSScriptRoot '../support/installer/fake-python-probe-failure.cmd'
 $fakeArtifactAccess = Join-Path $PSScriptRoot '../support/installer/fake-artifact-access.ps1'
 $artifactRoot = Join-Path $repoRoot 'dist\governed-engineering-skills'
-$marketplacePath = Join-Path $repoRoot '.agents\plugins\marketplace.json'
+$projectRoot = $repoRoot
+$parentRoot = Split-Path $repoRoot -Parent
+if (Test-Path -LiteralPath (Join-Path $parentRoot 'release-packages.json') -PathType Leaf) {
+    $projectRoot = $parentRoot
+}
+$marketplacePath = Join-Path $projectRoot '.agents\plugins\marketplace.json'
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('governed-installer-' + [Guid]::NewGuid().ToString('N'))
 $fakeBin = Join-Path $testRoot 'bin'
 $fakeHome = Join-Path $testRoot 'home'

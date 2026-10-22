@@ -6,3 +6,6 @@ plugins/governed-engineering-skills/** text=auto eol=lf
 governed-engineering-skills/plugins/governed-engineering-skills/** text=auto eol=lf
 .github/scripts/** text=auto eol=lf
 doc-coauthoring/** text=auto eol=lf
+
+"Install Governed Engineering Skills.sh" text eol=lf
+"Install Governed Engineering Skills.desktop" text eol=lf
