@@ -24,3 +24,18 @@ The engineering installers at this root preserve the existing `governed-engineer
 The root Claude marketplace retains its legacy name `mattpocock` and catalogs both packages. Dedicated generated consumer branches each contain only their own package. Follow each package README for installation and validation status. The doc package's initial intent proposes 0.1.0 through a Version PR; source bootstrap metadata remains 0.0.0 until that PR is reviewed.
 
 Each package has its own license/provenance records. The doc workflow derives from the pinned Anthropic example; review [its upstream attribution and license basis](doc-coauthoring/UPSTREAM.md). General document writing uses the doc workflow; engineering changes continue to enter through the engineering router.
+
+## Repository maintenance files
+
+`.github/workflows/` and `.github/scripts/` maintain reviewed releases. `.github/tests/` holds the cross-package release contracts; `.github/validation/` holds their authored validation definitions and platform cases. The root `.agents/plugins/marketplace.json` and `.claude-plugin/marketplace.json` are the Codex and Claude catalogs, not private session state.
+
+Before running repository architecture/layout commands in a fresh checkout:
+
+```sh
+python .github/scripts/prepare_validation.py
+python -m unittest discover -s .github/tests/flows/plugin-integration/monorepo -p "test_*.py" -v
+```
+
+The preparation command creates ignored `validation/` compatibility copies for existing governance tools. It updates only unchanged generated files or adopts byte-identical existing settings; it refuses to overwrite a human edit. Edit `.github/validation/`, then rerun preparation.
+
+Execution state stays in local `spec-governance/`, test and validation reports stay in local `artifacts/`, and generated acceptance projections/copies stay in local `validation/`. These directories are ignored and excluded from new commits; existing local files are retained. Necessary skill sources, release metadata, CI tests/settings, and reviewed specifications remain tracked. Existing published tags and historical Git commits remain unchanged.

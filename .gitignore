@@ -50,3 +50,15 @@ __pycache__/
 *.pyc
 
 .claude/
+
+# Local execution state and reproducible validation compatibility copies
+/spec-governance/
+/artifacts/
+/validation/
+/tests/
+/.tmp/
+
+# Optional upstream issue automation retained locally only
+/.github/ISSUE_TEMPLATE/
+/.github/workflows/needs-info.yml
+/.github/workflows/triage-label.yml

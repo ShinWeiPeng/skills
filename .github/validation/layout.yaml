@@ -1,0 +1,782 @@
+schema_version: 1
+entries:
+- include:
+  - .codex-arch-deps/**
+  - node_modules/**
+  - dist/**
+  - .ruff_cache/**
+  - .tmp/**
+  - .test-tmp/**
+  - .cache/**
+  - build/**
+  - governed-engineering-skills/plugins/governed-engineering-skills/build/**
+  - '**/__pycache__/**'
+  - governed-engineering-skills/plugins/governed-engineering-skills/.tmp/**
+  - .validation-deps/**
+  role: build-output
+  provenance: Provisioned third-party runtime, assembly output, compiler/test caches;
+    no project source ownership
+- include:
+  - artifacts/tests/**
+  - artifacts/validation/**
+  role: run-output
+- include:
+  - artifacts/legacy/**
+  role: legacy-output
+  provenance: Explicit migration manifests preserve original paths and SHA-256; not
+    fresh acceptance
+- include:
+  - spec-governance/**
+  role: governance-state
+  exclude:
+  - '**/__pycache__/**'
+- include:
+  - governed-engineering-skills/.agents/adr/0001-explicit-setup-pointer-only-for-hard-dependencies.md
+  - governed-engineering-skills/.agents/adr/0002-ship-as-a-claude-code-plugin.md
+  - governed-engineering-skills/.agents/invocation.md
+  - governed-engineering-skills/.agents/writing-docs.md
+  - governed-engineering-skills/.out-of-scope/mainstream-issue-trackers-only.md
+  - governed-engineering-skills/.out-of-scope/question-limits.md
+  - governed-engineering-skills/.out-of-scope/setup-skill-verify-mode.md
+  - AGENTS.md
+  - governed-engineering-skills/CHANGELOG.md
+  - CLAUDE.md
+  - README.md
+  - architecture/algorithms/ALG-0001-hard-trigger-risk-routing.md
+  - architecture/algorithms/ALG-0002-three-state-project-assessment.md
+  - architecture/algorithms/ALG-0003-ordered-workflow-selection.md
+  - architecture/algorithms/ALG-0004-canonical-spec-reconciliation.md
+  - architecture/algorithms/ALG-0005-evidence-calibrated-flow-cost-review.md
+  - architecture/algorithms/ALG-0006-compatible-python-runtime-selection.md
+  - architecture/algorithms/ALG-0007-verification-ladder-selection.md
+  - architecture/algorithms/ALG-0008-layout-and-run-lifecycle.md
+  - architecture/algorithms/README.md
+  - architecture/decisions/ADR-0001-modular-event-architecture.md
+  - architecture/decisions/ADR-0002-guided-driver-and-central-risk-router.md
+  - architecture/decisions/ADR-0003-pinned-vendor-snapshots.md
+  - architecture/decisions/ADR-0007-plugin-semver-lifecycle.md
+  - architecture/decisions/ADR-0008-pinned-espressif-libclang-provider.md
+  - architecture/decisions/ADR-0009-explicit-prerelease-group-transition.md
+  - architecture/decisions/ADR-0010-automatic-engineering-router.md
+  - architecture/decisions/ADR-0011-canonical-change-set-specification.md
+  - architecture/decisions/ADR-0012-schema-2-2-localized-description-views.md
+  - architecture/decisions/ADR-0013-continuous-stable-plugin-versioning.md
+  - architecture/decisions/ADR-0014-personal-git-marketplace-publication.md
+  - architecture/decisions/ADR-0015-test-validation-layout.md
+  - governed-engineering-skills/distribution/README.md
+  - governed-engineering-skills/docs/engineering/ask-matt.md
+  - governed-engineering-skills/docs/engineering/clarify-improvement-proposals.md
+  - governed-engineering-skills/docs/engineering/code-review.md
+  - governed-engineering-skills/docs/engineering/codebase-design.md
+  - governed-engineering-skills/docs/engineering/diagnosing-bugs.md
+  - governed-engineering-skills/docs/engineering/domain-modeling.md
+  - governed-engineering-skills/docs/engineering/engineering-risk-routing.md
+  - governed-engineering-skills/docs/engineering/explain-code-flow.md
+  - governed-engineering-skills/docs/engineering/formatter-governance.md
+  - governed-engineering-skills/docs/engineering/govern-modular-event-architecture.md
+  - governed-engineering-skills/docs/engineering/grill-with-docs.md
+  - governed-engineering-skills/docs/engineering/implement.md
+  - governed-engineering-skills/docs/engineering/improve-codebase-architecture.md
+  - governed-engineering-skills/docs/engineering/prototype.md
+  - governed-engineering-skills/docs/engineering/research.md
+  - governed-engineering-skills/docs/engineering/resolving-merge-conflicts.md
+  - governed-engineering-skills/docs/engineering/setup-matt-pocock-skills.md
+  - governed-engineering-skills/docs/engineering/spec-governance.md
+  - governed-engineering-skills/docs/engineering/tdd.md
+  - governed-engineering-skills/docs/engineering/to-spec.md
+  - governed-engineering-skills/docs/engineering/to-tickets.md
+  - governed-engineering-skills/docs/engineering/triage.md
+  - governed-engineering-skills/docs/engineering/validate-on-device.md
+  - governed-engineering-skills/docs/engineering/verification-ladder.md
+  - governed-engineering-skills/docs/engineering/wayfinder.md
+  - governed-engineering-skills/docs/productivity/grill-me.md
+  - governed-engineering-skills/docs/productivity/grilling.md
+  - governed-engineering-skills/docs/productivity/handoff.md
+  - governed-engineering-skills/docs/productivity/teach.md
+  - governed-engineering-skills/plugins/governed-engineering-skills/AGENTS.md
+  - governed-engineering-skills/plugins/governed-engineering-skills/CHANGELOG.md
+  - governed-engineering-skills/plugins/governed-engineering-skills/docs/versioning.md
+  - governed-engineering-skills/skills/deprecated/README.md
+  - governed-engineering-skills/skills/engineering/README.md
+  - governed-engineering-skills/skills/engineering/ask-matt/SKILL.md
+  - governed-engineering-skills/skills/engineering/ask-matt/references/decision-question-contract.md
+  - governed-engineering-skills/skills/engineering/clarify-improvement-proposals/SKILL.md
+  - governed-engineering-skills/skills/engineering/code-review/SKILL.md
+  - governed-engineering-skills/skills/engineering/codebase-design/DEEPENING.md
+  - governed-engineering-skills/skills/engineering/codebase-design/DESIGN-IT-TWICE.md
+  - governed-engineering-skills/skills/engineering/codebase-design/SKILL.md
+  - governed-engineering-skills/skills/engineering/diagnosing-bugs/SKILL.md
+  - governed-engineering-skills/skills/engineering/diagnosing-bugs/references/debug-model-packet.md
+  - governed-engineering-skills/skills/engineering/domain-modeling/ADR-FORMAT.md
+  - governed-engineering-skills/skills/engineering/domain-modeling/SKILL.md
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/SKILL.md
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/entry-gate.md
+  - governed-engineering-skills/skills/engineering/explain-code-flow/SKILL.md
+  - governed-engineering-skills/skills/engineering/formatter-governance/SKILL.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/AGENTS.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/SKILL.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/ARCHITECTURE.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/algorithms/ALG-0001-ast-boundary-analysis.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/algorithms/ALG-0002-partitioned-rma-rta.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/algorithms/ALG-0003-python-ast-adoption-verdict.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/algorithms/README.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0001-modular-event-architecture.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0002-schema-2-type-catalog.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0003-authoring-first-ast-enforcement.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0004-formal-source-sets.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0005-schema-2-1-realtime-scheduling.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0006-single-cli-adoption-readiness.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0007-pinned-espressif-libclang-provider.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/decisions/ADR-0008-validate-without-materializing-archive-links.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/design/libclang-toolchain-provider.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/adr-policy.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/algorithm-design.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/c-analyzer.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/core-standard.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/description-views.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/event-contract.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/execution-efficiency.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/flow-cost-review.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/manifest-schema.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/realtime-scheduling-analysis.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/runtime-validation.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/test-validation-architecture.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/requirements-architecture.txt
+  - governed-engineering-skills/skills/engineering/grill-with-docs/SKILL.md
+  - governed-engineering-skills/skills/engineering/implement/SKILL.md
+  - governed-engineering-skills/skills/engineering/implement/references/managed-delivery.md
+  - governed-engineering-skills/skills/engineering/improve-codebase-architecture/HTML-REPORT.md
+  - governed-engineering-skills/skills/engineering/improve-codebase-architecture/SKILL.md
+  - governed-engineering-skills/skills/engineering/prototype/LOGIC.md
+  - governed-engineering-skills/skills/engineering/prototype/SKILL.md
+  - governed-engineering-skills/skills/engineering/prototype/UI.md
+  - governed-engineering-skills/skills/engineering/research/SKILL.md
+  - governed-engineering-skills/skills/engineering/resolving-merge-conflicts/SKILL.md
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/SKILL.md
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/domain.md
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/issue-tracker-gitlab.md
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/issue-tracker-local.md
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md
+  - governed-engineering-skills/skills/engineering/spec-governance/SKILL.md
+  - governed-engineering-skills/skills/engineering/spec-governance/references/discussion-entry.md
+  - governed-engineering-skills/skills/engineering/tdd/SKILL.md
+  - governed-engineering-skills/skills/engineering/tdd/mocking.md
+  - governed-engineering-skills/skills/engineering/tdd/tests.md
+  - governed-engineering-skills/skills/engineering/to-spec/SKILL.md
+  - governed-engineering-skills/skills/engineering/to-tickets/SKILL.md
+  - governed-engineering-skills/skills/engineering/triage/AGENT-BRIEF.md
+  - governed-engineering-skills/skills/engineering/triage/OUT-OF-SCOPE.md
+  - governed-engineering-skills/skills/engineering/triage/SKILL.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/AGENTS.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/SKILL.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/ARCHITECTURE.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/decisions/ADR-0001-modular-event-architecture.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/decisions/ADR-0002-validation-gates-and-profile-contract.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/references/development-gate.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/references/evidence-contract.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/references/guided-testing.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/references/profile-schema.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/references/providers.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/references/user-facing-reporting.md
+  - governed-engineering-skills/skills/engineering/verification-ladder/SKILL.md
+  - governed-engineering-skills/skills/engineering/verification-ladder/references/project-validation.md
+  - governed-engineering-skills/skills/engineering/wayfinder/SKILL.md
+  - governed-engineering-skills/skills/in-progress/README.md
+  - governed-engineering-skills/skills/in-progress/claude-handoff/SKILL.md
+  - governed-engineering-skills/skills/in-progress/loop-me/SKILL.md
+  - governed-engineering-skills/skills/in-progress/setup-ts-deep-modules/SKILL.md
+  - governed-engineering-skills/skills/in-progress/writing-beats/SKILL.md
+  - governed-engineering-skills/skills/in-progress/writing-fragments/SKILL.md
+  - governed-engineering-skills/skills/in-progress/writing-shape/SKILL.md
+  - governed-engineering-skills/skills/misc/README.md
+  - governed-engineering-skills/skills/misc/git-guardrails-claude-code/SKILL.md
+  - governed-engineering-skills/skills/misc/migrate-to-shoehorn/SKILL.md
+  - governed-engineering-skills/skills/misc/scaffold-exercises/SKILL.md
+  - governed-engineering-skills/skills/misc/setup-pre-commit/SKILL.md
+  - governed-engineering-skills/skills/productivity/README.md
+  - governed-engineering-skills/skills/productivity/grill-me/SKILL.md
+  - governed-engineering-skills/skills/productivity/grilling/SKILL.md
+  - governed-engineering-skills/skills/productivity/handoff/SKILL.md
+  - governed-engineering-skills/skills/productivity/teach/GLOSSARY-FORMAT.md
+  - governed-engineering-skills/skills/productivity/teach/LEARNING-RECORD-FORMAT.md
+  - governed-engineering-skills/skills/productivity/teach/MISSION-FORMAT.md
+  - governed-engineering-skills/skills/productivity/teach/RESOURCES-FORMAT.md
+  - governed-engineering-skills/skills/productivity/teach/SKILL.md
+  role: documentation
+- include:
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-artifact-access.ps1
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-codex-access-denied.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-codex.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-marketplace-codex.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python-compatible-runtime.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python-failure.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python-incompatible.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python-launcher.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python-malformed.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python-probe-failure.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-python2.cmd
+  - governed-engineering-skills/tests/flows/plugin-integration/support/installer/fake-uri-launcher.cmd
+  role: fixture
+  owner: plugin-integration
+  provenance: Repository-authored deterministic test fixture, not captured run output
+- include:
+  - architecture/ARCHITECTURE.md
+  - architecture/generated/adoption-readiness.json
+  - architecture/generated/adoption-readiness.md
+  - architecture/generated/architecture_governance_cli.md
+  - architecture/generated/delivery_workflow_domain.md
+  - architecture/generated/governance_workflow_domain.md
+  - architecture/generated/guided_workflow_router.md
+  - architecture/generated/plugin_assembly_composition.md
+  - architecture/generated/project_validation_composition.md
+  - architecture/generated/python_runtime_selection_domain.md
+  - architecture/generated/risk_routing_domain.md
+  - architecture/generated/system.md
+  - architecture/generated/workflow_routing_domain.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/generated/adoption-readiness.json
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/generated/adoption-readiness.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/generated/architecture_tooling.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/generated/execution-cross-platform-cli.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/generated/governance_engine.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/generated/system.md
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/architecture_cli.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/ast_analyzer.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/bootstrap_project.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/boundary_catalog.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/c_analyzer.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/check.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/check_architecture.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/governance_adoption.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/libclang_toolchain_adapter.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/libclang_toolchain_contract.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/python_analyzer.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/realtime_analysis.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/render_architecture.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/requirements.txt
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/schema_description.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/schema_v2.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/source_sets.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/state_catalog.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/type_catalog.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/generated/collection_domain.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/generated/system.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/generated/validation_session.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/generated/verdict_domain.md
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/c_analyzer.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/check.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/check_architecture.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/migrate_manifest.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/render_architecture.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/requirements.txt
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/schema_v1_1.py
+  - governed-engineering-skills/tools/architecture/architecture_cli.py
+  - governed-engineering-skills/tools/architecture/ast_analyzer.py
+  - governed-engineering-skills/tools/architecture/bootstrap_project.py
+  - governed-engineering-skills/tools/architecture/boundary_catalog.py
+  - governed-engineering-skills/tools/architecture/c_analyzer.py
+  - governed-engineering-skills/tools/architecture/check.py
+  - governed-engineering-skills/tools/architecture/check_architecture.py
+  - governed-engineering-skills/tools/architecture/governance_adoption.py
+  - governed-engineering-skills/tools/architecture/libclang_toolchain_adapter.py
+  - governed-engineering-skills/tools/architecture/libclang_toolchain_contract.py
+  - governed-engineering-skills/tools/architecture/python_analyzer.py
+  - governed-engineering-skills/tools/architecture/realtime_analysis.py
+  - governed-engineering-skills/tools/architecture/render_architecture.py
+  - governed-engineering-skills/tools/architecture/requirements.txt
+  - governed-engineering-skills/tools/architecture/schema_description.py
+  - governed-engineering-skills/tools/architecture/schema_v2.py
+  - governed-engineering-skills/tools/architecture/source_sets.py
+  - governed-engineering-skills/tools/architecture/state_catalog.py
+  - governed-engineering-skills/tools/architecture/type_catalog.py
+  role: generated
+  provenance: Canonical architecture tooling bootstrap/render mirror
+- include:
+  - .agents/plugins/marketplace.json
+  - .claude-plugin/marketplace.json
+  - governed-engineering-skills/.claude-plugin/plugin.json
+  - .github/workflows/release.yml
+  - Install Governed Engineering Skills.desktop
+  - LICENSE
+  - architecture/adoption.yaml
+  - architecture/baseline.yaml
+  - architecture/manifest.yaml
+  - governed-engineering-skills/distribution/installer-providers.json
+  - governed-engineering-skills/distribution/personal-marketplace-publication.schema.json
+  - governed-engineering-skills/distribution/skill-compatibility.json
+  - governed-engineering-skills/plugins/governed-engineering-skills/.changeset/config.json
+  - governed-engineering-skills/plugins/governed-engineering-skills/.changeset/release-state.json
+  - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/plugin.json
+  - governed-engineering-skills/plugins/governed-engineering-skills/package.json
+  - governed-engineering-skills/skills/engineering/ask-matt/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/clarify-improvement-proposals/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/code-review/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/codebase-design/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/diagnosing-bugs/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/domain-modeling/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/guided-routing-contract.schema.json
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/intent-rules.json
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-contract.schema.json
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/references/routing-rules.json
+  - governed-engineering-skills/skills/engineering/explain-code-flow/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/formatter-governance/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/formatter-governance/references/formatter-policy-request.schema.json
+  - governed-engineering-skills/skills/engineering/formatter-governance/references/formatter-policy-result.schema.json
+  - governed-engineering-skills/skills/engineering/formatter-governance/references/formatter-policy.json
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/adoption.yaml
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/baseline.yaml
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/architecture/manifest.yaml
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/assets/project/toolchain-lock.yaml
+  - governed-engineering-skills/skills/engineering/grill-with-docs/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/implement/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/improve-codebase-architecture/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/prototype/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/research/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/resolving-merge-conflicts/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/setup-matt-pocock-skills/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/spec-governance/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/spec-governance/references/spec-contract.schema.json
+  - governed-engineering-skills/skills/engineering/tdd/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/to-spec/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/to-tickets/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/triage/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/validate-on-device/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/validate-on-device/architecture/manifest.yaml
+  - governed-engineering-skills/skills/engineering/verification-ladder/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/verification-ladder/references/project-validation.schema.json
+  - governed-engineering-skills/skills/engineering/verification-ladder/references/sil-execution.schema.json
+  - governed-engineering-skills/skills/engineering/verification-ladder/references/verification-ladder.schema.json
+  - governed-engineering-skills/skills/engineering/wayfinder/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/claude-handoff/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/loop-me/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/setup-ts-deep-modules/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs
+  - governed-engineering-skills/skills/in-progress/writing-beats/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/writing-fragments/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/writing-shape/agents/openai.yaml
+  - governed-engineering-skills/skills/misc/git-guardrails-claude-code/agents/openai.yaml
+  - governed-engineering-skills/skills/misc/migrate-to-shoehorn/agents/openai.yaml
+  - governed-engineering-skills/skills/misc/scaffold-exercises/agents/openai.yaml
+  - governed-engineering-skills/skills/misc/setup-pre-commit/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/grill-me/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/grilling/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/handoff/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/teach/agents/openai.yaml
+  role: metadata
+- include:
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/guided_workflow_router.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
+  - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
+  - governed-engineering-skills/skills/engineering/formatter-governance/scripts/formatter_policy.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/architecture_cli.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/ast_analyzer.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/bootstrap_project.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/boundary_catalog.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/c_analyzer.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/check_architecture.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/governance_adoption.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_adapter.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/libclang_toolchain_contract.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/python_analyzer.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/realtime_analysis.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/render_architecture.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/schema_description.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/schema_v2.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/source_sets.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/state_catalog.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/type_catalog.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/scripts/validation_layout.py
+  - governed-engineering-skills/skills/engineering/implement/scripts/managed_delivery.py
+  - governed-engineering-skills/skills/engineering/implement/scripts/project_validation_adapter.py
+  - governed-engineering-skills/skills/engineering/implement/scripts/project_validation_workflow.py
+  - governed-engineering-skills/skills/engineering/implement/scripts/spec_delivery.py
+  - governed-engineering-skills/skills/engineering/spec-governance/scripts/execution_state.py
+  - governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
+  - governed-engineering-skills/skills/engineering/spec-governance/scripts/discussion_state.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/validate_on_device.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/__init__.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/evidence.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/execution.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/guided.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/model.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/profile.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/scripts/vod/providers.py
+  - governed-engineering-skills/skills/engineering/verification-ladder/scripts/project_validation.py
+  - governed-engineering-skills/skills/engineering/verification-ladder/scripts/run_storage.py
+  - governed-engineering-skills/skills/engineering/verification-ladder/scripts/verification_ladder.py
+  role: production
+- include:
+  - specs/SPEC-0001-docs-only-routing-precedence.md
+  - specs/SPEC-0002-plugin-only-release-flow.md
+  - specs/SPEC-0003-evidence-calibrated-flow-cost-governance.md
+  - specs/SPEC-0004-default-decision-choice-contract.md
+  - specs/SPEC-0005-function-first-architecture-description.md
+  - specs/SPEC-0006-debug-model-packet.md
+  - specs/SPEC-0007-continuous-stable-plugin-versioning.md
+  - specs/SPEC-0008-turn-boundary-grilling-handoff.md
+  - specs/SPEC-0009-publish-governed-plugin-0-5-1.md
+  - specs/SPEC-0010-persistent-grilling-spec-lifecycle.md
+  - specs/SPEC-0011-portable-plugin-governance.md
+  - specs/SPEC-0012-flat-working-spec-storage.md
+  - specs/SPEC-0013-shared-skill-distribution.md
+  - specs/SPEC-0014-cross-platform-marketplace-install.md
+  - specs/SPEC-0015-explain-runtime-action-purpose.md
+  - specs/SPEC-0016-formatter-governance.md
+  - specs/SPEC-0017-ai-authorship-format-all.md
+  - specs/SPEC-0018-module-contract-validation-ladder.md
+  - specs/SPEC-0019-deterministic-plugin-release.md
+  - specs/SPEC-0020-spec-governance-turn-continuity.md
+  - specs/SPEC-0021-numeric-working-identity-redaction.md
+  - specs/SPEC-0022-governed-delivery-enforcement.md
+  - specs/SPEC-0023-mode-preserving-decision-options.md
+  - specs/SPEC-0024-discussion-turn-completion.md
+  - specs/SPEC-0025-mode-aware-question-presentation.md
+  - specs/SPEC-0026-universal-spec-execution-boundary.md
+  - specs/SPEC-0027-project-runtime-validation-enforcement.md
+  - specs/SPEC-0028-test-validation-architecture.md
+  - specs/SPEC-0029-proposal-discussion-entry.md
+  - specs/SPEC-0030-governance-diagnosis-recovery.md
+  - specs/SPEC-0031-execution-command-aliases.md
+  - specs/SPEC-0032-recoverable-spec-sync.md
+  - specs/SPEC-0033-preauthorization-acceptance-repair.md
+  - specs/SPEC-0034-continuous-validation-preparation.md
+  role: specification
+- include:
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/assets/project/ADR-0001-modular-event-architecture.md.tmpl
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/assets/project/AGENTS.md.tmpl
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/assets/project/test_architecture.py.tmpl
+  role: template
+  provenance: Authored template/example input, not execution evidence
+- include:
+  - governed-engineering-skills/tests/modules/delivery_workflow_domain/diagnosis/test_skill_contract.py
+  role: test
+  owner: delivery_workflow_domain
+- include:
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/architecture/test_architecture.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/test_architecture.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/test_governance_cli.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/test_libclang_toolchain_provider.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/test_realtime_analysis.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/test_skill_contract.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/device/architecture/test_architecture.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/device/test_guided_session.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/device/test_validate_on_device.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/explanation/test_skill_contract.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/proposals/test_validation_workflow.py
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/test_validation_layout.py
+  role: test
+  owner: governance_workflow_domain
+- include:
+  - governed-engineering-skills/tests/flows/plugin-integration/distribution/test_cross_platform_marketplace_installer.py
+  - governed-engineering-skills/tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/architecture/test_architecture.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_decision_question_contract.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_flow_cost_governance.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_formatter_governance.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_guided_routing.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_install_local.ps1
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_document_writes.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_managed_delivery.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_fix_contract_review.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_routing.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_spec_governance.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_turn_continuity.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_discussion_entry.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_spec0036_consolidation.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_version_governance.py
+  - governed-engineering-skills/tests/flows/plugin-integration/plugin/test_windows_artifact_access.ps1
+  role: test
+  owner: plugin-integration
+- include:
+  - governed-engineering-skills/tests/modules/verification_ladder_domain/ladder/test_project_validation.py
+  - governed-engineering-skills/tests/modules/verification_ladder_domain/ladder/test_module_sil.py
+  - governed-engineering-skills/tests/modules/verification_ladder_domain/ladder/test_verification_ladder.py
+  - governed-engineering-skills/tests/modules/verification_ladder_domain/test_run_storage.py
+  role: test
+  owner: verification_ladder_domain
+- include:
+  - Install Governed Engineering Skills.cmd
+  - Install Governed Engineering Skills.sh
+  - governed-engineering-skills/plugins/governed-engineering-skills/scripts/install-local.ps1
+  - governed-engineering-skills/plugins/governed-engineering-skills/scripts/validate_integration.py
+  - governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
+  - governed-engineering-skills/scripts/assemble_plugin.py
+  - governed-engineering-skills/scripts/install-local.ps1
+  - governed-engineering-skills/scripts/install-marketplace-gui.sh
+  - governed-engineering-skills/scripts/install-marketplace.ps1
+  - governed-engineering-skills/scripts/install-marketplace.sh
+  - governed-engineering-skills/scripts/link-skills.sh
+  - governed-engineering-skills/scripts/list-skills.sh
+  - governed-engineering-skills/scripts/python-runtime-selection-policy.ps1
+  - governed-engineering-skills/scripts/python-runtime-selection.ps1
+  - governed-engineering-skills/scripts/validate_distribution.py
+  - governed-engineering-skills/scripts/windows-artifact-access.ps1
+  - governed-engineering-skills/skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh
+  - governed-engineering-skills/skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh
+  role: tooling
+- include:
+  - governed-engineering-skills/tests/modules/governance_workflow_domain/support/fanout_reference.py
+  role: support
+  owner: governance_workflow_domain
+- include:
+  - governed-engineering-skills/scripts/run_host_check.py
+  role: tooling
+- include:
+  - governed-engineering-skills/tools/architecture/validation_layout.py
+  - governed-engineering-skills/tools/architecture/run_storage.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/validation_layout.py
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/run_storage.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/validation_layout.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/run_storage.py
+  role: generated
+  provenance: Canonical bootstrap sync-tools output
+- include:
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/architecture_cli.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/ast_analyzer.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/boundary_catalog.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/governance_adoption.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/libclang_toolchain_adapter.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/libclang_toolchain_contract.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/python_analyzer.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/realtime_analysis.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/schema_description.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/schema_v2.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/source_sets.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/state_catalog.py
+  - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/type_catalog.py
+  role: generated
+  provenance: sync-tools canonical architecture generator output
+- include:
+  - governed-engineering-skills/plugins/governed-engineering-skills/.changeset/*.md
+  - governed-engineering-skills/plugins/governed-engineering-skills/.changeset/release-intent.json
+  role: metadata
+- include:
+  - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/references/validation-layout.example.yaml
+  role: template
+  provenance: Illustrative authored layout input, requires project-specific adoption
+- include:
+  - specs/SPEC-0035-execution-authorization-compatibility.md
+  - specs/SPEC-0036-generic-layout-repair.md
+  - specs/SPEC-0061-doc-authoring-authorization-boundary.md
+  - specs/SPEC-0063-diagnosis-fix-contract-review.md
+  role: specification
+- include:
+  - governed-engineering-skills/.agents/install-block.md
+  - governed-engineering-skills/.out-of-scope/frozen-misc-skills.md
+  - governed-engineering-skills/.out-of-scope/harness-name-collisions.md
+  - governed-engineering-skills/.out-of-scope/lazy-load-writing-for-agents.md
+  - governed-engineering-skills/.out-of-scope/native-question-tool.md
+  - governed-engineering-skills/.out-of-scope/new-skills.md
+  - governed-engineering-skills/.out-of-scope/subagent-recursion.md
+  - governed-engineering-skills/GLOSSARY.md
+  - governed-engineering-skills/SCOPE.md
+  - governed-engineering-skills/docs/agents/triage-labels.md
+  - governed-engineering-skills/docs/engineering/implement-spec.md
+  - governed-engineering-skills/docs/engineering/pr.md
+  - governed-engineering-skills/docs/engineering/retro.md
+  - governed-engineering-skills/docs/engineering/wizard.md
+  - governed-engineering-skills/docs/productivity/to-questionnaire.md
+  - governed-engineering-skills/docs/productivity/wait-what.md
+  - governed-engineering-skills/docs/productivity/writing-for-agents.md
+  - governed-engineering-skills/docs/upstream-sync-from-020.md
+  - governed-engineering-skills/skills/engineering/ask-matt/PHASE-BOUNDARIES.md
+  - governed-engineering-skills/skills/engineering/domain-modeling/GLOSSARY-FORMAT.md
+  - governed-engineering-skills/skills/engineering/implement-spec/SKILL.md
+  - governed-engineering-skills/skills/engineering/pr/CREDITS.md
+  - governed-engineering-skills/skills/engineering/pr/SKILL.md
+  - governed-engineering-skills/skills/engineering/retro/SKILL.md
+  - governed-engineering-skills/skills/engineering/wizard/SKILL.md
+  - governed-engineering-skills/skills/in-progress/chief-of-staff/SKILL.md
+  - governed-engineering-skills/skills/productivity/to-questionnaire/SKILL.md
+  - governed-engineering-skills/skills/productivity/wait-what/SKILL.md
+  - governed-engineering-skills/skills/productivity/writing-for-agents/SKILL-MECHANICS.md
+  - governed-engineering-skills/skills/productivity/writing-for-agents/SKILL.md
+  role: documentation
+- include:
+  - .github/ISSUE_TEMPLATE/bug.yml
+  - .github/ISSUE_TEMPLATE/config.yml
+  - .github/ISSUE_TEMPLATE/idea.yml
+  - governed-engineering-skills/skills/engineering/implement-spec/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/pr/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/retro/agents/openai.yaml
+  - governed-engineering-skills/skills/engineering/wizard/agents/openai.yaml
+  - governed-engineering-skills/skills/in-progress/chief-of-staff/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/to-questionnaire/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/wait-what/agents/openai.yaml
+  - governed-engineering-skills/skills/productivity/writing-for-agents/agents/openai.yaml
+  role: metadata
+- include:
+  - .github/workflows/needs-info.yml
+  - .github/workflows/triage-label.yml
+  - governed-engineering-skills/skills/engineering/wizard/template.sh
+  role: tooling
+- include:
+  - .github/tests/flows/plugin-integration/monorepo/**
+  role: test
+  owner: plugin-integration
+  exclude:
+  - '**/__pycache__/**'
+- include:
+  - .github/scripts/**
+  - release-packages.json
+  role: tooling
+  provenance: Repository CI package selection and release orchestration; not installed
+    Skill runtime.
+  exclude:
+  - '**/__pycache__/**'
+- include:
+  - governed-engineering-skills/dist/**
+  role: build-output
+  provenance: Generated engineering package assembly and publication candidates.
+- include:
+  - governed-engineering-skills/README.md
+  - governed-engineering-skills/AGENTS.md
+  - governed-engineering-skills/CLAUDE.md
+  - governed-engineering-skills/LICENSE
+  - architecture/decisions/ADR-0017-independent-package-releases.md
+  role: documentation
+- include:
+  - scripts/assemble_plugin.py
+  - scripts/validate_distribution.py
+  - governed-engineering-skills/Install Governed Engineering Skills.cmd
+  - governed-engineering-skills/Install Governed Engineering Skills.sh
+  role: tooling
+- include:
+  - governed-engineering-skills/Install Governed Engineering Skills.desktop
+  role: metadata
+- include:
+  - specs/SPEC-0064-skills-monorepo-independent-releases.md
+  - specs/history/SPEC-0064-skills-monorepo-decisions.md
+  role: specification
+- include:
+  - doc-coauthoring/README.md
+  - doc-coauthoring/UPSTREAM.md
+  - doc-coauthoring/NOTICE
+  - doc-coauthoring/LICENSE
+  - doc-coauthoring/AGENTS.md
+  - doc-coauthoring/CLAUDE.md
+  - doc-coauthoring/skills/**/*.md
+  - doc-coauthoring/CHANGELOG.md
+  role: documentation
+- include:
+  - doc-coauthoring/package.json
+  - doc-coauthoring/.codex-plugin/plugin.json
+  - doc-coauthoring/.claude-plugin/plugin.json
+  - doc-coauthoring/skills/**/agents/openai.yaml
+  - doc-coauthoring/.changeset/**
+  role: metadata
+- include:
+  - doc-coauthoring/scripts/**
+  - .github/workflows/doc-coauthoring.yml
+  - doc-coauthoring/requirements-release.txt
+  role: tooling
+  exclude:
+  - '**/__pycache__/**'
+- include:
+  - doc-coauthoring/dist/**
+  role: build-output
+  provenance: Generated document package and dedicated marketplace candidates.
+- include:
+  - .github/validation/**
+  role: template
+  provenance: Canonical CI configuration templates materialized byte-for-byte into
+    ignored validation/ compatibility inputs before the unchanged governance checks.
+- include:
+  - validation/**
+  role: build-output
+  provenance: Ignored compatibility copies and local acceptance projections, rebuilt
+    from tracked .github/validation sources.
+required_analyzers:
+- python
+external_modules:
+- yaml
+- jsonschema
+- clang
+- serial
+- pytest
+references: []
+output_bindings:
+- writer: project_validation
+  root: artifacts/validation
+  target:
+    module: verification_ladder_domain
+- writer: host-tests
+  root: artifacts/tests
+external_resources: []
+dynamic_dependencies:
+  governed-engineering-skills/scripts/assemble_plugin.py:
+    sha256: 332d05eea90096f2618bd928a78954e52126ac7d5c76f0ceae01ce777e1d38f7
+    targets:
+    - governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  governed-engineering-skills/tests/flows/plugin-integration/distribution/test_shared_skill_distribution.py:
+    sha256: 87dbff3b3c23ea83a13e505ea752ee2f8773631295a099af1f22cb07d8a2d053
+    targets:
+    - governed-engineering-skills/scripts/assemble_plugin.py
+    - governed-engineering-skills/scripts/validate_distribution.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  governed-engineering-skills/tests/flows/plugin-integration/plugin/test_guided_routing.py:
+    sha256: 9fa8369fbc4981df196e26fe6f93b67eebcb56dfcdf2ff78d55499b3c311624e
+    targets:
+    - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/project_state.py
+    - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/repository_evidence.py
+    - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/workflow_selection.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  governed-engineering-skills/tests/flows/plugin-integration/plugin/test_routing.py:
+    sha256: 0e53793cd3566b3ceec6768b821e81116a9480104c8bbb67aac53e41b9e9e83b
+    targets:
+    - governed-engineering-skills/skills/engineering/engineering-risk-routing/scripts/classify_risk.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  governed-engineering-skills/tests/flows/plugin-integration/plugin/test_spec_governance.py:
+    sha256: 4bb78b6fd570ec343ce7a633d0faccc6da1cf51a945af33a83e035450788c7fe
+    targets:
+    - governed-engineering-skills/skills/engineering/spec-governance/scripts/spec_contract.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  governed-engineering-skills/tests/flows/plugin-integration/plugin/test_version_governance.py:
+    sha256: b6fbb69b8b65809a82767afc24dd9675ab0920bcc10247a0063c515a6af83f4c
+    targets:
+    - governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/architecture/test_architecture.py:
+    sha256: 8ae31eb3b0ce39bc4132e4333383f8ad313407c4897b89ffad62828c484d4a7f
+    targets:
+    - governed-engineering-skills/tests/modules/governance_workflow_domain/architecture/test_architecture.py
+    rationale: Reviewed literal source/assembled-artifact loader constants; assembled
+      paths map to these canonical source files, verified by distribution inventory.
+  .github/tests/flows/plugin-integration/monorepo/test_package_release.py:
+    sha256: ae867366aaf342bb62747446ee0e66d4c4cc7e9e82b0f50f84b6235514f4b22e
+    targets:
+    - .github/scripts/package_release.py
+    rationale: Contract tests load the public package release adapter from its explicit
+      repository path.
+  scripts/assemble_plugin.py:
+    sha256: d8da4f08c830560d224860cf36f82b47ef49d93c3ddad871689ebd5b1515e02c
+    targets:
+    - governed-engineering-skills/scripts/assemble_plugin.py
+    rationale: Compatibility entry point executes the explicitly named canonical package
+      script.
+  scripts/validate_distribution.py:
+    sha256: 56e32daf3e9fa23a76be81a15429ae2aa259b10af6a7efa80862d2260eac5431
+    targets:
+    - governed-engineering-skills/scripts/validate_distribution.py
+    rationale: Compatibility entry point executes the explicitly named canonical package
+      script.
+  .github/tests/flows/plugin-integration/monorepo/test_doc_release.py:
+    sha256: 1379bd6e3ac6bcea09406c7ee90a8a82314a7ea06fcfb8c55e98a3497159bcaf
+    targets:
+    - doc-coauthoring/scripts/release.py
+    rationale: Mixed-case golden vector loads only the public document release fingerprint
+      port.
+test_roots:
+- .github/tests
+- governed-engineering-skills/tests

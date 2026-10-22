@@ -19,8 +19,8 @@ source_sets:
   - governed-engineering-skills/scripts/windows-artifact-access.ps1
   - governed-engineering-skills/scripts/validate_distribution.py
   - governed-engineering-skills/distribution/**
-  - validation/verification-ladder.yaml
-  - validation/layout.yaml
+  - .github/validation/verification-ladder.yaml
+  - .github/validation/layout.yaml
   - governed-engineering-skills/plugins/governed-engineering-skills/**
   - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin
   - governed-engineering-skills/plugins/governed-engineering-skills/.codex-plugin/**
@@ -51,7 +51,7 @@ source_sets:
   include:
   - governed-engineering-skills/tests/**
   - governed-engineering-skills/tools/**
-  - tests/flows/plugin-integration/monorepo/**
+  - .github/tests/flows/plugin-integration/monorepo/**
   - .github/scripts/**
   - doc-coauthoring/scripts/**
   exclude: []
@@ -75,6 +75,7 @@ source_sets:
   - .validation-deps/**
   - node_modules/**
   - .ruff_cache/**
+  - validation/**
   - .tmp/**
   - .test-tmp/**
   - governed-engineering-skills/plugins/governed-engineering-skills/build/**

@@ -1,7 +1,7 @@
 ---
 spec_version: 1
 spec_id: SPEC-0064
-revision: 10
+revision: 17
 status: confirmed
 change_set: skills-monorepo-independent-releases
 working_id: WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases
@@ -27,6 +27,7 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 | AC-011 | 無 sub-agent 或缺少必要能力時明確提供原流程人工 fallback，不虛報測試成功；工程流程不被一般文件寫作取代。 | REQ-004 | no-subagent／missing-tool fixtures 及工程技能、一般文件觸發案例對照。 | fallback 與狀態明確，工程既有治理及一般寫作邊界符合方案。 | NOT RUN |
 | AC-012 | doc 上游來源、固定 commit、適配差異與適用授權完整可追溯。 | REQ-004 | UPSTREAM.md、來源檔 SHA、授權依據與差異的人工 review 加結構檢查。 | 來源與適配可重現，沒有把另一套件授權自動套用。 | NOT RUN |
 | AC-013 | 全部搬移後組裝、既有測試、版本、架構及 generated-view 檢查可從乾淨 checkout 重現。 | REQ-001 REQ-002 REQ-003 REQ-004 | 延續 Windows/Ubuntu 與 Python 3.11/3.12/3.13 既有 matrix；suite assembly/validation/version、repo gate release 及 render check。 | 命令 exit 0，無失效來源路徑或過期 generated view，正式產物通過對應 release gate。 | NOT RUN |
+| AC-014 | Git tracked tree 不含四類指定 root 目錄；必要 CI 來源保留且乾淨 checkout 可重建驗證設定，本機產物不刪除、不覆蓋人為修改。 | REQ-005 | Git inventory、設定產生器保護契約、原 CI matrix 與正式 release gate。 | root 無指定追蹤項目，原檢查全數通過；相容設定可重建且衝突時拒絕覆寫。 | NOT RUN |
 
 ## Decisions
 | ID | Decision | Source |
@@ -36,6 +37,10 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 | DEC-003 | 採用 Q-001@2 選項 1：同時支援 Codex 與 Claude，保留原有協作流程。 | user:採用1 |
 | DEC-004 | 使用者確認完整 SPEC-0064 修訂6方案並授權開始執行；平台、目錄、版本與驗收範圍維持既有完整提案。 | user:adopt-plan-start |
 | DEC-005 | 本次 SPEC-0064 允許原生 Git／檔案工具補齊驗證設定並執行已核准搬移與修改；來源雜湊、範圍限制及原訂驗收維持。原開始執行授權繼續適用同一產品範圍。 | user:allow-native-tools |
+
+| DEC-006 | 使用者要求來源 repo 僅上傳必要且需要追蹤的檔案，並指出 spec-governance、artifacts、tests/flows/plugin-integration/monorepo、validation 非必要；CI 使用中之測試與設定如何保留待 Q-004。 | user:minimal-tracked-files |
+| DEC-008 | 保留必要 CI 測試與設定；非必要內容只留本機並放在對應資料夾。必要來源整理至 .github；舊工具的 validation 設定以可重建本機副本供應且拒絕覆蓋人為修改，不降低 CI 檢查。 | user:necessary-ci-locals |
+| DEC-007 | 補作文件套件進入 main 的整合，完成原先相依 PR 尚未帶回 main 的部分；不回退已發布的工程 0.23.2。 | user:integrate-doc-main |
 
 ## Discussion Context
 ### DISC-001: 目錄與發佈範圍
@@ -70,6 +75,38 @@ task_ref: 01a16186-7170-76d2-9ee2-dd2fcd07d43f
 - **Explicit rationale:** 使用者未另行補充理由。
 - **Resulting impact:** DEC-005 DEC-004 REQ-001 REQ-002 REQ-003 REQ-004
 
+### DISC-005: 必要追蹤範圍
+- **Situation:** 使用者檢視 GitHub 根目錄後，希望精簡來源 repo。
+- **Question:** CI 測試與驗證設定是否保留並移出根目錄，或連同執行產物一起停止追蹤？
+- **Options and tradeoffs:** 保留必要來源並搬到 .github 或套件內，可維持現有發版檢查；全部停止追蹤則須移除或替換相關 CI 檢查。
+- **User answer:** 我認為只要上傳必要的及需要追蹤的檔案就可以了。spec-governance、artifacts、tests/flows/plugin-integration/monorepo、validation都是非必要的。
+- **Explicit rationale:** 只上傳必要且需要追蹤的檔案。
+- **Resulting impact:** DEC-006 REQ-001 REQ-003 AC-013；Q-004@12 待回答，尚未實施精簡。
+
+### DISC-006: 隱藏目錄的用途
+- **Situation:** 使用者也詢問為何 .github、.claude-plugin、.agents/plugins 被上傳。
+- **Question:** 這些目錄是否屬於必要來源？
+- **Options and tradeoffs:** .github 的發版 workflow/script 與 Codex/Claude marketplace catalog 支援既有自動升版及安裝；issue 模板與標籤自動化可獨立精簡。
+- **User answer:** 還有為什麼.github、.calude-plug、.agents/plugins都上傳了
+- **Explicit rationale:** 未另行說明。
+- **Resulting impact:** REQ-003 REQ-004 DEC-006；本題為用途說明，不視為移除兩平台支援的決定。
+
+### DISC-007: 文件套件回到主分支
+- **Situation:** #55 已進 main；#56 合併目標仍為 codex/skills-monorepo，main 缺少文件套件。
+- **Question:** 使用者註記要求一併處理未完成的 main 整合。
+- **Options and tradeoffs:** 以目前 main 為基底重放 #56 的兩個提交，不變更已發布工程套件內容。
+- **User answer:** 這邊也要處理。
+- **Explicit rationale:** 完成原先預期的主分支套件結構。
+- **Resulting impact:** DEC-007 REQ-001 REQ-004；草稿 PR #58 以 main 為目標，20 項測試及 doc check/assemble/validate 通過。目錄精簡待 Q-004。
+
+### DISC-008: CI 來源與本機內容的處理決定
+- **Situation:** Q-004 區分必要 CI 來源與執行產物。
+- **Question:** 你希望這四個目錄中的檔案全部停止 Git 追蹤，還是保留必要的 CI 測試與設定、移到其他位置？建議執行紀錄只留本機，必要的測試與設定移入 .github 或套件內，保留目前的自動升版檢查。
+- **Options and tradeoffs:** 保留必要來源可維持發版檢查；產物不追蹤可精簡 clone。
+- **User answer:** 保留必要的 CI 測試與設定  。非必要的保留本機，但要在正確的資料夾內
+- **Explicit rationale:** 必要來源保留，其他內容本機保存。
+- **Resulting impact:** DEC-008 REQ-005 AC-014。
+
 ## Open Decisions
 None.
 
@@ -89,9 +126,12 @@ None.
 | REQ-002 | 一次 clone 取得兩套件，各自管理版本。 | user:那版本控管可以分開 |
 | REQ-003 | 保留 PR 升版流程。 | user:因為目前是透過PR進行版本控管的 |
 | REQ-004 | doc-coauthoring 同時支援 Codex 與 Claude，保留原有三階段流程，適配平台工具與安裝設定。 | user:採用1 |
+| REQ-005 | 來源 repo 不再追蹤 root spec-governance/、artifacts/、tests/flows/plugin-integration/monorepo/、validation/。必要 CI 測試及設定保留於 .github；產物與執行狀態保留本機對應目錄並忽略。維持原自動升版、兩平台安裝與 CI 檢查。 | DEC-006 DEC-008 |
 
 ## Revision History
 None.
+| 11 | 2026-10-22 | Reopened before clarification: User requests a minimal tracked repository and identifies four root paths for exclusion; required CI source/configuration retention requires one clarified decision. |
+| 16 | 2026-10-22 | Reopened before clarification: Align rendered tables and target directory sketch with the adopted cleanup; no requirement or acceptance delta. |
 
 ## Routing/Gates
 Q-001@2 的採用1已確認雙平台範圍；本回合再由 Q-002@6 的「採用方案，開始執行」確認整份方案並提供本次執行授權。保存實際原始授權，交付 admission 通過前不寫產品。
@@ -119,7 +159,8 @@ skills/                              # ShinWeiPeng/skills；唯一 Git root
 ├── release-packages.json             # 套件路徑與發佈身分的宣告設定
 ├── architecture/                     # repo 架構與跨套件發佈契約
 ├── specs/                            # 既有 canonical SPEC 路徑不搬移
-├── tests/flows/plugin-integration/monorepo/                   # 跨套件 CI／發佈契約測試
+├── .github/tests/flows/plugin-integration/monorepo/ # 必要跨套件發佈契約測試
+├── .github/validation/                # 必要 CI 設定與平台案例
 ├── governed-engineering-skills/
 │   ├── skills/engineering/
 │   ├── skills/productivity/
@@ -139,7 +180,7 @@ skills/                              # ShinWeiPeng/skills；唯一 Git root
     ├── .codex-plugin/plugin.json
     ├── .claude-plugin/plugin.json
     ├── package.json / .changeset/ / CHANGELOG.md
-    ├── scripts/ / tests/
+    ├── scripts/
     ├── README.md / UPSTREAM.md
     └── 授權與來源聲明
 ```
@@ -209,6 +250,14 @@ PR B：導入 doc-coauthoring、雙平台適配、獨立升版 PR 與發佈分�
 | 兩個 repo | Git 與權限完全分開 | clone、PR 及管理分散，與後續指定樹狀結構不合 | 已由 DEC-001 排除 |
 
 增加套件設定、獨立發佈驗證與雙平台實測成本，是換取獨立升版的主要代價。本案不宣稱執行效能改善。
+
+### 必要追蹤與本機狀態
+
+- 必要 CI 測試移至 .github/tests/flows/plugin-integration/monorepo；設定與平台案例移至 .github/validation。
+- root spec-governance、artifacts、validation、tests 不再追蹤；原檔保留本機。
+- CI 從追蹤來源重建 ignored validation 相容設定，先檢查所有檔案再更新，拒絕覆寫人為修改與 symlink/junction。
+- .github 發版流程、兩平台 catalog 保留；非必要 issue 模板與標籤自動化保留本機但停止追蹤。
+- 套件版本不因搬移 CI 來源而變動；工程內容維持 0.23.2，文件初版仍透過自己的 Version PR。
 
 ## User Stories
 - 維護者一次 clone skills repo 取得兩套技能來源。
@@ -386,6 +435,18 @@ root repository architecture manifest 與 canonical specs 保持 repo 級；pack
     ],
     "execution_changes": [],
     "rationale": "Clean-checkout assembly, existing matrix and architecture/path verification are host source and build semantics."
+  },
+  "AC-014": {
+    "evidence_claims": [
+      "host-semantics"
+    ],
+    "contract_dimensions": [
+      "input-output-units",
+      "state-transition",
+      "error-reset"
+    ],
+    "execution_changes": [],
+    "rationale": "Tracked inventory, reproducible CI configuration and preservation of edited local settings are bounded host file semantics."
   }
 }
 ```
@@ -394,15 +455,17 @@ root repository architecture manifest 與 canonical specs 保持 repo 級；pack
 
 以下命令為遷移後計畫；尚未執行。所有命令保存 argv、工作目錄、exit code 與不可變 run 輸出。
 
-- Cross-package contracts: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_*.py" -v。新 fixture 由實作階段建立；涵蓋 AC-003 至 AC-008。
+- Cross-package contracts: python -m unittest discover -s .github/tests/flows/plugin-integration/monorepo -p "test_*.py" -v。新 fixture 由實作階段建立；涵蓋 AC-003 至 AC-008。
 - Engineering assembly: python governed-engineering-skills/scripts/assemble_plugin.py assemble --marketplace-publication；接著 python governed-engineering-skills/scripts/validate_distribution.py；python governed-engineering-skills/scripts/assemble_plugin.py validate。必須使用明確 package/git roots，產物不得混入 doc。
 - Engineering version: python governed-engineering-skills/plugins/governed-engineering-skills/scripts/version_governance.py check。
 - Architecture: python governed-engineering-skills/tools/architecture/architecture_cli.py gate --phase release --manifest architecture/manifest.yaml --adoption architecture/adoption.yaml --baseline architecture/baseline.yaml；generated views 由同一 public CLI 的 release gate 驗證；render 用於重建，不使用不存在的 --check 選項或 legacy internal script。
-- Doc package contracts: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_doc_release.py" -v。包含兩份平台 manifest 及共同來源、固定版本／來源 SHA、相對引用與 fallback。
+- Doc package contracts: python -m unittest discover -s .github/tests/flows/plugin-integration/monorepo -p "test_doc_release.py" -v。包含兩份平台 manifest 及共同來源、固定版本／來源 SHA、相對引用與 fallback。
 - Platform cases: 在隔離設定的 Codex 與 Claude session 各載入該次組裝的 doc-coauthoring；輸入固定技術文件、提案、決策文件案例；逐次記錄三階段輸出、獨立 reader context 與人工 fallback；關閉 sub-agent／移除工具的負例必須顯示對應狀態，不能宣稱讀者檢驗成功。安裝／載入失敗是 BLOCKED 或 FAIL，不能由靜態 manifest 通過代替。
 - Migration link and source review: compare git ls-files tracked paths and artifact inventory before/after; check every moved relative Markdown link, launcher target, manifest reference and tag SHA; record observer, commands, before/after hashes, observed output and pass condition.
 
 Acceptance Mapping 是已規劃的 evidence 分類，不是測試結果。schema-2 projection 應由 managed generate-acceptance 從此 SPEC 生成；不手寫第二份驗收定義。mapping 投影與完整 planning/profile gate 在交付 admission 前必須完成，禁止把生成成功當驗收成功。
+
+- Fresh checkout preparation: python .github/scripts/prepare_validation.py；來源設定在 .github/validation，root validation 為忽略的相容副本；已修改的本機設定拒絕覆寫。
 
 ## Current Specification
 
@@ -434,6 +497,9 @@ None.
 - assistant:native-tool-exception: Preserved actual full-plan execution authorization. Found confirmed-spec/preparation circular dependency and unsupported rename/control operations. Prepared additive verification patch plus 485 hashed tracked-source relocations. No product changes applied. Q-003 requests task-scoped native-tool exception preserving hash/scope/acceptance constraints.
 - user:allow-native-tools: 允許
 - assistant:authorized-native-entry: Reconciled explicit native-tool exception without changing the approved product scope. Applied only reviewed additive verification matrix patch after exact hash check; verified all 485 relocation hashes and no destination conflicts. Original execution authorization retained.
+- user:directory-not-split: 說明為何 GitHub main 尚未顯示兩個套件目錄，只核對 PR 與目前來源狀態，不變更方案或產品
+- assistant:directory-diagnosis: Read-only follow-up: verified PR55 merged to main while PR56 merged to codex/skills-monorepo; main therefore lacks doc-coauthoring. No new scope or execution authority. Original native exception remains recorded by DEC-005.
+- user:minimal-tracked-files: User requests tracking only necessary files and identifies spec-governance, artifacts, tests/flows/plugin-integration/monorepo, validation as unnecessary. Clarify whether required CI source tests/configuration can be retained at another path; no product changes in this turn.
 
 ### Source and Revision Audit
 
@@ -461,5 +527,17 @@ None.
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"binding":{"revision":9,"snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"},"candidates":[],"completeness_review":{"acceptance":{"evidence":"AC-001 through AC-013 and selector mappings remain unchanged; additive matrix rules now cover the declared evidence categories.","source_ref":"user:adopt-plan-start"},"behavior":{"evidence":"Two independent Version PR flows, immutable tags and isolated publications; shared doc workflow across two harnesses.","source_ref":"user:adopt-plan-start"},"exceptions":{"evidence":"Identity conflicts and missing capabilities reject; no lowered tests or fake PASS; hashed tracked-source inventory protects existing data.","source_ref":"user:adopt-plan-start"},"goal":{"evidence":"One skills repository, two sibling packages, independent reviewed releases.","source_ref":"user:adopt-plan-start"},"scope":{"evidence":"Complete approved SPEC-0064 proposal with only the separately authorized native-tool exception.","source_ref":"user:adopt-plan-start"}},"identified_items":{"ALLOW-NATIVE":{"id":"ALLOW-NATIVE","kind":"accepted","source_ref":"user:allow-native-tools","text":"User allowed the scoped native Git/file-tool exception in Q-003, preserving the existing execution authorization and hash/scope/acceptance constraints."}},"item_bindings":{"ALLOW-NATIVE":["DEC-005"]},"kind":"saved","reply_sha256":"f8ef130743fff66d41f9b3613093b927ce41f6e0b02a677ad2f4d310bb57fee0","reply_stage":"prepared-until-host-stop","reviewed_sources":["user:allow-native-tools"],"source_ref":"assistant:authorized-native-entry","summary":"Reconciled explicit native-tool exception without changing the approved product scope. Applied only reviewed additive verification matrix patch after exact hash check; verified all 485 relocation hashes and no destination conflicts. Original execution authorization retained.","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-allow-native-tools"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"f33acea89060b37b57d3adc981e80153572e54ba4bc191c5039868525d5f4eb0","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"e760706b4ee8235711704704c572355dde799baf05f50506bae5ac20d34eef30","previous_snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","recorded_at":"2026-10-22T03:56:06.733170+00:00","relationships":[],"revision":9,"snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"b042257d4af7d5b39f5cc8986321d2da97b72e3a19f8b382f5033f7ec80fd8e5","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"f33acea89060b37b57d3adc981e80153572e54ba4bc191c5039868525d5f4eb0","previous_snapshot_hash":"650a92fb2790359736a2cea859b6117f878c77a89992791a955250a42e110f8b","recorded_at":"2026-10-22T04:40:53.233230+00:00","relationships":[],"revision":10,"snapshot_hash":"3ca107a6b4085762a9a4ca3beb89b6c378d32ca5c0cec161176739a516f982c3","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 {"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"877a0e848a49a90d57381ddf6dddcb3dd24352c2554f9a95393f3681d35b5cf0","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"b042257d4af7d5b39f5cc8986321d2da97b72e3a19f8b382f5033f7ec80fd8e5","previous_snapshot_hash":"3ca107a6b4085762a9a4ca3beb89b6c378d32ca5c0cec161176739a516f982c3","recorded_at":"2026-10-22T04:40:53.689740+00:00","relationships":[],"revision":10,"snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"goal":"說明為何 GitHub main 尚未顯示兩個套件目錄，只核對 PR 與目前來源狀態，不變更方案或產品","historical_entry_evidence":"not-inferred","kind":"entry","source_ref":"user:directory-not-split","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-directory-not-split"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"110bc6023e547bfb198dfeba2fc0e2223a7abd2076c6acc5de721c4319b98c84","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"877a0e848a49a90d57381ddf6dddcb3dd24352c2554f9a95393f3681d35b5cf0","previous_snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","recorded_at":"2026-10-22T05:52:51.083702+00:00","relationships":[],"revision":10,"snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"binding":{"revision":10,"snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"},"candidates":[],"completeness_review":null,"identified_items":{"ALLOW-NATIVE":{"id":"ALLOW-NATIVE","kind":"accepted","source_ref":"user:allow-native-tools","text":"User allowed the scoped native Git/file-tool exception in Q-003, preserving the existing execution authorization and hash/scope/acceptance constraints."}},"item_bindings":{"ALLOW-NATIVE":["DEC-005"]},"kind":"saved","reply_sha256":"91bf4d149478e129a136a046c60ed015b45f6a702afadf07ad7cea40a3badaa2","reply_stage":"prepared-until-host-stop","reviewed_sources":["user:allow-native-tools","user:directory-not-split"],"source_ref":"assistant:directory-diagnosis","summary":"Read-only follow-up: verified PR55 merged to main while PR56 merged to codex/skills-monorepo; main therefore lacks doc-coauthoring. No new scope or execution authority. Original native exception remains recorded by DEC-005.","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-directory-not-split"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"9a60a39fad7dad0d0a1121110a01b2d15207c14bb96630e768d3a0e15f98b7b0","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"110bc6023e547bfb198dfeba2fc0e2223a7abd2076c6acc5de721c4319b98c84","previous_snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","recorded_at":"2026-10-22T05:54:32.646465+00:00","relationships":[],"revision":10,"snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"discussion":{"goal":"User requests tracking only necessary files and identifies spec-governance, artifacts, tests/flows/plugin-integration/monorepo, validation as unnecessary. Clarify whether required CI source tests/configuration can be retained at another path; no product changes in this turn.","historical_entry_evidence":"not-inferred","kind":"entry","source_ref":"user:minimal-tracked-files","task_ref":"01a16186-7170-76d2-9ee2-dd2fcd07d43f","turn_id":"user-minimal-tracked-files"},"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"49d816edd4d0ed80073fe8efd702fdb2ac3f3d73f2c147538a557efac3fb38c1","event_type":"discussion","event_version":1,"open_decisions":[],"previous_event_hash":"9a60a39fad7dad0d0a1121110a01b2d15207c14bb96630e768d3a0e15f98b7b0","previous_snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","recorded_at":"2026-10-22T06:00:17.007805+00:00","relationships":[],"revision":10,"snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"baseline_contract_hash":"c933752f14dcba2e3bbc21683fab93f8834f88c53927f0914d7ccfd217fe654c","conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"30109ac4a2a8cd313f2be150d5aac1f4b69cd05d1510c8f248c862aa8ffde982","event_type":"reopen","event_version":1,"open_decisions":[],"previous_event_hash":"49d816edd4d0ed80073fe8efd702fdb2ac3f3d73f2c147538a557efac3fb38c1","previous_snapshot_hash":"55015854dd3730daaf67d60b149b394a7cb07269a910f08159067ccf8e13ed89","recorded_at":"2026-10-22T06:00:20.068925+00:00","relationships":[],"revision":11,"snapshot_hash":"20cd85330801da2ab19ae8d21f6ebbd32244bc2f66a65f48a50c3929ecd55b0f","verdict":"BLOCKED","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"9c729b7f1c693ca37ee66e4d09b23be84dafeb87b68163af51d763831ce5047f","event_type":"reconcile","event_version":1,"open_decisions":["Q-004@12"],"previous_event_hash":"30109ac4a2a8cd313f2be150d5aac1f4b69cd05d1510c8f248c862aa8ffde982","previous_snapshot_hash":"20cd85330801da2ab19ae8d21f6ebbd32244bc2f66a65f48a50c3929ecd55b0f","recorded_at":"2026-10-22T06:06:00.613396+00:00","relationships":[],"revision":12,"snapshot_hash":"5d7de8b4d8be3e5b8e4f7b5147fb78ab9e77b17fa9523af223c71a7dda041968","verdict":"BLOCKED","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":["DEC-006","DEC-007","DISC-005","DISC-006","DISC-007"],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":["DEC-006","DEC-007","DISC-005","DISC-006","DISC-007"],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"6cbdd6d08f09eb10c7059dd0a5bbaab84fbaa2a664d736b11ed03b177008d264","event_type":"reconcile","event_version":1,"open_decisions":["Q-004@12：CI 必要來源與設定是否保留並搬移，或一併停止追蹤。","Q-004@12"],"previous_event_hash":"9c729b7f1c693ca37ee66e4d09b23be84dafeb87b68163af51d763831ce5047f","previous_snapshot_hash":"5d7de8b4d8be3e5b8e4f7b5147fb78ab9e77b17fa9523af223c71a7dda041968","recorded_at":"2026-10-22T06:07:47.814224+00:00","relationships":[],"revision":13,"snapshot_hash":"24fd022f30465d139d37d92847fb8a61c70cc571da4a4f99fbb5d819f6835df0","verdict":"BLOCKED","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":["AC-014","DEC-008","DISC-008","REQ-005"],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":["AC-014","DEC-008","DISC-008","REQ-005"],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"fe55cdd8d397d36dc3850e58ded5880278e925b9eafc5f45d4e85c8ee63cd2c7","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"6cbdd6d08f09eb10c7059dd0a5bbaab84fbaa2a664d736b11ed03b177008d264","previous_snapshot_hash":"24fd022f30465d139d37d92847fb8a61c70cc571da4a4f99fbb5d819f6835df0","recorded_at":"2026-10-22T06:13:28.436475+00:00","relationships":[],"revision":14,"snapshot_hash":"04ed8c48ef548d4afaf5b8bfd90ea7bcf544748e874ca00e9c6ebd254d3fc7b2","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"8f335b50ea9925092d3625493ea6e2d03fecafd77ace0627e3f46cc85fdd6bbb","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"fe55cdd8d397d36dc3850e58ded5880278e925b9eafc5f45d4e85c8ee63cd2c7","previous_snapshot_hash":"04ed8c48ef548d4afaf5b8bfd90ea7bcf544748e874ca00e9c6ebd254d3fc7b2","recorded_at":"2026-10-22T06:20:18.038000+00:00","relationships":[],"revision":15,"snapshot_hash":"d8a065965e791d5ce5b4336de94b7df68bb03af8f01c7e0e30fe6b22bcb10722","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"d0a9fb16a0e0f1885453ef05643e3db0f61fa4163b8815a5677f76b29cef9c29","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"8f335b50ea9925092d3625493ea6e2d03fecafd77ace0627e3f46cc85fdd6bbb","previous_snapshot_hash":"d8a065965e791d5ce5b4336de94b7df68bb03af8f01c7e0e30fe6b22bcb10722","recorded_at":"2026-10-22T06:20:18.663953+00:00","relationships":[],"revision":15,"snapshot_hash":"e8c8e0ef3deb52acd35cba1dbba3c144e94b2cd50b1a6e8deb6c6d481cef953b","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"baseline_contract_hash":"5ec02f5ff637d90c0e3229295fdf62c0fb0275e1ce32c7c5e1104ec4b4c003bf","conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"d6b8ff9f7e8e945c74ef9acdd69ad45b05bf1ee701a3e7db6e07358142cebc40","event_type":"reopen","event_version":1,"open_decisions":[],"previous_event_hash":"d0a9fb16a0e0f1885453ef05643e3db0f61fa4163b8815a5677f76b29cef9c29","previous_snapshot_hash":"e8c8e0ef3deb52acd35cba1dbba3c144e94b2cd50b1a6e8deb6c6d481cef953b","recorded_at":"2026-10-22T06:26:05.047974+00:00","relationships":[],"revision":16,"snapshot_hash":"239aa389a5155f337b5921d3c22c797cf54368943190f20329ccf50105fcfc94","verdict":"BLOCKED","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"acceptance_changes":[],"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"cb9851a81d99274519736fcbf74ee7877c3404530012d04f47af9eb9c87d668d","event_type":"reconcile","event_version":1,"open_decisions":[],"previous_event_hash":"d6b8ff9f7e8e945c74ef9acdd69ad45b05bf1ee701a3e7db6e07358142cebc40","previous_snapshot_hash":"239aa389a5155f337b5921d3c22c797cf54368943190f20329ccf50105fcfc94","recorded_at":"2026-10-22T06:26:05.573513+00:00","relationships":[],"revision":17,"snapshot_hash":"8adf7be7aacf663525d455151855c7e56df4c2671eb3f839836bc8768d3cb549","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
+{"affected_ids":[],"conflicts":[],"continuity":"continuous","delta":{"added_ids":[],"changed_ids":[],"removed_ids":[]},"epoch":"d4c9b67ad3de436393f6b4e3d77c3f9d","event_hash":"7565980088e9c679177934bafa52c3ab3f3ae0fd938c6ad23ef2cf70315398a8","event_type":"materialize","event_version":1,"open_decisions":[],"previous_event_hash":"cb9851a81d99274519736fcbf74ee7877c3404530012d04f47af9eb9c87d668d","previous_snapshot_hash":"8adf7be7aacf663525d455151855c7e56df4c2671eb3f839836bc8768d3cb549","recorded_at":"2026-10-22T06:26:06.295055+00:00","relationships":[],"revision":17,"snapshot_hash":"7cbd1506df83be27bf0028bb259a94809151147a494b1cd3d501b0910a8e004c","verdict":"PASS","working_id":"WORKING-SPEC-125806aa6888-skills-monorepo-independent-releases"}
 ```
 <!-- spec-audit:end -->

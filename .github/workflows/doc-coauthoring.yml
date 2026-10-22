@@ -50,7 +50,7 @@ jobs:
       - name: Check the shared source and both harness manifests
         run: python doc-coauthoring/scripts/release.py check
       - name: Run package and publication contracts
-        run: python -m unittest discover -s tests/flows/plugin-integration/monorepo -p "test_*.py" -v
+        run: python -m unittest discover -s .github/tests/flows/plugin-integration/monorepo -p "test_*.py" -v
       - name: Assemble and validate both marketplace candidates
         run: |
           python doc-coauthoring/scripts/release.py assemble
