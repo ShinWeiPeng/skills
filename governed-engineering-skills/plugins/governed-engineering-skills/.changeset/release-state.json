@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "current_version": "0.23.2",
-  "previous_version": "0.23.1",
+  "current_version": "0.23.3",
+  "previous_version": "0.23.2",
   "bump": "patch",
-  "production_fingerprint": "sha256:f843ad6e85caab1ae03e5aa3f98930afcc0a537c735603f386364b9acfefa450",
+  "production_fingerprint": "sha256:28a24fe1f79969bad4a85361ea437a479e71c244f0d1862609b0a216558bb2de",
   "applied_changesets": [
-    "monorepo-package-root"
+    "streaming-spec-input"
   ]
 }
