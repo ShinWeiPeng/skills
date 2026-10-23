@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install Doc Coauthoring
+Comment=Install or update the Doc Coauthoring skill directly
+Exec=sh -c "fail() { printf '%%s\\\\n' \\"\\$1\\" >&2; printf '%%s\\\\n' 'Exit code: 1'; printf '%%s' 'Press Enter to close this window...'; IFS= read -r answer || :; exit 1; }; entry=\\$1; case \\"\\$entry\\" in file:*) python_command=\\$(command -v python3 || command -v python) || fail 'Python 3.9 or newer is required to open this file URI.'; entry=\\$(\\"\\$python_command\\" -c 'import sys; from urllib.parse import urlsplit,unquote; u=urlsplit(sys.argv[1]); p=unquote(u.path,errors=\\"strict\\"); sys.exit(\\"Only absolute local file URIs are supported.\\") if u.scheme!=\\"file\\" or u.netloc not in (\\"\\",\\"localhost\\") or not p.startswith(\\"/\\") or \\"\\\\x00\\" in p or \\"\\\\n\\" in p else None; sys.stdout.write(p)' \\"\\$entry\\") || fail 'Cannot resolve the desktop entry file URI.' ;; /*) ;; *) fail 'Cannot locate this desktop entry. Extract the complete package and launch it again.' ;; esac; wrapper=\\$(dirname \\"\\$entry\\")/scripts/install-gui.sh; [ -r \\"\\$wrapper\\" ] || fail 'The installation wrapper is missing. Extract the complete package and launch it again.'; exec sh \\"\\$wrapper\\"" doc-coauthoring %k
+Icon=system-software-install
+Terminal=true
+DBusActivatable=false
+Categories=Development;

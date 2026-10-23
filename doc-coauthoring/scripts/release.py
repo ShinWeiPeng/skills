@@ -17,7 +17,19 @@ import tempfile
 NAME = "doc-coauthoring"
 MANIFESTS = ["package.json", ".codex-plugin/plugin.json", ".claude-plugin/plugin.json"]
 SECTIONS = ["Breaking Changes", "Added", "Changed", "Fixed"]
-FILES = {"README.md", "UPSTREAM.md", "NOTICE", "LICENSE", *MANIFESTS[1:]}
+FILES = {
+    "README.md",
+    "UPSTREAM.md",
+    "NOTICE",
+    "LICENSE",
+    *MANIFESTS,
+    "scripts/install.py",
+    "scripts/install.ps1",
+    "scripts/install-gui.sh",
+    "Install Doc Coauthoring.desktop",
+    "Install Doc Coauthoring.cmd",
+    "Install Doc Coauthoring.sh",
+}
 
 
 def read(root, relative):
