@@ -775,6 +775,16 @@ dynamic_dependencies:
     targets:
     - doc-coauthoring/scripts/install.py
     rationale: Public installer CLI contracts load the complete installer module to inject external filesystem and download failures.
+  governed-engineering-skills/tests/modules/verification_ladder_domain/ladder/test_project_validation.py:
+    sha256: 622efeccb297c3538824e7918b91931536477b1cf69d0114181a7313cc6b1548
+    targets:
+    - governed-engineering-skills/tools/architecture/run_storage.py
+    - governed-engineering-skills/skills/engineering/verification-ladder/scripts/run_storage.py
+    - governed-engineering-skills/skills/engineering/govern-modular-event-architecture/tools/architecture/run_storage.py
+    - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/run_storage.py
+    rationale: Reviewed explicit list of four shipped run readers; tests exercise
+      their public JSON and owner-catalog readers at the exact decimal 5 MB boundary.
+
 test_roots:
 - .github/tests
 - governed-engineering-skills/tests

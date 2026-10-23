@@ -79,13 +79,6 @@ actual commands, results, cases and source hashes. A build or architecture check
 alone cannot complete functional validation. Selected PIL/HIL cases run after the
 appropriate target build and flash, with their own recorded results.
 
-## Where it fits
-
-This is the verification-planning step inside delivery. It selects the evidence
-layers; TDD executes host cases and validate-on-device executes selected device
-cases. [ask-matt](https://aihero.dev/skills-ask-matt) routes engineering requests
-into the appropriate workflow.
-
 ## SPEC and validation-document input
 
 Canonical SPECs use a dedicated chunked reader: acceptance parsing uses the body
@@ -99,3 +92,10 @@ Finite JSON/YAML policy and evidence readers, including run manifests, architect
 owner catalogs and layout evidence, accept at most 5,000,000 bytes (decimal 5 MB).
 Oversize diagnostics include the path, observed bytes and limit. This document
 policy does not change capture quotas, managed patch limits or hash buffer sizes.
+
+## Where it fits
+
+This is the verification-planning step inside delivery. It selects the evidence
+layers; TDD executes host cases and validate-on-device executes selected device
+cases. [ask-matt](https://aihero.dev/skills-ask-matt) routes engineering requests
+into the appropriate workflow.
