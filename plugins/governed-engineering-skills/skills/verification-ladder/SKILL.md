@@ -219,3 +219,17 @@ from SPEC after revisions and preserve legacy ungoverned host compatibility.
 Record explicit user waivers with their source and exact scope in SPEC, report
 them as user-waived rather than tested PASS, and retain every unwaived obligation.
 Never infer a waiver from unavailable hosts or hardware.
+
+## SPEC and validation-document input
+
+Canonical SPECs use a dedicated chunked reader: acceptance parsing uses the body
+outside the embedded audit, while the plan hash still covers every original byte,
+including history. A SPEC is not rejected solely for exceeding 1 MiB or 5 MB.
+Malformed audit markers, invalid encoding, nonregular/redirected files and observed
+changes during the read remain BLOCKED. The specification owner still verifies
+history, sources, evidence and execution authority.
+
+Finite JSON/YAML policy and evidence readers, including run manifests, architecture
+owner catalogs and layout evidence, accept at most 5,000,000 bytes (decimal 5 MB).
+Oversize diagnostics include the path, observed bytes and limit. This document
+policy does not change capture quotas, managed patch limits or hash buffer sizes.

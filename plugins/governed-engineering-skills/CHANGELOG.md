@@ -1,5 +1,12 @@
 # Governed Engineering Skills
 
+## 0.23.3
+
+### Fixed
+
+- Read growing canonical SPECs in chunks without a fixed total size cap, retain full history hashes and reject malformed or changing input.
+- Use a consistent decimal 5 MB limit for finite validation documents and actionable size diagnostics without changing capture or patch quotas.
+
 ## 0.23.2
 
 ### Changed

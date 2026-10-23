@@ -12,6 +12,9 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 
 
+MAX_BYTES = 5_000_000
+
+
 def safe_path(root, value):
     root = Path(root).resolve()
     candidate = Path(value)
@@ -47,10 +50,24 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def read_json(path):
+def read_json(path, *, root=None):
     path = Path(path)
-    if path.stat().st_size > 1048576:
-        raise ValueError("JSON exceeds 1 MiB")
+    label = (
+        path.relative_to(Path(root).resolve()).as_posix()
+        if root is not None
+        else path.name
+    )
+    size = path.stat().st_size
+    if size > MAX_BYTES:
+        raise ValueError(
+            f"JSON exceeds limit: {label}: actual={size} bytes, limit={MAX_BYTES} bytes"
+        )
+    with path.open("rb") as source:
+        raw = source.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES:
+        raise ValueError(
+            f"JSON exceeds limit: {label}: actual>={len(raw)} bytes, limit={MAX_BYTES} bytes"
+        )
 
     def unique(pairs):
         result = {}
@@ -60,7 +77,7 @@ def read_json(path):
             result[key] = value
         return result
 
-    return json.loads(path.read_text(encoding="utf-8-sig"), object_pairs_hook=unique)
+    return json.loads(raw.decode("utf-8-sig"), object_pairs_hook=unique)
 
 
 def _now():
@@ -134,9 +151,20 @@ def validate_target(root, metadata):
     import yaml
 
     manifest_path = safe_path(root, "architecture/manifest.yaml")
-    if not manifest_path.is_file() or manifest_path.stat().st_size > 1048576:
-        raise ValueError("run requires a bounded architecture owner catalog")
-    manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8-sig"))
+    if not manifest_path.is_file():
+        raise ValueError("run requires an architecture owner catalog file")
+    size = manifest_path.stat().st_size
+    if size > MAX_BYTES:
+        raise ValueError(
+            f"owner catalog exceeds limit: architecture/manifest.yaml: actual={size} bytes, limit={MAX_BYTES} bytes"
+        )
+    with manifest_path.open("rb") as source:
+        raw = source.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES:
+        raise ValueError(
+            f"owner catalog exceeds limit: architecture/manifest.yaml: actual>={len(raw)} bytes, limit={MAX_BYTES} bytes"
+        )
+    manifest = yaml.safe_load(raw.decode("utf-8-sig"))
     target_kind, target_id = next(iter(metadata["target"].items()))
     if target_id not in {
         item.get("id") for item in manifest.get(target_kind + "s", [])
@@ -175,7 +203,7 @@ def _identity(root, path):
         or parts[1] not in {"tests", "validation"}
     ):
         raise ValueError("expected artifacts/tests|validation/<run-id>")
-    record = read_json(safe_path(root, path / ".run.json"))
+    record = read_json(safe_path(root, path / ".run.json"), root=root)
     if (
         set(record) != {"schema_version", "run_id", "kind", "started_at", "metadata"}
         or type(record["schema_version"]) is not int
@@ -273,7 +301,7 @@ def validate_run(root, reference):
     if reference.name != "manifest.json" or not reference.is_file():
         raise ValueError("explicit completed manifest.json required")
     path, identity = _identity(root, reference.parent)
-    manifest = read_json(reference)
+    manifest = read_json(reference, root=root)
     if set(manifest) != set(identity) | {
         "status",
         "outcome",

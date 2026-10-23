@@ -7,6 +7,10 @@ All public assessments reread the bounded project documents; no device is opened
 from __future__ import annotations
 
 import argparse
+import codecs
+import io
+import os
+import stat
 import fnmatch
 import hashlib
 import json
@@ -33,7 +37,7 @@ DOCUMENTS = (
     "validation/on-device.yaml",
     "validation/layout.yaml",
 )
-MAX_BYTES = 1048576
+MAX_BYTES = 5_000_000
 
 
 def digest(value):
@@ -73,9 +77,19 @@ def read_document(root, relative, records, required=False):
         if required:
             raise ValueError(f"missing required document: {relative}")
         return {}
-    if not path.is_file() or path.stat().st_size > MAX_BYTES:
-        raise ValueError(f"invalid or oversized document: {relative}")
-    raw = path.read_bytes()
+    if not path.is_file():
+        raise ValueError(f"document must be a regular file: {relative}")
+    size = path.stat().st_size
+    if size > MAX_BYTES:
+        raise ValueError(
+            f"document exceeds limit: {relative}: actual={size} bytes, limit={MAX_BYTES} bytes"
+        )
+    with path.open("rb") as source:
+        raw = source.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES:
+        raise ValueError(
+            f"document exceeds limit: {relative}: actual>={len(raw)} bytes, limit={MAX_BYTES} bytes"
+        )
     records[relative] = {"state": "present", "sha256": hashlib.sha256(raw).hexdigest()}
     try:
         data = (
@@ -90,6 +104,114 @@ def read_document(root, relative, records, required=False):
         records[relative]["state"] = "invalid"
         raise ValueError(f"document must be an object: {relative}")
     return data
+
+
+def _spec_body_chunks(chunks):
+    """Emit canonical body text, retaining only a delimiter tail from the audit."""
+    start = "\n<!-- spec-audit:start -->"
+    end = "<!-- spec-audit:end -->"
+    tail = max(len(start), len(end)) - 1
+    buffer = ""
+    phase = "before"
+    skip_newline = False
+    for chunk in chunks:
+        buffer += chunk
+        while buffer:
+            if skip_newline:
+                if buffer.startswith("\n"):
+                    buffer = buffer[1:]
+                skip_newline = False
+            starts, ends = buffer.find(start), buffer.find(end)
+            found = [
+                (i, token) for i, token in ((starts, start), (ends, end)) if i >= 0
+            ]
+            if not found:
+                marker = buffer.find("<!-- spec-audit:")
+                if marker >= 0 and len(buffer) - marker >= tail + 1:
+                    raise ValueError("malformed SPEC audit marker")
+                if len(buffer) > tail:
+                    if phase != "audit":
+                        yield buffer[:-tail]
+                    buffer = buffer[-tail:]
+                break
+            index, token = min(found)
+            if "<!-- spec-audit:" in buffer[:index]:
+                raise ValueError("malformed SPEC audit marker")
+            if phase != "audit":
+                yield buffer[:index]
+            if token == start:
+                if phase != "before":
+                    raise ValueError("duplicate or misplaced SPEC audit start marker")
+                phase = "audit"
+            else:
+                if phase != "audit":
+                    raise ValueError("unexpected SPEC audit end marker")
+                phase = "after"
+                skip_newline = True
+            buffer = buffer[index + len(token) :]
+    if phase == "audit":
+        raise ValueError("unterminated SPEC audit block")
+    if "<!-- spec-audit:" in buffer:
+        raise ValueError("malformed SPEC audit marker")
+    if skip_newline and buffer.startswith("\n"):
+        buffer = buffer[1:]
+    yield buffer
+
+
+def _spec_body(text):
+    text = text.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+    return "".join(
+        _spec_body_chunks(text[i : i + 65536] for i in range(0, len(text), 65536))
+    )
+
+
+def _read_spec(path):
+    """Read one fixed file extent; hash all raw bytes and retain only its body."""
+
+    def identity(info):
+        return (
+            info.st_dev,
+            info.st_ino,
+            info.st_size,
+            info.st_mtime_ns,
+            info.st_ctime_ns,
+        )
+
+    initial = path.lstat()
+    if not stat.S_ISREG(initial.st_mode):
+        raise ValueError("SPEC must be a regular, non-redirected file")
+    flags = (
+        os.O_RDONLY
+        | getattr(os, "O_BINARY", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+        | getattr(os, "O_NONBLOCK", 0)
+    )
+    digest_value = hashlib.sha256()
+    with os.fdopen(os.open(path, flags), "rb") as source:
+        opened = os.fstat(source.fileno())
+        if not stat.S_ISREG(opened.st_mode) or identity(initial) != identity(opened):
+            raise ValueError("SPEC changed while opening")
+        decoder = io.IncrementalNewlineDecoder(
+            codecs.getincrementaldecoder("utf-8-sig")(), translate=True
+        )
+
+        def chunks():
+            remaining = opened.st_size
+            while remaining:
+                raw = source.read(min(65536, remaining))
+                if not raw:
+                    raise ValueError("SPEC changed during read (short read)")
+                remaining -= len(raw)
+                digest_value.update(raw)
+                yield decoder.decode(raw)
+            yield decoder.decode(b"", final=True)
+
+        body = "".join(_spec_body_chunks(chunks()))
+        if identity(opened) != identity(os.fstat(source.fileno())) or identity(
+            opened
+        ) != identity(path.lstat()):
+            raise ValueError("SPEC changed during read")
+    return body, digest_value.hexdigest()
 
 
 def spec_contract(text):
@@ -225,10 +347,13 @@ def _assess(root, spec, phase, candidate_text, result):
         )
         return
     path = project_path(root, spec)
-    if path.parent != root / "specs" or path.stat().st_size > MAX_BYTES:
+    if path.parent != root / "specs":
         raise ValueError("expected canonical SPEC directly under specs/")
-    raw = path.read_bytes()
-    text = raw.decode("utf-8-sig").replace("\r\n", "\n")
+    try:
+        text, spec_sha256 = _read_spec(path)
+        project_path(root, spec)
+    except (OSError, ValueError) as exc:
+        raise ValueError(f"cannot read SPEC {spec}: {exc}") from exc
     spec_id, revision, rows = spec_contract(text)
     if not path.name.startswith(spec_id + "-"):
         raise ValueError("SPEC filename/identity mismatch")
@@ -413,7 +538,7 @@ def _assess(root, spec, phase, candidate_text, result):
         "spec": spec,
         "spec_id": spec_id,
         "revision": revision,
-        "spec_sha256": hashlib.sha256(raw).hexdigest(),
+        "spec_sha256": spec_sha256,
         "documents": records.copy(),
         "skill": result["skill"],
         "device_profile_sha256": digest(
@@ -444,6 +569,7 @@ def _assess(root, spec, phase, candidate_text, result):
             "validation plan is stale; regenerate from current project/SPEC"
         )
     if candidate_text is not None:
+        candidate_text = _spec_body(candidate_text)
         candidate_id, _, candidate_rows = spec_contract(candidate_text)
         if candidate_id != spec_id or {k: v[:4] for k, v in candidate_rows.items()} != {
             k: v[:4] for k, v in rows.items()

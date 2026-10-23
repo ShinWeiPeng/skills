@@ -1,5 +1,5 @@
 {
-  "content_fingerprint": "sha256:eab84892287f66d78a45aec905a386e97fc3ce44c818f4f90aecf9131f5f028e",
+  "content_fingerprint": "sha256:f88f85ea474333c66af97e4f30e0784cf093ccf34fc936299f045d009d22e05a",
   "files": [
     {
       "path": ".changeset/applied/0.10.0/formatter-governance.md",
@@ -100,6 +100,11 @@
       "path": ".changeset/applied/0.23.1/diagnosis-fix-contract-review.md",
       "sha256": "6875789b786455ffa1d48b76042e3086d3cfed5ee1abecff77ce59b1fadedee5",
       "size": 434
+    },
+    {
+      "path": ".changeset/applied/0.23.2/monorepo-package-root.md",
+      "sha256": "d241a1814af2a66a5019a6c7d2c0a3ffde0d03bde4462ae25d349b72688ff376",
+      "size": 174
     },
     {
       "path": ".changeset/applied/0.3.0/explicit-prerelease-group.md",
@@ -237,18 +242,18 @@
       "size": 343
     },
     {
-      "path": ".changeset/monorepo-package-root.md",
-      "sha256": "d241a1814af2a66a5019a6c7d2c0a3ffde0d03bde4462ae25d349b72688ff376",
-      "size": 174
+      "path": ".changeset/release-state.json",
+      "sha256": "1fd9d97d67ac0d2de39f2feacf19581abc1cdb5be1478a58d013cd8a33e1beb2",
+      "size": 273
     },
     {
-      "path": ".changeset/release-state.json",
-      "sha256": "df1616341b8fc85acf7148f57629e002c7fa59195fa1d65a27fb258cb239a50d",
-      "size": 274
+      "path": ".changeset/streaming-spec-input.md",
+      "sha256": "ca8f7cdbea313549e8551824fb6a352083b0500794179ac1bcb62f90fd7328c9",
+      "size": 334
     },
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "8521659ccda32d78b729af890919955123b3e9fa3481b61856310e92f3ea59c8",
+      "sha256": "36de5c24c4821d8bcdda3de3f429876ee66f921a5fd0a1f79e9c689712459dd4",
       "size": 3089
     },
     {
@@ -258,8 +263,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "71a2cd2b0cdad151c8e380f2d8c8b701522fec6b41cd7a80d8b878917b41efc1",
-      "size": 13800
+      "sha256": "9378224c294bd9330b687248d15a0a073edd0cc14f3b14e6b4afb48b65082326",
+      "size": 14107
     },
     {
       "path": "docs/versioning.md",
@@ -268,7 +273,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "881ce101a04b0d09d23313fe930171a1f2763c680dead31c58f8b01a0a1f4af0",
+      "sha256": "9b1a05805bd6a1c2ec0bbef3a74234e56e8c4d7f682706174094af16079f880f",
       "size": 402
     },
     {
@@ -293,8 +298,8 @@
     },
     {
       "path": "skills/ask-matt/SKILL.md",
-      "sha256": "aa442f2c91e37b1d3d04c13738c920a07c7c1d60d2bbec9a344bf2aa4cad8773",
-      "size": 25784
+      "sha256": "04971cfae06c576118b1d386475310fc41ab966dfbfae1f36089143169ef1364",
+      "size": 26086
     },
     {
       "path": "skills/ask-matt/agents/openai.yaml",
@@ -793,8 +798,8 @@
     },
     {
       "path": "skills/govern-modular-event-architecture/scripts/validation_layout.py",
-      "sha256": "52a97c248c1e694b7ff11c3a1603a8e6621008f048325c55bacf11b53ea2d521",
-      "size": 17813
+      "sha256": "a9277c3d241a1ecdfcd1440c453d4fba50632d670956543f5ac61bd81f8fbe8f",
+      "size": 18302
     },
     {
       "path": "skills/govern-modular-event-architecture/tools/architecture/architecture_cli.py",
@@ -868,8 +873,8 @@
     },
     {
       "path": "skills/govern-modular-event-architecture/tools/architecture/run_storage.py",
-      "sha256": "8f2d41534989a2e9b5187f9dea64045ac657ff10464517a16152d8eab557cfa9",
-      "size": 14390
+      "sha256": "1836b3452aebdf72dd252b9ed0e3be68ec2052bc96cdffd84e3d7d5852a388a7",
+      "size": 15323
     },
     {
       "path": "skills/govern-modular-event-architecture/tools/architecture/schema_description.py",
@@ -898,8 +903,8 @@
     },
     {
       "path": "skills/govern-modular-event-architecture/tools/architecture/validation_layout.py",
-      "sha256": "9ae702b110bb11076415ffd7e61283b25487f4d3dd2caae8ab5d5cf80a272b91",
-      "size": 29259
+      "sha256": "84d660ec8b8c4f80aa21f28268e8c466a98d701f7924c25874e46a87ddc2846f",
+      "size": 29785
     },
     {
       "path": "skills/grill-me/SKILL.md",
@@ -968,8 +973,8 @@
     },
     {
       "path": "skills/implement/scripts/managed_delivery.py",
-      "sha256": "bf4d600861f11f5f876e6690de484cebfe2cd5daacfae527ccf716c5cffa6b20",
-      "size": 70169
+      "sha256": "009a4b2e4c497415863f2c4d133c68c4a0137a2dfd246a50e8688a58e55459df",
+      "size": 70270
     },
     {
       "path": "skills/implement/scripts/project_validation_adapter.py",
@@ -1433,8 +1438,8 @@
     },
     {
       "path": "skills/validate-on-device/tools/architecture/run_storage.py",
-      "sha256": "8f2d41534989a2e9b5187f9dea64045ac657ff10464517a16152d8eab557cfa9",
-      "size": 14390
+      "sha256": "1836b3452aebdf72dd252b9ed0e3be68ec2052bc96cdffd84e3d7d5852a388a7",
+      "size": 15323
     },
     {
       "path": "skills/validate-on-device/tools/architecture/schema_description.py",
@@ -1468,13 +1473,13 @@
     },
     {
       "path": "skills/validate-on-device/tools/architecture/validation_layout.py",
-      "sha256": "9ae702b110bb11076415ffd7e61283b25487f4d3dd2caae8ab5d5cf80a272b91",
-      "size": 29259
+      "sha256": "84d660ec8b8c4f80aa21f28268e8c466a98d701f7924c25874e46a87ddc2846f",
+      "size": 29785
     },
     {
       "path": "skills/verification-ladder/SKILL.md",
-      "sha256": "b9e6b6f60ec81f836572d5018a4c2648ceb2a0842b001c22adea3aa5455e2e45",
-      "size": 12127
+      "sha256": "d0a7a55883324905b02781a9e5a06d32842282c433fc2d350a5dba8f087697af",
+      "size": 12952
     },
     {
       "path": "skills/verification-ladder/agents/openai.yaml",
@@ -1483,8 +1488,8 @@
     },
     {
       "path": "skills/verification-ladder/references/project-validation.md",
-      "sha256": "525d21c49c16f24b9f6f10218a5bc27e56e62b70d3694bc8ca2c3af032dbcf8d",
-      "size": 7892
+      "sha256": "c52bc49c47578f6f38fefa571c0d1cc8d1f4b1870269c8ba11580c282dae8e51",
+      "size": 8717
     },
     {
       "path": "skills/verification-ladder/references/project-validation.schema.json",
@@ -1503,13 +1508,13 @@
     },
     {
       "path": "skills/verification-ladder/scripts/project_validation.py",
-      "sha256": "4a9380e237505e40c4f33b539631c9caf75a8fd8c376ed13e19a1d99a9aebd38",
-      "size": 37897
+      "sha256": "5e955d0b09b2d4b43b59d9fa0546d3123b10b1030e3fe53d3b46591a9c438322",
+      "size": 42398
     },
     {
       "path": "skills/verification-ladder/scripts/run_storage.py",
-      "sha256": "8f2d41534989a2e9b5187f9dea64045ac657ff10464517a16152d8eab557cfa9",
-      "size": 14390
+      "sha256": "1836b3452aebdf72dd252b9ed0e3be68ec2052bc96cdffd84e3d7d5852a388a7",
+      "size": 15323
     },
     {
       "path": "skills/verification-ladder/scripts/verification_ladder.py",
@@ -1569,5 +1574,5 @@
   ],
   "plugin_name": "governed-engineering-skills",
   "schema_version": "1.0.0",
-  "version": "0.23.2"
+  "version": "0.23.3"
 }
