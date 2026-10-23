@@ -34,6 +34,12 @@ class DirectInstallTests(unittest.TestCase):
             self.package,
             ignore=shutil.ignore_patterns("dist", "__pycache__", ".changeset"),
         )
+        # Keep fixtures valid when the release workflow advances package metadata.
+        self.initial_version = json.loads(
+            (self.package / "package.json").read_text(encoding="utf-8")
+        )["version"]
+        major, minor, patch = self.initial_version.split(".")
+        self.next_version = f"{major}.{minor}.{int(patch) + 1}"
 
     def cli(self, *args, expected=0):
         result = subprocess.run(
@@ -76,27 +82,29 @@ class DirectInstallTests(unittest.TestCase):
     def test_versions_switch_independently_and_rollback(self):
         self.install("both")
         original = (self.active() / "SKILL.md").read_bytes()
-        self.version("0.2.0", "\nVersion two fixture.\n")
+        self.version(self.next_version, "\nVersion two fixture.\n")
         self.install("codex")
         updated = (self.active() / "SKILL.md").read_bytes()
         self.assertNotEqual(original, updated)
         self.assertEqual((self.active("claude") / "SKILL.md").read_bytes(), original)
         store = self.home / ".doc-coauthoring/versions"
-        self.assertEqual((store / "0.1.0/SKILL.md").read_bytes(), original)
-        self.assertEqual((store / "0.2.0/SKILL.md").read_bytes(), updated)
-        self.cli("switch", "0.1.0", "--target", "codex")
+        self.assertEqual(
+            (store / self.initial_version / "SKILL.md").read_bytes(), original
+        )
+        self.assertEqual((store / self.next_version / "SKILL.md").read_bytes(), updated)
+        self.cli("switch", self.initial_version, "--target", "codex")
         self.assertEqual((self.active() / "SKILL.md").read_bytes(), original)
         self.cli("rollback", "--target", "codex")
         self.assertEqual((self.active() / "SKILL.md").read_bytes(), updated)
         self.install("claude")
-        self.cli("switch", "0.1.0", "--target", "claude")
+        self.cli("switch", self.initial_version, "--target", "claude")
         self.assertEqual((self.active("claude") / "SKILL.md").read_bytes(), original)
         self.cli("rollback", "--target", "claude")
         self.assertEqual((self.active("claude") / "SKILL.md").read_bytes(), updated)
         self.assertEqual(len(list((self.home / ".claude/skills").iterdir())), 1)
         result = self.cli("list")
-        self.assertIn("0.1.0", result.stdout)
-        self.assertIn("0.2.0", result.stdout)
+        self.assertIn(self.initial_version, result.stdout)
+        self.assertIn(self.next_version, result.stdout)
 
     @unittest.skipUnless(os.name == "nt", "Windows command launcher requires Windows")
     def test_windows_double_click_launcher_forwards_arguments(self):
@@ -161,7 +169,7 @@ class DirectInstallTests(unittest.TestCase):
             json.dumps(
                 {
                     "schema_version": 1,
-                    "current_version": "0.1.0",
+                    "current_version": self.initial_version,
                     "production_fingerprint": None,
                     "applied_changesets": [],
                 }
@@ -262,7 +270,9 @@ class DirectInstallTests(unittest.TestCase):
             url = request.full_url
             requested.append(url)
             if "publication-record.json" in url:
-                return io.BytesIO(b'{"artifact":{"version":"0.1.0"}}')
+                return io.BytesIO(
+                    json.dumps({"artifact": {"version": self.initial_version}}).encode()
+                )
             return io.BytesIO(archive)
 
         with mock.patch("urllib.request.urlopen", urlopen):
@@ -279,7 +289,9 @@ class DirectInstallTests(unittest.TestCase):
             )
         self.assertEqual(result, 0)
         self.assertTrue((self.active() / "SKILL.md").is_file())
-        self.assertTrue(any("doc-coauthoring%400.1.0" in url for url in requested))
+        self.assertTrue(
+            any(f"doc-coauthoring%40{self.initial_version}" in url for url in requested)
+        )
 
     def test_malformed_or_unavailable_download_preserves_previous_activation(self):
         self.install()
@@ -292,7 +304,7 @@ class DirectInstallTests(unittest.TestCase):
                     [
                         "install",
                         "--version",
-                        "0.2.0",
+                        self.next_version,
                         "--target",
                         "codex",
                         "--home",
@@ -309,7 +321,7 @@ class DirectInstallTests(unittest.TestCase):
                     [
                         "install",
                         "--version",
-                        "0.2.0",
+                        self.next_version,
                         "--target",
                         "codex",
                         "--home",
@@ -339,7 +351,7 @@ class DirectInstallTests(unittest.TestCase):
 
     def test_committed_activation_reports_success_when_backup_cleanup_is_locked(self):
         self.install("both")
-        self.version("0.2.0", "\nUpdated fixture.\n")
+        self.version(self.next_version, "\nUpdated fixture.\n")
         module = self.module()
         with mock.patch.object(
             module.shutil, "rmtree", side_effect=OSError("Backup locked")
@@ -361,7 +373,7 @@ class DirectInstallTests(unittest.TestCase):
         self.assertIn("Backup locked", errors.getvalue())
         state = json.loads((self.home / ".doc-coauthoring/state.json").read_text())
         for target in ("codex", "claude"):
-            self.assertEqual(state["active"][target]["version"], "0.2.0")
+            self.assertEqual(state["active"][target]["version"], self.next_version)
             self.assertIn(
                 "Updated fixture", (self.active(target) / "SKILL.md").read_text()
             )
@@ -433,15 +445,15 @@ class DirectInstallTests(unittest.TestCase):
     def test_new_version_with_identical_skill_does_not_rewrite_active_files(self):
         self.install()
         before = self.snapshot(self.active())
-        self.version("0.2.0", "")
+        self.version(self.next_version, "")
         self.install()
         self.assertEqual(self.snapshot(self.active()), before)
-        self.assertIn("0.2.0 active: codex", self.cli("list").stdout)
+        self.assertIn(f"{self.next_version} active: codex", self.cli("list").stdout)
 
     def test_same_version_with_different_content_is_rejected(self):
         self.install()
         before = self.snapshot(self.home)
-        self.version("0.1.0", "\nDifferent content at same version.\n")
+        self.version(self.initial_version, "\nDifferent content at same version.\n")
         result = self.install(expected=1)
         self.assertIn("Different content", result.stderr)
         self.assertEqual(self.snapshot(self.home), before)
@@ -463,18 +475,22 @@ class DirectInstallTests(unittest.TestCase):
 
     def test_corrupt_store_cannot_be_activated(self):
         self.install()
-        stored = self.home / ".doc-coauthoring/versions/0.1.0/SKILL.md"
+        stored = (
+            self.home / ".doc-coauthoring/versions" / self.initial_version / "SKILL.md"
+        )
         stored.write_text("Unexpected changes", encoding="utf-8")
         before = self.snapshot(self.active())
-        result = self.cli("switch", "0.1.0", "--target", "codex", expected=1)
+        result = self.cli(
+            "switch", self.initial_version, "--target", "codex", expected=1
+        )
         self.assertIn("Stored version was modified", result.stderr)
         self.assertEqual(self.snapshot(self.active()), before)
 
     def test_second_target_activation_failure_restores_both_targets(self):
         self.install("both")
-        self.version("0.2.0", "\nNew fixture.\n")
+        self.version(self.next_version, "\nNew fixture.\n")
         self.install("codex")
-        self.cli("switch", "0.1.0", "--target", "codex")
+        self.cli("switch", self.initial_version, "--target", "codex")
         before = {
             target: self.snapshot(self.active(target)) for target in ("codex", "claude")
         }
@@ -493,7 +509,14 @@ class DirectInstallTests(unittest.TestCase):
         with mock.patch.object(module.os, "replace", external_replace):
             with contextlib.redirect_stderr(io.StringIO()) as errors:
                 result = module.main(
-                    ["switch", "0.2.0", "--target", "both", "--home", str(self.home)]
+                    [
+                        "switch",
+                        self.next_version,
+                        "--target",
+                        "both",
+                        "--home",
+                        str(self.home),
+                    ]
                 )
         self.assertEqual(result, 1)
         self.assertIn("Injected external rename failure", errors.getvalue())
@@ -546,7 +569,7 @@ class DirectInstallTests(unittest.TestCase):
         before = self.snapshot(self.active())
         (self.package / "skills/doc-coauthoring/references/codex.md").unlink()
         self.install(expected=1)
-        self.cli("switch", "9.9.9", "--target", "codex", expected=1)
+        self.cli("switch", self.next_version, "--target", "codex", expected=1)
         self.assertEqual(self.snapshot(self.active()), before)
 
     def test_default_personal_scope_works_outside_a_project(self):
@@ -581,7 +604,7 @@ class DirectInstallTests(unittest.TestCase):
     def test_install_copies_complete_skill_without_plugin_state(self):
         result = self.install()
         active = self.active()
-        self.assertIn("0.1.0", result.stdout)
+        self.assertIn(self.initial_version, result.stdout)
         self.assertTrue((active / "SKILL.md").is_file())
         self.assertTrue((active / "references/codex.md").is_file())
         self.assertTrue((active / "references/claude.md").is_file())

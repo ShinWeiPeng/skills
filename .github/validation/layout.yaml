@@ -766,7 +766,7 @@ dynamic_dependencies:
     rationale: Mixed-case golden vector loads only the public document release fingerprint
       port.
   .github/tests/flows/plugin-integration/monorepo/test_doc_install.py:
-    sha256: 96964ff7bb45c35eff8ede522d9df2e8238dc01da204372239b51f38cdfdfba0
+    sha256: d77cbeb9bef7a3afbbb7ad293f49b86fabbb7cbe9c4382373af38ea604e60c6e
     targets:
     - doc-coauthoring/scripts/install.py
     rationale: Public installer CLI contracts load the complete installer module to inject external filesystem and download failures.
