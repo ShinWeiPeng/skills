@@ -648,8 +648,9 @@ entries:
   - governed-engineering-skills/Install Governed Engineering Skills.desktop
   role: metadata
 - include:
+  - specs/SPEC-0065-doc-coauthoring-direct-install.md
+  - specs/SPEC-0066-spec-validation-size-compatibility.md
   - specs/SPEC-0064-skills-monorepo-independent-releases.md
-  - specs/SPEC-0065-spec-validation-size-compatibility.md
   - specs/history/SPEC-0064-skills-monorepo-decisions.md
   role: specification
 - include:
@@ -663,6 +664,7 @@ entries:
   - doc-coauthoring/CHANGELOG.md
   role: documentation
 - include:
+  - doc-coauthoring/Install Doc Coauthoring.desktop
   - doc-coauthoring/package.json
   - doc-coauthoring/.codex-plugin/plugin.json
   - doc-coauthoring/.claude-plugin/plugin.json
@@ -670,6 +672,8 @@ entries:
   - doc-coauthoring/.changeset/**
   role: metadata
 - include:
+  - doc-coauthoring/Install Doc Coauthoring.cmd
+  - doc-coauthoring/Install Doc Coauthoring.sh
   - doc-coauthoring/scripts/**
   - .github/workflows/doc-coauthoring.yml
   - doc-coauthoring/requirements-release.txt
@@ -693,6 +697,7 @@ entries:
 required_analyzers:
 - python
 external_modules:
+- gi
 - yaml
 - jsonschema
 - clang
@@ -765,6 +770,11 @@ dynamic_dependencies:
     - doc-coauthoring/scripts/release.py
     rationale: Mixed-case golden vector loads only the public document release fingerprint
       port.
+  .github/tests/flows/plugin-integration/monorepo/test_doc_install.py:
+    sha256: d77cbeb9bef7a3afbbb7ad293f49b86fabbb7cbe9c4382373af38ea604e60c6e
+    targets:
+    - doc-coauthoring/scripts/install.py
+    rationale: Public installer CLI contracts load the complete installer module to inject external filesystem and download failures.
 test_roots:
 - .github/tests
 - governed-engineering-skills/tests

@@ -4,7 +4,7 @@
 
 - Status: proposed; no AI or human algorithm approval is fabricated.
 - Owner module: verification_ladder_domain.
-- Specification: SPEC-0065 revision 3, REQ-001 through REQ-010.
+- Specification: SPEC-0066 revision 3, REQ-001 through REQ-010.
 - Flow: verification-ladder-planning; related algorithms ALG-0004, ALG-0007, ALG-0008.
 - Sources: existing project_validation.py, run_storage.py and validation_layout.py; no new sibling dependency.
 - Test seams: assess_project, production CLI and existing JSON/run/layout readers.
@@ -36,8 +36,8 @@ Increasing one global constant alone leaves growing SPECs blocked later; removin
 
 ## Faults, recovery and validation
 
-Malformed markers, invalid UTF-8, missing/nonregular/redirected files, I/O failures, short reads and observed file mutations reject without source writes or success publication. Retry opens and verifies current bytes; no evidence/permission reset. SPEC-0065 AC-001 through AC-008 cover exact 1 MiB and 5 MB boundaries, >24.6 MB audit, suffix content, raw hash, mutation/error fixtures, module/SIL/integration and real-file read-only recheck. Fixed-body growing-audit measurements calibrate only the new reader. Windows/Ubuntu matrix remains required CI evidence.
+Malformed markers, invalid UTF-8, missing/nonregular/redirected files, I/O failures, short reads and observed file mutations reject without source writes or success publication. Retry opens and verifies current bytes; no evidence/permission reset. SPEC-0066 AC-001 through AC-008 cover exact 1 MiB and 5 MB boundaries, >24.6 MB audit, suffix content, raw hash, mutation/error fixtures, module/SIL/integration and real-file read-only recheck. Fixed-body growing-audit measurements calibrate only the new reader. Windows/Ubuntu matrix remains required CI evidence.
 
 ## Human approval
 
-The user adopted streaming/body partitioning and the 5 MB policy in SPEC-0065 DEC-001/002 and explicitly authorized implementation in the next turn. This record remains proposed and does not assert separate algorithm approval. No architectural exception or new public mapping is requested.
+The user adopted streaming/body partitioning and the 5 MB policy in SPEC-0066 DEC-001/002 and explicitly authorized implementation in the next turn. This record remains proposed and does not assert separate algorithm approval. No architectural exception or new public mapping is requested.
