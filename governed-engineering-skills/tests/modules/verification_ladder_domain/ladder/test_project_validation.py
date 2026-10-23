@@ -326,6 +326,303 @@ def fail_row(root, row):
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_spec_body_size_and_audit_delimiter_boundaries(self):
+        marker = (
+            "\n<!-- spec-audit:start -->\n```jsonl\n{}\n```\n<!-- spec-audit:end -->\n"
+        )
+        for size in (1_048_575, 1_048_576, 1_048_577, 5_000_001):
+            with (
+                self.subTest(body_bytes=size),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                fixture(root)
+                raw = SPEC.encode() + b" " * (size - len(SPEC.encode()))
+                write(root, "specs/SPEC-0001-sensor.md", "")
+                (root / "specs/SPEC-0001-sensor.md").write_bytes(raw)
+                result = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+                self.assertEqual(result["verdict"], "PASS", result["errors"])
+                self.assertEqual(
+                    result["plan"]["acceptance"]["AC-001"]["layers"], ["pil", "hil"]
+                )
+        before, after = SPEC.split("## Acceptance Criteria", 1)
+        for offset in range(1, 27):
+            with (
+                self.subTest(split_offset=offset),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                fixture(root)
+                # The real marker crosses the reader's byte boundary; ACs follow the audit.
+                prefix = before + " " * (65536 - len(before.encode()) - offset)
+                text = prefix + marker + "\n## Acceptance Criteria" + after
+                if offset % 2:
+                    text = "\ufeff" + text.replace("\n", "\r\n")
+                write(root, "specs/SPEC-0001-sensor.md", text)
+                result = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+                self.assertEqual(result["verdict"], "PASS", result["errors"])
+                self.assertEqual(
+                    result["plan"]["acceptance"]["AC-001"]["layers"], ["pil", "hil"]
+                )
+
+    def test_malformed_audit_and_encoding_are_rejected_as_input_errors(self):
+        start, end = "\n<!-- spec-audit:start -->", "<!-- spec-audit:end -->"
+        invalid = [
+            start,
+            end,
+            start + start + end,
+            start + end + start + end,
+            start + end + end,
+            start + "\n<!-- spec-audit:broken -->" + end,
+            "\n<!-- spec-audit:broken -->" + start + end,
+            "\n<!-- spec-audit:broken -->" + "x" * 100_000,
+            start.encode() + b"\xff" + end.encode(),
+            b"\xff",
+        ]
+        for suffix in invalid:
+            with (
+                self.subTest(suffix=str(suffix)[:70]),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                write(root, "specs/SPEC-0001-sensor.md", "")
+                raw = SPEC.encode() + (
+                    suffix.encode() if isinstance(suffix, str) else suffix
+                )
+                path = root / "specs/SPEC-0001-sensor.md"
+                path.write_bytes(raw)
+                result = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+                self.assertEqual(result["verdict"], "BLOCKED")
+                self.assertIn("cannot read SPEC", str(result["errors"]))
+                self.assertNotIn(
+                    "expected canonical SPEC directly", str(result["errors"])
+                )
+                self.assertEqual(path.read_bytes(), raw)
+
+    def test_spec_file_failures_and_mutation_reject_without_success(self):
+        from unittest.mock import patch
+
+        for fault in ("append", "short", "io"):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                write(root, "specs/SPEC-0001-sensor.md", SPEC)
+                path = root / "specs/SPEC-0001-sensor.md"
+                original_open = validation.os.fdopen
+
+                class FaultFile:
+                    def __init__(self, stream):
+                        self.stream = stream
+
+                    def __enter__(self):
+                        return self
+
+                    def __exit__(self, *args):
+                        self.stream.close()
+
+                    def fileno(self):
+                        return self.stream.fileno()
+
+                    def read(self, size):
+                        if fault == "short":
+                            return b""
+                        if fault == "io":
+                            raise OSError("injected I/O failure")
+                        data = self.stream.read(size)
+                        with path.open("ab") as changed:
+                            changed.write(b"x")
+                        return data
+
+                def opened(*args, **kwargs):
+                    return FaultFile(original_open(*args, **kwargs))
+
+                with patch.object(validation.os, "fdopen", opened):
+                    result = validation.assess_project(
+                        root, "specs/SPEC-0001-sensor.md"
+                    )
+                self.assertEqual(result["verdict"], "BLOCKED", result)
+                self.assertIn("cannot read SPEC", str(result["errors"]))
+                self.assertNotIn("plan", result)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for kind in ("missing", "directory", "symlink", "wrong-parent"):
+                with self.subTest(kind=kind):
+                    target = root / "specs" / f"SPEC-0001-{kind}.md"
+                    target.parent.mkdir(exist_ok=True)
+                    if kind == "directory":
+                        target.mkdir()
+                    if kind == "symlink":
+                        real = root / "real.md"
+                        real.write_text(SPEC)
+                        try:
+                            target.symlink_to(real)
+                        except OSError as exc:
+                            self.skipTest(f"symlink creation unavailable: {exc}")
+                    relative = (
+                        str(target.relative_to(root))
+                        if kind != "wrong-parent"
+                        else "wrong/SPEC-0001-sensor.md"
+                    )
+                    result = validation.assess_project(root, relative)
+                    self.assertEqual(result["verdict"], "BLOCKED")
+                    self.assertNotIn("plan", result)
+
+    def test_streamed_input_has_bounded_reads_and_does_not_retain_full_audit(self):
+        from unittest.mock import patch
+        import tracemalloc
+
+        measurements = []
+        for audit_bytes in (1_048_576, 24_587_733):
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                write(root, "specs/SPEC-0001-sensor.md", SPEC)
+                path = root / "specs/SPEC-0001-sensor.md"
+                with path.open("ab") as output:
+                    output.write(b"\n<!-- spec-audit:start -->\n```jsonl\n")
+                    remaining = audit_bytes
+                    while remaining:
+                        count = min(65536, remaining)
+                        output.write(b"x" * count)
+                        remaining -= count
+                    output.write(b"\n```\n<!-- spec-audit:end -->\n")
+                original_open = validation.os.fdopen
+                requests = []
+
+                class ObservedFile:
+                    def __init__(self, stream):
+                        self.stream = stream
+
+                    def __enter__(self):
+                        return self
+
+                    def __exit__(self, *args):
+                        self.stream.close()
+
+                    def fileno(self):
+                        return self.stream.fileno()
+
+                    def read(self, size):
+                        requests.append(size)
+                        return self.stream.read(size)
+
+                def opened(*args, **kwargs):
+                    return ObservedFile(original_open(*args, **kwargs))
+
+                tracemalloc.start()
+                try:
+                    with patch.object(validation.os, "fdopen", opened):
+                        result = validation.assess_project(
+                            root, "specs/SPEC-0001-sensor.md"
+                        )
+                    _, peak = tracemalloc.get_traced_memory()
+                finally:
+                    tracemalloc.stop()
+                self.assertEqual(result["verdict"], "PASS", result["errors"])
+                self.assertTrue(requests)
+                self.assertTrue(all(0 < size <= 65536 for size in requests))
+                if audit_bytes > 5_000_000:
+                    self.assertLess(peak, audit_bytes)
+                measurements.append(
+                    {
+                        "audit_bytes": audit_bytes,
+                        "peak_bytes": peak,
+                        "max_read": max(requests),
+                    }
+                )
+        print("SPEC_INPUT_RESOURCE " + json.dumps(measurements))
+
+    def test_finite_document_readers_share_exact_decimal_five_mb_limit(self):
+        from run_storage import read_json
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "input.json"
+            for size in (4_999_999, 5_000_000, 5_000_001):
+                path.write_bytes(b'{"value":1}' + b" " * (size - 11))
+                for label, reader in (
+                    (
+                        "project",
+                        lambda: validation.read_document(root, "input.json", {}),
+                    ),
+                    ("run", lambda: read_json(path)),
+                ):
+                    with self.subTest(size=size, reader=label):
+                        if size <= 5_000_000:
+                            self.assertEqual(reader(), {"value": 1})
+                        else:
+                            with self.assertRaisesRegex(
+                                ValueError, r"input.json.*5000001.*5000000"
+                            ):
+                                reader()
+
+    def test_large_spec_audit_reaches_real_acceptance_planning(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture(root)
+            path = root / "specs/SPEC-0001-sensor.md"
+            raw = (
+                SPEC
+                + "\n<!-- spec-audit:start -->\n## Discussion History\n\n```jsonl\n"
+                + '{"padding":"'
+                + "a" * 24_587_733
+                + '"}\n```\n<!-- spec-audit:end -->\n'
+            ).encode()
+            path.write_bytes(raw)
+            result = validation.assess_project(root, "specs/SPEC-0001-sensor.md")
+            self.assertEqual(result["verdict"], "PASS", result["errors"])
+            self.assertEqual(
+                result["plan"]["binding"]["spec_sha256"],
+                hashlib.sha256(raw).hexdigest(),
+            )
+            self.assertEqual(
+                result["plan"]["acceptance"]["AC-001"]["layers"],
+                ["pil", "hil"],
+            )
+            self.assertEqual(path.read_bytes(), raw)
+
+    def test_shipped_run_readers_and_owner_catalogs_share_five_mb_limit(self):
+        import importlib.util
+
+        sources = [
+            SOURCE_SKILLS.parent.parent / "tools/architecture/run_storage.py",
+            SOURCE_SKILLS / "verification-ladder/scripts/run_storage.py",
+            SOURCE_SKILLS
+            / "govern-modular-event-architecture/tools/architecture/run_storage.py",
+            SOURCE_SKILLS / "validate-on-device/tools/architecture/run_storage.py",
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "architecture").mkdir()
+            json_path = root / "input.json"
+            catalog = root / "architecture/manifest.yaml"
+            value = b'{"modules":[{"id":"sensor"}]}'
+            for size in (5_000_000, 5_000_001):
+                json_path.write_bytes(b"{}" + b" " * (size - 2))
+                catalog.write_bytes(value + b" " * (size - len(value)))
+                for index, source in enumerate(sources):
+                    definition = importlib.util.spec_from_file_location(
+                        f"spec65_run_{index}", source
+                    )
+                    reader = importlib.util.module_from_spec(definition)
+                    definition.loader.exec_module(reader)
+                    with self.subTest(size=size, source=str(source)):
+                        if size <= 5_000_000:
+                            self.assertEqual(reader.read_json(json_path, root=root), {})
+                            reader.validate_target(
+                                root, {"target": {"module": "sensor"}}
+                            )
+                        else:
+                            with self.assertRaisesRegex(
+                                ValueError, r"input.json.*5000001.*5000000"
+                            ):
+                                reader.read_json(json_path, root=root)
+                            with self.assertRaisesRegex(
+                                ValueError,
+                                r"architecture/manifest.yaml.*5000001.*5000000",
+                            ):
+                                reader.validate_target(
+                                    root, {"target": {"module": "sensor"}}
+                                )
+
     def test_generated_projection_is_verified_and_preserves_hardware_layers(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -669,6 +966,44 @@ class ProjectValidationTests(unittest.TestCase):
                 )["verdict"],
                 "BLOCKED",
             )
+
+    def test_audited_candidates_preserve_contract_and_raw_plan_binding(self):
+        with tempfile.TemporaryDirectory(dir=TEST_TEMP_ROOT) as directory:
+            root = Path(directory)
+            fixture(root)
+            path = root / "specs/SPEC-0001-sensor.md"
+            audit = '\n<!-- spec-audit:start -->\n```jsonl\n{"history":0}\n```\n<!-- spec-audit:end -->\n'
+            path.write_text(SPEC + audit)
+            planned = save_plan(root)
+            evidence(root, planned)
+            candidate = SPEC.replace(
+                "| Pending |", "| PASS host tests |"
+            ) + audit.replace('"history":0', '"history":1')
+            accepted = validation.assess_project(
+                root,
+                "specs/SPEC-0001-sensor.md",
+                phase="acceptance",
+                candidate_text=candidate,
+            )
+            self.assertEqual(accepted["verdict"], "PASS", accepted["errors"])
+            changed = candidate.replace(
+                "Physical sample timing is correct.",
+                "Different production requirement.",
+            )
+            rejected = validation.assess_project(
+                root,
+                "specs/SPEC-0001-sensor.md",
+                phase="acceptance",
+                candidate_text=changed,
+            )
+            self.assertEqual(rejected["verdict"], "BLOCKED")
+            self.assertIn("contract changed", str(rejected["errors"]))
+            path.write_text(SPEC + audit.replace('"history":0', '"history":1'))
+            stale = validation.assess_project(
+                root, "specs/SPEC-0001-sensor.md", phase="acceptance"
+            )
+            self.assertEqual(stale["verdict"], "BLOCKED")
+            self.assertIn("plan is stale", str(stale["errors"]))
 
     def test_release_is_separate_from_runtime_acceptance(self):
         with tempfile.TemporaryDirectory(dir=TEST_TEMP_ROOT) as directory:

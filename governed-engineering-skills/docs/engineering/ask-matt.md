@@ -210,3 +210,8 @@ Registered repairs without current comparisons are rejected at the managed edit
 entry. Unchanged test retries do not start another approval cycle. These checks
 verify records and references; semantic review still matters, and direct host
 tools are outside this voluntary workflow.
+
+Large specifications retain their complete history. Verification planning parses
+the body and hashes the original file, so growing history does not cause a false
+path error. Finite validation configuration and evidence files have a separate
+5 MB (5,000,000 bytes) limit.

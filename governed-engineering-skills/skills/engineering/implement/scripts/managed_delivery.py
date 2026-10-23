@@ -157,8 +157,10 @@ def _admit_preparation(root: Path, request: dict, state: dict) -> dict:
     target = _target(root, patch["path"])
     if _current_hash(target) != patch["before_sha256"]:
         raise ValueError("preparation target changed; reread the existing definition")
-    if target.exists() and target.stat().st_size > 1048576:
-        raise ValueError("existing validation definition exceeds 1 MiB")
+    if target.exists() and target.stat().st_size > 5_000_000:
+        raise ValueError(
+            f"existing validation definition exceeds limit: {patch['path']}: actual={target.stat().st_size} bytes, limit=5000000 bytes"
+        )
     try:
         old = (
             yaml.safe_load(target.read_text(encoding="utf-8-sig"))

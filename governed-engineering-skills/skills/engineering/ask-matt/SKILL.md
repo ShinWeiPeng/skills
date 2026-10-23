@@ -283,6 +283,11 @@ At entry, resume, and explicit skill reload, run the guided router with current 
 
 ## Test and validation storage governance
 
+Project validation reads large canonical SPECs through the verification-ladder
+SPEC reader, preserving full raw hashes and owner history checks. Finite validation
+JSON/YAML inputs use the documented decimal 5 MB limit; do not apply that limit to
+SPEC history or change unrelated capture/patch quotas.
+
 Apply [the shared test/validation contract](../govern-modular-event-architecture/references/test-validation-architecture.md). Keep test source and support
 in tests/ by Module/Flow ownership, authored validation definitions in validation/,
 and generated evidence in unique immutable artifacts/ runs. specs/ only references
