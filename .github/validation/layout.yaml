@@ -808,7 +808,7 @@ dynamic_dependencies:
       their public JSON and owner-catalog readers at the exact decimal 5 MB boundary.
 
   .github/tests/flows/plugin-integration/monorepo/test_hackmd_install.py:
-    sha256: 0d88afde51caa9b71f24e5300e3888862685f41c7126fb18950c96f8c7f79487
+    sha256: 942c9b5a3fa41e93122e6ab4d4aad7d08d004488f620ca092b3efd7c4d5bbd34
     targets:
     - hackmd-note-writer/scripts/install.py
     rationale: Public HackMD installer CLI contracts load its production installer only to inject external filesystem and download failures.

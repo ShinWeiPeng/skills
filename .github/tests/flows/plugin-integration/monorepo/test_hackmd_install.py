@@ -311,7 +311,8 @@ class DirectInstallTests(unittest.TestCase):
         for target in ("codex", "claude"):
             self.assertEqual(state["active"][target]["version"], self.next_version)
             self.assertIn(
-                "Updated fixture", (self.active(target) / "SKILL.md").read_text()
+                "Updated fixture",
+                (self.active(target) / "SKILL.md").read_text(encoding="utf-8"),
             )
         self.assertTrue(any((self.home / ".hackmd-note-writer/staging").iterdir()))
 
