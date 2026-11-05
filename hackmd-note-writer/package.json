@@ -1,0 +1,6 @@
+{
+  "name": "hackmd-note-writer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HackMD note generation skill with direct personal installation for Codex and Claude Code."
+}

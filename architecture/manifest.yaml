@@ -52,6 +52,8 @@ source_sets:
   - .github/tests/flows/plugin-integration/monorepo/**
   - .github/scripts/**
   - doc-coauthoring/scripts/**
+  - hackmd-note-writer/scripts/**
+  - hackmd-note-writer/skills/**/scripts/**
   exclude: []
   purpose: Test source and support follow dedicated ownership and dependency rules.
   provenance: Repository-owned Module and Flow tests and development tooling.

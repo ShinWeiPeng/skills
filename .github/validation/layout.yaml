@@ -694,6 +694,28 @@ entries:
   role: build-output
   provenance: Ignored compatibility copies and local acceptance projections, rebuilt
     from tracked .github/validation sources.
+- include:
+  - hackmd-note-writer/README.md
+  - hackmd-note-writer/skills/**/*.md
+  role: documentation
+- include:
+  - hackmd-note-writer/package.json
+  - hackmd-note-writer/Install HackMD Note Writer.desktop
+  - hackmd-note-writer/skills/**/agents/*.yaml
+  - hackmd-note-writer/skills/**/assets/*.svg
+  role: metadata
+- include:
+  - hackmd-note-writer/Install HackMD Note Writer.cmd
+  - hackmd-note-writer/Install HackMD Note Writer.sh
+  - hackmd-note-writer/scripts/**
+  - hackmd-note-writer/skills/**/scripts/**
+  exclude:
+  - '**/__pycache__/**'
+  role: tooling
+- include:
+  - specs/SPEC-0067-hackmd-note-writer-direct-install.md
+  role: specification
+  provenance: Canonical specification for the standalone HackMD installer.
 required_analyzers:
 - python
 external_modules:
@@ -784,6 +806,12 @@ dynamic_dependencies:
     - governed-engineering-skills/skills/engineering/validate-on-device/tools/architecture/run_storage.py
     rationale: Reviewed explicit list of four shipped run readers; tests exercise
       their public JSON and owner-catalog readers at the exact decimal 5 MB boundary.
+
+  .github/tests/flows/plugin-integration/monorepo/test_hackmd_install.py:
+    sha256: 0d88afde51caa9b71f24e5300e3888862685f41c7126fb18950c96f8c7f79487
+    targets:
+    - hackmd-note-writer/scripts/install.py
+    rationale: Public HackMD installer CLI contracts load its production installer only to inject external filesystem and download failures.
 
 test_roots:
 - .github/tests

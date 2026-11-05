@@ -1,11 +1,12 @@
 # Skills
 
-Clone this repository once to obtain both independently versioned packages:
+Clone this repository once to obtain the skill sources below. The engineering and document-coauthoring packages have independent release versions:
 
 ```text
 skills/
 ├── governed-engineering-skills/  # Engineering workflows and existing history
-└── doc-coauthoring/              # Document coauthoring for Codex and Claude
+├── doc-coauthoring/              # Document coauthoring for Codex and Claude
+└── hackmd-note-writer/           # HackMD notes; source in skills/hackmd-note-writer/
 ```
 
 ```sh
@@ -24,6 +25,10 @@ Engineering installation and development commands live in `governed-engineering-
 The root Claude marketplace retains its legacy name `mattpocock` and catalogs both packages. Dedicated generated consumer branches each contain only their own package. Follow each package README for installation and validation status. Package manifests and release-state files record their independently reviewed versions.
 
 Each package has its own license/provenance records. The doc workflow derives from the pinned Anthropic example; review [its upstream attribution and license basis](doc-coauthoring/UPSTREAM.md). General document writing uses the doc workflow; engineering changes continue to enter through the engineering router.
+
+## HackMD note writer
+
+[hackmd-note-writer](hackmd-note-writer/README.md) has its own top-level directory alongside the existing packages. Its single skill source lives in [hackmd-note-writer/skills/hackmd-note-writer/SKILL.md](hackmd-note-writer/skills/hackmd-note-writer/SKILL.md), following the package-local `skills/<skill-name>/` layout. The package includes direct Windows/Linux installers with the same target selection, retained versions, switching and recovery behavior as Doc Coauthoring. See its README for installation and note validation. Automated release registration is not configured for this directory yet.
 
 ## Repository maintenance files
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "HackMD 筆記產生器"
+  short_description: "產生可直接複製到 HackMD 的原生 Markdown 筆記"
+  default_prompt: "使用 $hackmd-note-writer 將目前技術討論整理成可直接複製到 HackMD 的 Markdown 筆記，並以可複製的外層程式碼區塊回傳。"
+
+policy:
+  allow_implicit_invocation: true
