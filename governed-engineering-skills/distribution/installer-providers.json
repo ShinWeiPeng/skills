@@ -16,6 +16,14 @@
     "install_version": "0.147.0",
     "integrity_evidence": "npm registry Subresource Integrity verified by the npm client"
   },
+  "claude": {
+    "marketplace": "mattpocock",
+    "source": "ShinWeiPeng/skills",
+    "plugin": "mattpocock-skills",
+    "scope": "user",
+    "automatic_cli_install": false,
+    "install_documentation": "https://code.claude.com/docs/en/setup"
+  },
   "platforms": {
     "windows": {
       "provider": "winget",

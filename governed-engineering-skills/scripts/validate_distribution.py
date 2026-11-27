@@ -222,6 +222,14 @@ def validate(repo_root: Path) -> list[str]:
             errors.append("installer provider Marketplace identity is invalid")
         if providers["codex"]["package"] != "@openai/codex":
             errors.append("installer provider Codex package identity is invalid")
+        claude = providers["claude"]
+        if (
+            claude["marketplace"] != "mattpocock"
+            or claude["plugin"] != "mattpocock-skills"
+            or claude["source"] != "ShinWeiPeng/skills"
+            or claude["automatic_cli_install"] is not False
+        ):
+            errors.append("installer provider Claude Code identity is invalid")
         if set(providers["platforms"]) != {"windows", "debian", "fedora"}:
             errors.append("installer provider platform matrix is invalid")
     except (OSError, KeyError, json.JSONDecodeError) as exc:

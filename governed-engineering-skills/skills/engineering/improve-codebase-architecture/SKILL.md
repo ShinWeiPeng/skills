@@ -8,13 +8,13 @@ description: Scan an existing codebase for deepening and data-flow opportunities
 
 Surface architectural friction and propose **deepening opportunities**: refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
-Before proposing a target architecture, invoke `$engineering-risk-routing` and follow its shared governed entry gate, then route through `$clarify-improvement-proposals` and `$govern-modular-event-architecture`. For an existing project without supported governance, inventory the as-is architecture and baseline before describing the target.
+Before proposing a target architecture, invoke the `engineering-risk-routing` skill and follow its shared governed entry gate, then route through the `clarify-improvement-proposals` skill and the `govern-modular-event-architecture` skill. For an existing project without supported governance, inventory the as-is architecture and baseline before describing the target.
 
 This command is _informed_ by the project's domain model and built on a shared design vocabulary:
 
 - Run the `/codebase-design` skill for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."
 - The domain language in `GLOSSARY.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.
-- Invoke `$govern-modular-event-architecture` and apply its evidence-calibrated Flow cost review, including all four ordered dimensions and fail-closed model-assurance rules, before assigning recommendation strength.
+- Invoke the `govern-modular-event-architecture` skill and apply its evidence-calibrated Flow cost review, including all four ordered dimensions and fail-closed model-assurance rules, before assigning recommendation strength.
 
 ## Process
 
@@ -85,7 +85,7 @@ Once the user picks a candidate, call the Skill tool with "grilling" to walk the
 Do not call an `estimated` model a performance winner. Resolve budgets,
 platform/toolchain facts, benchmark triggers, prediction errors, reserves, and
 load-bearing scenario gaps before a calibrated or validated claim. Route
-required physical/OS evidence through `$validate-on-device`.
+required physical/OS evidence through the `validate-on-device` skill.
 
 Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:
 

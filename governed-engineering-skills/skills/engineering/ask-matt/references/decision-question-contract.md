@@ -36,8 +36,8 @@ evidence.
 ## Presentation and fallback
 
 Required decisions have no response deadline. Default/execution mode must not
-invoke menu-producing question tools: this includes `request_user_input_async`
-and `request_user_input`, even if available, accepted, retried or called without
+invoke menu-producing question tools: this includes Codex `request_user_input_async`
+and `request_user_input` and Claude Code `AskUserQuestion`, even if available, accepted, retried or called without
 options. Never switch modes to expose a tool. Only an already-active Plan mode
 with applicable host/tool permission may use a menu. Unknown or conflicting mode
 and policy evidence must never authorize one.

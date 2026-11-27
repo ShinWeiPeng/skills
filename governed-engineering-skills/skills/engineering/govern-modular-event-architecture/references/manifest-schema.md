@@ -392,10 +392,10 @@ adr_exceptions:
     adr: "decisions/ADR-0007-legacy-dependency.md"
     status: "accepted"
     approved_by: "user-name"
-    approval_reference: "Codex task or review reference"
+    approval_reference: "Agent task or review reference"
 ```
 
-The checker rejects an accepted exception approved by `GPT`, `Codex`, `AI`, or another obvious model identity.
+The checker rejects an accepted exception approved by `GPT`, `Codex`, `Claude`, `AI`, or another obvious model identity.
 
 ## Baseline
 

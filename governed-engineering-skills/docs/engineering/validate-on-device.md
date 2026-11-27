@@ -1,6 +1,6 @@
 Availability:
 
-Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
+Install **Governed Engineering Skills** in Codex from the personal Git Marketplace or in Claude Code as the `mattpocock-skills` plugin, then start a new Codex task or Claude Code session.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/validate-on-device)
 
@@ -10,7 +10,7 @@ Add the personal Git Marketplace independently in ChatGPT Work web and Codex Des
 
 ## When to reach for it
 
-Type `/validate-on-device`, or Codex reaches for it when acceptance depends on hardware, firmware, native tracing, serial or network capture, permissions, or guided user-operated testing.
+Type `/validate-on-device`, or the agent reaches for it when acceptance depends on hardware, firmware, native tracing, serial or network capture, permissions, or guided user-operated testing.
 
 ## Prerequisites
 

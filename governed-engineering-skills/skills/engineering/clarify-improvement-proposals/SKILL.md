@@ -1,6 +1,6 @@
 ---
 name: clarify-improvement-proposals
-description: "Clarify every unresolved ambiguity before producing an improvement proposal, then present rendered Markdown with explicit impacts, tradeoffs, and evidence-backed validation. Invoke implicitly for 改善方案、改進方案、優化方案、重構方案、架構改善、設計改善、改善建議、優化建議、方案比較、方案評估、技術選型、提出建議、怎麼改比較好, and equivalent English requests to propose, compare, review, optimize, refactor, or plan improvements. Do not invoke for a direct copyedit, translation, or wording-only change that does not ask for a proposal or design decision. Invoke explicitly with $clarify-improvement-proposals."
+description: "Clarify every unresolved ambiguity before producing an improvement proposal, then present rendered Markdown with explicit impacts, tradeoffs, and evidence-backed validation. Invoke implicitly for 改善方案、改進方案、優化方案、重構方案、架構改善、設計改善、改善建議、優化建議、方案比較、方案評估、技術選型、提出建議、怎麼改比較好, and equivalent English requests to propose, compare, review, optimize, refactor, or plan improvements. Do not invoke for a direct copyedit, translation, or wording-only change that does not ask for a proposal or design decision. Invoke explicitly by name (`clarify-improvement-proposals`)."
 ---
 
 ## Engineering discussion entry
@@ -108,13 +108,13 @@ data-dependent or tunable behavior, is constrained by compute or timing, affects
 safety or other quality risks, or needs fallback behavior, treat the feature as
 algorithm-bearing.
 
-For an architecture proposal, invoke `$govern-modular-event-architecture` and
+For an architecture proposal, invoke the `govern-modular-event-architecture` skill and
 read its `references/algorithm-design.md`. Record the screening conclusion for
 every feature. A triggered feature requires a proposed Algorithm Design Record
 owned by its implementing L1 or L2 module. A non-triggered feature requires a
 specific `not applicable` reason.
 
-Invoke `$govern-modular-event-architecture` and apply its evidence-calibrated
+Invoke the `govern-modular-event-architecture` skill and apply its evidence-calibrated
 Flow cost review when a proposal creates or changes an end-to-end Flow, callback, event,
 execution context, Queue, data layout, or performance/resource claim. Resolve
 its functional admission, execution cost, evolution scenarios, and model
@@ -152,12 +152,12 @@ If the user explicitly requests a preliminary proposal, label every assumption a
 
 When the proposal creates a software project; adds, splits, merges, or reorganizes modules; changes data flow, events, callbacks, ports, adapters, or dependency direction; or otherwise affects architecture:
 
-1. Invoke `$govern-modular-event-architecture` and read its required references.
+1. Invoke the `govern-modular-event-architecture` skill and read its required references.
 2. Inspect `architecture/manifest.yaml`, `architecture/ARCHITECTURE.md`, accepted ADRs, and `architecture/baseline.yaml` when present.
 3. Add an `Architecture impact` section identifying affected levels, modules, ports, events, dependency edges, and compatibility boundaries.
 4. Describe the expected manifest diff without writing it in Plan mode.
 5. Add a `Description Views impact` subsection covering changed module, Port, Event, source path, entrypoint, public-symbol, System/Parent page, and L0/L1 Flow descriptions. State which generated pages are expected to change.
-6. Identify required ADRs. Keep them proposed until the user explicitly approves them; never let Codex approve its own exception.
+6. Identify required ADRs. Keep them proposed until the user explicitly approves them; never let the agent approve its own exception.
 7. Add the single `architecture_cli.py gate` entry, deterministic generated-view comparison, adoption readiness, and every applicable language analyzer to the validation matrix. Do not present partial internal-script results as a complete governance PASS.
 8. Add an `Algorithm impact` section listing each product feature's screening result, owning module, required `ALG-####` record, evidence status, and whether the algorithm changes public architecture contracts.
 9. Add an `Execution efficiency impact` section for schema 1.2 projects. Identify affected Workloads, Execution Profiles/Units/Mappings/Channels, Data Access Profiles, Microarchitecture Profiles, and platform variants. Never equate Modules with Tasks.
@@ -246,7 +246,7 @@ Do not declare the work complete unless all four gates are `PASS`. If required u
 
 ## Plan Gate 1 through inverted Ports
 
-Treat ordinary Gate 1 checks as host-side development tests. Do not plan flash, Serial/TCP capture, `VAL_SESSION_BEGIN/END`, user log upload, or GPT log interpretation for a unit test, Fake Port test, or host integration test. Let the project test framework determine PASS/FAIL from assertions and exit codes; let Codex execute the command and preserve structured evidence.
+Treat ordinary Gate 1 checks as host-side development tests. Do not plan flash, Serial/TCP capture, `VAL_SESSION_BEGIN/END`, user log upload, or GPT log interpretation for a unit test, Fake Port test, or host integration test. Let the project test framework determine PASS/FAIL from assertions and exit codes; let the agent execute the command and preserve structured evidence.
 
 For every change group:
 
@@ -264,11 +264,11 @@ Plan Gate 2 by governed end-to-end Flow with the real composition and risk-relev
 For runtime, integration, operating-system, firmware, or hardware acceptance criteria, add a `Validation Enablement` phase before product implementation:
 
 1. Define the tracked `validation/on-device.yaml`, local binding boundary, selected target platform/provider, allowed fallback, permissions, scenarios, and evidence locations.
-2. Probe whether Codex or the user can build, upload, reset, trigger, capture, export, and parse the required evidence.
-3. Identify which steps Codex performs and which require guided user operation. Do not wait until final validation to discover that no executable path exists.
+2. Probe whether the agent or the user can build, upload, reset, trigger, capture, export, and parse the required evidence.
+3. Identify which steps the agent performs and which require guided user operation. Do not wait until final validation to discover that no executable path exists.
    For user-operated steps, require a guided form for ordered fact collection and a generated read-only summary table for one-time confirmation. Keep PASS/FAIL/BLOCKED ownership in the runner; provide Markdown plus schema-bound JSON for offline operation.
 4. Implement and dry-run the validation runner, parser, synthetic/loopback fixtures, and permission gates before changing product behavior.
-5. Route execution through `$validate-on-device`. If that Skill or a required provider is unavailable, report `BLOCKED` with remediation rather than substituting a build or an unstructured log excerpt.
+5. Route execution through the `validate-on-device` skill. If that Skill or a required provider is unavailable, report `BLOCKED` with remediation rather than substituting a build or an unstructured log excerpt.
 
 For projects where the OS schedules threads, require an OS-native evidence provider for scheduler/resource criteria: ETW/WPR on Windows, perf/ftrace on Linux, and Instruments/XCTest on iOS. Use application events for domain semantics and correlate sources with a run ID and monotonic marker. Missing required native evidence is `BLOCKED`; structured logs cannot pass supported-OS scheduler/resource criteria.
 
@@ -287,14 +287,14 @@ When a proposed change can affect physical hardware, firmware timing, peripheral
 Also require:
 
 - tagged, machine-parseable session begin/end, run ID, monotonic time, continuous sequence, record count, dropped count, and bounded observation window;
-- guided user steps when Codex cannot upload or control the product; user-only observations must enter the same evidence through a test-only command;
+- guided user steps when the agent cannot upload or control the product; user-only observations must enter the same evidence through a test-only command;
 - an explicit `upload_verified_by_gpt` field when the user performs upload;
 - O(1), allocation-free device-side aggregation instead of per-sample logging on high-frequency paths;
 - hard limits for any single forbidden drop, overflow, watchdog, reset, corruption, or deadline violation;
 - a calculable sampling plan or stable external-standard reference, maximum duration, warm-up window, confidence/error target, and instrumentation overhead budget for statistical criteria;
 - `BLOCKED` rather than product `FAIL` when the trigger, complete window, sample sufficiency, trace loss, log loss, or measurement validity is unproven.
 
-Do not claim physical validation occurred in Plan mode. Route execution through `$validate-on-device` when available.
+Do not claim physical validation occurred in Plan mode. Route execution through the `validate-on-device` skill when available.
 
 ## Preserve active discussion through the final reply
 

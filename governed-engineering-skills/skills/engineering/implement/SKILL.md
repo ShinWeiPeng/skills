@@ -43,7 +43,7 @@ Implement the work described by the user in the spec or tickets.
 
 ## Governed entry gate
 
-Invoke `$engineering-risk-routing` and follow its shared governed entry gate before mutation.
+Invoke the `engineering-risk-routing` skill and follow its shared governed entry gate before mutation.
 
 Resolve the canonical spec through `spec-governance`. Require a `confirmed` spec and
 a `spec-verified: PASS` result. Before implementation, render a REQ → AC → test-seam
@@ -65,7 +65,7 @@ proposal adoption, a numbered answer, silence or mode changes. This CLI checks t
 plugin's governed entry point; it is not a host-wide write interceptor.
 
 Before handing off to TDD or authoring product source, the delivery workflow invokes
-`/formatter-governance` with the original ProjectState evidence. Continue only after
+the `formatter-governance` skill with the original ProjectState evidence. Continue only after
 its applicable non-mutating formatter gate passes; keep formatter mappings with
 their owning skill.
 

@@ -180,5 +180,5 @@ changed, stale, or obsolete reports.
 Final accepted profiles require complete WCET evidence, runtime evidence bound
 to selected profile and manifest hashes, hard Task/Flow PASS, soft SLO PASS,
 and non-AI final approval. Physical and OS-native evidence routes through
-`$validate-on-device`; this host-side governance implementation itself does not
+the `validate-on-device` skill; this host-side governance implementation itself does not
 require on-device smoke.

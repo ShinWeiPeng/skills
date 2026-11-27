@@ -1037,7 +1037,7 @@ class FormatterSkillIntegrationTests(unittest.TestCase):
         )
         for skill in ("ask-matt", "tdd", "implement", "code-review"):
             text = (SKILLS_ROOT / skill / "SKILL.md").read_text(encoding="utf-8")
-            self.assertIn("/formatter-governance", text, skill)
+            self.assertIn("the `formatter-governance` skill", text, skill)
             for formatter in formatter_names:
                 self.assertNotIn(formatter, text.casefold(), f"{skill}: {formatter}")
 

@@ -17,9 +17,9 @@ for supported product edits; do not fall back to direct tools on rejection.
 
 TDD is the red → green loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle: consult them before and during the loop, not after.
 
-Before writing a test or production code, invoke `$engineering-risk-routing` and follow its shared governed entry gate. Host tests cannot substitute for an R2 architecture gate or R3 runtime evidence.
+Before writing a test or production code, invoke the `engineering-risk-routing` skill and follow its shared governed entry gate. Host tests cannot substitute for an R2 architecture gate or R3 runtime evidence.
 
-The delivery workflow must invoke `/formatter-governance` after spec verification
+The delivery workflow must invoke the `formatter-governance` skill after spec verification
 and before this skill authors the first test or product source. Stop if the formatter
 gate is `BLOCKED`; do not copy formatter mappings into this skill.
 

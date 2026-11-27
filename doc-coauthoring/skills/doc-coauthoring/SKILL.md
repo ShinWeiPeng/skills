@@ -293,13 +293,13 @@ Loop back to refinement for problematic sections.
 
 ---
 
-**If no access to sub-agents (e.g., the platform web app web interface):**
+**If no access to sub-agents (e.g., a web chat interface):**
 
 The user will need to do the testing manually.
 
 ### Step 1: Predict Reader Questions
 
-Ask what questions people might ask when trying to discover this document. What would they type into the platform web app?
+Ask what questions people might ask when trying to discover this document. What would they type into a chat assistant or search box?
 
 Generate 5-10 questions that readers would realistically ask.
 

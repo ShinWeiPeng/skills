@@ -130,7 +130,7 @@ class SkillIntegrationContractTests(unittest.TestCase):
     def test_three_skills_route_through_the_shared_contract(self) -> None:
         for skill in ("improve-codebase-architecture", "clarify-improvement-proposals"):
             text = read(SKILLS_ROOT / skill / "SKILL.md")
-            self.assertIn("$govern-modular-event-architecture", text, skill)
+            self.assertIn("the `govern-modular-event-architecture` skill", text, skill)
             self.assertIn("Flow cost review", text, skill)
         governance = read(
             SKILLS_ROOT / "govern-modular-event-architecture" / "SKILL.md"

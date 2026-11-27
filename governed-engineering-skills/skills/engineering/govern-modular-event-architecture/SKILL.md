@@ -1,6 +1,6 @@
 ---
 name: govern-modular-event-architecture
-description: "Govern cross-language modular event architecture, production-source boundaries, named-type and runtime-state ownership, product algorithms, and hard/soft real-time scheduling analysis. Use when Codex creates, reviews, explains, improves, or refactors architecture or algorithms; changes structs, classes, enums, unions, typedefs, DTOs, schemas, runtime state, configuration, ports, events, callbacks, adapters, module boundaries, data flow, execution units, Tasks, priorities, activation rates, core allocation, generated production sources, or architecture views; or checks conformance. Enforce schema 2.2.0 with exact 2.1.0 compatibility, authoring-first L0-L3+ responsibilities, pre-code boundary/type/state/scheduling gates, Type Catalogs, dependency inversion, contracts, fail-closed C/C++ AST evidence, Algorithm Design Records, Description Views, ADR-controlled exceptions, and validation. Invoke explicitly with $govern-modular-event-architecture."
+description: "Govern cross-language modular event architecture, production-source boundaries, named-type and runtime-state ownership, product algorithms, and hard/soft real-time scheduling analysis. Use when the agent creates, reviews, explains, improves, or refactors architecture or algorithms; changes structs, classes, enums, unions, typedefs, DTOs, schemas, runtime state, configuration, ports, events, callbacks, adapters, module boundaries, data flow, execution units, Tasks, priorities, activation rates, core allocation, generated production sources, or architecture views; or checks conformance. Enforce schema 2.2.0 with exact 2.1.0 compatibility, authoring-first L0-L3+ responsibilities, pre-code boundary/type/state/scheduling gates, Type Catalogs, dependency inversion, contracts, fail-closed C/C++ AST evidence, Algorithm Design Records, Description Views, ADR-controlled exceptions, and validation. Invoke explicitly by name (`govern-modular-event-architecture`)."
 ---
 
 # Govern Modular Event Architecture
@@ -12,7 +12,7 @@ Apply a language-independent modular architecture whose behavior can be read by 
 1. Inspect the repository before asking questions. Look for `AGENTS.md`, `architecture/manifest.yaml`, `architecture/ARCHITECTURE.md`, ADRs, baselines, build files, source paths, and tests.
 2. For a new project whose design is not already confirmed, clarify product features and algorithm screening before finalizing the system flows, L0-L3+ modules, parents, ports, events, delivery semantics, quality constraints, and validation before creating files. Default/execution mode must not invoke menu tools. Apply the shared question-policy preflight; use numbered text only when permitted, otherwise one persisted open text question. Only already-active Plan may use a permitted menu. Missing structured UI alone never blocks clarification or requires a mode switch. A previously confirmed plan plus an explicit implementation request satisfies this checkpoint.
 3. For an existing project, map the current architecture, every named type, runtime state object, composition root, and every L1/L2 product feature and algorithm first. Derive ownership from actual reads, writes, side effects, lifetime, consumers, and external-technology use. Remediate every discovered violation by default. Use a temporary baseline only when a non-AI developer explicitly defers that exact rule/location with rationale, approval reference, captured revision, review date, and removal condition. Never rewrite the manifest or use an empty baseline to make incomplete adoption appear compliant.
-4. For an architecture proposal, invoke `$clarify-improvement-proposals`. Follow the current mode's mutation boundary, and follow the shared Decision Question Contract: no Default menu calls; numbered text when permitted, otherwise one open text question; only already-active Plan may use a permitted menu after preflight. Do not provide a preliminary architecture unless the user explicitly requests one.
+4. For an architecture proposal, invoke the `clarify-improvement-proposals` skill. Follow the current mode's mutation boundary, and follow the shared Decision Question Contract: no Default menu calls; numbered text when permitted, otherwise one open text question; only already-active Plan may use a permitted menu after preflight. Do not provide a preliminary architecture unless the user explicitly requests one.
 5. For confirmed implementation in an execution-capable mode, pass the pre-code gate below before editing source. Then update the manifest catalogs, documentation, ADRs, code, and tests together. Run the checker and applicable language analyzers and report evidence.
 
 Do not let implicit invocation bypass clarification, mode checkpoints, approval requirements, or repository instructions.
@@ -35,7 +35,7 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 ## Enforce the standard
 
 - Treat `MUST` as blocking, `SHOULD` as a recorded warning, and `MAY` as optional.
-- Permit a MUST exception only through an accepted ADR with a non-AI approver and an approval reference. Codex may draft an ADR but MUST NOT approve it.
+- Permit a MUST exception only through an accepted ADR with a non-AI approver and an approval reference. The agent may draft an ADR but MUST NOT approve it.
 - Keep the project pinned to explicit standard and schema versions.
 - Require an exact Standard/Schema pair. Accept `2.1.0` and `2.2.0`; bootstrap new projects at `2.2.0`. Reject earlier or mismatched manifests and do not migrate or infer source classifications, owners, authorities, mappings, or real-time timing bounds.
 - Require exactly one release `composition_roots` entry and verify its path and symbol with the applicable language analyzer.
@@ -67,7 +67,7 @@ Do not let implicit invocation bypass clarification, mode checkpoints, approval 
 - For every hard/soft real-time workload, require at least two structurally different scheduling candidates, scheduler-compatible provisional analysis, a generated human-readable Markdown study report, and explicit non-AI selection before source edits. Use RMA/RTA only for the supported RM fixed-priority model. Hard deadline misses fail; soft misses require a quantified SLO plan and non-AI risk acceptance, then final SLO evidence.
 - Require Tier 1 cost analysis for hard-real-time workloads. Treat layout, tiling, branch, SIMD, PGO, LTO, scheduling, and load-balancing choices as algorithm-bearing.
 - Keep private L2 algorithm steps out of top-level Flow descriptions. Link Algorithm Design Records to their owning L1/L2 module and applicable Flow IDs.
-- Require human approval metadata before an algorithm record becomes `accepted`; Codex may draft a record but MUST NOT approve it.
+- Require human approval metadata before an algorithm record becomes `accepted`; the agent may draft a record but MUST NOT approve it.
 - When an algorithm changes public I/O, state, events, errors, side effects, timing, resource contracts, module boundaries, or dependency direction, update the manifest, Description Views, ADRs when applicable, code, and tests together.
 
 ## Pass the architecture authoring gate before source edits
@@ -105,7 +105,7 @@ scenario coverage, prediction overrun, or reserve source also makes the
 applicable execution/model claim `BLOCKED`. Static analysis and runtime
 measurement cross-check one another; neither alone validates unexecuted or
 unresolved paths. Physical and OS-native calibration routes through
-`$validate-on-device`, followed by a separate release-equivalent
+the `validate-on-device` skill, followed by a separate release-equivalent
 non-regression check.
 
 ## Initialize a project
@@ -168,7 +168,7 @@ The single CLI dispatches every applicable language analyzer. For Python it requ
 
 Report the exact command, exit code, minimal raw output, and `PASS`, `FAIL`, or `BLOCKED`. Do not declare completion while a required validation is not `PASS`.
 
-After static architecture checks pass, use `$validate-on-device` for required runtime evidence. The target project manually selects its native provider and declared fallback. Do not treat application logs as OS scheduler proof when native traces are selected, and do not treat a successful build as physical-device evidence.
+After static architecture checks pass, use the `validate-on-device` skill for required runtime evidence. The target project manually selects its native provider and declared fallback. Do not treat application logs as OS scheduler proof when native traces are selected, and do not treat a successful build as physical-device evidence.
 
 ## Test and validation storage governance
 

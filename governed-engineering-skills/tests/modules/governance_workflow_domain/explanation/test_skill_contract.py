@@ -130,8 +130,8 @@ class ExplainCodeFlowContractTests(unittest.TestCase):
             "## Distinguish the two level systems", 1
         )[0]
         self.assertIn("implementation or TDD workflow lead", routing)
-        self.assertIn("`$diagnosing-bugs` lead", routing)
-        self.assertIn("`$code-review` lead", routing)
+        self.assertIn("the `diagnosing-bugs` skill lead", routing)
+        self.assertIn("The `code-review` skill lead", routing)
         self.assertIn("this skill is supporting only", routing)
 
     def test_attachments_cannot_replace_code_flow_guidance(self) -> None:

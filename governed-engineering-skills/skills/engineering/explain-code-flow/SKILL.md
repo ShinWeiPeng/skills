@@ -1,6 +1,6 @@
 ---
 name: explain-code-flow
-description: Guide developers through existing code using governed System and L0/L1 Parent views, end-to-end Flows, and progressively deeper explanations. Use for every code-understanding request, including implicit questions such as what code does, how data reaches a driver or other sink, where state changes, or why a branch exists, even when the user does not say explain or trace. Route project or composition-root questions to Level 0, Parent or cross-module from-A-to-B behavior to Level 1, modules and symbols to Level 2, and code regions to Level 3. Keep implementation, debugging, and code-review skills primary when the user's goal is to change, diagnose, or review code. Require supported formal architecture governance for System and Parent guidance, and coordinate with $govern-modular-event-architecture when it is missing, stale, invalid, or unsupported.
+description: Guide developers through existing code using governed System and L0/L1 Parent views, end-to-end Flows, and progressively deeper explanations. Use for every code-understanding request, including implicit questions such as what code does, how data reaches a driver or other sink, where state changes, or why a branch exists, even when the user does not say explain or trace. Route project or composition-root questions to Level 0, Parent or cross-module from-A-to-B behavior to Level 1, modules and symbols to Level 2, and code regions to Level 3. Keep implementation, debugging, and code-review skills primary when the user's goal is to change, diagnose, or review code. Require supported formal architecture governance for System and Parent guidance, and coordinate with the `govern-modular-event-architecture` skill when it is missing, stale, invalid, or unsupported.
 ---
 
 ## Engineering discussion entry
@@ -35,7 +35,7 @@ audit evidence; they do not prove semantic completeness or intercept host tools.
 
 Guide a developer from the governed architecture to the implementation, then expand only the selected scope. Default to Traditional Chinese, preserve identifiers and technical terms, and assume the reader can program but does not know the project.
 
-Treat `architecture/manifest.yaml` as the only editable architecture source of truth. Treat `architecture/ARCHITECTURE.md` and `architecture/generated/*.md` as derived views. Never create, edit, migrate, render, or approve governance artifacts under this skill; route that work to `$govern-modular-event-architecture`.
+Treat `architecture/manifest.yaml` as the only editable architecture source of truth. Treat `architecture/ARCHITECTURE.md` and `architecture/generated/*.md` as derived views. Never create, edit, migrate, render, or approve governance artifacts under this skill; route that work to the `govern-modular-event-architecture` skill.
 
 ## Route every code-understanding request
 
@@ -62,8 +62,8 @@ workflow explicitly returns to it.
 Determine the primary intent before selecting the reading level:
 
 - Let the implementation or TDD workflow lead when the user asks to add, fix, refactor, or otherwise change code. Use this skill only as supporting explanation when implementation depends on understanding an existing Flow.
-- Let `$diagnosing-bugs` lead when the user asks why observed behavior is broken, failing, or slow. Use this skill only to establish the relevant code path.
-- Let `$code-review` lead when the user asks to review a change, commit, branch, or pull request. Use this skill only to explain architecture or code-flow context needed by the review.
+- Let the `diagnosing-bugs` skill lead when the user asks why observed behavior is broken, failing, or slow. Use this skill only to establish the relevant code path.
+- Let the `code-review` skill lead when the user asks to review a change, commit, branch, or pull request. Use this skill only to explain architecture or code-flow context needed by the review.
 - Do not let an attached presentation, document, spreadsheet, diagram, or note replace the code-understanding deliverable. When code understanding remains the primary intent, treat the attachment as context and still produce the complete selected reading-level view; do not substitute an artifact-editing plan or a general summary unless the user also requests it.
 
 Use these routing examples as acceptance cases:
@@ -73,8 +73,8 @@ Use these routing examples as acceptance cases:
 | `講解專案內多關節路徑規劃到實際 driver 輸出` | Level 1 Flow |
 | `MJ_SetupTrajectory() 做什麼？` | Level 2 Module or symbol |
 | `第 120–145 行的 branch 為什麼 early return？` | Level 3 Code region |
-| `修正 MJ_SetupTrajectory() 的 bug` | Implementation or `$diagnosing-bugs` leads; this skill is supporting only |
-| `Review this PR` | `$code-review` leads; this skill is supporting only |
+| `修正 MJ_SetupTrajectory() 的 bug` | Implementation or the `diagnosing-bugs` skill leads; this skill is supporting only |
+| `Review this PR` | The `code-review` skill leads; this skill is supporting only |
 
 ## Distinguish the two level systems
 
@@ -103,7 +103,7 @@ Before producing a System or Parent view:
 1. Locate `architecture/manifest.yaml` from the project root.
 2. Read both `standard_version` and `schema_version`.
 3. Match the pair against the supported capability matrix below.
-4. Invoke `$govern-modular-event-architecture`, read its required schema and Description View references, and run `architecture_cli.py gate --phase development` in non-mutating validation mode.
+4. Invoke the `govern-modular-event-architecture` skill, read its required schema and Description View references, and run `architecture_cli.py gate --phase development` in non-mutating validation mode.
 5. Require the single gate to exit `0`; it owns manifest validation, generated-view comparison, baseline reconciliation, adoption readiness, and applicable language analyzers. Treat MUST violations, stale or missing generated views, incomplete analyzer evidence, and tool/configuration errors as blocking.
 6. After governance validation passes, require `architecture/ARCHITECTURE.md`, `architecture/generated/system.md`, every renderer-owned L0/L1 Parent page, and every renderer-owned Execution page selected by the validated project to exist and be current. Let the governance checker and renderer own the expected-page inventory; do not independently reimplement that inventory from manifest fields.
 7. Read the validated generated System or Parent view as the formal architecture input. Do not reinterpret the complete manifest schema or independently regenerate a competing formal view in this skill.
@@ -121,7 +121,7 @@ Do not claim a formal System or Parent view is ready unless every blocking check
 
 Reject mismatched Standard/Schema pairs. Do not guess the semantics of a newer schema, ignore unknown fields, or present best-effort output as a formal view.
 
-When `$govern-modular-event-architecture` adds or removes a supported schema version, require the same change to update this matrix, generated-view consumption contract, output contract, fixtures, and cross-skill forward tests. Do not declare a version supported until both governance validation and this skill's tests pass.
+When the `govern-modular-event-architecture` skill adds or removes a supported schema version, require the same change to update this matrix, generated-view consumption contract, output contract, fixtures, and cross-skill forward tests. Do not declare a version supported until both governance validation and this skill's tests pass.
 
 Distinguish capability from project validity:
 
@@ -136,7 +136,7 @@ If the manifest is absent, legacy, unsupported, invalid, or stale:
 
 1. Stop the requested formal System or Parent guidance. Do not substitute an inferred formal view.
 2. State the exact blocking condition and observed version pair when available.
-3. Invoke `$govern-modular-event-architecture` and follow its mode, clarification, migration, approval, rendering, baseline, ADR, and validation requirements.
+3. Invoke the `govern-modular-event-architecture` skill and follow its mode, clarification, migration, approval, rendering, baseline, ADR, and validation requirements.
 4. For an existing project, map the actual architecture before proposing the governed state. Never present a desired design as the current implementation.
 5. Resume the original Explain request only after the manifest, generated views, generic checker, and applicable language analyzer all report `PASS`.
 6. Re-read the validated generated views and source before producing guidance; do not reuse an unconfirmed draft as formal architecture data.
@@ -362,4 +362,4 @@ Perform a final self-check and rewrite the response before returning if any appl
 
 ## Save only on explicit request
 
-Return guidance in the conversation by default. If the user asks to save it, require a destination before writing Markdown. Never write into `architecture/` under this skill; official architecture documentation remains owned by `$govern-modular-event-architecture`.
+Return guidance in the conversation by default. If the user asks to save it, require a destination before writing Markdown. Never write into `architecture/` under this skill; official architecture documentation remains owned by the `govern-modular-event-architecture` skill.

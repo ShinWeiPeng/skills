@@ -43,7 +43,7 @@ class SkillContractTests(unittest.TestCase):
             "realtime-study-<study-id>.md",
             "`SOFT_RISK`",
             "RTOS use alone does not",
-            "`$validate-on-device`",
+            "the `validate-on-device` skill",
         ):
             self.assertIn(phrase, reference)
 

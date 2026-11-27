@@ -106,6 +106,10 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
         )
         self.assertRegex(providers["codex"]["minimum_version"], r"^\d+\.\d+\.\d+$")
         self.assertEqual("@openai/codex", providers["codex"]["package"])
+        self.assertEqual("mattpocock", providers["claude"]["marketplace"])
+        self.assertEqual("mattpocock-skills", providers["claude"]["plugin"])
+        self.assertEqual("ShinWeiPeng/skills", providers["claude"]["source"])
+        self.assertIs(False, providers["claude"]["automatic_cli_install"])
         self.assertEqual("Git.Git", providers["platforms"]["windows"]["git_package"])
         self.assertEqual("winget", providers["platforms"]["windows"]["provider"])
         self.assertEqual("apt", providers["platforms"]["debian"]["provider"])
@@ -135,6 +139,11 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
         self.assertIn("Invoke-CodexChecked", windows_text)
         self.assertIn("@('login','status')", windows_text)
         self.assertIn("@('plugin','add'", windows_text)
+        self.assertIn("plugin install", linux_text)
+        self.assertIn("@('plugin','install'", windows_text)
+        for text in (linux_text, windows_text):
+            self.assertIn("mattpocock-skills", text)
+            self.assertIn("https://code.claude.com/docs/en/setup", text)
 
         self.assertIn(
             "install-marketplace.ps1", windows_launcher.read_text(encoding="utf-8")
@@ -324,6 +333,229 @@ class CrossPlatformMarketplaceInstallerTests(unittest.TestCase):
             failure_commands = command_log.read_text(encoding="utf-8")
             self.assertNotIn("plugin marketplace add", failure_commands)
             self.assertNotIn("plugin marketplace upgrade", failure_commands)
+
+
+    def _fake_claude_posix(self, bin_dir: Path) -> None:
+        (bin_dir / "claude").write_text(
+            "#!/bin/sh\n"
+            'printf "claude %s\\n" "$*" >> "$COMMAND_LOG"\n'
+            'case "$*" in\n'
+            '  "plugin marketplace list --json") printf \'%s\\n\' "$CLAUDE_MARKETPLACES"; exit "${CLAUDE_LIST_EXIT:-0}" ;;\n'
+            '  "plugin marketplace add ShinWeiPeng/skills") exit 0 ;;\n'
+            '  "plugin marketplace update mattpocock") exit 0 ;;\n'
+            '  "plugin install mattpocock-skills@mattpocock --scope user") exit 0 ;;\n'
+            '  "plugin list --json") printf \'[\\n  {"id": "mattpocock-skills@mattpocock", "scope": "user"}\\n]\\n\' ;;\n'
+            "  *) exit 1 ;;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+
+    def _posix_environment(self, temp: Path, bin_dir: Path, log: Path) -> dict:
+        environment = os.environ.copy()
+        environment.update(
+            {
+                "PATH": f"{bin_dir}:/usr/bin:/bin",
+                "COMMAND_LOG": str(log),
+                "CLAUDE_MARKETPLACES": "[]",
+                "TMPDIR": str(temp),
+            }
+        )
+        return environment
+
+    @unittest.skipUnless(os.name == "posix", "requires a POSIX shell host")
+    def test_linux_installer_claude_target_adds_updates_and_rejects_conflicts(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temp = Path(temporary_directory)
+            bin_dir = temp / "bin"
+            bin_dir.mkdir()
+            command_log = temp / "commands.log"
+            (bin_dir / "git").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            self._fake_claude_posix(bin_dir)
+            for executable in bin_dir.iterdir():
+                executable.chmod(0o755)
+            environment = self._posix_environment(temp, bin_dir, command_log)
+
+            def run(*arguments: str) -> subprocess.CompletedProcess[str]:
+                command_log.write_text("", encoding="utf-8")
+                return subprocess.run(
+                    [str(ROOT / "scripts" / "install-marketplace.sh"), *arguments],
+                    cwd=ROOT,
+                    env=environment,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+
+            result = run("--non-interactive", "--target=claude")
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            commands = command_log.read_text(encoding="utf-8")
+            self.assertIn("claude plugin marketplace add ShinWeiPeng/skills", commands)
+            self.assertIn(
+                "claude plugin install mattpocock-skills@mattpocock --scope user",
+                commands,
+            )
+            self.assertNotIn("codex", commands)
+            self.assertNotIn("npm", commands)
+
+            for listing in (
+                '[{"name": "mattpocock", "source": "github", "repo": "ShinWeiPeng/skills"}]',
+                '[{"name":"mattpocock","source":"git","url":"https://github.com/ShinWeiPeng/skills.git"}]',
+            ):
+                with self.subTest(listing=listing):
+                    environment["CLAUDE_MARKETPLACES"] = listing
+                    result = run("--non-interactive", "--target", "claude")
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    commands = command_log.read_text(encoding="utf-8")
+                    self.assertIn("claude plugin marketplace update mattpocock", commands)
+                    self.assertNotIn("plugin marketplace add", commands)
+
+            environment["CLAUDE_MARKETPLACES"] = (
+                '[{"name": "mattpocock", "source": "github", "repo": "mattpocock/skills"}]'
+            )
+            result = run("--non-interactive", "--target=claude")
+            self.assertEqual(1, result.returncode)
+            self.assertIn("conflicts with the required source", result.stderr)
+            self.assertNotIn("plugin install", command_log.read_text(encoding="utf-8"))
+
+            environment["CLAUDE_MARKETPLACES"] = "[]"
+            environment["CLAUDE_LIST_EXIT"] = "9"
+            result = run("--non-interactive", "--target=claude")
+            self.assertEqual(1, result.returncode)
+            self.assertIn("inventory could not be read", result.stderr)
+            del environment["CLAUDE_LIST_EXIT"]
+
+            (bin_dir / "claude").unlink()
+            result = run("--non-interactive", "--target=claude")
+            self.assertEqual(1, result.returncode)
+            self.assertIn("https://code.claude.com/docs/en/setup", result.stderr)
+
+            result = run("--non-interactive", "--target=everything")
+            self.assertEqual(1, result.returncode)
+            self.assertIn("Unknown target", result.stderr)
+
+    @unittest.skipUnless(os.name == "posix", "requires a POSIX shell host")
+    def test_linux_installer_both_reports_codex_failure_and_still_installs_claude(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temp = Path(temporary_directory)
+            bin_dir = temp / "bin"
+            bin_dir.mkdir()
+            command_log = temp / "commands.log"
+            for name in ("git", "node"):
+                (bin_dir / name).write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            (bin_dir / "npm").write_text(
+                '#!/bin/sh\nprintf "npm %s\\n" "$*" >> "$COMMAND_LOG"\nexit 7\n',
+                encoding="utf-8",
+            )
+            (bin_dir / "id").write_text(
+                '#!/bin/sh\n[ "$1" = "-u" ] && { printf "0\\n"; exit 0; }\nexit 1\n',
+                encoding="utf-8",
+            )
+            self._fake_claude_posix(bin_dir)
+            for executable in bin_dir.iterdir():
+                executable.chmod(0o755)
+            result = subprocess.run(
+                [
+                    str(ROOT / "scripts" / "install-marketplace.sh"),
+                    "--non-interactive",
+                    "--target=both",
+                ],
+                cwd=ROOT,
+                env=self._posix_environment(temp, bin_dir, command_log),
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(1, result.returncode, result.stdout + result.stderr)
+            self.assertIn("Codex installation failed", result.stderr)
+            self.assertNotIn("Claude Code installation failed", result.stderr)
+            commands = command_log.read_text(encoding="utf-8")
+            self.assertIn("npm install --global @openai/codex@0.147.0", commands)
+            self.assertIn(
+                "claude plugin install mattpocock-skills@mattpocock --scope user",
+                commands,
+            )
+
+    @unittest.skipUnless(os.name == "nt", "requires Windows PowerShell")
+    def test_windows_installer_claude_target_uses_claude_plugin_commands(
+        self,
+    ) -> None:
+        if not shutil.which("git"):
+            self.skipTest("Git is required by the installer prerequisites")
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temp = Path(temporary_directory)
+            command_log = temp / "commands.log"
+            fake = temp / "claude.ps1"
+            fake.write_text(
+                "Add-Content -LiteralPath $env:COMMAND_LOG -Value ('claude ' + ($args -join ' '))\n"
+                "switch ($args -join ' ') {\n"
+                "  'plugin marketplace list --json' { Write-Output $env:CLAUDE_MARKETPLACES; exit 0 }\n"
+                "  'plugin marketplace add ShinWeiPeng/skills' { exit 0 }\n"
+                "  'plugin marketplace update mattpocock' { exit 0 }\n"
+                "  'plugin install mattpocock-skills@mattpocock --scope user' { exit 0 }\n"
+                "  'plugin list --json' { Write-Output '[{\"id\": \"mattpocock-skills@mattpocock\"}]'; exit 0 }\n"
+                "}\n"
+                "exit 1\n",
+                encoding="utf-8",
+            )
+
+            def run(listing: str, claude: Path) -> subprocess.CompletedProcess[str]:
+                command_log.write_text("", encoding="utf-8")
+                return subprocess.run(
+                    [
+                        "powershell.exe",
+                        "-NoLogo",
+                        "-NoProfile",
+                        "-ExecutionPolicy",
+                        "Bypass",
+                        "-File",
+                        str(ROOT / "scripts" / "install-marketplace.ps1"),
+                        "-NonInteractive",
+                        "-Target",
+                        "claude",
+                        "-ClaudeCommand",
+                        str(claude),
+                    ],
+                    env=os.environ
+                    | {"COMMAND_LOG": str(command_log), "CLAUDE_MARKETPLACES": listing},
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+
+            result = run("[]", fake)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            commands = command_log.read_text(encoding="utf-8")
+            self.assertIn("claude plugin marketplace add ShinWeiPeng/skills", commands)
+            self.assertIn(
+                "claude plugin install mattpocock-skills@mattpocock --scope user",
+                commands,
+            )
+            self.assertIn("Start a new Claude Code session", result.stdout)
+
+            result = run(
+                '[{"name":"mattpocock","source":"github","repo":"ShinWeiPeng/skills"}]',
+                fake,
+            )
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            commands = command_log.read_text(encoding="utf-8")
+            self.assertIn("claude plugin marketplace update mattpocock", commands)
+            self.assertNotIn("plugin marketplace add", commands)
+
+            result = run(
+                '[{"name":"mattpocock","source":"github","repo":"mattpocock/skills"}]',
+                fake,
+            )
+            self.assertEqual(1, result.returncode)
+            self.assertIn("conflicts with the required source", result.stderr)
+            self.assertNotIn("plugin install", command_log.read_text(encoding="utf-8"))
+
+            result = run("[]", temp / "missing-claude.exe")
+            self.assertEqual(1, result.returncode)
+            self.assertIn("https://code.claude.com/docs/en/setup", result.stderr)
 
 
 if __name__ == "__main__":

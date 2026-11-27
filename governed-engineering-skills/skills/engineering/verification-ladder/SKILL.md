@@ -15,7 +15,7 @@ and claims. Do not force the complete ladder merely because a project is embedde
 and do not let evidence from a lower-authority environment substitute for the layer
 that owns the claim.
 
-Before planning, invoke `$engineering-risk-routing` and honor its architecture,
+Before planning, invoke the `engineering-risk-routing` skill and honor its architecture,
 proposal, runtime-evidence, and review gates. Read the confirmed change-set SPEC,
 `architecture/manifest.yaml`, `validation/verification-ladder.yaml`, and, when
 referenced, `validation/on-device.yaml`. Resolve the target platform, runtime,
@@ -80,7 +80,7 @@ Before implementation acceptance, record for every affected module:
 - applicable throughput, latency, memory, stack, CPU, power, or other resources;
 - explicit PASS, FAIL, and BLOCKED thresholds plus evidence and stop conditions.
 
-Use `$tdd` at the confirmed public seams to implement executable behavior in
+Use the `tdd` skill at the confirmed public seams to implement executable behavior in
 vertical red-green slices. TDD is the implementation method; a passing host test is
 not automatically proof of target cost, integrated timing, physical behavior, or
 long-duration stability.
@@ -153,7 +153,7 @@ resets, unexplained loss, corruption, deadline violations, and queue overwrite.
 
 After the applicable target build and flash are complete, execute the prepared
 selected device cases; build/flash success never constitutes PIL or HIL PASS.
-For every selected PIL, HIL, or System/Soak layer, invoke `$validate-on-device` after
+For every selected PIL, HIL, or System/Soak layer, invoke the `validate-on-device` skill after
 Validation Enablement. Let it own permissions, provider probing, upload/reset,
 bounded capture, native traces, evidence integrity, and PASS/FAIL/BLOCKED evaluation.
 This skill owns why the layer is required and whether its evidence has sufficient
