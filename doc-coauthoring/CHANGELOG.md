@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.1
+
+### Breaking Changes
+
+
+### Added
+
+
+### Changed
+
+
+### Fixed
+
+- Reword reader-testing instructions that referred to "the platform web app web interface" so they describe a web chat interface and what readers would type into a chat assistant or search box.
+
 ## 0.2.0
 
 ### Breaking Changes
