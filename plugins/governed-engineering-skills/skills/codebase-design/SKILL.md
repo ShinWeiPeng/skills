@@ -7,7 +7,7 @@ description: Shared vocabulary for designing deep modules. Use when the user wan
 
 Design **deep modules**: a lot of behaviour behind a small interface, placed at a clean seam, testable through that interface. Use this language and these principles wherever code is being designed or restructured. The aim is leverage for callers, locality for maintainers, and testability for everyone.
 
-When this vocabulary is used to create or change an actual architecture, invoke `$engineering-risk-routing` and follow its shared governed entry gate, then treat `$govern-modular-event-architecture` as authoritative for formal Module, Port/Event, Type/State ownership, and dependency decisions.
+When this vocabulary is used to create or change an actual architecture, invoke the `engineering-risk-routing` skill and follow its shared governed entry gate, then treat the `govern-modular-event-architecture` skill as authoritative for formal Module, Port/Event, Type/State ownership, and dependency decisions.
 
 ## Glossary
 

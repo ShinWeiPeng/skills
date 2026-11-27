@@ -1,6 +1,6 @@
 # User-facing test reporting
 
-Use this contract for every guided or Codex-operated runtime scenario. Keep machine evidence and the runner verdict authoritative; presentation must never recalculate or override them.
+Use this contract for every guided or agent-operated runtime scenario. Keep machine evidence and the runner verdict authoritative; presentation must never recalculate or override them.
 
 ## Resolve human-readable text
 

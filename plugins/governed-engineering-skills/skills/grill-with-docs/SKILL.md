@@ -25,7 +25,7 @@ interview only when the caller supplies explicit resume evidence and the request
 introduces no new decision or conflict. Resolution alone proves durable context and
 does not bypass this interview.
 
-Before writing `GLOSSARY.md`, ADRs, or other files, invoke `$engineering-risk-routing` and follow its shared governed entry gate. In Plan mode, describe the intended documentation diff but do not write it.
+Before writing `GLOSSARY.md`, ADRs, or other files, invoke the `engineering-risk-routing` skill and follow its shared governed entry gate. In Plan mode, describe the intended documentation diff but do not write it.
 
 Documentation created by this wrapper belongs to the same change set and does not
 trigger a second interview. Local `spec-governance/WORKING-SPEC-*` pairs and decision-complete

@@ -16,7 +16,7 @@ Use an Architecture Decision Record for a MUST-rule exception or a durable archi
 
 ## Approval boundary
 
-Codex MAY draft or revise a proposed ADR. Codex MUST NOT:
+The agent MAY draft or revise a proposed ADR. The agent MUST NOT:
 
 - mark its own proposal accepted;
 - invent an approver or approval reference;

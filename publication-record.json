@@ -1,9 +1,9 @@
 {
   "artifact": {
-    "content_fingerprint": "sha256:f88f85ea474333c66af97e4f30e0784cf093ccf34fc936299f045d009d22e05a",
+    "content_fingerprint": "sha256:14fde1a3e4deaabbe51852c34e757f9417854c2f452e8ffb4d36598ce9bddd66",
     "inventory": "plugins/governed-engineering-skills/artifact-inventory.json",
     "name": "governed-engineering-skills",
-    "version": "0.23.3"
+    "version": "0.24.0"
   },
   "channel": "personal-git-marketplace",
   "evidence_checklist": [
@@ -22,15 +22,15 @@
   "repository_url": "https://github.com/ShinWeiPeng/skills.git",
   "rollback": {
     "method": "Restore marketplace-release to the previous validated generated commit",
-    "previous_publication_commit": "ab87d5351205342118c79d6f79cc8cdc78fd1780"
+    "previous_publication_commit": "65c6fce636a7e377e15a0f06c8bbb489fb018211"
   },
   "schema_version": "1.0.0",
-  "source_commit": "4966796cd1d2a835a7f1e8b1712be4a8885154c7",
-  "source_tag": "governed-engineering-skills@0.23.3",
-  "source_tag_commit": "4966796cd1d2a835a7f1e8b1712be4a8885154c7",
+  "source_commit": "b5ed1540cabb6080f4af88fc5d885daa129ba682",
+  "source_tag": "governed-engineering-skills@0.24.0",
+  "source_tag_commit": "b5ed1540cabb6080f4af88fc5d885daa129ba682",
   "sparse_paths": [
     ".agents/plugins",
     "plugins/governed-engineering-skills"
   ],
-  "tree_fingerprint": "sha256:c1e512111aa9c17d45a91a04bd4a73f60ee0f2ae02b43a646de0a0aa86037b87"
+  "tree_fingerprint": "sha256:f96ca134a5d384ae5557588929296a337f7f7d1782a9f2f90e12d3c40b146419"
 }

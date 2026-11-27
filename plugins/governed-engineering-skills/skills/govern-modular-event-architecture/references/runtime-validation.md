@@ -35,4 +35,4 @@ Use hard limits for any single forbidden event. Use a declared distribution meth
 
 Architecture Description Views must show affected module, demand-owned Port, emitted Event, L3+ adapter, test composition root, source path, entrypoint, public symbol, clock, side effect, failure behavior, and associated L0/L1 Flow. The validation profile should reference stable Flow, Module, Port, or Event IDs.
 
-Run architecture validation before runtime evidence collection. Then route physical or native-platform execution through `$validate-on-device` and preserve its evidence bundle.
+Run architecture validation before runtime evidence collection. Then route physical or native-platform execution through the `validate-on-device` skill and preserve its evidence bundle.

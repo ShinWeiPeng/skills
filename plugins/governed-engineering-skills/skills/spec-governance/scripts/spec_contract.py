@@ -227,6 +227,16 @@ def pending_decision(text: str) -> dict[str, Any] | None:
     return question
 
 
+# Host menu tools that present a structured choice. Codex exposes
+# request_user_input/request_user_input_async; Claude Code exposes AskUserQuestion.
+# All normalize to the structured-menu surface and share its policy and failures.
+MENU_TOOL_SURFACES = ("request_user_input", "request_user_input_async", "AskUserQuestion")
+
+
+def _canonical_surface(surface: str) -> str:
+    return "structured-menu" if surface in MENU_TOOL_SURFACES else surface
+
+
 def question_surface_policy(
     host: dict[str, Any], surface: str, failed_surfaces: dict[str, str] | None = None
 ) -> dict[str, Any]:
@@ -248,11 +258,7 @@ def question_surface_policy(
     mode = host.get("mode")
     if mode not in ("default", "plan"):
         return denied
-    menu = surface in (
-        "structured-menu",
-        "request_user_input",
-        "request_user_input_async",
-    )
+    menu = _canonical_surface(surface) == "structured-menu"
     failed = failed_surfaces if failed_surfaces is not None else {}
     if not isinstance(failed, dict):
         return denied
@@ -350,15 +356,12 @@ def _question_update_snapshot(text: str, request: dict[str, Any], revision: int)
         surface = request.get("surface")
         if surface not in (
             "structured-menu",
-            "request_user_input_async",
-            "request_user_input",
+            *MENU_TOOL_SURFACES,
             "numbered-text",
             "open-text",
         ):
             raise ValueError("unknown failed surface")
-        surface = (
-            "structured-menu" if surface.startswith("request_user_input") else surface
-        )
+        surface = _canonical_surface(surface)
         entry["surface"] = surface
         if action == "presentation-failed":
             record["failed_surfaces"][surface] = request["source_ref"]
@@ -431,11 +434,7 @@ def _presentation_matches(
         != "PASS"
     ):
         return False
-    surface = (
-        "structured-menu"
-        if surface in ("request_user_input", "request_user_input_async")
-        else surface
-    )
+    surface = _canonical_surface(surface)
     if surface in record.get("failed_surfaces", {}):
         return False
     if evidence.get("stage") not in ("prepared", "emitted"):

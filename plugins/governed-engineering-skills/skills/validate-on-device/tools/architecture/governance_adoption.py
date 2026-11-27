@@ -11,7 +11,16 @@ from typing import Any
 
 SCHEMA_VERSION = "2.2.0"
 SUPPORTED_SCHEMA_VERSIONS = {"2.1.0", SCHEMA_VERSION}
-BANNED_AI_APPROVERS = {"ai", "assistant", "chatgpt", "codex", "gpt", "model", "openai"}
+BANNED_AI_APPROVERS = {
+    "ai",
+    "assistant",
+    "chatgpt",
+    "claude",
+    "codex",
+    "gpt",
+    "model",
+    "openai",
+}
 BASELINE_REQUIRED_FIELDS = {
     "rule_id",
     "location",

@@ -37,7 +37,7 @@ A discipline for hard bugs. Skip phases only when explicitly justified.
 
 ## Governed entry gate
 
-Invoke `$engineering-risk-routing` and follow its shared governed entry gate before instrumentation or repair. A request to diagnose authorizes finding and explaining the cause; it does not by itself authorize mutation. Obtain implementation authority before fixing or adding persistent instrumentation.
+Invoke the `engineering-risk-routing` skill and follow its shared governed entry gate before instrumentation or repair. A request to diagnose authorizes finding and explaining the cause; it does not by itself authorize mutation. Obtain implementation authority before fixing or adding persistent instrumentation.
 
 When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 

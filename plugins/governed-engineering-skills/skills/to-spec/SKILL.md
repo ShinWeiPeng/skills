@@ -6,7 +6,7 @@ description: Turn the current conversation into a spec and publish it to the pro
 This skill publishes an already reconciled canonical spec. Do NOT interview the user
 or create an independent PRD.
 
-Invoke `$engineering-risk-routing` and follow its shared governed entry gate before publishing. Include the RoutingDecision, required gates, acceptance evidence, and return target in the spec; do not present an unresolved or BLOCKED governance decision as implementation-ready.
+Invoke the `engineering-risk-routing` skill and follow its shared governed entry gate before publishing. Include the RoutingDecision, required gates, acceptance evidence, and return target in the spec; do not present an unresolved or BLOCKED governance decision as implementation-ready.
 
 The repository file `specs/SPEC-####-<slug>.md` is authoritative; the tracker stores
 its complete snapshot and canonical local path. Materialize through

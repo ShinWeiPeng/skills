@@ -254,7 +254,8 @@ Run `question-policy --project-root <root> --reference <working-id> --task-ref
 <task> --host <json> --surface <surface>` and observe its result before presentation.
 Host evidence contains mode, mode_ref, policy_ref, numbered_text_allowed and
 menu_tool_allowed from the actual current instructions. Surfaces are numbered-text,
-open-text, structured-menu, request_user_input or request_user_input_async. Default
+open-text, structured-menu, request_user_input, request_user_input_async or
+AskUserQuestion; host menu tools normalize to structured-menu. Default
 and unknown modes never permit menus. Failed surfaces stay blocked until explicit
 retry/recovery evidence is saved. No result authorizes product operations.
 

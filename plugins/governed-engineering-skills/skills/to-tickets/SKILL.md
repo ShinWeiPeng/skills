@@ -7,7 +7,7 @@ description: Break a plan, spec, or the current conversation into a set of trace
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
-Invoke `$engineering-risk-routing` and follow its shared governed entry gate before publishing. Carry required gates as blocking edges; no implementation ticket may bypass an unresolved R2/R3 gate.
+Invoke the `engineering-risk-routing` skill and follow its shared governed entry gate before publishing. Carry required gates as blocking edges; no implementation ticket may bypass an unresolved R2/R3 gate.
 
 The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
 

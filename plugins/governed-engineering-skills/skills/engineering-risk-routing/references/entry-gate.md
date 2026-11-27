@@ -2,7 +2,7 @@
 
 Before mutation or external action:
 
-1. Inspect the task and invoke `$engineering-risk-routing`; preserve the
+1. Inspect the task and invoke the `engineering-risk-routing` skill; preserve the
    `GuidedRouteDecision.spec_context`.
 2. Preserve its risk class, matched hard triggers, required gates, status, and return target.
 3. Stop with `BLOCKED` when a required skill is unavailable or a required gate lacks valid PASS evidence.

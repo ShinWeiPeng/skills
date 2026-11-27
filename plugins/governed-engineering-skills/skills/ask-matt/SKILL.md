@@ -225,7 +225,7 @@ regardless of size or an explicitly requested skill such as `tdd`.
   including reconfirmation with no actual contract delta, requires a fresh exact
   `開始執行` covering that revision. Compiler errors and test failures that can be investigated are
   facts, not user decisions.
-- After spec verification, the delivery parent invokes `/formatter-governance`
+- After spec verification, the delivery parent invokes the `formatter-governance` skill
   before handing modifying work to TDD or implementation. Preserve its original
   ProjectState evidence and stop on a formatter `BLOCKED` verdict. When the verified
   canonical SPEC triggers full-program formatting, let that skill ask once for
