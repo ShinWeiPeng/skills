@@ -1,7 +1,6 @@
 Availability:
 
-Install **Governed Engineering Skills** from the personal Git Marketplace on
-each product surface, then start a new chat or Codex task.
+Install **Governed Engineering Skills** in Codex from the personal Git Marketplace or in Claude Code as the `mattpocock-skills` plugin, then start a new Codex task or Claude Code session.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/formatter-governance)
 

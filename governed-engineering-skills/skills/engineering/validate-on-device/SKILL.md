@@ -1,6 +1,6 @@
 ---
 name: validate-on-device
-description: "Collect and evaluate bounded runtime evidence from physical devices and operating-system applications. Use for on-device validation, hardware tests, firmware boot/timing/peripheral checks, COM or TCP capture, Windows ETW/WPR, Linux perf/ftrace, iOS Instruments/XCTest, guided user-operated testing, structured VAL_* logs, statistical high-frequency evidence, capability probes, permission gates, and PASS/FAIL/BLOCKED evidence bundles. Do not invoke for ordinary unit tests, build-only checks, static code review, or code explanation without runtime validation. Invoke explicitly with $validate-on-device."
+description: "Collect and evaluate bounded runtime evidence from physical devices and operating-system applications. Use for on-device validation, hardware tests, firmware boot/timing/peripheral checks, COM or TCP capture, Windows ETW/WPR, Linux perf/ftrace, iOS Instruments/XCTest, guided user-operated testing, structured VAL_* logs, statistical high-frequency evidence, capability probes, permission gates, and PASS/FAIL/BLOCKED evidence bundles. Do not invoke for ordinary unit tests, build-only checks, static code review, or code explanation without runtime validation. Invoke explicitly by name (`validate-on-device`)."
 ---
 
 # Validate On Device
@@ -14,7 +14,7 @@ Use reproducible evidence instead of treating a successful build or an unstructu
 3. For Windows, Linux, or iOS thread, scheduler, CPU, memory, I/O, or network criteria, require the selected native provider. Structured logs cannot pass these criteria. Read [references/providers.md](references/providers.md).
 4. Use application events for domain behavior. Correlate native traces and application events with the same run ID and monotonic markers.
 5. Use structured event logs for domain behavior and O(1) statistics for bare-metal/custom targets. Read [references/evidence-contract.md](references/evidence-contract.md).
-6. When Codex cannot operate the product or platform tool, use the guided form-and-review workflow. Generate an immutable session, response template, and user guide. With connectivity, ask one step at a time, read the recorded fact back, and write JSON for the user. Offline, give the user the Markdown guide and schema-bound JSON template. Read [references/guided-testing.md](references/guided-testing.md).
+6. When the agent cannot operate the product or platform tool, use the guided form-and-review workflow. Generate an immutable session, response template, and user guide. With connectivity, ask one step at a time, read the recorded fact back, and write JSON for the user. Offline, give the user the Markdown guide and schema-bound JSON template. Read [references/guided-testing.md](references/guided-testing.md).
 7. Treat the final Markdown table as read-only review. The user confirms recorded facts once; only the runner assigns PASS, FAIL, or BLOCKED.
 
 ## Enforce safety before execution
@@ -73,7 +73,7 @@ Write under `artifacts/validation/<run-id>/` and include the raw evidence hash, 
 
 ## Respect architecture governance
 
-This Skill's runner is governed by its own standard/schema 1.1 manifest. For a target project governed by `$govern-modular-event-architecture`, profile 1.0 references Flow, Module, Port, or Event; profile 1.1 may additionally reference Workload, Execution Profile/Unit/Channel, Data Access Profile, or Microarchitecture Profile and must bind the manifest SHA-256. Keep test parsers and test wiring out of release composition roots.
+This Skill's runner is governed by its own standard/schema 1.1 manifest. For a target project governed by the `govern-modular-event-architecture` skill, profile 1.0 references Flow, Module, Port, or Event; profile 1.1 may additionally reference Workload, Execution Profile/Unit/Channel, Data Access Profile, or Microarchitecture Profile and must bind the manifest SHA-256. Keep test parsers and test wiring out of release composition roots.
 
 ## Project validation obligations
 

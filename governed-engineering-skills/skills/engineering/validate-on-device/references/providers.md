@@ -2,7 +2,7 @@
 
 - `etw-wpr`: Windows ETW/WPR for scheduler, context-switch, CPU, waits, memory, I/O, and networking. Native artifacts are ETL plus a bounded export usable by the evaluator.
 - `perf-ftrace`: Linux perf and tracefs/ftrace scheduler events such as `sched_switch` and `sched_waking`. Preserve trace-loss counters and a text/JSON export.
-- `instruments-xctest`: iOS Instruments, xctrace, XCTest metrics, and os_signpost. When Codex is not running on macOS, generate guided capture/export steps for the user.
+- `instruments-xctest`: iOS Instruments, xctrace, XCTest metrics, and os_signpost. When the agent is not running on macOS, generate guided capture/export steps for the user.
 - `structured-log`: application events and O(1) statistics for bare-metal targets or an explicitly allowed fallback.
 
 Native traces are authoritative for scheduler/resource criteria. Application events are authoritative for domain semantics. Correlate both with a run ID and monotonic markers. If correlation is required but missing, return `BLOCKED`; never choose whichever source gives the more favorable result.

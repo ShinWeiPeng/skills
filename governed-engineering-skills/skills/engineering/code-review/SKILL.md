@@ -8,9 +8,9 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
 
-Invoke `$engineering-risk-routing` and follow its shared governed entry gate. Report governance checker and runtime-evidence status as prerequisites alongside, but not merged into or used to reorder, the existing Standards and Spec findings.
+Invoke the `engineering-risk-routing` skill and follow its shared governed entry gate. Report governance checker and runtime-evidence status as prerequisites alongside, but not merged into or used to reorder, the existing Standards and Spec findings.
 
-The delivery parent also invokes `/formatter-governance` in non-mutating check mode.
+The delivery parent also invokes the `formatter-governance` skill in non-mutating check mode.
 Report its evidence as a prerequisite; standalone review never authorizes a format
 write and does not copy the formatter mapping.
 

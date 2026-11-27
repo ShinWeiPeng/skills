@@ -1,6 +1,6 @@
 Availability:
 
-Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
+Install **Governed Engineering Skills** in Codex from the personal Git Marketplace or in Claude Code as the `mattpocock-skills` plugin, then start a new Codex task or Claude Code session.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/spec-governance)
 
@@ -22,7 +22,7 @@ and does not claim to intercept arbitrary host tools.
 
 ## When to reach for it
 
-Codex invokes this automatically for every repository-modifying engineering change. Use it directly to reconcile, materialize, reopen, validate, or verify the active canonical specification.
+The agent invokes this automatically for every repository-modifying engineering change. Use it directly to reconcile, materialize, reopen, validate, or verify the active canonical specification.
 
 ## One contract
 

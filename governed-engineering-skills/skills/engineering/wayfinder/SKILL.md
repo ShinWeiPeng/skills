@@ -16,7 +16,7 @@ configured tracker is unavailable, return `BLOCKED`; do not emulate tracker writ
 Creating or changing a map, ticket, dependency, claim, or resolution requires the
 user's explicit `開始執行`.
 
-Before creating or changing the map, invoke `$engineering-risk-routing` and follow its shared governed entry gate. Preserve the decision and required gates in the map so later implementation cannot bypass them.
+Before creating or changing the map, invoke the `engineering-risk-routing` skill and follow its shared governed entry gate. Preserve the decision and required gates in the map so later implementation cannot bypass them.
 
 The destination varies per effort, and naming it is the first act of charting — it shapes every ticket. It might be a spec to hand off and iterate on, a decision to lock before planning starts, or a change made in place like a data-structure migration. The map is domain-agnostic — engineering work, course content, whatever fits the shape.
 

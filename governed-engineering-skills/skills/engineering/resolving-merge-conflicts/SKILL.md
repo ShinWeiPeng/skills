@@ -3,7 +3,7 @@ name: resolving-merge-conflicts
 description: "Use when you need to resolve an in-progress git merge/rebase conflict."
 ---
 
-Before editing conflict hunks or continuing the merge/rebase, invoke `$engineering-risk-routing` and follow its shared governed entry gate. Do not stage, commit, or continue unless the user's request and repository instructions authorize those mutations.
+Before editing conflict hunks or continuing the merge/rebase, invoke the `engineering-risk-routing` skill and follow its shared governed entry gate. Do not stage, commit, or continue unless the user's request and repository instructions authorize those mutations.
 
 1. **See the current state** of the merge/rebase. Check git history, and the conflicting files.
 

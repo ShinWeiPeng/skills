@@ -1080,6 +1080,7 @@ class QuestionPresentationTests(unittest.TestCase):
         for surface in (
             "request_user_input_async",
             "request_user_input",
+            "AskUserQuestion",
             "structured-menu",
         ):
             for numbered in (True, False):
@@ -1187,6 +1188,80 @@ class QuestionPresentationTests(unittest.TestCase):
             },
         }
         self.assertFalse(spec.assess_discussion_completion(c, obs)["can_end_turn"])
+
+    def test_claude_ask_user_question_follows_structured_menu_policy(self):
+        self.assertEqual(
+            "PASS",
+            spec.question_surface_policy(self.host("plan"), "AskUserQuestion")[
+                "verdict"
+            ],
+        )
+        for host in (self.host(), self.host("unknown")):
+            r = spec.question_surface_policy(host, "AskUserQuestion")
+            self.assertEqual("BLOCKED", r["verdict"])
+            self.assertFalse(r["menu_allowed"])
+        plan_without_permission = self.host("plan") | {"menu_tool_allowed": False}
+        self.assertEqual(
+            "BLOCKED",
+            spec.question_surface_policy(plan_without_permission, "AskUserQuestion")[
+                "verdict"
+            ],
+        )
+        self.assertEqual(
+            "BLOCKED",
+            spec.question_surface_policy(
+                self.host("plan"), "AskUserQuestion", {"structured-menu": "user-turn"}
+            )["verdict"],
+        )
+
+    def test_failed_claude_menu_blocks_every_menu_surface_until_retry(self):
+        self.question()
+
+        def update(action):
+            q = spec.pending_decision(self.reload())
+            spec.update_question(
+                self.root,
+                self.wid,
+                {
+                    "action": action,
+                    "question_version": q["version"],
+                    "surface": "AskUserQuestion",
+                    "source_ref": "user-turn",
+                    "user_text": "retry"
+                    if action == "retry-requested"
+                    else "cannot see",
+                },
+                expected_revision=self.ref["revision"],
+                expected_hash=self.ref["snapshot_hash"],
+            )
+            return spec.assess_turn_context(
+                self.root, reference=self.wid, task_ref="task-A"
+            )
+
+        c = update("presentation-failed")
+        self.assertEqual(
+            ["structured-menu"], list(c["question_record"]["failed_surfaces"])
+        )
+        for surface in (
+            "AskUserQuestion",
+            "request_user_input",
+            "structured-menu",
+        ):
+            self.assertEqual(
+                "BLOCKED",
+                spec.question_surface_policy(
+                    self.host("plan"), surface, c["question_record"]["failed_surfaces"]
+                )["verdict"],
+            )
+        c = update("retry-requested")
+        self.assertEqual(
+            "PASS",
+            spec.question_surface_policy(
+                self.host("plan"),
+                "AskUserQuestion",
+                c["question_record"]["failed_surfaces"],
+            )["verdict"],
+        )
 
     def test_failed_plan_menu_denied_until_explicit_retry(self):
         self.question()

@@ -15,8 +15,8 @@ set "INSTALL_EXIT=%ERRORLEVEL%"
 :finish
 echo.
 if "%INSTALL_EXIT%"=="0" (
-  echo Governed Engineering Skills is installed for Codex Desktop and CLI.
-  echo Start a new Codex task to load the refreshed skills.
+  echo Governed Engineering Skills is installed for the selected tools.
+  echo Start a new Codex task or Claude Code session to load the refreshed skills.
 ) else (
   echo Installation failed with exit code %INSTALL_EXIT%.
 )

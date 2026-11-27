@@ -1,6 +1,6 @@
 Availability:
 
-Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
+Install **Governed Engineering Skills** in Codex from the personal Git Marketplace or in Claude Code as the `mattpocock-skills` plugin, then start a new Codex task or Claude Code session.
 
 You invoke this by typing `/implement` yourself, and the agent won't reach for it on its own. It ships with `disable-model-invocation: true`, so no other skill can call it either. Wherever [ask-matt](https://aihero.dev/skills-ask-matt) or [to-tickets](https://aihero.dev/skills-to-tickets) says "then `/implement` per ticket", that is an instruction to you, not something the agent will do unprompted.
 

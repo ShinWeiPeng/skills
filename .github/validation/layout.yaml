@@ -716,6 +716,10 @@ entries:
   - specs/SPEC-0067-hackmd-note-writer-direct-install.md
   role: specification
   provenance: Canonical specification for the standalone HackMD installer.
+- include:
+  - specs/SPEC-0068-governed-engineering-claude-code-support.md
+  role: specification
+  provenance: Canonical specification for Claude Code support in governed-engineering-skills.
 required_analyzers:
 - python
 external_modules:

@@ -1,6 +1,6 @@
 Availability:
 
-Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
+Install **Governed Engineering Skills** in Codex from the personal Git Marketplace or in Claude Code as the `mattpocock-skills` plugin, then start a new Codex task or Claude Code session.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/engineering-risk-routing)
 
@@ -12,7 +12,7 @@ It also recognizes exact fresh-task `開始執行` as a confirmed-spec resume in
 
 ## When to reach for it
 
-Codex invokes this automatically through the engineering router. Use it directly when you need to inspect the risk class, required gates, PASS/BLOCKED result, or resume target.
+The agent invokes this automatically through the engineering router. Use it directly when you need to inspect the risk class, required gates, PASS/BLOCKED result, or resume target.
 
 ## Fail closed
 

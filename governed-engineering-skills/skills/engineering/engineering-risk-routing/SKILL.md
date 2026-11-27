@@ -45,7 +45,7 @@ false; spec discovery without the flag follows ProjectState interview precedence
 
 ## Contracts
 
-Validate output against [routing-contract.schema.json](references/routing-contract.schema.json). `GateResult` is the evidence contract used by handoffs and resume checks; Codex may report it but must not invent PASS evidence.
+Validate output against [routing-contract.schema.json](references/routing-contract.schema.json). `GateResult` is the evidence contract used by handoffs and resume checks; the agent may report it but must not invent PASS evidence.
 
 ## Durable turn evidence
 

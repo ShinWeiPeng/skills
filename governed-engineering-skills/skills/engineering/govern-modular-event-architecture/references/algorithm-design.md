@@ -43,7 +43,7 @@ Use these statuses:
 - `superseded`: a newer record replaces it.
 
 An accepted record MUST name the human approver, approval date, and external
-approval reference. Codex MUST NOT approve its own record or invent approval
+approval reference. The agent MUST NOT approve its own record or invent approval
 metadata.
 
 ## Required record

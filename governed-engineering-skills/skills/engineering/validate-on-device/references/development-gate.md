@@ -1,6 +1,6 @@
 # Per-change Development Validation contract
 
-Gate 1 is a host-side development gate. Run unit, behavior, integration, protocol, schema, static, Fake Port, and host contract tests with the project's native test tools. Do not use the on-device runner to flash a device, capture `VAL_*` logs, or ask a user to upload logs for these ordinary checks. Assertions and process exit codes determine each check verdict; Codex records structured evidence.
+Gate 1 is a host-side development gate. Run unit, behavior, integration, protocol, schema, static, Fake Port, and host contract tests with the project's native test tools. Do not use the on-device runner to flash a device, capture `VAL_*` logs, or ask a user to upload logs for these ordinary checks. Assertions and process exit codes determine each check verdict; the agent records structured evidence.
 
 Pass one or more Gate 1 documents to `summarize-gates` together with the runtime and release results:
 

@@ -347,7 +347,7 @@ class VerificationLadderSkillContractTests(unittest.TestCase):
             "A simplified duplicate Processing model is not SIL",
             "same suite",
             "PIL cannot alone pass production latency or deadline claims",
-            "invoke `$validate-on-device`",
+            "invoke the `validate-on-device` skill",
             "never assume ESP32",
             "do not force the complete ladder",
         ):

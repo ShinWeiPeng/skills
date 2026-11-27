@@ -41,7 +41,16 @@ ROLE_BY_LEVEL = {
     "L2": {"component"},
     "L3+": {"adapter", "technical"},
 }
-BANNED_AI_APPROVERS = {"ai", "assistant", "chatgpt", "codex", "gpt", "model", "openai"}
+BANNED_AI_APPROVERS = {
+    "ai",
+    "assistant",
+    "chatgpt",
+    "claude",
+    "codex",
+    "gpt",
+    "model",
+    "openai",
+}
 
 
 @dataclass

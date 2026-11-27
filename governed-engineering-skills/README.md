@@ -37,21 +37,48 @@ Clone this repository, open the `governed-engineering-skills/` directory, then r
 Cinnamon, MATE, and other Freedesktop-compatible environments may also launch
 the desktop entry, but are supported on a best-effort basis.
 
-The launchers install missing Git, Node.js/npm, and a verified minimum Codex CLI
-through `winget`, `apt`, or `dnf`; start device authentication when needed; add or
-upgrade the `governed-engineering` Git Marketplace; and install the Plugin in
-place. Existing compatible newer Codex versions are retained. Start a new Codex
-task afterward so the refreshed Skills are loaded.
+When launched by double-click, the installer asks which tool to install for:
+**Codex Desktop and CLI**, **Claude Code**, or **both**. Choose without the prompt
+from a terminal with `-Target codex|claude|both` on Windows
+(`scripts/install-marketplace.ps1`) or `--target=codex|claude|both` on Linux.
+Non-interactive runs without a target install for Codex, as before.
 
-The installer consumes the generated `marketplace-release` Codex distribution.
-ChatGPT web
-does not provide this personal account with Git Marketplace installation, so it
-is not a supported installation surface for this Plugin.
+### Codex
 
-In Codex, run `/setup-matt-pocock-skills` once per repository when using the
-repository-governed engineering workflows. It configures the
+For Codex, the launchers install missing Git, Node.js/npm, and a verified
+minimum Codex CLI through `winget`, `apt`, or `dnf`; start device authentication
+when needed; add or upgrade the `governed-engineering` Git Marketplace; and
+install the Plugin in place. Existing compatible newer Codex versions are
+retained. Start a new Codex task afterward so the refreshed Skills are loaded.
+
+The Codex installer consumes the generated `marketplace-release` Codex
+distribution. ChatGPT web does not provide this personal account with Git
+Marketplace installation, so it is not a supported installation surface for this
+Plugin.
+
+### Claude Code
+
+For Claude Code, the launchers install missing Git, then use the existing
+`claude` CLI to add or update the `mattpocock` Marketplace from
+`ShinWeiPeng/skills` and install the `mattpocock-skills` Plugin at user scope.
+They do not install Claude Code itself: if `claude` is not on `PATH`, install
+[Claude Code](https://code.claude.com/docs/en/setup) first, open a new terminal,
+then rerun the launcher. The same result by hand:
+
+```sh
+claude plugin marketplace add ShinWeiPeng/skills
+claude plugin install mattpocock-skills@mattpocock --scope user
+```
+
+Update later with `claude plugin marketplace update mattpocock`. Start a new
+Claude Code session afterward so the refreshed Skills are loaded.
+
+### Per-repository setup
+
+In Codex or Claude Code, run `/setup-matt-pocock-skills` once per repository
+when using the repository-governed engineering workflows. It configures the
 local issue tracker, triage labels, and documentation locations used by the
-Codex engineering workflows. The compatibility inventory records required Codex,
+engineering workflows. The compatibility inventory records required agent,
 repository, terminal, and device capabilities; it is not a ChatGPT web support
 matrix.
 
@@ -177,15 +204,15 @@ routing for engineering work.
 **Model-invoked**
 
 - **[ask-matt](./skills/engineering/ask-matt/SKILL.md)**: Automatically route every software-engineering request, including implementation, modification, debugging, review, code explanation, tests, architecture, and deployment. Model-invoked; users never need to name this skill.
-- **[clarify-improvement-proposals](./skills/engineering/clarify-improvement-proposals/SKILL.md)**: Clarify every unresolved ambiguity before producing an improvement proposal, then present rendered Markdown with explicit impacts, tradeoffs, and evidence-backed validation. Invoke implicitly for 改善方案、改進方案、優化方案、重構方案、架構改善、設計改善、改善建議、優化建議、方案比較、方案評估、技術選型、提出建議、怎麼改比較好, and equivalent English requests to propose, compare, review, optimize, refactor, or plan improvements. Do not invoke for a direct copyedit, translation, or wording-only change that does not ask for a proposal or design decision. Invoke explicitly with $clarify-improvement-proposals.
+- **[clarify-improvement-proposals](./skills/engineering/clarify-improvement-proposals/SKILL.md)**: Clarify every unresolved ambiguity before producing an improvement proposal, then present rendered Markdown with explicit impacts, tradeoffs, and evidence-backed validation. Invoke implicitly for 改善方案、改進方案、優化方案、重構方案、架構改善、設計改善、改善建議、優化建議、方案比較、方案評估、技術選型、提出建議、怎麼改比較好, and equivalent English requests to propose, compare, review, optimize, refactor, or plan improvements. Do not invoke for a direct copyedit, translation, or wording-only change that does not ask for a proposal or design decision. Invoke explicitly by name (`clarify-improvement-proposals`).
 - **[code-review](./skills/engineering/code-review/SKILL.md)**: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".
 - **[codebase-design](./skills/engineering/codebase-design/SKILL.md)**: Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)**: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
 - **[domain-modeling](./skills/engineering/domain-modeling/SKILL.md)**: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.
 - **[engineering-risk-routing](./skills/engineering/engineering-risk-routing/SKILL.md)**: Classify engineering tasks with ordered hard triggers, select required proposal, architecture, code-flow, and runtime-evidence gates, and return a deterministic RoutingDecision. Use when ask-matt or another engineering skill needs a risk class, required gates, PASS/BLOCKED status, next skill, or return-to-flow target. Do not use for standalone learning-note or HackMD creation.
-- **[explain-code-flow](./skills/engineering/explain-code-flow/SKILL.md)**: Guide developers through existing code using governed System and L0/L1 Parent views, end-to-end Flows, and progressively deeper explanations. Use for every code-understanding request, including implicit questions such as what code does, how data reaches a driver or other sink, where state changes, or why a branch exists, even when the user does not say explain or trace. Route project or composition-root questions to Level 0, Parent or cross-module from-A-to-B behavior to Level 1, modules and symbols to Level 2, and code regions to Level 3. Keep implementation, debugging, and code-review skills primary when the user's goal is to change, diagnose, or review code. Require supported formal architecture governance for System and Parent guidance, and coordinate with $govern-modular-event-architecture when it is missing, stale, invalid, or unsupported.
+- **[explain-code-flow](./skills/engineering/explain-code-flow/SKILL.md)**: Guide developers through existing code using governed System and L0/L1 Parent views, end-to-end Flows, and progressively deeper explanations. Use for every code-understanding request, including implicit questions such as what code does, how data reaches a driver or other sink, where state changes, or why a branch exists, even when the user does not say explain or trace. Route project or composition-root questions to Level 0, Parent or cross-module from-A-to-B behavior to Level 1, modules and symbols to Level 2, and code regions to Level 3. Keep implementation, debugging, and code-review skills primary when the user's goal is to change, diagnose, or review code. Require supported formal architecture governance for System and Parent guidance, and coordinate with the `govern-modular-event-architecture` skill when it is missing, stale, invalid, or unsupported.
 - **[formatter-governance](./skills/engineering/formatter-governance/SKILL.md)**: Select, verify, and report repository-aware formatter policy before modifying engineering work. Use for greenfield formatter defaults, existing-project style preservation, safe scaffold preflight, formatter checks, and format-write authorization.
-- **[govern-modular-event-architecture](./skills/engineering/govern-modular-event-architecture/SKILL.md)**: Govern cross-language modular event architecture, production-source boundaries, named-type and runtime-state ownership, product algorithms, and hard/soft real-time scheduling analysis. Use when Codex creates, reviews, explains, improves, or refactors architecture or algorithms; changes structs, classes, enums, unions, typedefs, DTOs, schemas, runtime state, configuration, ports, events, callbacks, adapters, module boundaries, data flow, execution units, Tasks, priorities, activation rates, core allocation, generated production sources, or architecture views; or checks conformance. Enforce schema 2.2.0 with exact 2.1.0 compatibility, authoring-first L0-L3+ responsibilities, pre-code boundary/type/state/scheduling gates, Type Catalogs, dependency inversion, contracts, fail-closed C/C++ AST evidence, Algorithm Design Records, Description Views, ADR-controlled exceptions, and validation. Invoke explicitly with $govern-modular-event-architecture.
+- **[govern-modular-event-architecture](./skills/engineering/govern-modular-event-architecture/SKILL.md)**: Govern cross-language modular event architecture, production-source boundaries, named-type and runtime-state ownership, product algorithms, and hard/soft real-time scheduling analysis. Use when the agent creates, reviews, explains, improves, or refactors architecture or algorithms; changes structs, classes, enums, unions, typedefs, DTOs, schemas, runtime state, configuration, ports, events, callbacks, adapters, module boundaries, data flow, execution units, Tasks, priorities, activation rates, core allocation, generated production sources, or architecture views; or checks conformance. Enforce schema 2.2.0 with exact 2.1.0 compatibility, authoring-first L0-L3+ responsibilities, pre-code boundary/type/state/scheduling gates, Type Catalogs, dependency inversion, contracts, fail-closed C/C++ AST evidence, Algorithm Design Records, Description Views, ADR-controlled exceptions, and validation. Invoke explicitly by name (`govern-modular-event-architecture`).
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)**: Interview engineering work when durable project context exists but implementation is absent. Model-invoked by ask-matt; users need not name it.
 - **[pr](./skills/engineering/pr/SKILL.md)**: Use when writing a PR body.
 - **[prototype](./skills/engineering/prototype/SKILL.md)**: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.
@@ -193,7 +220,7 @@ routing for engineering work.
 - **[resolving-merge-conflicts](./skills/engineering/resolving-merge-conflicts/SKILL.md)**: Use when you need to resolve an in-progress git merge/rebase conflict.
 - **[spec-governance](./skills/engineering/spec-governance/SKILL.md)**: Persist, reconcile, materialize, reopen, resolve, and verify the canonical repository specification for every modifying engineering change set. Model-invoked by ask-matt and delivery workflows.
 - **[tdd](./skills/engineering/tdd/SKILL.md)**: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
-- **[validate-on-device](./skills/engineering/validate-on-device/SKILL.md)**: Collect and evaluate bounded runtime evidence from physical devices and operating-system applications. Use for on-device validation, hardware tests, firmware boot/timing/peripheral checks, COM or TCP capture, Windows ETW/WPR, Linux perf/ftrace, iOS Instruments/XCTest, guided user-operated testing, structured VAL_* logs, statistical high-frequency evidence, capability probes, permission gates, and PASS/FAIL/BLOCKED evidence bundles. Do not invoke for ordinary unit tests, build-only checks, static code review, or code explanation without runtime validation. Invoke explicitly with $validate-on-device.
+- **[validate-on-device](./skills/engineering/validate-on-device/SKILL.md)**: Collect and evaluate bounded runtime evidence from physical devices and operating-system applications. Use for on-device validation, hardware tests, firmware boot/timing/peripheral checks, COM or TCP capture, Windows ETW/WPR, Linux perf/ftrace, iOS Instruments/XCTest, guided user-operated testing, structured VAL_* logs, statistical high-frequency evidence, capability probes, permission gates, and PASS/FAIL/BLOCKED evidence bundles. Do not invoke for ordinary unit tests, build-only checks, static code review, or code explanation without runtime validation. Invoke explicitly by name (`validate-on-device`).
 - **[verification-ladder](./skills/engineering/verification-ladder/SKILL.md)**: Plan and govern module-contract, SIL, Adapter Contract, PIL, HIL, and System/Soak verification when engineering claims span host, target, hardware, or long-duration environments. Use for layered verification planning and evidence-authority decisions; use TDD for the implementation loop and validate-on-device for selected device execution.
 - **[wayfinder](./skills/engineering/wayfinder/SKILL.md)**: Plan a huge chunk of work — more than one agent session can hold — as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.
 - **[wizard](./skills/engineering/wizard/SKILL.md)**: Generate an interactive bash wizard that walks a human through steps only they can perform. Use when provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover. Don't invoke this for steps the agent can perform itself.

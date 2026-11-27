@@ -209,6 +209,18 @@ class GovernanceCliTests(unittest.TestCase):
         )
         self.assertTrue(any(item["rule_id"] == "BAS003" for item in invalid))
 
+        claude_approved = copy.deepcopy(approved)
+        claude_approved["violations"][0]["approved_by"] = "Claude"
+        invalid = apply_baseline(
+            copy.deepcopy(diagnostics),
+            claude_approved,
+            None,
+            phase="development",
+            expected_schema_version="2.1.0",
+            as_of=date(2026, 8, 31),
+        )
+        self.assertTrue(any(item["rule_id"] == "BAS003" for item in invalid))
+
         stale = apply_baseline(
             [],
             approved,

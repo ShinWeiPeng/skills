@@ -1,6 +1,6 @@
 Availability:
 
-Add the personal Git Marketplace independently in ChatGPT Work web and Codex Desktop, install **Governed Engineering Skills**, then start a new chat or Codex task.
+Install **Governed Engineering Skills** in Codex from the personal Git Marketplace or in Claude Code as the `mattpocock-skills` plugin, then start a new Codex task or Claude Code session.
 
 [Source](https://github.com/mattpocock/skills/tree/main/skills/engineering/clarify-improvement-proposals)
 
@@ -22,7 +22,7 @@ and does not claim to intercept arbitrary host tools.
 
 ## When to reach for it
 
-Type `/clarify-improvement-proposals`, or Codex reaches for it when you ask how to improve, refactor, compare, or redesign something. Reach for it before implementation when the requested destination is still ambiguous.
+Type `/clarify-improvement-proposals`, or the agent reaches for it when you ask how to improve, refactor, compare, or redesign something. Reach for it before implementation when the requested destination is still ambiguous.
 
 ## Decision completeness
 
