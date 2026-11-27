@@ -1,14 +1,14 @@
 {
-  "source_commit": "63d223cece475540822fe66c9af3ff4f79e02da5",
-  "source_tag": "doc-coauthoring@0.2.0",
-  "source_tag_commit": "63d223cece475540822fe66c9af3ff4f79e02da5",
+  "source_commit": "a3eb44159ee470d0a6c29b203694b85449f83239",
+  "source_tag": "doc-coauthoring@0.2.1",
+  "source_tag_commit": "a3eb44159ee470d0a6c29b203694b85449f83239",
   "rollback": {
-    "previous_publication_commit": "9a3f1649a8b25a699c85946a0da2b3af095b3713"
+    "previous_publication_commit": "d6eb250372f6d2bf757a77b882dad9fe097da5d3"
   },
   "artifact": {
     "plugin_name": "doc-coauthoring",
-    "version": "0.2.0",
-    "production_fingerprint": "sha256:abf0d418830d6d0be538e9f2fd6d1d2fa2095b14441ce8facb261f0fabf4483c",
-    "content_fingerprint": "sha256:54c7f3679dd96f2c53498c6fc1e95aa006f04242c29837398555fde01d62f618"
+    "version": "0.2.1",
+    "production_fingerprint": "sha256:9c72fce8091ecc2ab1172f3a71e10a54894e4692d0366ba4104b093a65add509",
+    "content_fingerprint": "sha256:f953148d896277ea7977b2051ad205f58bbbd89354f40691c72292200c23685a"
   }
 }
